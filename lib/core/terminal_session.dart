@@ -2,8 +2,18 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:xterm/xterm.dart';
-import 'pty_backend.dart';
+import 'pty/pty.dart';
+import '../backends/local_backend.dart';
+import '../backends/ssh_backend.dart';
+import '../backends/android_shell_backend.dart';
+import 'package:termisol/pty.dart' as pty;
+import 'optimized_text_buffer.dart';
+import 'lazy_terminal_output.dart';
+import 'smart_auto_complete.dart';
+import 'session_persistence.dart';
+import 'crash_recovery.dart';
+import 'long_command_notifier.dart';
+import 'termisol_plugin_system.dart';
 
 /// Callback signature for AI queries intercepted from the terminal.
 ///

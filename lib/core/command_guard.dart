@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+void _log(String msg) {}
+
 class CommandGuard {
   static const String _rulesFile = '/home/house/.termisol_command_guard.json';
   static const int _maxRules = 200;

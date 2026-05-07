@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:developer' as developer;
 import 'dart:math';
+import 'package:flutter/animation.dart';
 
 class SmoothAnimations {
   static const int _maxConcurrentAnimations = 50;
@@ -380,19 +382,19 @@ class SmoothAnimations {
     }
   }
 
+  int _frameCount = 0;
+  DateTime _lastFPSUpdate = DateTime.now();
+
   void _updateFPS() {
-    // Simple FPS calculation
-    static int frameCount = 0;
-    static DateTime lastFPSUpdate = DateTime.now();
     
-    frameCount++;
+    _frameCount++;
     final now = DateTime.now();
-    final elapsed = now.difference(lastFPSUpdate).inMilliseconds;
+    final elapsed = now.difference(_lastFPSUpdate).inMilliseconds;
     
     if (elapsed >= 1000) { // Update every second
-      _currentFPS = frameCount * 1000.0 / elapsed;
-      frameCount = 0;
-      lastFPSUpdate = now;
+      _currentFPS = _frameCount * 1000.0 / elapsed;
+      _frameCount = 0;
+      _lastFPSUpdate = now;
     }
   }
 

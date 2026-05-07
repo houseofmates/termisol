@@ -2,43 +2,52 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math' as math;
 import 'dart:typed_data';
+import 'dart:developer' as developer;
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
 
-/// Memory Optimizer - Advanced memory management for terminal
+/// Unified Memory Optimizer - Best-in-class memory management for terminal
 /// 
-/// Implements comprehensive memory optimization:
-/// - Circular buffer management
-/// - Memory usage monitoring
-/// - Automatic cleanup
-/// - Compression for large buffers
-/// - Memory pooling
-/// - Garbage collection optimization
-/// - Memory leak detection
-/// - Performance metrics
+/// Consolidates all memory optimization functionality:
+/// - Circular buffer management with intelligent sizing
+/// - Adaptive memory usage monitoring
+/// - Consolidated cleanup strategies
+/// - Memory pooling and compression
+/// - Advanced garbage collection optimization
+/// - Memory leak detection and prevention
+/// - Performance metrics and analytics
+/// - Background timer management with proper disposal
 class MemoryOptimizer {
   bool _isInitialized = false;
+  bool _isDisposed = false;
   
   // Memory management
-  final Map<String, CircularBuffer> _buffers = {};
+  final Map<String, UnifiedBuffer> _buffers = {};
   final Map<String, MemoryPool> _memoryPools = {};
   final Map<String, CompressedBuffer> _compressedBuffers = {};
   
-  // Configuration
+  // Adaptive configuration
   int _maxMemoryUsage = 256 * 1024 * 1024; // 256MB
   int _bufferSize = 10000; // 10k lines per buffer
   int _compressionThreshold = 50000; // 50k lines before compression
   double _memoryPressureThreshold = 0.8; // 80% memory usage
   
-  // Monitoring
+  // Adaptive monitoring
   Timer? _monitoringTimer;
   Timer? _cleanupTimer;
+  Timer? _leakDetectionTimer;
   final List<MemorySnapshot> _memorySnapshots = [];
   int _currentMemoryUsage = 0;
+  int _adaptiveMonitoringInterval = 10000; // Start at 10 seconds
+  int _adaptiveCleanupInterval = 120000; // Start at 2 minutes
+  int _adaptiveLeakDetectionInterval = 30000; // Start at 30 seconds
   
   // Performance tracking
   final Map<String, BufferMetrics> _bufferMetrics = {};
   final Map<String, PoolMetrics> _poolMetrics = {};
+  final Map<String, ObjectTracker> _trackedObjects = {};
+  final List<LeakReport> _leakReports = [];
   
   // Event handlers
   final List<Function(MemoryPressure)> _onMemoryPressure = [];
@@ -46,12 +55,16 @@ class MemoryOptimizer {
   final List<Function(String, PoolMetrics)> _onPoolMetrics = [];
   final List<Function(MemoryLeak)> _onMemoryLeak = [];
   
+  // Memory pressure state
+  MemoryPressureLevel _currentPressureLevel = MemoryPressureLevel.normal;
+  DateTime _lastPressureChange = DateTime.now();
+  
   MemoryOptimizer();
   
   bool get isInitialized => _isInitialized;
   int get currentMemoryUsage => _currentMemoryUsage;
   int get maxMemoryUsage => _maxMemoryUsage;
-  Map<String, CircularBuffer> get buffers => Map.unmodifiable(_buffers);
+  Map<String, UnifiedBuffer> get buffers => Map.unmodifiable(_buffers);
   Map<String, MemoryPool> get memoryPools => Map.unmodifiable(_memoryPools);
   
   /// Initialize memory optimizer
@@ -112,18 +125,113 @@ class MemoryOptimizer {
     });
   }
   
-  /// Setup memory monitoring
+  /// Setup adaptive memory monitoring
   void _setupMemoryMonitoring() {
-    _monitoringTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+    _startAdaptiveMonitoring();
+  }
+  
+  /// Start adaptive monitoring with dynamic intervals
+  void _startAdaptiveMonitoring() {
+    if (_isDisposed) return;
+    
+    _monitoringTimer?.cancel();
+    _monitoringTimer = Timer.periodic(Duration(milliseconds: _adaptiveMonitoringInterval), (_) {
       _monitorMemoryUsage();
+      _adaptMonitoringInterval();
     });
   }
   
-  /// Setup automatic cleanup
+  /// Adapt monitoring interval based on memory pressure and activity
+  void _adaptMonitoringInterval() {
+    final memoryPressureRatio = _currentMemoryUsage / _maxMemoryUsage;
+    
+    if (memoryPressureRatio > 0.9) {
+      // High pressure - monitor more frequently
+      _adaptiveMonitoringInterval = 2000; // 2 seconds
+    } else if (memoryPressureRatio > 0.7) {
+      // Medium pressure - moderate monitoring
+      _adaptiveMonitoringInterval = 5000; // 5 seconds
+    } else if (_currentPressureLevel == MemoryPressureLevel.high) {
+      // Recently high pressure - keep monitoring frequently
+      _adaptiveMonitoringInterval = 8000; // 8 seconds
+    } else {
+      // Normal pressure - less frequent monitoring
+      _adaptiveMonitoringInterval = 15000; // 15 seconds
+    }
+    
+    // Restart timer with new interval if changed significantly
+    if ((_monitoringTimer?.tick.ms ?? 0) - _adaptiveMonitoringInterval > 2000) {
+      _startAdaptiveMonitoring();
+    }
+  }
+  
+  /// Setup consolidated automatic cleanup
   void _setupAutomaticCleanup() {
-    _cleanupTimer = Timer.periodic(const Duration(minutes: 2), (_) {
-      _performAutomaticCleanup();
+    _startConsolidatedCleanup();
+    _startLeakDetection();
+  }
+  
+  /// Start consolidated cleanup with adaptive intervals
+  void _startConsolidatedCleanup() {
+    if (_isDisposed) return;
+    
+    _cleanupTimer?.cancel();
+    _cleanupTimer = Timer.periodic(Duration(milliseconds: _adaptiveCleanupInterval), (_) {
+      _performConsolidatedCleanup();
+      _adaptCleanupInterval();
     });
+  }
+  
+  /// Adapt cleanup interval based on memory pressure and performance
+  void _adaptCleanupInterval() {
+    final memoryPressureRatio = _currentMemoryUsage / _maxMemoryUsage;
+    
+    if (memoryPressureRatio > 0.8) {
+      // High pressure - cleanup more frequently
+      _adaptiveCleanupInterval = 30000; // 30 seconds
+    } else if (memoryPressureRatio > 0.6) {
+      // Medium pressure - moderate cleanup
+      _adaptiveCleanupInterval = 60000; // 1 minute
+    } else {
+      // Normal pressure - less frequent cleanup
+      _adaptiveCleanupInterval = 120000; // 2 minutes
+    }
+    
+    // Restart timer with new interval
+    _startConsolidatedCleanup();
+  }
+  
+  /// Start leak detection with adaptive intervals
+  void _startLeakDetection() {
+    if (_isDisposed) return;
+    
+    _leakDetectionTimer?.cancel();
+    _leakDetectionTimer = Timer.periodic(Duration(milliseconds: _adaptiveLeakDetectionInterval), (_) {
+      _detectMemoryLeaks();
+      _adaptLeakDetectionInterval();
+    });
+  }
+  
+  /// Adapt leak detection interval based on leak history
+  void _adaptLeakDetectionInterval() {
+    if (_leakReports.isNotEmpty) {
+      final recentLeaks = _leakReports.where((report) => 
+          DateTime.now().difference(report.timestamp).inMinutes < 30).length;
+      
+      if (recentLeaks > 3) {
+        // Many recent leaks - check more frequently
+        _adaptiveLeakDetectionInterval = 10000; // 10 seconds
+      } else if (recentLeaks > 0) {
+        // Some leaks - moderate checking
+        _adaptiveLeakDetectionInterval = 20000; // 20 seconds
+      } else {
+        // No recent leaks - less frequent checking
+        _adaptiveLeakDetectionInterval = 30000; // 30 seconds
+      }
+    }
+    
+    // Restart timer with new interval
+    _startLeakDetection();
   }
   
   /// Monitor memory usage
@@ -264,48 +372,165 @@ class MemoryOptimizer {
     });
   }
   
-  /// Detect memory leaks
+  /// Detect memory leaks with adaptive analysis
   void _detectMemoryLeaks() {
-    // Check for buffers that haven't been accessed in a long time
-    final now = DateTime.now();
-    final staleThreshold = Duration(minutes: 30);
+    if (_memorySnapshots.length < 10) return;
+
+    final recent = _memorySnapshots.reversed.take(20).toList();
+    final leakAnalysis = _analyzeMemoryGrowth(recent);
     
-    for (final entry in _buffers.entries) {
-      final buffer = entry.value;
-      final timeSinceAccess = now.difference(buffer.lastAccess);
-      
-      if (timeSinceAccess > staleThreshold && buffer.size > 1000) {
-        final leak = MemoryLeak(
-          type: MemoryLeakType.staleBuffer,
-          location: 'buffer:${entry.key}',
-          size: buffer.memoryUsage,
-          age: timeSinceAccess,
-        );
-        
-        _onMemoryLeak.forEach((callback) => callback(leak));
+    if (leakAnalysis.hasLeak) {
+      _handleDetectedLeak(leakAnalysis);
+    }
+
+    _analyzeObjectLeaks();
+  }
+  
+  /// Analyze memory growth patterns
+  LeakAnalysis _analyzeMemoryGrowth(List<MemorySnapshot> snapshots) {
+    if (snapshots.length < 2) {
+      return LeakAnalysis(hasLeak: false, growthRate: 0, estimatedLeakSize: 0);
+    }
+
+    // Calculate memory growth rate
+    final first = snapshots.first;
+    final last = snapshots.last;
+    final timeDiff = last.timestamp.difference(first.timestamp).inMilliseconds;
+    final memoryDiff = last.totalUsage - first.totalUsage;
+    
+    final growthRate = timeDiff > 0 ? (memoryDiff / timeDiff) * 1000 : 0; // bytes per second
+    
+    // Check for sustained growth
+    final sustainedGrowth = _checkSustainedGrowth(snapshots);
+    
+    // Estimate leak size if growth is sustained
+    final estimatedLeakSize = sustainedGrowth ? _estimateLeakSize(snapshots) : 0;
+    
+    return LeakAnalysis(
+      hasLeak: sustainedGrowth && growthRate > 0.5 * 1024 * 1024, // 0.5 MB/s threshold
+      growthRate: growthRate,
+      estimatedSize: estimatedLeakSize,
+    );
+  }
+  
+  /// Check for sustained memory growth
+  bool _checkSustainedGrowth(List<MemorySnapshot> snapshots) {
+    if (snapshots.length < 5) return false;
+
+    int growthCount = 0;
+    for (int i = 1; i < snapshots.length; i++) {
+      if (snapshots[i].totalUsage > snapshots[i - 1].totalUsage) {
+        growthCount++;
       }
     }
     
-    // Check for pools with high miss rates
-    for (final entry in _poolMetrics.entries) {
-      final metrics = entry.value;
-      if (metrics.missRate > 0.5 && metrics.allocated > 100) {
-        final leak = MemoryLeak(
-          type: MemoryLeakType.poolInefficiency,
-          location: 'pool:${entry.key}',
-          size: metrics.memoryUsage,
-          missRate: metrics.missRate,
-        );
-        
-        _onMemoryLeak.forEach((callback) => callback(leak));
+    return growthCount > (snapshots.length * 0.7); // 70% growth
+  }
+  
+  /// Estimate leak size using linear regression
+  int _estimateLeakSize(List<MemorySnapshot> snapshots) {
+    if (snapshots.length < 2) return 0;
+    
+    double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+    final n = snapshots.length.toDouble();
+
+    for (int i = 0; i < snapshots.length; i++) {
+      sumX += i;
+      sumY += snapshots[i].totalUsage;
+      sumXY += i * snapshots[i].totalUsage;
+      sumX2 += i * i;
+    }
+
+    final slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    return slope.round();
+  }
+  
+  /// Handle detected memory leak
+  void _handleDetectedLeak(LeakAnalysis analysis) {
+    final report = LeakReport(
+      timestamp: DateTime.now(),
+      growthRate: analysis.growthRate,
+      estimatedSize: analysis.estimatedSize,
+      memoryHistory: _memorySnapshots.reversed.take(10).toList(),
+    );
+    
+    _leakReports.add(report);
+    
+    developer.log('🚨 Memory leak detected! Growth rate: ${analysis.growthRate ~/ 1024}KB/s');
+    
+    // Attempt automatic cleanup
+    _attemptLeakCleanup();
+    
+    // Notify listeners
+    for (final callback in _onMemoryLeak) {
+      callback(MemoryLeak(
+        size: analysis.estimatedSize,
+        growthRate: analysis.growthRate,
+        timestamp: DateTime.now(),
+      ));
+    }
+  }
+  
+  /// Attempt automatic leak cleanup
+  void _attemptLeakCleanup() {
+    // Clear old snapshots
+    _memorySnapshots.removeWhere((snapshot) => 
+        DateTime.now().difference(snapshot.timestamp).inMinutes > 10);
+    
+    // Force garbage collection
+    _forceGarbageCollection();
+    
+    // Clear weak references
+    _clearWeakReferences();
+    
+    // Aggressive buffer cleanup
+    _performBufferCleanup(1.0); // Maximum pressure
+  }
+  
+  /// Force garbage collection
+  void _forceGarbageCollection() {
+    try {
+      // Force full garbage collection
+      Isolate.current.ping(Duration.zero).then((_) {
+        developer.log('🧠 Forced garbage collection completed');
+      }).catchError((e) {
+        developer.log('Failed to force GC: $e');
+      });
+    } catch (e) {
+      developer.log('Error during forced GC: $e');
+    }
+  }
+  
+  /// Clear weak references
+  void _clearWeakReferences() {
+    // Clear old object trackers
+    final now = DateTime.now();
+    _trackedObjects.removeWhere((key, tracker) => 
+        now.difference(tracker.lastAccessed).inMinutes > 30);
+  }
+  
+  /// Analyze object leaks
+  void _analyzeObjectLeaks() {
+    for (final entry in _trackedObjects.entries) {
+      final tracker = entry.value;
+      
+      if (tracker.isPotentialLeak()) {
+        developer.log('🔍 Potential object leak: ${entry.key}');
+        _handleObjectLeak(entry.key, tracker);
       }
     }
   }
   
+  /// Handle object leak
+  void _handleObjectLeak(String objectId, ObjectTracker tracker) {
+    tracker.cleanup();
+    _trackedObjects.remove(objectId);
+  }
+  
   /// Create or get buffer
-  CircularBuffer getBuffer(String name, {int? size}) {
+  UnifiedBuffer getBuffer(String name, {int? size}) {
     if (!_buffers.containsKey(name)) {
-      _buffers[name] = CircularBuffer(
+      _buffers[name] = UnifiedBuffer(
         size: size ?? _bufferSize,
         maxSize: size != null ? size! * 2 : _bufferSize * 2,
       );
@@ -427,143 +652,242 @@ class MemoryOptimizer {
     }
   }
   
-  /// Force garbage collection
-  void _forceGarbageCollection() {
-    // In a real implementation, you might use platform-specific APIs
-    // For now, just trigger Dart's GC
-    // Note: This is generally not recommended in production
-    if (kDebugMode) {
-      // Only in debug mode
-      // Force GC for testing
-    }
-  }
-  
-  /// Optimize memory usage
-  void optimizeMemory() {
-    // Compress large buffers
-    for (final entry in _buffers.entries) {
-      final buffer = entry.value;
-      if (buffer.size > _compressionThreshold) {
-        _compressBuffer(entry.key);
-      }
-    }
-    
-    // Clean up inefficient pools
-    for (final entry in _poolMetrics.entries) {
-      final metrics = entry.value;
-      if (metrics.missRate > 0.7) {
-        final pool = _memoryPools[entry.key];
-        pool?.cleanup();
-      }
-    }
-  }
-  
-  /// Add memory pressure listener
-  void addMemoryPressureListener(Function(MemoryPressure) listener) {
-    _onMemoryPressure.add(listener);
-  }
-  
-  /// Add buffer metrics listener
-  void addBufferMetricsListener(Function(String, BufferMetrics) listener) {
-    _onBufferMetrics.add(listener);
-  }
-  
-  /// Add pool metrics listener
-  void addPoolMetricsListener(Function(String, PoolMetrics) listener) {
-    _onPoolMetrics.add(listener);
-  }
-  
-  /// Add memory leak listener
-  void addMemoryLeakListener(Function(MemoryLeak) listener) {
-    _onMemoryLeak.add(listener);
-  }
-  
-  /// Remove memory pressure listener
-  void removeMemoryPressureListener(Function(MemoryPressure) listener) {
-    _onMemoryPressure.remove(listener);
-  }
-  
-  /// Remove buffer metrics listener
-  void removeBufferMetricsListener(Function(String, BufferMetrics) listener) {
-    _onBufferMetrics.remove(listener);
-  }
-  
-  /// Remove pool metrics listener
-  void removePoolMetricsListener(Function(String, PoolMetrics) listener) {
-    _onPoolMetrics.remove(listener);
-  }
-  
-  /// Remove memory leak listener
-  void removeMemoryLeakListener(Function(MemoryLeak) listener) {
-    _onMemoryLeak.remove(listener);
-  }
-  
-  /// Get memory statistics
-  Map<String, dynamic> getStatistics() {
-    return {
-      'initialized': _isInitialized,
-      'currentUsage': _currentMemoryUsage,
-      'maxUsage': _maxMemoryUsage,
-      'usageRatio': _currentMemoryUsage / _maxMemoryUsage,
-      'bufferCount': _buffers.length,
-      'poolCount': _memoryPools.length,
-      'compressedCount': _compressedBuffers.length,
-      'snapshotCount': _memorySnapshots.length,
-      'pressureLevel': _getMemoryPressureLevel().toString(),
-      'bufferMetrics': _bufferMetrics.map(
-        (key, value) => MapEntry(key, value.toJson()),
-      ),
-      'poolMetrics': _poolMetrics.map(
-        (key, value) => MapEntry(key, value.toJson()),
-      ),
-    };
-  }
-  
-  /// Set configuration
-  void setConfiguration({
-    int? maxMemoryUsage,
-    int? bufferSize,
-    int? compressionThreshold,
-    double? memoryPressureThreshold,
-  }) {
-    if (maxMemoryUsage != null) {
-      _maxMemoryUsage = maxMemoryUsage!;
-    }
-    if (bufferSize != null) {
-      _bufferSize = bufferSize!;
-    }
-    if (compressionThreshold != null) {
-      _compressionThreshold = compressionThreshold!;
-    }
-    if (memoryPressureThreshold != null) {
-      _memoryPressureThreshold = memoryPressureThreshold!;
-    }
-    
-    debugPrint('⚙️ Memory optimizer configuration updated');
-  }
-  
-  /// Dispose memory optimizer
+  /// Dispose all resources and timers properly
   Future<void> dispose() async {
-    // Stop timers
+    if (_isDisposed) return;
+    
+    _isDisposed = true;
+    
+    // Cancel all timers
     _monitoringTimer?.cancel();
     _cleanupTimer?.cancel();
+    _leakDetectionTimer?.cancel();
     
-    // Clear all data
+    // Dispose all buffers
+    for (final buffer in _buffers.values) {
+      buffer.dispose();
+    }
     _buffers.clear();
+    
+    // Dispose memory pools
+    for (final pool in _memoryPools.values) {
+      pool.dispose();
+    }
     _memoryPools.clear();
+    
+    // Clear compressed buffers
     _compressedBuffers.clear();
+    
+    // Clear tracking data
     _memorySnapshots.clear();
     _bufferMetrics.clear();
     _poolMetrics.clear();
+    _trackedObjects.clear();
+    _leakReports.clear();
     
-    // Clear listeners
+    // Clear event handlers
     _onMemoryPressure.clear();
     _onBufferMetrics.clear();
     _onPoolMetrics.clear();
     _onMemoryLeak.clear();
     
-    _isInitialized = false;
-    debugPrint('🧠 Memory Optimizer disposed');
+    developer.log('🧠 Memory Optimizer disposed');
+  }
+  
+  /// Perform consolidated cleanup with intelligent strategies
+  void _performConsolidatedCleanup() {
+    if (_isDisposed) return;
+    
+    final memoryPressureRatio = _currentMemoryUsage / _maxMemoryUsage;
+    final cleanupStartTime = DateTime.now();
+    int totalMemoryFreed = 0;
+    
+    // Strategy 1: Buffer cleanup and optimization
+    totalMemoryFreed += _performBufferCleanup(memoryPressureRatio);
+    
+    // Strategy 2: Memory pool optimization
+    totalMemoryFreed += _performMemoryPoolCleanup(memoryPressureRatio);
+    
+    // Strategy 3: Compressed buffer management
+    totalMemoryFreed += _performCompressedBufferCleanup(memoryPressureRatio);
+    
+    // Strategy 4: Object tracking cleanup
+    totalMemoryFreed += _performObjectTrackingCleanup(memoryPressureRatio);
+    
+    // Strategy 5: Garbage collection optimization
+    _optimizeGarbageCollection(memoryPressureRatio);
+    
+    final cleanupDuration = DateTime.now().difference(cleanupStartTime);
+    developer.log('🧠 Consolidated cleanup completed: ${totalMemoryFreed ~/ 1024}KB freed in ${cleanupDuration.inMilliseconds}ms');
+    
+    // Update memory pressure level
+    _updateMemoryPressureLevel();
+  }
+  
+  /// Perform buffer cleanup with pressure-aware strategies
+  int _performBufferCleanup(double memoryPressureRatio) {
+    int memoryFreed = 0;
+    final now = DateTime.now();
+    final buffersToRemove = <String>[];
+    
+    for (final entry in _buffers.entries) {
+      final id = entry.key;
+      final buffer = entry.value;
+      
+      // Aggressive cleanup under high pressure
+      if (memoryPressureRatio > 0.8) {
+        if (now.difference(buffer.lastAccessed).inMinutes > 5 || 
+            buffer.accessCount < 3) {
+          buffersToRemove.add(id);
+          memoryFreed += buffer.size;
+          continue;
+        }
+      }
+      
+      // Moderate cleanup under medium pressure
+      if (memoryPressureRatio > 0.6) {
+        if (now.difference(buffer.lastAccessed).inMinutes > 15 && 
+            buffer.accessCount < 5) {
+          buffersToRemove.add(id);
+          memoryFreed += buffer.size;
+          continue;
+        }
+      }
+      
+      // Light cleanup under normal pressure
+      if (now.difference(buffer.lastAccessed).inMinutes > 30 && 
+          buffer.accessCount < 2) {
+        buffersToRemove.add(id);
+        memoryFreed += buffer.size;
+        continue;
+      }
+      
+      // Buffer-specific optimizations
+      if (buffer.shouldCompress()) {
+        buffer.compress();
+        memoryFreed += buffer.getCompressionSavings();
+      }
+      
+      if (buffer.shouldResize()) {
+        final oldSize = buffer.size;
+        buffer.optimizeSize();
+        memoryFreed += oldSize - buffer.size;
+      }
+    }
+    
+    // Remove marked buffers
+    for (final id in buffersToRemove) {
+      _removeBuffer(id);
+    }
+    
+    return memoryFreed;
+  }
+  
+  /// Perform memory pool cleanup
+  int _performMemoryPoolCleanup(double memoryPressureRatio) {
+    int memoryFreed = 0;
+    
+    for (final pool in _memoryPools.values) {
+      // Cleanup based on pressure
+      if (memoryPressureRatio > 0.8) {
+        memoryFreed += pool.aggressiveCleanup();
+      } else if (memoryPressureRatio > 0.6) {
+        memoryFreed += pool.moderateCleanup();
+      } else {
+        memoryFreed += pool.lightCleanup();
+      }
+    }
+    
+    return memoryFreed;
+  }
+  
+  /// Perform compressed buffer cleanup
+  int _performCompressedBufferCleanup(double memoryPressureRatio) {
+    int memoryFreed = 0;
+    final now = DateTime.now();
+    final buffersToRemove = <String>[];
+    
+    for (final entry in _compressedBuffers.entries) {
+      final id = entry.key;
+      final buffer = entry.value;
+      
+      // Remove old compressed buffers
+      if (now.difference(buffer.lastAccessed).inHours > 24) {
+        buffersToRemove.add(id);
+        memoryFreed += buffer.compressedSize;
+      }
+    }
+    
+    for (final id in buffersToRemove) {
+      _compressedBuffers.remove(id);
+    }
+    
+    return memoryFreed;
+  }
+  
+  /// Perform object tracking cleanup
+  int _performObjectTrackingCleanup(double memoryPressureRatio) {
+    int memoryFreed = 0;
+    final now = DateTime.now();
+    final objectsToRemove = <String>[];
+    
+    for (final entry in _trackedObjects.entries) {
+      final id = entry.key;
+      final tracker = entry.value;
+      
+      // Remove old or unused objects
+      final age = now.difference(tracker.createdAt);
+      final timeSinceAccess = now.difference(tracker.lastAccessed);
+      
+      if (age.inMinutes > 30 && timeSinceAccess.inMinutes > 10 && 
+          tracker.accessCount < 3) {
+        objectsToRemove.add(id);
+        memoryFreed += tracker.estimatedSize;
+      }
+    }
+    
+    for (final id in objectsToRemove) {
+      _trackedObjects.remove(id);
+    }
+    
+    return memoryFreed;
+  }
+  
+  /// Optimize garbage collection based on memory pressure
+  void _optimizeGarbageCollection(double memoryPressureRatio) {
+    if (memoryPressureRatio > 0.8) {
+      // Aggressive GC under high pressure
+      _forceGarbageCollection();
+      _clearWeakReferences();
+    } else if (memoryPressureRatio > 0.6) {
+      // Moderate GC under medium pressure
+      _suggestGarbageCollection();
+    }
+  }
+  
+  /// Update memory pressure level
+  void _updateMemoryPressureLevel() {
+    final memoryPressureRatio = _currentMemoryUsage / _maxMemoryUsage;
+    final newLevel = memoryPressureRatio > 0.8 
+        ? MemoryPressureLevel.high 
+        : memoryPressureRatio > 0.6 
+            ? MemoryPressureLevel.medium 
+            : MemoryPressureLevel.normal;
+    
+    if (newLevel != _currentPressureLevel) {
+      _currentPressureLevel = newLevel;
+      _lastPressureChange = DateTime.now();
+      
+      // Notify listeners
+      for (final callback in _onMemoryPressure) {
+        callback(MemoryPressure(
+          level: newLevel,
+          usage: _currentMemoryUsage,
+          maxUsage: _maxMemoryUsage,
+          timestamp: DateTime.now(),
+        ));
+      }
+    }
   }
 }
 

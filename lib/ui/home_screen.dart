@@ -29,6 +29,27 @@ import '../ui/search_overlay.dart';
 import '../ui/settings_sheet.dart';
 import '../core/terminal_pane_manager.dart' as pane_mod;
 import '../vr/advanced_vr_terminal.dart';
+import '../core/audio_alert_service.dart';
+import '../core/keyboard_macro_reader.dart' hide KeyEvent;
+import '../core/sync_services.dart';
+import '../core/docker_operations.dart';
+import '../core/integrated_debugger_nim.dart';
+import '../core/task_runner.dart';
+import '../core/configurable_hotkeys.dart';
+import '../core/smooth_animations.dart';
+import '../core/auto_backup_system.dart';
+import '../core/auto_ssh_key_management.dart' hide KeyEvent;
+import '../core/multihop_ssh.dart';
+import '../core/tunnel_management.dart';
+import '../core/ssh_connection_persistence.dart';
+import '../core/code_intelligence.dart';
+import '../core/database_client.dart';
+import '../core/session_recovery.dart';
+import '../core/command_guard.dart';
+import '../core/asciicast_recorder.dart';
+import '../ui/edit.dart';
+import '../ui/file_browser.dart';
+import '../ui/file_viewer.dart';
 
 class HomeScreen extends StatefulWidget {
   final NvidiaAITerminalAssistant aiAssistant;
@@ -53,6 +74,24 @@ class HomeScreen extends StatefulWidget {
   final NeuralProcessingSystem neuralProcessing;
   final PluginManager pluginManager;
   final pane_mod.TerminalPaneManager paneManager;
+  final AudioAlertService audioAlertService;
+  final KeyboardMacroReader keyboardMacroReader;
+  final SyncServices syncServices;
+  final DockerOperations dockerOperations;
+  final IntegratedDebugger integratedDebugger;
+  final TaskRunner taskRunner;
+  final ConfigurableHotkeys configurableHotkeys;
+  final SmoothAnimations smoothAnimations;
+  final AutoBackupSystem autoBackupSystem;
+  final AutoSSHKeyManagement autoSshKeyManagement;
+  final MultihopSSH multihopSsh;
+  final TunnelManagement tunnelManagement;
+  final SSHConnectionPersistence sshConnectionPersistence;
+  final CodeIntelligence codeIntelligence;
+  final DatabaseClient databaseClient;
+  final SessionRecovery sessionRecovery;
+  final CommandGuard commandGuard;
+  final AsciicastRecorder asciicastRecorder;
 
   const HomeScreen({
     super.key,
@@ -78,6 +117,24 @@ class HomeScreen extends StatefulWidget {
     required this.neuralProcessing,
     required this.pluginManager,
     required this.paneManager,
+    required this.audioAlertService,
+    required this.keyboardMacroReader,
+    required this.syncServices,
+    required this.dockerOperations,
+    required this.integratedDebugger,
+    required this.taskRunner,
+    required this.configurableHotkeys,
+    required this.smoothAnimations,
+    required this.autoBackupSystem,
+    required this.autoSshKeyManagement,
+    required this.multihopSsh,
+    required this.tunnelManagement,
+    required this.sshConnectionPersistence,
+    required this.codeIntelligence,
+    required this.databaseClient,
+    required this.sessionRecovery,
+    required this.commandGuard,
+    required this.asciicastRecorder,
   });
 
   @override
@@ -92,7 +149,16 @@ class _HomeScreenState extends State<HomeScreen> {
   final Map<int, bool> _searchVisible = {};
   int _activeIndex = 0;
   bool _showConnections = false;
-  bool _showFps = false;
+  bool _showFileBrowser = false;
+  bool _showDockerPanel = false;
+  bool _showDebugger = false;
+  bool _showSyncPanel = false;
+  bool _showMacroRecorder = false;
+  bool _showDatabasePanel = false;
+  bool _showGuardPanel = false;
+  bool _showViewer = false;
+  String? _viewerFilePath;
+  final FileViewer _fileViewer = FileViewer();
 
   @override
   void initState() {
@@ -101,14 +167,37 @@ class _HomeScreenState extends State<HomeScreen> {
     widget.llmPluginSystem.initialize();
     widget.pluginManager.initialize();
     widget.performanceEnforcer.addListener(_onPerformanceUpdate);
-    _createInitialSession();
+    if (widget.sessionRecovery.wasRecovered) {
+      _restoreRecoveredSession();
+    } else {
+      _createInitialSession();
+    }
+  }
+
+  void _restoreRecoveredSession() {
+    for (final tab in widget.sessionRecovery.tabs) {
+      final session = TerminalSession(id: tab.id, name: tab.name);
+      session.start();
+      session.onAiQuery = _handleAiQuery;
+      _sessions.add(session);
+      final idx = _sessions.length - 1;
+      _sessionFocusNodes[idx] = FocusNode();
+      _renameControllers[idx] = TextEditingController(text: tab.name);
+      _renaming[idx] = false;
+      _searchVisible[idx] = false;
+    }
+    if (_sessions.isNotEmpty) {
+      _activeIndex = 0;
+    }
   }
 
   void _createInitialSession() {
     final session = TerminalSession(id: '0', name: 'local');
     session.terminal.write('\r\n\x1b[32mtermisol ready.\x1b[0m\r\n\r\n');
-    session.terminal.write('\x1b[2mtype /ai <query> for AI assistance\x1b[0m\r\n\r\n');
+    session.terminal.write('\x1b[2mtype /ai <query> for AI assistance\x1b[0m\r\n');
+    session.terminal.write('\x1b[2mtype edit <filename> to open editor\x1b[0m\r\n\r\n');
     session.onAiQuery = _handleAiQuery;
+    session.onEditCommand = _handleEditCommand;
     session.start();
 
     _sessions.add(session);
@@ -128,12 +217,58 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _onPerformanceUpdate() {
-    if (mounted) setState(() {});
+  Future<void> _handleEditCommand(String filename) async {
+    try {
+      // Get the current working directory from the active session
+      final activeSession = _sessions[_activeIndex];
+      final workingDirectory = Directory.current.path;
+      
+      // Construct full file path
+      String fullPath;
+      if (filename.startsWith('/')) {
+        fullPath = filename;
+      } else if (filename.startsWith('~')) {
+        fullPath = filename.replaceFirst('~', Platform.environment['HOME'] ?? '');
+      } else {
+        fullPath = '$workingDirectory/$filename';
+      }
+      
+      // Read file content if it exists
+      String fileContent = '';
+      final file = File(fullPath);
+      if (await file.exists()) {
+        fileContent = await file.readAsString();
+      }
+      
+      // Show the edit terminal
+      await showDialog(
+        context: context,
+        builder: (context) => Dialog(
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.9,
+            height: MediaQuery.of(context).size.height * 0.8,
+            child: EditTerminal(
+              filePath: fullPath,
+              initialContent: fileContent,
+              onSave: (content) async {
+                await file.writeAsString(content);
+                // Show success message in terminal
+                activeSession.terminal.write('\r\n\x1b[32m[EDIT] Saved: $fullPath\x1b[0m\r\n');
+              },
+              readOnly: false,
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      // Show error in terminal
+      final activeSession = _sessions[_activeIndex];
+      activeSession.terminal.write('\r\n\x1b[31m[EDIT] Error: $e\x1b[0m\r\n');
+    }
   }
 
-  void _toggleFps() {
-    setState(() => _showFps = !_showFps);
+  void _onPerformanceUpdate() {
+    if (mounted) setState(() {});
   }
 
   void _addLocalSession() {
@@ -141,6 +276,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final idx = _sessions.length;
     final session = TerminalSession(id: id, name: 'local-$idx');
     session.onAiQuery = _handleAiQuery;
+    session.onEditCommand = _handleEditCommand;
     session.start();
 
     setState(() {
@@ -454,6 +590,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _toggleAsciicastRecording() {
+    widget.asciicastRecorder.toggleRecording();
+    setState(() {});
+  }
+
   void _openSearch() {
     if (_sessions.isEmpty) return;
     setState(() => _searchVisible[_activeIndex] = true);
@@ -463,7 +604,7 @@ class _HomeScreenState extends State<HomeScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => const SettingsSheet(),
+      builder: (_) => SettingsSheet(performanceEnforcer: widget.performanceEnforcer),
     );
   }
 
@@ -502,6 +643,9 @@ class _HomeScreenState extends State<HomeScreen> {
             return KeyEventResult.handled;
           case LogicalKeyboardKey.comma:
             _openSettings();
+            return KeyEventResult.handled;
+          case LogicalKeyboardKey.keyP:
+            _toggleAsciicastRecording();
             return KeyEventResult.handled;
           case LogicalKeyboardKey.altLeft:
           case LogicalKeyboardKey.altRight:
@@ -549,12 +693,44 @@ class _HomeScreenState extends State<HomeScreen> {
                   });
                 },
               )
-            : Column(
+            : Row(
                 children: [
-                  _buildToolbar(),
-                  _buildTabBar(),
-                  _buildTerminalArea(),
-                  if (_showFps) _buildFpsOverlay(),
+                  if (_showFileBrowser)
+                    FileBrowser(
+                      rootPath: '/home/house',
+                      onFileSelected: (path) {
+                        if (_sessions.isNotEmpty) {
+                          _sessions[_activeIndex].terminal.write('$path ');
+                        }
+                      },
+                    ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        _buildToolbar(),
+                        _buildTabBar(),
+                        _buildTerminalArea(),
+                      ],
+                    ),
+                  ),
+                  if (_showDockerPanel) _buildDockerPanel(),
+                  if (_showDebugger) _buildDebuggerPanel(),
+                  if (_showSyncPanel) _buildSyncPanel(),
+                  if (_showMacroRecorder) _buildMacroPanel(),
+                  if (_showDatabasePanel) _buildDatabasePanel(),
+                  if (_showGuardPanel) _buildGuardPanel(),
+                  if (_showViewer && _viewerFilePath != null)
+                    FutureBuilder<FileViewResult>(
+                      future: _fileViewer.openFile(_viewerFilePath!),
+                      builder: (ctx, snap) {
+                        if (!snap.hasData) return const SizedBox();
+                        return Container(
+                          width: 500,
+                          color: const Color(0xFF0a0a0a),
+                          child: FileViewerWidget(result: snap.data!),
+                        );
+                      },
+                    ),
                 ],
               ),
       ),
@@ -591,15 +767,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const Spacer(),
-          Text(
-            '\x24{widget.performanceEnforcer.currentFps.toStringAsFixed(1)} fps',
-            style: TextStyle(
-              color: PkmTheme.primary.withOpacity(0.7),
-              fontSize: 10,
-              fontFamily: PkmTheme.fontTerminal,
-            ),
-          ),
-          const SizedBox(width: 8),
           IconButton(
             onPressed: _toggleDictation,
             icon: Icon(
@@ -622,19 +789,62 @@ class _HomeScreenState extends State<HomeScreen> {
             tooltip: 'Search (Ctrl+F)',
           ),
           IconButton(
-            onPressed: _toggleFps,
-            icon: Icon(
-              _showFps ? Icons.speed : Icons.speed_outlined,
-              size: 16,
-            ),
-            color: _showFps ? Colors.red : PkmTheme.primary,
-            tooltip: 'Toggle FPS',
-          ),
-          IconButton(
             onPressed: _openSettings,
             icon: const Icon(Icons.settings, size: 16),
             color: PkmTheme.primary,
             tooltip: 'Settings (Ctrl+,)',
+          ),
+          const SizedBox(width: 4),
+          IconButton(
+            onPressed: () => setState(() => _showFileBrowser = !_showFileBrowser),
+            icon: const Icon(Icons.folder_open, size: 16),
+            color: _showFileBrowser ? PkmTheme.primary : PkmTheme.primary.withOpacity(0.5),
+            tooltip: 'File Browser',
+          ),
+          IconButton(
+            onPressed: () => setState(() => _showDockerPanel = !_showDockerPanel),
+            icon: const Icon(Icons.dock, size: 16),
+            color: _showDockerPanel ? PkmTheme.primary : PkmTheme.primary.withOpacity(0.5),
+            tooltip: 'Docker Manager',
+          ),
+          IconButton(
+            onPressed: () => setState(() => _showDebugger = !_showDebugger),
+            icon: const Icon(Icons.bug_report, size: 16),
+            color: _showDebugger ? PkmTheme.primary : PkmTheme.primary.withOpacity(0.5),
+            tooltip: 'Debugger',
+          ),
+          IconButton(
+            onPressed: () => setState(() => _showSyncPanel = !_showSyncPanel),
+            icon: const Icon(Icons.sync, size: 16),
+            color: _showSyncPanel ? PkmTheme.primary : PkmTheme.primary.withOpacity(0.5),
+            tooltip: 'Sync Services',
+          ),
+          IconButton(
+            onPressed: () => setState(() => _showMacroRecorder = !_showMacroRecorder),
+            icon: const Icon(Icons.keyboard, size: 16),
+            color: _showMacroRecorder ? PkmTheme.primary : PkmTheme.primary.withOpacity(0.5),
+            tooltip: 'Macro Recorder',
+          ),
+          IconButton(
+            onPressed: () => setState(() => _showDatabasePanel = !_showDatabasePanel),
+            icon: const Icon(Icons.storage, size: 16),
+            color: _showDatabasePanel ? PkmTheme.primary : PkmTheme.primary.withOpacity(0.5),
+            tooltip: 'Database Client',
+          ),
+          IconButton(
+            onPressed: () => setState(() => _showGuardPanel = !_showGuardPanel),
+            icon: const Icon(Icons.security, size: 16),
+            color: _showGuardPanel ? PkmTheme.primary : PkmTheme.primary.withOpacity(0.5),
+            tooltip: 'Command Guard',
+          ),
+          IconButton(
+            onPressed: () => _toggleAsciicastRecording(),
+            icon: Icon(
+              widget.asciicastRecorder.isRecording ? Icons.stop : Icons.videocam,
+              size: 16,
+            ),
+            color: widget.asciicastRecorder.isRecording ? Colors.red : PkmTheme.primary,
+            tooltip: 'Record Session (Ctrl+P)',
           ),
         ],
       ),
@@ -848,30 +1058,259 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildFpsOverlay() {
+  Widget _buildDockerPanel() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.85),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+      width: 320,
+      color: const Color(0xFF0a0a0a),
+      child: Column(
         children: [
-          Text(
-            'FPS: \x24{widget.performanceEnforcer.currentFps.toStringAsFixed(1)}',
-            style: TextStyle(
-              color: Colors.greenAccent,
-              fontFamily: PkmTheme.fontTerminal,
-              fontSize: 10,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: Color(0xFF1a1a1a), width: 1)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.dock, size: 14, color: Color(0xFF7CB9FF)),
+                const SizedBox(width: 8),
+                const Text('docker manager',
+                  style: TextStyle(color: Color(0xFF999999), fontSize: 11, fontWeight: FontWeight.w600)),
+                const Spacer(),
+                InkWell(
+                  onTap: () => setState(() => _showDockerPanel = false),
+                  child: const Icon(Icons.close, size: 14, color: Color(0xFF666666)),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(10),
+              children: [
+                _dockerStatusRow('host', '192.168.4.233'),
+                _dockerStatusRow('status', widget.dockerOperations.isConnected ? 'connected' : 'disconnected'),
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7CB9FF), foregroundColor: Colors.black),
+                  onPressed: () {
+                    widget.dockerOperations.connect(username: 'house', passwordOrKey: '');
+                  },
+                  icon: const Icon(Icons.link, size: 14),
+                  label: const Text('connect to .233', style: TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                ),
+                const SizedBox(height: 6),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1a1a1a), foregroundColor: const Color(0xFF999999)),
+                  onPressed: () {},
+                  icon: const Icon(Icons.list, size: 14),
+                  label: const Text('list containers', style: TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dockerStatusRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Text(label, style: const TextStyle(color: Color(0xFF666666), fontSize: 10)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(value, style: const TextStyle(color: Color(0xFF999999), fontSize: 10, fontFamily: 'monospace')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDebuggerPanel() {
+    return Container(
+      width: 320,
+      color: const Color(0xFF0a0a0a),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: Color(0xFF1a1a1a), width: 1)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.bug_report, size: 14, color: Color(0xFF7CB9FF)),
+                const SizedBox(width: 8),
+                const Text('debugger',
+                  style: TextStyle(color: Color(0xFF999999), fontSize: 11, fontWeight: FontWeight.w600)),
+                const Spacer(),
+                InkWell(
+                  onTap: () => setState(() => _showDebugger = false),
+                  child: const Icon(Icons.close, size: 14, color: Color(0xFF666666)),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: Text('session ready\ndeepseek-v4-pro analyzer',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: PkmTheme.secondary.withOpacity(0.5), fontSize: 11),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSyncPanel() {
+    return Container(
+      width: 320,
+      color: const Color(0xFF0a0a0a),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: Color(0xFF1a1a1a), width: 1)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.sync, size: 14, color: Color(0xFF7CB9FF)),
+                const SizedBox(width: 8),
+                const Text('sync services',
+                  style: TextStyle(color: Color(0xFF999999), fontSize: 11, fontWeight: FontWeight.w600)),
+                const Spacer(),
+                InkWell(
+                  onTap: () => setState(() => _showSyncPanel = false),
+                  child: const Icon(Icons.close, size: 14, color: Color(0xFF666666)),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(10),
+              children: [
+                _syncServiceRow('github', 'syncing to GitHub remote', 'active'),
+                _syncServiceRow('n8n', 'workflow automation sync', 'idle'),
+                _syncServiceRow('devices', 'ubuntu + pixel 10 pro + quest 2', 'connected'),
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7CB9FF), foregroundColor: Colors.black),
+                  onPressed: () {},
+                  icon: const Icon(Icons.cloud_sync, size: 14),
+                  label: const Text('sync now', style: TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _syncServiceRow(String name, String desc, String status) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 8, height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: status == 'active' ? Colors.green : const Color(0xFF666666),
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            'Frame: \x24{widget.performanceEnforcer.currentFrameTime.toStringAsFixed(1)}ms',
-            style: TextStyle(
-              color: PkmTheme.secondary,
-              fontFamily: PkmTheme.fontTerminal,
-              fontSize: 10,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(name, style: const TextStyle(color: Color(0xFF999999), fontSize: 10)),
+              Text(desc, style: const TextStyle(color: Color(0xFF666666), fontSize: 9)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMacroPanel() {
+    return Container(
+      width: 280,
+      color: const Color(0xFF0a0a0a),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: Color(0xFF1a1a1a), width: 1)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.keyboard, size: 14, color: Color(0xFF7CB9FF)),
+                const SizedBox(width: 8),
+                const Text('macros',
+                  style: TextStyle(color: Color(0xFF999999), fontSize: 11, fontWeight: FontWeight.w600)),
+                const Spacer(),
+                InkWell(
+                  onTap: () => setState(() => _showMacroRecorder = false),
+                  child: const Icon(Icons.close, size: 14, color: Color(0xFF666666)),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(10),
+              children: [
+                if (widget.keyboardMacroReader.macros.isEmpty)
+                  const Center(
+                    child: Text('no macros recorded',
+                      style: TextStyle(color: Color(0xFF666666), fontSize: 10)),
+                  )
+                else
+                  ...widget.keyboardMacroReader.macros.map((m) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.play_arrow, size: 12, color: Color(0xFF666666)),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(m.name, style: const TextStyle(color: Color(0xFF999999), fontSize: 10)),
+                        ),
+                        Text('${m.keyCount}k', style: const TextStyle(color: Color(0xFF666666), fontSize: 9)),
+                      ],
+                    ),
+                  )),
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: widget.keyboardMacroReader.isRecording ? Colors.red : const Color(0xFF7CB9FF),
+                    foregroundColor: Colors.black,
+                  ),
+                  onPressed: () {
+                    if (widget.keyboardMacroReader.isRecording) {
+                      widget.keyboardMacroReader.cancelRecording();
+                      setState(() {});
+                    } else {
+                      widget.keyboardMacroReader.startRecording('macro_${DateTime.now().millisecond}');
+                      setState(() {});
+                    }
+                  },
+                  icon: Icon(
+                    widget.keyboardMacroReader.isRecording ? Icons.stop : Icons.fiber_manual_record,
+                    size: 14,
+                  ),
+                  label: Text(
+                    widget.keyboardMacroReader.isRecording ? 'stop recording' : 'record macro',
+                    style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

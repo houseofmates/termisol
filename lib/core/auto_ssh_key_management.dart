@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:convert';
+import 'dart:typed_data';
 
 class AutoSSHKeyManagement {
   static const String _defaultKeyPath = '/home/house/.ssh/hermes_key';
@@ -39,7 +40,7 @@ class AutoSSHKeyManagement {
     final sshDir = Directory('/home/house/.ssh');
     if (!sshDir.existsSync()) {
       sshDir.createSync(recursive: true);
-      sshDir.setPermissionsSync(0o700);
+      Process.runSync('chmod', ['700', '/home/house/.ssh']);
     }
   }
 
@@ -249,8 +250,8 @@ class AutoSSHKeyManagement {
       _totalKeys++;
       
       // Set proper permissions
-      await File(privateKeyPath).setPermissions(0o600);
-      await File(publicKeyPath).setPermissions(0o644);
+      await Process.run('chmod', ['600', privateKeyPath]);
+      await Process.run('chmod', ['644', publicKeyPath]);
       
       developer.log('🔑 Generated SSH key: $name ($type)');
       
@@ -507,7 +508,7 @@ class AutoSSHKeyManagement {
         'ssh',
         '-p', deployment.port.toString(),
         '${deployment.username}@${deployment.host}',
-        'sed -i "/$(ssh-keygen -lf ${deployment.keyId})/d" ~/.ssh/authorized_keys',
+        'sed -i "/\$(ssh-keygen -lf ${deployment.keyId})/d" ~/.ssh/authorized_keys',
       ];
       
       final process = await Process.start('ssh', args);
@@ -849,8 +850,8 @@ class AutoSSHKeyManagement {
     // Simple fingerprint generation
     // In practice, this would use ssh-keygen -lf
     final bytes = utf8.encode(publicKey);
-    final digest = md5.convert(bytes);
-    return digest.bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':');
+    final digest = base64Encode(bytes);
+    return digest.substring(0, digest.length.clamp(0, 32));
   }
 
   String _generateKeyId() {
@@ -905,9 +906,6 @@ class AutoSSHKeyManagement {
     developer.log('🔑 Auto SSH Key Management disposed');
   }
 }
-
-// MD5 hash implementation for fingerprint generation
-import 'dart:typed_data';
 
 class MD5 {
   static Hash convert(List<int> input) {

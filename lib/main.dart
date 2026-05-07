@@ -47,6 +47,10 @@ import 'core/multihop_ssh.dart';
 import 'core/tunnel_management.dart';
 import 'core/ssh_connection_persistence.dart';
 import 'core/code_intelligence.dart';
+import 'core/database_client.dart';
+import 'core/session_recovery.dart';
+import 'core/command_guard.dart';
+import 'core/asciicast_recorder.dart';
 
 /// entry point for termisol with production optimizations.
 void main() async {
@@ -191,18 +195,31 @@ void main() async {
   await Future.wait([
     audioAlertService.initialize(),
     keyboardMacroReader.initialize(),
-    integratedDebugger.initialize(),
-    taskRunner.initialize(),
-    configurableHotkeys.initialize(),
-    smoothAnimations.initialize(),
-    autoBackupSystem.initialize(),
-    autoSshKeyManagement.initialize(),
-    multihopSsh.initialize(),
-    tunnelManagement.initialize(),
-    sshConnectionPersistence.initialize(),
-    codeIntelligence.initialize(),
   ]);
+
+  integratedDebugger.initialize();
+  taskRunner.initialize();
+  configurableHotkeys.initialize();
+  smoothAnimations.initialize();
+  autoBackupSystem.initialize();
+  autoSshKeyManagement.initialize();
+  multihopSsh.initialize();
+  tunnelManagement.initialize();
+  sshConnectionPersistence.initialize();
+  codeIntelligence.initialize();
   syncServices.initialize();
+
+  final databaseClient = DatabaseClient();
+  final sessionRecovery = SessionRecovery();
+  final commandGuard = CommandGuard();
+  final asciicastRecorder = AsciicastRecorder();
+
+  await Future.wait([
+    databaseClient.initialize(),
+    sessionRecovery.initialize(),
+    commandGuard.initialize(),
+    asciicastRecorder.initialize(),
+  ]);
 
   runApp(TermisolApp(
     aiAssistant: nvidiaAIAssistant,
@@ -228,5 +245,24 @@ void main() async {
     neuralProcessing: neuralProcessing,
     paneManager: paneManager,
     pluginManager: pluginManager,
+    // Newly integrated services
+    audioAlertService: audioAlertService,
+    keyboardMacroReader: keyboardMacroReader,
+    syncServices: syncServices,
+    dockerOperations: dockerOperations,
+    integratedDebugger: integratedDebugger,
+    taskRunner: taskRunner,
+    configurableHotkeys: configurableHotkeys,
+    smoothAnimations: smoothAnimations,
+    autoBackupSystem: autoBackupSystem,
+    autoSshKeyManagement: autoSshKeyManagement,
+    multihopSsh: multihopSsh,
+    tunnelManagement: tunnelManagement,
+    sshConnectionPersistence: sshConnectionPersistence,
+    codeIntelligence: codeIntelligence,
+    databaseClient: databaseClient,
+    sessionRecovery: sessionRecovery,
+    commandGuard: commandGuard,
+    asciicastRecorder: asciicastRecorder,
   ));
 }

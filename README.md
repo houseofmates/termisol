@@ -1,4 +1,4 @@
-# Termisol
+# termisol
 
 A next-generation terminal emulator that redefines how you interact with the command line. Built with Flutter for cross-platform excellence, Termisol combines the power of traditional terminals with modern AI assistance, multimedia capabilities, and stunning visual design.
 
@@ -6,117 +6,111 @@ A next-generation terminal emulator that redefines how you interact with the com
 
 ## ✨ Why Termisol?
 
-Termisol isn't just another terminal emulator—it's a complete command-line workspace designed for modern developers, system administrators, and power users who demand more from their terminal experience.
+Termisol is a complete command-line workspace designed for modern developers, system administrators, and power users who demand more from their terminal experience.
 
-**What makes Termisol different:**
-- **AI-Powered Assistance**: Natural language command translation and intelligent error recovery
-- **Multimedia Integration**: View images, play videos, and visualize audio directly in your terminal
-- **3D Model Viewing**: Inspect 3D models without leaving your workflow
-- **Smart File Management**: Built-in file browser with editing preview
-- **Performance Optimized**: Sub-16ms rendering with GPU acceleration
-- **Cross-Platform**: Linux desktop, Android mobile, and VR support
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-## 🚀 Core Features
-
-### Terminal Excellence
-- **Full xterm-256color emulation** with complete VT100/VT220 compatibility
-- **High-performance rendering** with GPU acceleration and sub-16ms frame times
-- **Intelligent scrollback buffer** supporting up to 100,000 lines with semantic search
-- **Advanced text selection** with keyboard and mouse support
-- **Bracketed paste mode** preventing accidental command execution
-- **Configurable cursor styles** with customizable blink rates
-
-### Tab Management & Workspace
-- **Dynamic tab system** with live previews and session persistence
-- **Smart tab grouping** for organizing related terminal sessions
-- **Tab-specific working directories** and shell configurations
-- **Quick switch navigation** with keyboard shortcuts and visual indicators
-- **Session synchronization** across devices and platforms
-
-### Search & Navigation
-- **Real-time incremental search** with regex support
-- **Semantic command history** that understands what you're looking for
-- **Smart filtering** by command type, directory, or time period
-- **Quick jump navigation** to any line or command instantly
+**what makes termisol different:**
+- **AI-powered assistance**: natural language command translation and intelligent error recovery
+- **multimedia integration**: view images, play videos, and visualize audio directly in your terminal
+- **3D model viewing**: inspect 3D models without leaving your workflow
+- **smart file management**: built-in file browser with editing preview
+- **performance optimized**: sub-16ms rendering with GPU acceleration
+- **cross-platform**: linux desktop, android mobile, and VR support
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-## 🤖 AI Integration
+## 🚀 core features
 
-Termisol features cutting-edge AI assistance that makes the command line accessible to everyone:
+### terminal excellence
+- **full xterm-256color emulation** with complete VT100/VT220 compatibility
+- **high-performance rendering** with GPU acceleration and sub-16ms frame times
+- **intelligent scrollback buffer** supporting up to 100,000 lines with semantic search
+- **advanced text selection** with keyboard and mouse support
+- **bracketed paste mode** preventing accidental command execution
+- **configurable cursor styles** with customizable blink rates
 
-### Natural Language Processing
-- **Command Translation**: Type "show me all running processes" and get `ps aux`
-- **Intent Recognition**: Understands what you want to do, not just what you type
-- **Contextual Suggestions**: Learns your workflow and predicts your next commands
-- **Error Analysis**: Explains command failures in plain English and suggests fixes
+### tab management & workspace
+- **dynamic tab system** with live previews and session persistence
+- **smart tab grouping** for organizing related terminal sessions
+- **tab-specific working directories** and shell configurations
+- **quick switch navigation** with keyboard shortcuts and visual indicators
+- **session synchronization** across devices and platforms
 
-### Smart Features
-- **Code Explanation**: Hover over any code snippet for instant AI-powered explanations
-- **Performance Optimization**: Analyzes your commands and suggests faster alternatives
-- **Security Monitoring**: Warns about potentially dangerous commands before execution
-- **Learning Mode**: Interactive tutorials that adapt to your skill level
-
-**AI Providers:**
-- NVIDIA NIM integration with local fallback
-- OpenAI API support
-- Local LLM compatibility (Ollama, LM Studio)
-- Custom endpoint configuration
+### search & navigation
+- **real-time incremental search** with regex support
+- **semantic command history** that understands what you're looking for
+- **smart filtering** by command type, directory, or time period
+- **quick jump navigation** to any line or command instantly
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-## 🎬 Multimedia Capabilities
+## 🤖 AI integration
 
-### Image Viewer
-- **Comprehensive format support**: JPEG, PNG, WebP, AVIF, HEIC, TIFF, SVG
-- **Interactive viewing**: Zoom, pan, rotate with smooth animations
-- **Batch operations**: View multiple images in a gallery format
-- **Metadata display**: EXIF data and image information on demand
+termisol features cutting-edge AI assistance that makes the command line accessible to everyone:
 
-### Video Player
-- **Inline video playback** with full controls (play, pause, seek, volume)
-- **Format support**: MP4, WebM, AVI, MKV, MOV
-- **Subtitle rendering** with customizable styling
-- **Picture-in-picture mode** for multitasking
+### natural language Processing
+- **command translation**: type "show me all running processes" and get `ps aux`
+- **intent recognition**: understands what you want to do, not just what you type
+- **contextual suggestions**: learns your workflow and predicts your next commands
+- **error analysis**: explains command failures in plain English and suggests fixes
 
-### Audio Visualizer
-- **Real-time audio visualization** with multiple visualization types
-- **Spectrum analyzer**, waveform display, and frequency bars
-- **Support for common audio formats**: MP3, WAV, FLAC, OGG
-- **Interactive controls** for playback and visualization settings
+### Ssmart features
+- **code explanation**: hover over any code snippet for instant AI-powered explanations
+- **performance optimization**: analyzes your commands and suggests faster alternatives
+- **security monitoring**: warns about potentially dangerous commands before execution
+- **learning m**: interactive tutorials that adapt to your skill level
 
-### 3D Model Viewer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+## 🎬 multimedia capabilities
+
+### image viewer
+- **comprehensive format support**: JPEG, PNG, WebP, AVIF, HEIC, TIFF, SVG
+- **Iinteractive viewing**: zoom, pan, rotate with smooth animations
+- **batch operations**: view multiple images in a gallery format
+- **metadata display**: EXIF data and image information on demand
+
+### video player
+- **inline video playback** with full controls (play, pause, seek, volume)
+- **format support**: MP4, WebM, AVI, MKV, MOV
+- **subtitle rendering** with customizable styling
+- **picture-in-picture mode** for multitasking
+
+### audio visualizer
+- **real-time audio visualization** with multiple visualization types
+- **spectrum analyzer**, waveform display, and frequency bars
+- **support for common audio formats**: MP3, WAV, FLAC, OGG
+- **interactive controls** for playback and visualization settings
+
+### 3D model viewer
 - **3D model inspection** directly in the terminal
-- **Format support**: OBJ, STL, GLTF, PLY
-- **Interactive controls**: Rotate, zoom, pan with mouse/touch
-- **Wireframe and solid rendering modes**
+- **format support**: OBJ, STL, GLTF, PLY
+- **interactive controls**: rotate, zoom, pan with mouse/touch
+- **wireframe and solid rendering modes**
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-## 🛠️ Development Tools
+## 🛠️ development Tools
 
-### Integrated File Manager
-- **Dual-pane interface** with drag-and-drop support
-- **Editing preview** with syntax highlighting for 200+ languages
-- **Batch operations**: Copy, move, delete, rename with undo support
-- **File type detection** and appropriate application launching
+### integrated file manager
+- **dual-pane interface** with drag-and-drop support
+- **editing preview** with syntax highlighting for 200+ languages
+- **batch operations**: copy, move, delete, rename with undo support
+- *file type detection** and appropriate application launching
 
-### Git Integration
-- **Visual Git operations**: Commit, push, pull with GUI feedback
-- **Branch management** with merge conflict resolution
-- **Commit history visualization** with diff viewing
-- **Staging area management** with selective commits
+### git integration
+- **visual git operations**: commit, push, pull with GUI feedback
+- **branch management** with merge conflict resolution
+- **commit history visualization** with diff viewing
+- **staging area management** with selective commits
 
-### Docker Support
-- **Container management** directly from the terminal
-- **Image browsing** and layer inspection
-- **Log viewing** with real-time updates
-- **Resource monitoring** for running containers
+### docker support
+- **container management** directly from the terminal
+- **image browsing** and layer inspection
+- **log viewing** with real-time updates
+- **resource monitoring** for running containers
 
-### Database Client
-- **Multi-database support**: PostgreSQL, MySQL, SQLite, Redis
+### database client
+- **multi-database support**: PostgreSQL, MySQL, SQLite, Redis
 - **Query editor** with syntax highlighting and auto-completion
 - **Result visualization** with export options
 - **Connection management** with saved profiles

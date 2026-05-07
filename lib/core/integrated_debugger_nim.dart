@@ -526,7 +526,7 @@ class IntegratedDebugger {
     developer.log('🐛 Continue debugging in session: $sessionId');
     
     _emitEvent(DebugEvent(
-      type: DebugEventType.continue,
+      type: DebugEventType.shouldContinue,
       sessionId: sessionId,
     ));
   }
@@ -885,7 +885,7 @@ enum DebugEventType {
   breakpointRemoved,
   breakpointToggled,
   step,
-  continue,
+  shouldContinue,
 }
 
 enum IssueType {

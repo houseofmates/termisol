@@ -353,7 +353,7 @@ class _FileBrowserState extends State<FileBrowser> {
     for (int i = 0; i < parts.length; i++) {
       spans.add(TextSpan(
         text: '/',
-        style: TextStyle(color: PkmTheme.border, fontSize: 11),
+        style: TextStyle(color: const Color(0xFF2a2a2a), fontSize: 11),
       ));
       accumulated += (accumulated.isEmpty ? '' : '/') + parts[i];
 

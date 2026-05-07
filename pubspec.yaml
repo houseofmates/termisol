@@ -24,9 +24,11 @@ dependencies:
   window_manager: ^0.3.7
   url_launcher: ^6.2.1
   permission_handler: ^11.0.1
-  speech_to_text: ^7.0.0
   collection: ^1.18.0
   google_fonts: ^6.2.1
+  flutter_highlight: ^0.7.0
+  path: ^1.8.3
+  process_run: ^0.14.2
   # file_picker: ^5.0.1
   pty:
     path: packages/pty

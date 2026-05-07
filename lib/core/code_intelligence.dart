@@ -52,7 +52,7 @@ class CodeIntelligence {
         ),
         CodePattern(
           type: PatternType.importStatement,
-          regex: r'import\s+[\'"]([^\'"]+)[\'"]',
+          regex: r'import\s+[\x27"]([^\x27"]+)[\x27"]',
           description: 'Import statement',
         ),
       ],
@@ -104,7 +104,7 @@ class CodeIntelligence {
         ),
         CodePattern(
           type: PatternType.importStatement,
-          regex: r'import\s+\{[^}]+\}\s+from\s+[\'"]([^\'"]+)[\'"]',
+          regex: r'import\s+\{[^}]+\}\s+from\s+[\x27"]([^\x27"]+)[\x27"]',
           description: 'Import statement',
         ),
       ],
@@ -123,7 +123,7 @@ class CodeIntelligence {
       ),
       CodePattern(
         type: PatternType.stringLiteral,
-        regex: r'["\']([^"\'\\]*(\\.[^"\'\\]*)*)["\']',
+        regex: r'["\x27]([^"\x27\\]*(\\.[^"\x27\\]*)*)["\x27]',
         description: 'String literal',
       ),
       CodePattern(

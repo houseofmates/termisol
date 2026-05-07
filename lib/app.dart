@@ -25,6 +25,24 @@ import 'core/github_integration.dart';
 import 'core/neural_processing.dart';
 import 'core/terminal_pane_manager.dart';
 import 'core/plugin_ecosystem.dart';
+import 'core/audio_alert_service.dart';
+import 'core/keyboard_macro_reader.dart';
+import 'core/sync_services.dart';
+import 'core/docker_operations.dart';
+import 'core/integrated_debugger_nim.dart';
+import 'core/task_runner.dart';
+import 'core/configurable_hotkeys.dart';
+import 'core/smooth_animations.dart';
+import 'core/auto_backup_system.dart';
+import 'core/auto_ssh_key_management.dart';
+import 'core/multihop_ssh.dart';
+import 'core/tunnel_management.dart';
+import 'core/ssh_connection_persistence.dart';
+import 'core/code_intelligence.dart';
+import 'core/database_client.dart';
+import 'core/session_recovery.dart';
+import 'core/command_guard.dart';
+import 'core/asciicast_recorder.dart';
 
 /// root application widget for termisol with production optimizations and advanced features.
 class TermisolApp extends StatelessWidget {
@@ -51,6 +69,24 @@ class TermisolApp extends StatelessWidget {
   final NeuralProcessingSystem neuralProcessing;
   final TerminalPaneManager paneManager;
   final PluginManager pluginManager;
+  final AudioAlertService audioAlertService;
+  final KeyboardMacroReader keyboardMacroReader;
+  final SyncServices syncServices;
+  final DockerOperations dockerOperations;
+  final IntegratedDebugger integratedDebugger;
+  final TaskRunner taskRunner;
+  final ConfigurableHotkeys configurableHotkeys;
+  final SmoothAnimations smoothAnimations;
+  final AutoBackupSystem autoBackupSystem;
+  final AutoSSHKeyManagement autoSshKeyManagement;
+  final MultihopSSH multihopSsh;
+  final TunnelManagement tunnelManagement;
+  final SSHConnectionPersistence sshConnectionPersistence;
+  final CodeIntelligence codeIntelligence;
+  final DatabaseClient databaseClient;
+  final SessionRecovery sessionRecovery;
+  final CommandGuard commandGuard;
+  final AsciicastRecorder asciicastRecorder;
 
   const TermisolApp({
     super.key,
@@ -77,6 +113,24 @@ class TermisolApp extends StatelessWidget {
     required this.neuralProcessing,
     required this.paneManager,
     required this.pluginManager,
+    required this.audioAlertService,
+    required this.keyboardMacroReader,
+    required this.syncServices,
+    required this.dockerOperations,
+    required this.integratedDebugger,
+    required this.taskRunner,
+    required this.configurableHotkeys,
+    required this.smoothAnimations,
+    required this.autoBackupSystem,
+    required this.autoSshKeyManagement,
+    required this.multihopSsh,
+    required this.tunnelManagement,
+    required this.sshConnectionPersistence,
+    required this.codeIntelligence,
+    required this.databaseClient,
+    required this.sessionRecovery,
+    required this.commandGuard,
+    required this.asciicastRecorder,
   });
 
   @override
@@ -126,9 +180,27 @@ class TermisolApp extends StatelessWidget {
         advancedVRTerminal: advancedVRTerminal,
         githubIntegration: githubIntegration,
         neuralProcessing: neuralProcessing,
-        paneManager: paneManager,
-        pluginManager: pluginManager,
-      ),
+paneManager: paneManager,
+          pluginManager: pluginManager,
+          audioAlertService: audioAlertService,
+          keyboardMacroReader: keyboardMacroReader,
+          syncServices: syncServices,
+          dockerOperations: dockerOperations,
+          integratedDebugger: integratedDebugger,
+          taskRunner: taskRunner,
+          configurableHotkeys: configurableHotkeys,
+          smoothAnimations: smoothAnimations,
+          autoBackupSystem: autoBackupSystem,
+          autoSshKeyManagement: autoSshKeyManagement,
+          multihopSsh: multihopSsh,
+          tunnelManagement: tunnelManagement,
+          sshConnectionPersistence: sshConnectionPersistence,
+          codeIntelligence: codeIntelligence,
+          databaseClient: databaseClient,
+          sessionRecovery: sessionRecovery,
+          commandGuard: commandGuard,
+          asciicastRecorder: asciicastRecorder,
+        ),
     );
   }
 }

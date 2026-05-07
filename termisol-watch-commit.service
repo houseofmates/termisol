@@ -1,0 +1,15 @@
+[Unit]
+Description=Termisol File Watch and Auto-Commit Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/house/termisol/scripts/watch_and_commit.sh
+User=house
+WorkingDirectory=/home/house/termisol
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

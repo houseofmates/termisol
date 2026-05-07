@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Termisol Auto-Commit every 15 seconds
+Requires=termisol-auto-commit.service
+
+[Timer]
+OnCalendar=*:*:0/15
+Persistent=true
+
+[Install]
+WantedBy=timers.target

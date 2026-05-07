@@ -5,15 +5,15 @@ import '../core/nvidia_ai_client.dart';
 
 /// NVIDIA AI Terminal Assistant for Termisol.
 ///
-/// Provides intelligent terminal assistance using NVIDIA's AI models:
+/// Provides intelligent terminal assistance using NVIDIA's DeepSeek-V4-Pro model:
 /// - Command prediction and completion with inline ghost text
 /// - Command explanation and optimization
 /// - Error analysis and suggestions
 /// - Natural language command translation (/ai command)
 /// - Context-aware assistance
+/// - Plugin generation for custom functionality
 ///
-/// All features gracefully degrade to rule-based fallbacks when no API keys
-/// are available or the network is unreachable.
+/// Uses only NVIDIA NIM endpoint with DeepSeek-V4-Pro model for best-in-class performance.
 class NvidiaAITerminalAssistant {
   final NvidiaAIClient _aiClient;
 
@@ -28,6 +28,9 @@ class NvidiaAITerminalAssistant {
   // Command patterns and suggestions
   final Map<String, CommandSuggestion> _commandCache = {};
   final Map<String, String> _errorSolutions = {};
+
+  // Plugin generation cache
+  final Map<String, GeneratedPlugin> _pluginCache = {};
 
   // Performance tracking
   final Stopwatch _inferenceTimer = Stopwatch();
@@ -1051,6 +1054,105 @@ Provide completions:''',
     await _eventController.close();
     _isInitialized = false;
     debugPrint('[AI] Assistant disposed');
+  }
+
+  /// Generate custom plugin using DeepSeek-V4-Pro
+  Future<GeneratedPlugin> generatePlugin(String pluginDescription) async {
+    if (!_aiClient.isInitialized) {
+      throw Exception('AI client not initialized');
+    }
+
+    _inferenceTimer.start();
+
+    try {
+      final prompt = '''
+You are an expert Flutter/Dart plugin developer for the Termisol terminal emulator.
+
+Generate a flawless plugin for this request: "$pluginDescription"
+
+Requirements:
+1. Create a complete, working plugin that extends TerminalPlugin
+2. Follow Flutter/Dart best practices
+3. Include proper error handling
+4. Add comprehensive documentation
+5. Make it production-ready with no bugs
+6. Ensure it integrates seamlessly with Termisol's architecture
+7. Use the existing patterns and conventions found in the codebase
+
+Plugin structure should include:
+- Plugin class extending TerminalPlugin
+- Proper initialization and disposal
+- Event handling
+- Configuration options
+- Integration with terminal backend
+
+Respond with only the complete Dart code for the plugin, no explanations.
+''';
+
+      final response = await _aiClient.generateResponse(
+        prompt: prompt,
+        model: 'deepseek-v4-pro',
+        temperature: 0.1, // Low temperature for consistent code
+        maxTokens: 4000,
+      );
+
+      _inferenceTimer.stop();
+      _updateInferenceTimeStats();
+
+      final plugin = GeneratedPlugin(
+        name: _extractPluginName(pluginDescription),
+        description: pluginDescription,
+        code: response,
+        timestamp: DateTime.now(),
+        model: 'deepseek-v4-pro',
+      );
+
+      _pluginCache[pluginDescription] = plugin;
+
+      _eventController.add(AIAssistantEvent(
+        type: AIAssistantEventType.pluginGenerated,
+        message: 'Plugin generated: ${plugin.name}',
+        data: {'plugin': plugin.toJson()},
+      ));
+
+      debugPrint('[AI] Generated plugin: ${plugin.name}');
+      return plugin;
+
+    } catch (e) {
+      _inferenceTimer.stop();
+      debugPrint('[AI] Plugin generation failed: $e');
+      rethrow;
+    }
+  }
+
+  /// Extract plugin name from description
+  String _extractPluginName(String description) {
+    final words = description.toLowerCase().split(' ');
+    final relevantWords = words.where((word) => 
+        word.length > 3 && !['that', 'with', 'for', 'from', 'have'].contains(word)
+    ).take(3);
+    
+    return relevantWords.map((word) => 
+        word[0].toUpperCase() + word.substring(1)
+    ).join() + 'Plugin';
+  }
+
+  /// Get cached plugin or generate new one
+  Future<GeneratedPlugin> getOrGeneratePlugin(String description) async {
+    if (_pluginCache.containsKey(description)) {
+      return _pluginCache[description]!;
+    }
+    return await generatePlugin(description);
+  }
+
+  /// List all generated plugins
+  List<GeneratedPlugin> getGeneratedPlugins() {
+    return _pluginCache.values.toList();
+  }
+
+  /// Clear plugin cache
+  void clearPluginCache() {
+    _pluginCache.clear();
   }
 }
 

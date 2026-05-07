@@ -319,7 +319,7 @@ class MultihopSSH {
         
         // Check for command completion (simple heuristic)
         if (line.contains('Multihop connection established') || 
-            line.trim().endsWith('$ ') ||
+            line.trim().endsWith('\$ ') ||
             line.contains(command.split(' ').first)) {
           commandCompleted = true;
         }

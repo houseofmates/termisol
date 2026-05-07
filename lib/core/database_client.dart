@@ -1,784 +1,543 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:postgresql2/postgresql.dart' as pg;
 
-/// Database client connections for Postgres instances
-/// Supports nocobase postgres (.233) and memster postgres (.250)
 class DatabaseClient {
-  static const String _nocobaseHost = '.233';
-  static const String _memsterHost = '.250';
-  
-  final Map<String, DatabaseConnection> _connections = {};
-  final StreamController<DatabaseEvent> _eventController = StreamController<DatabaseEvent>.broadcast();
-  
-  Stream<DatabaseEvent> get events => _eventController.stream;
+  static const String _profilesFile = '/home/house/.termisol_db_profiles.json';
+  static const String _historyFile = '/home/house/.termisol_db_history.json';
+  static const int _maxHistory = 500;
+  static const int _queryTimeout = 30000;
 
-  Future<bool> connectToNocobase({
-    required String database,
-    required String username,
-    required String password,
-    int port = 5432,
-  }) async {
-    return await _connect(
-      connectionId: 'nocobase',
-      host: _nocobaseHost,
-      port: port,
-      database: database,
-      username: username,
-      password: password,
-    );
+  final Map<String, DbProfile> _profiles = {};
+  final List<DbHistoryEntry> _history = [];
+  final Map<String, Process> _activeProcesses = {};
+
+  String? _activeProfileId;
+  bool _isInitialized = false;
+
+  final StreamController<DbEvent> _eventController =
+      StreamController<DbEvent>.broadcast();
+
+  Stream<DbEvent> get events => _eventController.stream;
+  bool get isInitialized => _isInitialized;
+  DbProfile? get activeProfile =>
+      _activeProfileId != null ? _profiles[_activeProfileId] : null;
+  List<DbProfile> get profiles => _profiles.values.toList();
+  List<DbHistoryEntry> get history => List.unmodifiable(_history);
+
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+    await _loadProfiles();
+    await _loadHistory();
+    _isInitialized = true;
   }
 
-  Future<bool> connectToMemster({
-    required String database,
-    required String username,
-    required String password,
-    int port = 5432,
-  }) async {
-    return await _connect(
-      connectionId: 'memster',
-      host: _memsterHost,
-      port: port,
-      database: database,
-      username: username,
-      password: password,
-    );
-  }
-
-  Future<bool> connectToCustom({
-    required String connectionId,
-    required String host,
-    required int port,
-    required String database,
-    required String username,
-    required String password,
-  }) async {
-    return await _connect(
-      connectionId: connectionId,
-      host: host,
-      port: port,
-      database: database,
-      username: username,
-      password: password,
-    );
-  }
-
-  Future<bool> _connect({
-    required String connectionId,
-    required String host,
-    required int port,
-    required String database,
-    required String username,
-    required String password,
-  }) async {
+  Future<void> _loadProfiles() async {
     try {
-      final connection = pg.PostgreSQLConnection(
-        host,
-        port,
-        database,
-        username: username,
-        password: password,
-      );
-
-      await connection.open();
-      
-      final dbConnection = DatabaseConnection(
-        id: connectionId,
-        host: host,
-        port: port,
-        database: database,
-        username: username,
-        connection: connection,
-        connectedAt: DateTime.now(),
-      );
-
-      _connections[connectionId] = dbConnection;
-      
-      _eventController.add(DatabaseEvent(
-        type: DatabaseEventType.connected,
-        message: 'Connected to database $connectionId',
-        data: {
-          'connectionId': connectionId,
-          'host': host,
-          'database': database,
-        },
-      ));
-
-      debugPrint('🗄️ Connected to database $connectionId ($host:$port/$database)');
-      return true;
+      final file = File(_profilesFile);
+      if (!await file.exists()) return;
+      final data = jsonDecode(await file.readAsString()) as List;
+      for (final item in data) {
+        final profile = DbProfile.fromJson(item);
+        _profiles[profile.id] = profile;
+      }
     } catch (e) {
-      _eventController.add(DatabaseEvent(
-        type: DatabaseEventType.error,
-        message: 'Failed to connect to database $connectionId: $e',
-        data: {
-          'connectionId': connectionId,
-          'error': e.toString(),
-        },
-      ));
-      
-      debugPrint('❌ Failed to connect to database $connectionId: $e');
-      return false;
+      debugLog('Failed to load DB profiles: $e');
     }
   }
 
-  Future<QueryResult> executeQuery(
-    String connectionId,
-    String query, {
-    Map<String, dynamic>? parameters,
-  }) async {
-    final connection = _connections[connectionId];
-    if (connection == null) {
-      return QueryResult(
-        success: false,
-        error: 'Connection $connectionId not found',
-      );
-    }
+  Future<void> _saveProfiles() async {
+    final data = _profiles.values.map((p) => p.toJson()).toList();
+    await File(_profilesFile).writeAsString(jsonEncode(data));
+  }
 
+  Future<void> _loadHistory() async {
     try {
-      final results = await connection.connection.query(
-        query,
-        substitutionValues: parameters,
-      );
-
-      _eventController.add(DatabaseEvent(
-        type: DatabaseEventType.query_executed,
-        message: 'Query executed on $connectionId',
-        data: {
-          'connectionId': connectionId,
-          'query': query,
-          'rowCount': results.length,
-        },
-      ));
-
-      return QueryResult(
-        success: true,
-        rows: results,
-        rowCount: results.length,
-      );
+      final file = File(_historyFile);
+      if (!await file.exists()) return;
+      final data = jsonDecode(await file.readAsString()) as List;
+      for (final item in data) {
+        _history.add(DbHistoryEntry.fromJson(item));
+      }
     } catch (e) {
-      _eventController.add(DatabaseEvent(
-        type: DatabaseEventType.error,
-        message: 'Query failed on $connectionId: $e',
-        data: {
-          'connectionId': connectionId,
-          'query': query,
-          'error': e.toString(),
-        },
-      ));
-
-      return QueryResult(
-        success: false,
-        error: e.toString(),
-      );
+      debugLog('Failed to load DB history: $e');
     }
   }
 
-  Future<QueryResult> getTableSchema(String connectionId, String tableName) async {
-    final query = '''
-      SELECT 
-        column_name,
-        data_type,
-        is_nullable,
-        column_default,
-        character_maximum_length
-      FROM information_schema.columns
-      WHERE table_name = @tableName
-      ORDER BY ordinal_position
-    ''';
+  Future<void> _saveHistory() async {
+    final data = _history.map((h) => h.toJson()).toList();
+    await File(_historyFile).writeAsString(jsonEncode(data));
+  }
 
-    return await executeQuery(
-      connectionId,
-      query,
-      parameters: {'tableName': tableName},
+  Future<DbProfile> addProfile({
+    required String name,
+    required DbType type,
+    String? host,
+    int? port,
+    String? database,
+    String? username,
+    String? password,
+    String? filePath,
+  }) async {
+    final id = 'db_${DateTime.now().millisecondsSinceEpoch}';
+    final profile = DbProfile(
+      id: id,
+      name: name,
+      type: type,
+      host: host ?? 'localhost',
+      port: port ?? (type == DbType.postgresql ? 5432 : 0),
+      database: database ?? name,
+      username: username ?? 'postgres',
+      password: password ?? '',
+      filePath: filePath ?? '',
+      createdAt: DateTime.now(),
     );
+    _profiles[id] = profile;
+    await _saveProfiles();
+
+    _eventController.add(DbEvent(
+      type: DbEventType.profileAdded,
+      message: 'Profile "$name" added',
+      profileId: id,
+    ));
+    return profile;
   }
 
-  Future<QueryResult> getTableList(String connectionId) async {
-    final query = '''
-      SELECT 
-        table_name,
-        table_type
-      FROM information_schema.tables
-      WHERE table_schema = 'public'
-      ORDER BY table_name
-    ''';
+  Future<void> removeProfile(String id) async {
+    final removed = _profiles.remove(id);
+    if (removed == null) return;
+    if (_activeProfileId == id) _activeProfileId = null;
+    await _saveProfiles();
 
-    return await executeQuery(connectionId, query);
+    _eventController.add(DbEvent(
+      type: DbEventType.profileRemoved,
+      message: 'Profile "${removed.name}" removed',
+      profileId: id,
+    ));
   }
 
-  Future<QueryResult> getDatabaseInfo(String connectionId) async {
-    final connection = _connections[connectionId];
-    if (connection == null) {
-      return QueryResult(
-        success: false,
-        error: 'Connection $connectionId not found',
-      );
+  Future<void> connect(String profileId) async {
+    final profile = _profiles[profileId];
+    if (profile == null) throw Exception('Profile not found: $profileId');
+
+    if (profile.type == DbType.postgresql) {
+      await _testPostgresConnection(profile);
+    } else if (profile.type == DbType.sqlite) {
+      await _testSqliteConnection(profile);
     }
+
+    _activeProfileId = profileId;
+
+    _eventController.add(DbEvent(
+      type: DbEventType.connected,
+      message: 'Connected to "${profile.name}"',
+      profileId: profileId,
+    ));
+  }
+
+  Future<void> disconnect() async {
+    _activeProfileId = null;
+    for (final process in _activeProcesses.values) {
+      process.kill();
+    }
+    _activeProcesses.clear();
+
+    _eventController.add(DbEvent(
+      type: DbEventType.disconnected,
+      message: 'Disconnected from database',
+    ));
+  }
+
+  Future<DbQueryResult> executeQuery(String sql) async {
+    final profile = activeProfile;
+    if (profile == null) throw Exception('Not connected to any database');
+
+    final startTime = DateTime.now();
+    final entry = DbHistoryEntry(
+      id: 'q_${startTime.millisecondsSinceEpoch}',
+      sql: sql,
+      profileId: profile.id,
+      profileName: profile.name,
+      executedAt: startTime,
+    );
 
     try {
-      final versionResult = await connection.connection.query('SELECT version()');
-      final sizeResult = await connection.connection.query('''
-        SELECT pg_size_pretty(pg_database_size(@database)) as size
-      ''', substitutionValues: {'database': connection.database});
+      final result = profile.type == DbType.postgresql
+          ? await _executePostgresQuery(profile, sql)
+          : await _executeSqliteQuery(profile, sql);
 
-      return QueryResult(
-        success: true,
-        rows: [
-          {
-            'version': versionResult.first[0],
-            'size': sizeResult.first[0],
-            'host': connection.host,
-            'database': connection.database,
-            'connected_at': connection.connectedAt.toIso8601String(),
+      final duration = DateTime.now().difference(startTime);
+      entry.durationMs = duration.inMilliseconds;
+      entry.success = true;
+      entry.rowCount = result.rows.length;
+
+      _history.insert(0, entry);
+      if (_history.length > _maxHistory) _history.removeLast();
+      await _saveHistory();
+
+      _eventController.add(DbEvent(
+        type: DbEventType.queryExecuted,
+        message: 'Query returned ${result.rows.length} rows in ${duration.inMilliseconds}ms',
+        profileId: profile.id,
+      ));
+
+      return result;
+    } catch (e) {
+      entry.success = false;
+      entry.error = e.toString();
+      entry.durationMs = DateTime.now().difference(startTime).inMilliseconds;
+
+      _history.insert(0, entry);
+      if (_history.length > _maxHistory) _history.removeLast();
+      await _saveHistory();
+
+      _eventController.add(DbEvent(
+        type: DbEventType.queryError,
+        message: 'Query failed: $e',
+        profileId: profile.id,
+      ));
+
+      rethrow;
+    }
+  }
+
+  Future<void> _testPostgresConnection(DbProfile profile) async {
+    final env = <String, String>{};
+    if (profile.password.isNotEmpty) {
+      env['PGPASSWORD'] = profile.password;
+    }
+
+    final result = await Process.run(
+      'psql',
+      [
+        '-h', profile.host,
+        '-p', profile.port.toString(),
+        '-U', profile.username,
+        '-d', profile.database,
+        '-c', 'SELECT 1;',
+      ],
+      environment: env,
+      runInShell: true,
+    );
+
+    if (result.exitCode != 0) {
+      throw Exception('PostgreSQL connection failed:\n${result.stderr}');
+    }
+  }
+
+  Future<void> _testSqliteConnection(DbProfile profile) async {
+    final file = File(profile.filePath);
+    if (!await file.exists()) {
+      throw Exception('SQLite file not found: ${profile.filePath}');
+    }
+  }
+
+  Future<DbQueryResult> _executePostgresQuery(DbProfile profile, String sql) async {
+    final env = <String, String>{};
+    if (profile.password.isNotEmpty) {
+      env['PGPASSWORD'] = profile.password;
+    }
+
+    final result = await Process.run(
+      'psql',
+      [
+        '-h', profile.host,
+        '-p', profile.port.toString(),
+        '-U', profile.username,
+        '-d', profile.database,
+        '-A',           // unaligned output
+        '-F', '\t',     // tab-separated
+        '--no-align',
+        '-t',           // tuples only
+        '-c', sql,
+      ],
+      environment: env,
+      runInShell: true,
+    ).timeout(const Duration(milliseconds: _queryTimeout));
+
+    if (result.exitCode != 0) {
+      throw Exception(result.stderr.toString().trim());
+    }
+
+    return _parseTabSeparatedOutput(result.stdout.toString());
+  }
+
+  Future<DbQueryResult> _executeSqliteQuery(DbProfile profile, String sql) async {
+    final isSelect = sql.trim().toUpperCase().startsWith('SELECT') ||
+        sql.trim().toUpperCase().startsWith('PRAGMA');
+
+    final args = <String>[
+      profile.filePath,
+      if (isSelect) ...['-header', '-separator', '\t'],
+      sql,
+    ];
+
+    final result = await Process.run(
+      'sqlite3',
+      args,
+      runInShell: true,
+    ).timeout(const Duration(milliseconds: _queryTimeout));
+
+    if (result.exitCode != 0) {
+      throw Exception(result.stderr.toString().trim());
+    }
+
+    if (isSelect) {
+      return _parseTabSeparatedOutput(result.stdout.toString(), hasHeader: true);
+    } else {
+      return DbQueryResult(
+        columns: ['affected_rows'],
+        rows: [['${result.stdout.toString().trim() != '' ? 'OK' : '0'}']],
+        rawOutput: result.stdout.toString(),
+      );
+    }
+  }
+
+  DbQueryResult _parseTabSeparatedOutput(String output, {bool hasHeader = false}) {
+    final lines = output.trim().split('\n').where((l) => l.trim().isNotEmpty).toList();
+    if (lines.isEmpty) {
+      return DbQueryResult(columns: [], rows: []);
+    }
+
+    List<String> columns;
+    List<List<String>> rows;
+
+    if (hasHeader) {
+      columns = lines.first.split('\t');
+      rows = lines.skip(1).map((l) => l.split('\t')).toList();
+    } else {
+      rows = lines.map((l) => l.split('\t')).toList();
+      columns = List.generate(
+        rows.isNotEmpty ? rows.first.length : 0,
+        (i) => 'column_${i + 1}',
+      );
+    }
+
+    return DbQueryResult(columns: columns, rows: rows, rawOutput: output);
+  }
+
+  Future<String> exportResults(DbQueryResult result, String format) async {
+    switch (format) {
+      case 'csv':
+        final buffer = StringBuffer();
+        buffer.writeln(result.columns.join(','));
+        for (final row in result.rows) {
+          buffer.writeln(row.map((v) => '"${v.replaceAll('"', '""')}"').join(','));
+        }
+        return buffer.toString();
+      case 'json':
+        final data = result.rows.map((row) {
+          final map = <String, String>{};
+          for (var i = 0; i < result.columns.length && i < row.length; i++) {
+            map[result.columns[i]] = row[i];
           }
-        ],
-        rowCount: 1,
-      );
-    } catch (e) {
-      return QueryResult(
-        success: false,
-        error: e.toString(),
-      );
+          return map;
+        }).toList();
+        return const JsonEncoder.withIndent('  ').convert(data);
+      case 'tsv':
+        return '${result.columns.join('\t')}\n${result.rows.map((r) => r.join('\t')).join('\n')}';
+      default:
+        throw Exception('Unsupported export format: $format');
     }
   }
 
-  Future<bool> disconnect(String connectionId) async {
-    final connection = _connections[connectionId];
-    if (connection == null) return false;
-
-    try {
-      await connection.connection.close();
-      _connections.remove(connectionId);
-      
-      _eventController.add(DatabaseEvent(
-        type: DatabaseEventType.disconnected,
-        message: 'Disconnected from database $connectionId',
-        data: {'connectionId': connectionId},
-      ));
-
-      debugPrint('🗄️ Disconnected from database $connectionId');
-      return true;
-    } catch (e) {
-      debugPrint('❌ Failed to disconnect from database $connectionId: $e');
-      return false;
-    }
-  }
-
-  Future<void> disconnectAll() async {
-    for (final connectionId in _connections.keys.toList()) {
-      await disconnect(connectionId);
-    }
-  }
-
-  List<DatabaseConnection> getConnections() {
-    return _connections.values.toList();
-  }
-
-  DatabaseConnection? getConnection(String connectionId) {
-    return _connections[connectionId];
-  }
-
-  bool isConnected(String connectionId) {
-    return _connections.containsKey(connectionId);
-  }
-
-  DatabaseStatistics getStatistics() {
-    return DatabaseStatistics(
-      totalConnections: _connections.length,
-      nocobaseConnected: _connections.containsKey('nocobase'),
-      memsterConnected: _connections.containsKey('memster'),
-      customConnections: _connections.keys
-          .where((id) => id != 'nocobase' && id != 'memster')
-          .length,
+  Future<List<String>> listPostgresTables(DbProfile profile) async {
+    final result = await executeQuery(
+      "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;",
     );
+    return result.rows.map((r) => r.first).toList();
   }
 
-  Future<void> dispose() async {
-    await disconnectAll();
+  Future<List<String>> listSqliteTables(DbProfile profile) async {
+    final result = await executeQuery(
+      "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name;",
+    );
+    return result.rows.map((r) => r.first).toList();
+  }
+
+  Future<List<DbColumnInfo>> describeTable(String table) async {
+    final profile = activeProfile;
+    if (profile == null) throw Exception('Not connected');
+
+    if (profile.type == DbType.postgresql) {
+      final result = await executeQuery(
+        "SELECT column_name, data_type, is_nullable, column_default FROM information_schema.columns WHERE table_name = '$table' ORDER BY ordinal_position;",
+      );
+      return result.rows.map((r) => DbColumnInfo(
+        name: r[0],
+        type: r[1],
+        nullable: r[2] == 'YES',
+        defaultValue: r.length > 3 ? r[3] : null,
+      )).toList();
+    } else {
+      final result = await executeQuery("PRAGMA table_info($table);");
+      return result.rows.map((r) => DbColumnInfo(
+        name: r[1],
+        type: r[2],
+        nullable: r[3] != '0',
+        defaultValue: r.length > 4 && r[4] != 'null' ? r[4] : null,
+      )).toList();
+    }
+  }
+
+  void dispose() {
+    disconnect();
     _eventController.close();
-    debugPrint('🗄️ Database Client disposed');
+    _isInitialized = false;
   }
 }
 
-class DatabaseConnection {
+class DbProfile {
   final String id;
+  final String name;
+  final DbType type;
   final String host;
   final int port;
   final String database;
   final String username;
-  final pg.PostgreSQLConnection connection;
-  final DateTime connectedAt;
+  final String password;
+  final String filePath;
+  final DateTime createdAt;
 
-  DatabaseConnection({
+  DbProfile({
     required this.id,
+    required this.name,
+    required this.type,
     required this.host,
     required this.port,
     required this.database,
     required this.username,
-    required this.connection,
-    required this.connectedAt,
+    required this.password,
+    required this.filePath,
+    required this.createdAt,
   });
 
-  String get displayName => '$id ($host:$port/$database)';
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'type': type.name,
+    'host': host,
+    'port': port,
+    'database': database,
+    'username': username,
+    'password': password,
+    'filePath': filePath,
+    'createdAt': createdAt.toIso8601String(),
+  };
+
+  factory DbProfile.fromJson(Map<String, dynamic> json) => DbProfile(
+    id: json['id'],
+    name: json['name'],
+    type: DbType.values.firstWhere((t) => t.name == json['type']),
+    host: json['host'] ?? 'localhost',
+    port: json['port'] ?? 5432,
+    database: json['database'] ?? '',
+    username: json['username'] ?? '',
+    password: json['password'] ?? '',
+    filePath: json['filePath'] ?? '',
+    createdAt: DateTime.parse(json['createdAt']),
+  );
 }
 
-class QueryResult {
-  final bool success;
-  final List<Map<String, dynamic>>? rows;
-  final int? rowCount;
-  final String? error;
+enum DbType { postgresql, sqlite }
 
-  QueryResult({
-    required this.success,
-    this.rows,
-    this.rowCount,
+class DbHistoryEntry {
+  final String id;
+  final String sql;
+  final String profileId;
+  final String profileName;
+  final DateTime executedAt;
+  int? durationMs;
+  bool success = false;
+  String? error;
+  int? rowCount;
+
+  DbHistoryEntry({
+    required this.id,
+    required this.sql,
+    required this.profileId,
+    required this.profileName,
+    required this.executedAt,
+    this.durationMs,
+    this.success = false,
     this.error,
+    this.rowCount,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'sql': sql,
+    'profileId': profileId,
+    'profileName': profileName,
+    'executedAt': executedAt.toIso8601String(),
+    'durationMs': durationMs,
+    'success': success,
+    'error': error,
+    'rowCount': rowCount,
+  };
+
+  factory DbHistoryEntry.fromJson(Map<String, dynamic> json) => DbHistoryEntry(
+    id: json['id'],
+    sql: json['sql'],
+    profileId: json['profileId'],
+    profileName: json['profileName'],
+    executedAt: DateTime.parse(json['executedAt']),
+    durationMs: json['durationMs'],
+    success: json['success'] ?? false,
+    error: json['error'],
+    rowCount: json['rowCount'],
+  );
+}
+
+class DbQueryResult {
+  final List<String> columns;
+  final List<List<String>> rows;
+  final String? rawOutput;
+
+  DbQueryResult({
+    required this.columns,
+    required this.rows,
+    this.rawOutput,
   });
 }
 
-class DatabaseStatistics {
-  final int totalConnections;
-  final bool nocobaseConnected;
-  final bool memsterConnected;
-  final int customConnections;
+class DbColumnInfo {
+  final String name;
+  final String type;
+  final bool nullable;
+  final String? defaultValue;
 
-  DatabaseStatistics({
-    required this.totalConnections,
-    required this.nocobaseConnected,
-    required this.memsterConnected,
-    required this.customConnections,
+  DbColumnInfo({
+    required this.name,
+    required this.type,
+    required this.nullable,
+    this.defaultValue,
   });
 }
 
-enum DatabaseEventType {
+enum DbEventType {
+  profileAdded,
+  profileRemoved,
   connected,
   disconnected,
-  query_executed,
-  error,
+  queryExecuted,
+  queryError,
 }
 
-class DatabaseEvent {
-  final DatabaseEventType type;
+class DbEvent {
+  final DbEventType type;
   final String message;
-  final Map<String, dynamic>? data;
+  final String? profileId;
   final DateTime timestamp;
 
-  DatabaseEvent({
+  DbEvent({
     required this.type,
     required this.message,
-    this.data,
+    this.profileId,
   }) : timestamp = DateTime.now();
 }
 
-// Database client widget
-class DatabaseClientWidget extends StatefulWidget {
-  final Function(QueryResult)? onQueryComplete;
-
-  const DatabaseClientWidget({
-    super.key,
-    this.onQueryComplete,
-  });
-
-  @override
-  State<DatabaseClientWidget> createState() => _DatabaseClientWidgetState();
-}
-
-class _DatabaseClientWidgetState extends State<DatabaseClientWidget> {
-  final DatabaseClient _dbClient = DatabaseClient();
-  String? _selectedConnection;
-  final TextEditingController _queryController = TextEditingController();
-  final TextEditingController _nocobaseController = TextEditingController();
-  final TextEditingController _memsterController = TextEditingController();
-  
-  List<Map<String, dynamic>> _queryResults = [];
-  bool _isExecuting = false;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _dbClient.events.listen((event) {
-      if (mounted) {
-        setState(() {});
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _queryController.dispose();
-    _nocobaseController.dispose();
-    _memsterController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _connectToNocobase() async {
-    final parts = _nocobaseController.text.split(':');
-    if (parts.length != 3) {
-      setState(() {
-        _error = 'Format: username:password:database';
-      });
-      return;
-    }
-
-    final success = await _dbClient.connectToNocobase(
-      database: parts[2],
-      username: parts[0],
-      password: parts[1],
-    );
-
-    if (success) {
-      setState(() {
-        _selectedConnection = 'nocobase';
-        _nocobaseController.clear();
-        _error = null;
-      });
-    }
-  }
-
-  Future<void> _connectToMemster() async {
-    final parts = _memsterController.text.split(':');
-    if (parts.length != 3) {
-      setState(() {
-        _error = 'Format: username:password:database';
-      });
-      return;
-    }
-
-    final success = await _dbClient.connectToMemster(
-      database: parts[2],
-      username: parts[0],
-      password: parts[1],
-    );
-
-    if (success) {
-      setState(() {
-        _selectedConnection = 'memster';
-        _memsterController.clear();
-        _error = null;
-      });
-    }
-  }
-
-  Future<void> _executeQuery() async {
-    if (_selectedConnection == null || _queryController.text.trim().isEmpty) {
-      return;
-    }
-
-    setState(() {
-      _isExecuting = true;
-      _error = null;
-    });
-
-    final result = await _dbClient.executeQuery(
-      _selectedConnection!,
-      _queryController.text,
-    );
-
-    setState(() {
-      _isExecuting = false;
-      _queryResults = result.rows ?? [];
-      if (!result.success) {
-        _error = result.error;
-      }
-    });
-
-    if (widget.onQueryComplete != null) {
-      widget.onQueryComplete!(result);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final connections = _dbClient.getConnections();
-
-    return Column(
-      children: [
-        // Connection bar
-        Container(
-          padding: const EdgeInsets.all(16),
-          color: Colors.grey[900],
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.storage, color: Colors.blue[400]),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Database Connections',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (_selectedConnection != null)
-                    IconButton(
-                      onPressed: () async {
-                        await _dbClient.disconnect(_selectedConnection!);
-                        setState(() {
-                          _selectedConnection = null;
-                          _queryResults.clear();
-                        });
-                      },
-                      icon: const Icon(Icons.disconnect, color: Colors.red),
-                      tooltip: 'Disconnect',
-                    ),
-                ],
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Quick connect buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[800],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: _dbClient.isConnected('nocobase')
-                              ? Colors.green
-                              : Colors.grey[600]!,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            'NocoBase (.233)',
-                            style: TextStyle(
-                              color: _dbClient.isConnected('nocobase')
-                                  ? Colors.green
-                                  : Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (!_dbClient.isConnected('nocobase')) ...[
-                            const SizedBox(height: 8),
-                            TextField(
-                              controller: _nocobaseController,
-                              style: const TextStyle(color: Colors.white, fontSize: 12),
-                              decoration: const InputDecoration(
-                                hintText: 'user:pass:db',
-                                hintStyle: TextStyle(color: Colors.grey),
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            ElevatedButton(
-                              onPressed: _connectToNocobase,
-                              child: const Text('Connect'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                  
-                  const SizedBox(width: 16),
-                  
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[800],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: _dbClient.isConnected('memster')
-                              ? Colors.green
-                              : Colors.grey[600]!,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            'Memster (.250)',
-                            style: TextStyle(
-                              color: _dbClient.isConnected('memster')
-                                  ? Colors.green
-                                  : Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (!_dbClient.isConnected('memster')) ...[
-                            const SizedBox(height: 8),
-                            TextField(
-                              controller: _memsterController,
-                              style: const TextStyle(color: Colors.white, fontSize: 12),
-                              decoration: const InputDecoration(
-                                hintText: 'user:pass:db',
-                                hintStyle: TextStyle(color: Colors.grey),
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            ElevatedButton(
-                              onPressed: _connectToMemster,
-                              child: const Text('Connect'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.purple,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        
-        // Query area
-        if (_selectedConnection != null) ...[
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: Colors.grey[850],
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      'Query ($_selectedConnection)',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Spacer(),
-                    ElevatedButton.icon(
-                      onPressed: _isExecuting ? null : _executeQuery,
-                      icon: _isExecuting
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.play_arrow, size: 16),
-                      label: Text(_isExecuting ? 'Executing...' : 'Execute'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                      ),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: 12),
-                
-                TextField(
-                  controller: _queryController,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontFamily: 'monospace',
-                    fontSize: 14,
-                  ),
-                  maxLines: 5,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter SQL query...',
-                    hintStyle: TextStyle(color: Colors.grey),
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.all(12),
-                  ),
-                ),
-                
-                if (_error != null) ...[
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
-                      border: Border.all(color: Colors.red),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      _error!,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-        
-        // Results area
-        Expanded(
-          child: _queryResults.isEmpty
-              ? Container(
-                  padding: const EdgeInsets.all(16),
-                  child: Center(
-                    child: Text(
-                      _selectedConnection == null
-                          ? 'Connect to a database to start querying'
-                          : 'Execute a query to see results',
-                      style: TextStyle(color: Colors.grey[400]),
-                    ),
-                  ),
-                )
-              : Container(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Results (${_queryResults.length} rows)',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      
-                      Expanded(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: SingleChildScrollView(
-                            child: DataTable(
-                              columns: _queryResults.first.keys
-                                  .map((key) => DataColumn(
-                                        label: Text(
-                                          key,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ))
-                                  .toList(),
-                              rows: _queryResults
-                                  .map((row) => DataRow(
-                                        cells: row.values
-                                            .map((value) => DataCell(
-                                                  Text(
-                                                    value?.toString() ?? 'NULL',
-                                                    style: const TextStyle(color: Colors.white),
-                                                  ),
-                                                ))
-                                            .toList(),
-                                      ))
-                                  .toList(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-        ),
-      ],
-    );
-  }
+void debugLog(String message) {
+  final ts = DateTime.now().toIso8601String();
+  stderr.writeln('[$ts] [DB] $message');
 }

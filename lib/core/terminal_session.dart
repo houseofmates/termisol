@@ -5,13 +5,17 @@ import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
 import 'pty_backend.dart';
 
-
 /// Callback signature for AI queries intercepted from the terminal.
 ///
 /// The [query] contains everything after `/ai ` and may include any
 /// characters or symbols. The callback should return the AI response
 /// which will be printed into the terminal.
 typedef AiQueryHandler = Future<String> Function(String query);
+
+/// Callback signature for edit commands intercepted from the terminal.
+///
+/// The [filename] contains the filename specified in the edit command.
+typedef EditCommandHandler = Future<void> Function(String filename);
 
 /// A single terminal session that couples a [Terminal] with a [TermisolPtyBackend].
 ///
@@ -31,6 +35,10 @@ class TerminalSession extends ChangeNotifier {
   /// Called when the user types `/ai <query>` and presses Enter.
   /// If null, `/ai` commands are passed through to the shell normally.
   AiQueryHandler? onAiQuery;
+
+  /// Called when the user types `edit <filename>` and presses Enter.
+  /// If null, edit commands are passed through to the shell normally.
+  EditCommandHandler? onEditCommand;
 
   /// Called whenever data is received from the backend.
   /// Useful for monitoring output to detect errors or context changes.
@@ -128,6 +136,12 @@ class TerminalSession extends ChangeNotifier {
         _processAiQuery(query);
         return; // Do not send to shell.
       }
+      
+      if (onEditCommand != null && line.startsWith('edit ')) {
+        final filename = line.substring(5).trim();
+        _processEditCommand(filename);
+        return; // Do not send to shell.
+      }
     } else {
       _inputBuffer.write(data);
     }
@@ -145,6 +159,19 @@ class TerminalSession extends ChangeNotifier {
       terminal.write('\x1b[36m[AI] $response\x1b[0m\r\n');
     } catch (e) {
       terminal.write('\x1b[31m[AI] Error: $e\x1b[0m\r\n');
+    }
+  }
+
+  /// Launch the edit command with the specified filename.
+  Future<void> _processEditCommand(String filename) async {
+    terminal.write('\r\n');
+    terminal.write('\x1b[33m[EDIT] Opening editor: $filename\x1b[0m\r\n');
+
+    try {
+      await onEditCommand!(filename);
+      terminal.write('\x1b[33m[EDIT] Editor closed\x1b[0m\r\n');
+    } catch (e) {
+      terminal.write('\x1b[31m[EDIT] Error: $e\x1b[0m\r\n');
     }
   }
 

@@ -27,14 +27,14 @@ class AdvancedTerminalMultiplexing {
     _loadLayouts();
     _initializeDefaultLayouts();
     _startLayoutUpdateTimer();
-    developer.log('🪟 Advanced Terminal Multiplexing initialized');
+    developer.log('🪟 advanced Terminal Multiplexing initialized');
   }
 
   void _loadLayouts() {
     try {
       final file = File(_layoutsFile);
       if (!file.existsSync()) {
-        developer.log('🪟 No existing layouts file found');
+        developer.log('🪟 no existing layouts file found');
         return;
       }
       
@@ -46,10 +46,10 @@ class AdvancedTerminalMultiplexing {
         _layouts[layout.id] = layout;
       }
       
-      developer.log('🪟 Loaded ${_layouts.length} layouts');
+      developer.log('🪟 loaded ${_layouts.length} layouts');
       
     } catch (e) {
-      developer.log('🪟 Failed to load layouts: $e');
+      developer.log('🪟 failed to load layouts: $e');
     }
   }
 

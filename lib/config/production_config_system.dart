@@ -7,14 +7,17 @@ import 'package:path_provider/path_provider.dart';
 /// Production Configuration System - Alacritty-inspired with PKM aesthetic
 /// 
 /// Features:
-/// - YAML configuration with validation
+/// - YAML configuration with validation and error recovery
 /// - Hot-reloading with file watching
 /// - Hierarchical defaults with inheritance
 /// - Performance-first settings
 /// - Cross-platform portability
+/// - Automatic config fixing for syntax errors
 class ProductionConfigSystem {
   static const String _configFileName = 'termisol.yaml';
   static const String _configDirName = '.termisol';
+  static const String _backupSuffix = '.backup';
+  static const String _corruptSuffix = '.corrupt';
   
   late final File _configFile;
   late final StreamSubscription _configWatcher;
@@ -24,6 +27,8 @@ class ProductionConfigSystem {
   
   bool _isLoaded = false;
   bool _hotReloadEnabled = true;
+  bool _hasErrors = false;
+  String? _lastError;
   
   // Configuration sections
   PerformanceConfig get performance => _config.performance;
@@ -36,6 +41,8 @@ class ProductionConfigSystem {
   Stream<TermisolConfig> get configChanges => _configController.stream;
   bool get isLoaded => _isLoaded;
   bool get hotReloadEnabled => _hotReloadEnabled;
+  bool get hasErrors => _hasErrors;
+  String? get lastError => _lastError;
   
   ProductionConfigSystem._();
   
@@ -47,29 +54,173 @@ class ProductionConfigSystem {
     return config;
   }
   
-  /// Load configuration with full validation
+  /// Load configuration with full validation and error recovery
   Future<void> _loadConfiguration() async {
     try {
       await _ensureConfigDirectory();
       _configFile = await _getConfigFile();
       
       if (await _configFile.exists()) {
-        final content = await _configFile.readAsString();
-        final yaml = loadYaml(content);
-        _config = TermisolConfig.fromYaml(yaml);
-        debugPrint('✅ Configuration loaded from ${_configFile.path}');
+        await _loadAndValidateConfig();
       } else {
         await _saveDefaultConfiguration();
         debugPrint('✅ Default configuration created');
       }
       
-      await _validateConfiguration();
       _isLoaded = true;
       
     } catch (e) {
       debugPrint('⚠️ Configuration load failed: $e - using defaults');
+      await _handleConfigLoadFailure(e);
       _config = TermisolConfig.defaultConfig();
       _isLoaded = true;
+    }
+  }
+  
+  /// Load and validate configuration with automatic fixing
+  Future<void> _loadAndValidateConfig() async {
+    try {
+      final content = await _configFile.readAsString();
+      
+      // Check for empty file
+      if (content.trim().isEmpty) {
+        debugPrint('⚠️ Configuration file is empty, recreating...');
+        await _backupAndRecreateConfig('empty_file');
+        return;
+      }
+      
+      // Try to parse YAML
+      YamlMap? yaml;
+      try {
+        yaml = loadYaml(content) as YamlMap?;
+      } catch (e) {
+        debugPrint('❌ YAML parsing failed: $e');
+        await _attemptYamlRepair(content, e);
+        return;
+      }
+      
+      if (yaml == null) {
+        debugPrint('⚠️ YAML parsed to null, recreating config...');
+        await _backupAndRecreateConfig('null_yaml');
+        return;
+      }
+      
+      // Try to create config from YAML
+      try {
+        _config = TermisolConfig.fromYaml(yaml);
+        await _validateConfiguration();
+        debugPrint('✅ Configuration loaded from ${_configFile.path}');
+      } catch (e) {
+        debugPrint('❌ Config creation failed: $e');
+        await _attemptConfigRepair(yaml, e);
+      }
+      
+    } catch (e) {
+      debugPrint('❌ Config file read failed: $e');
+      await _backupAndRecreateConfig('read_error');
+    }
+  }
+  
+  /// Attempt to repair YAML syntax errors
+  Future<void> _attemptYamlRepair(String content, dynamic error) async {
+    debugPrint('🔧 Attempting YAML repair...');
+    
+    String repairedContent = content;
+    
+    // Common YAML fixes
+    repairedContent = _fixYamlIndentation(repairedContent);
+    repairedContent = _fixYamlQuotes(repairedContent);
+    repairedContent = _fixYamlColons(repairedContent);
+    repairedContent = _fixYamlLists(repairedContent);
+    
+    try {
+      final yaml = loadYaml(repairedContent) as YamlMap?;
+      if (yaml != null) {
+        _config = TermisolConfig.fromYaml(yaml);
+        await _validateConfiguration();
+        await _saveRepairedConfig(repairedContent, 'yaml_repair');
+        debugPrint('✅ YAML repair successful');
+      }
+    } catch (e) {
+      debugPrint('❌ YAML repair failed: $e');
+      await _backupAndRecreateConfig('yaml_repair_failed');
+    }
+  }
+  
+  /// Attempt to repair configuration structure errors
+  Future<void> _attemptConfigRepair(YamlMap yaml, dynamic error) async {
+    debugPrint('🔧 Attempting config repair...');
+    
+    try {
+      // Create a repaired YAML map by merging with defaults
+      final defaultYaml = loadYaml(_config.toYaml()) as YamlMap;
+      final repairedYaml = _mergeYamlMaps(defaultYaml, yaml);
+      
+      _config = TermisolConfig.fromYaml(repairedYaml);
+      await _validateConfiguration();
+      await _saveRepairedConfig(_yamlMapToString(repairedYaml), 'config_repair');
+      debugPrint('✅ Config repair successful');
+      
+    } catch (e) {
+      debugPrint('❌ Config repair failed: $e');
+      await _backupAndRecreateConfig('config_repair_failed');
+    }
+  }
+  
+  /// Backup current config and recreate with defaults
+  Future<void> _backupAndRecreateConfig(String reason) async {
+    try {
+      // Backup current file
+      if (await _configFile.exists()) {
+        final backupFile = File('${_configFile.path}.$reason$_corruptSuffix');
+        await _configFile.copy(backupFile.path);
+        debugPrint('📋 Corrupt config backed up to ${backupFile.path}');
+      }
+      
+      // Create new default config
+      _config = TermisolConfig.defaultConfig();
+      await _saveDefaultConfiguration();
+      debugPrint('✅ New default configuration created');
+      
+    } catch (e) {
+      debugPrint('❌ Backup and recreate failed: $e');
+      rethrow;
+    }
+  }
+  
+  /// Save repaired configuration
+  Future<void> _saveRepairedConfig(String content, String repairType) async {
+    try {
+      // Create backup
+      final backupFile = File('${_configFile.path}.$repairType$_backupSuffix');
+      await _configFile.copy(backupFile.path);
+      
+      // Save repaired content
+      await _configFile.writeAsString(content);
+      debugPrint('✅ Repaired configuration saved');
+      
+    } catch (e) {
+      debugPrint('❌ Failed to save repaired config: $e');
+    }
+  }
+  
+  /// Handle critical config load failure
+  Future<void> _handleConfigLoadFailure(dynamic error) async {
+    _hasErrors = true;
+    _lastError = error.toString();
+    
+    // Try to create a minimal working config
+    try {
+      await _ensureConfigDirectory();
+      _configFile = await _getConfigFile();
+      
+      if (!await _configFile.exists()) {
+        _config = TermisolConfig.defaultConfig();
+        await _saveDefaultConfiguration();
+        debugPrint('✅ Emergency default configuration created');
+      }
+    } catch (e) {
+      debugPrint('❌ Emergency config creation failed: $e');
     }
   }
   
@@ -717,5 +868,137 @@ ${spaces}  max_log_file_size: $maxLogFileSize
 ${spaces}  enable_telemetry: $enableTelemetry
 ${spaces}  auto_update: $autoUpdate
 ${spaces}  update_channel: $updateChannel''';
+  }
+}
+
+/// Fix common YAML indentation issues
+String _fixYamlIndentation(String content) {
+  final lines = content.split('\n');
+  final fixedLines = <String>[];
+  
+  for (final line in lines) {
+    if (line.trim().isEmpty) {
+      fixedLines.add(line);
+      continue;
+    }
+    
+    // Fix tabs to spaces
+    String fixedLine = line.replaceAll('\t', '  ');
+    
+    // Fix inconsistent indentation (2 spaces standard)
+    if (fixedLine.startsWith(' ') && !fixedLine.startsWith('  ')) {
+      fixedLine = '  $fixedLine';
+    }
+    
+    fixedLines.add(fixedLine);
+  }
+  
+  return fixedLines.join('\n');
+}
+
+/// Fix common YAML quote issues
+String _fixYamlQuotes(String content) {
+  String fixed = content;
+  
+  // Fix unquoted values with special characters
+  fixed = fixed.replaceAllMapped(RegExp(r'^(\s*)([^:\s]+):\s*([^#\s].*?)(\s*$|\s*#)'), (match) {
+    final indent = match.group(1) ?? '';
+    final key = match.group(2) ?? '';
+    final value = match.group(3) ?? '';
+    final rest = match.group(4) ?? '';
+    
+    // Quote values with special characters
+    if (value.contains(RegExp(r'[:\[\]{}|>*&]')) || value.contains('#')) {
+      return '$indent$key: "$value"$rest';
+    }
+    return match.group(0)!;
+  });
+  
+  return fixed;
+}
+
+/// Fix common YAML colon issues
+String _fixYamlColons(String content) {
+  String fixed = content;
+  
+  // Fix missing colons
+  fixed = fixed.replaceAllMapped(RegExp(r'^(\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s+(.+)$'), (match) {
+    final indent = match.group(1) ?? '';
+    final key = match.group(2) ?? '';
+    final value = match.group(3) ?? '';
+    return '$indent$key: $value';
+  });
+  
+  return fixed;
+}
+
+/// Fix common YAML list issues
+String _fixYamlLists(String content) {
+  String fixed = content;
+  
+  // Fix inconsistent list markers
+  fixed = fixed.replaceAllMapped(RegExp(r'^(\s*)-\s*\n\s*([^-\s])'), (match) {
+    final indent = match.group(1) ?? '';
+    final nextLine = match.group(2) ?? '';
+    return '$indent- $nextLine';
+  });
+  
+  return fixed;
+}
+
+/// Merge two YAML maps, preferring the second
+YamlMap _mergeYamlMaps(YamlMap defaults, YamlMap user) {
+  final merged = <String, dynamic>{};
+  
+  // Add defaults
+  for (final entry in defaults.entries) {
+    merged[entry.key] = entry.value;
+  }
+  
+  // Override with user values
+  for (final entry in user.entries) {
+    if (entry.value is YamlMap && merged[entry.key] is YamlMap) {
+      // Recursively merge nested maps
+      merged[entry.key] = _mergeYamlMaps(
+        merged[entry.key] as YamlMap,
+        entry.value as YamlMap,
+      );
+    } else {
+      merged[entry.key] = entry.value;
+    }
+  }
+  
+  return YamlMap.wrap(merged);
+}
+
+/// Convert YAML map to string
+String _yamlMapToString(YamlMap yaml) {
+  final buffer = StringBuffer();
+  _yamlMapToStringHelper(yaml, buffer, 0);
+  return buffer.toString();
+}
+
+void _yamlMapToStringHelper(YamlMap yaml, StringBuffer buffer, int indent) {
+  final spaces = '  ' * indent;
+  
+  for (final entry in yaml.entries) {
+    final key = entry.key;
+    final value = entry.value;
+    
+    buffer.write('$spaces$key:');
+    
+    if (value is YamlMap) {
+      buffer.writeln();
+      _yamlMapToStringHelper(value, buffer, indent + 1);
+    } else if (value is List) {
+      buffer.writeln();
+      for (final item in value) {
+        buffer.writeln('$spaces  - $item');
+      }
+    } else if (value is String) {
+      buffer.writeln(' $value');
+    } else {
+      buffer.writeln(' $value');
+    }
   }
 }

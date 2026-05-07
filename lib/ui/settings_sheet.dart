@@ -1,14 +1,27 @@
 import 'package:flutter/material.dart';
 import '../config/pkm_theme.dart';
+import '../core/performance_enforcer.dart';
 
-/// settings sheet for termisol configuration
-class SettingsSheet extends StatelessWidget {
-  const SettingsSheet({super.key});
+/// Settings sheet for Termisol configuration
+class SettingsSheet extends StatefulWidget {
+  final PerformanceEnforcer? performanceEnforcer;
+  
+  const SettingsSheet({
+    super.key, 
+    this.performanceEnforcer,
+  });
+
+  @override
+  State<SettingsSheet> createState() => _SettingsSheetState();
+}
+
+class _SettingsSheetState extends State<SettingsSheet> {
+  bool _showFps = false;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 300,
+      height: 400,
       color: PkmTheme.popup,
       child: Column(
         children: [
@@ -23,14 +36,14 @@ class SettingsSheet extends StatelessWidget {
             ),
           ),
           // settings content
-          const Expanded(
+          Expanded(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'settings',
+                    'Settings',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -38,9 +51,16 @@ class SettingsSheet extends StatelessWidget {
                       fontFamily: PkmTheme.fontUi,
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
+                  
+                  // Performance section
+                  _buildPerformanceSection(),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // Other settings
                   Text(
-                    'settings functionality coming soon...',
+                    'Other settings coming soon...',
                     style: TextStyle(
                       fontSize: 14,
                       color: PkmTheme.primary,
@@ -53,6 +73,96 @@ class SettingsSheet extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPerformanceSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Performance',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: PkmTheme.text,
+            fontFamily: PkmTheme.fontUi,
+          ),
+        ),
+        const SizedBox(height: 12),
+        
+        // FPS toggle
+        SwitchListTile(
+          title: Text(
+            'Show FPS Counter',
+            style: TextStyle(
+              fontSize: 14,
+              color: PkmTheme.text,
+              fontFamily: PkmTheme.fontUi,
+            ),
+          ),
+          subtitle: Text(
+            'Display real-time FPS in settings',
+            style: TextStyle(
+              fontSize: 12,
+              color: PkmTheme.primary,
+              fontFamily: PkmTheme.fontUi,
+            ),
+          ),
+          value: _showFps,
+          onChanged: (value) {
+            setState(() {
+              _showFps = value;
+            });
+          },
+          activeColor: PkmTheme.primary,
+        ),
+        
+        // FPS display
+        if (_showFps && widget.performanceEnforcer != null)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: PkmTheme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: PkmTheme.primary.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.speed,
+                  color: PkmTheme.primary,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Current FPS: ${widget.performanceEnforcer!.currentFps.toStringAsFixed(1)}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: PkmTheme.text,
+                        fontFamily: PkmTheme.fontTerminal,
+                      ),
+                    ),
+                    Text(
+                      'Frame Time: ${widget.performanceEnforcer!.currentFrameTime.toStringAsFixed(2)}ms',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: PkmTheme.primary,
+                        fontFamily: PkmTheme.fontTerminal,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }

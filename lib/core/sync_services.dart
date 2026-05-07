@@ -334,6 +334,7 @@ class SyncServices {
     } catch (e) {
       return SyncResult(
         success: false,
+        message: 'Git sync failed',
         error: e.toString(),
         filesProcessed: 0,
         bytesTransferred: 0,
@@ -361,7 +362,7 @@ class SyncServices {
       
       for (final workflow in workflows) {
         try {
-          await _syncWorkflow(service, workflow);
+          await _syncSingleWorkflow(service, workflow);
           filesProcessed++;
         } catch (e) {
           final conflict = SyncConflict(
@@ -370,8 +371,8 @@ class SyncServices {
             type: ConflictType.workflow,
             localPath: workflow.localPath,
             remotePath: workflow.remotePath,
-            localContent: workflow.localContent,
-            remoteContent: workflow.remoteContent,
+            localContent: workflow.localContent ?? '',
+            remoteContent: workflow.remoteContent ?? '',
             detectedAt: DateTime.now(),
             resolution: null,
           );
@@ -393,6 +394,7 @@ class SyncServices {
     } catch (e) {
       return SyncResult(
         success: false,
+        message: 'Workflow sync failed',
         error: e.toString(),
         filesProcessed: 0,
         bytesTransferred: 0,
@@ -459,6 +461,7 @@ class SyncServices {
     } catch (e) {
       return SyncResult(
         success: false,
+        message: 'File sync failed',
         error: e.toString(),
         filesProcessed: 0,
         bytesTransferred: 0,
@@ -519,6 +522,7 @@ class SyncServices {
     } catch (e) {
       return ConnectionTest(
         success: false,
+        message: 'Connection failed',
         error: e.toString(),
         latency: 0,
       );
@@ -573,7 +577,7 @@ class SyncServices {
     }
   }
 
-  Future<void> _syncWorkflow(SyncService service, N8nWorkflow workflow) async {
+  Future<void> _syncSingleWorkflow(SyncService service, N8nWorkflow workflow) async {
     // Check local file
     final localFile = File(workflow.localPath);
     

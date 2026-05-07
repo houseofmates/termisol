@@ -1,0 +1,13 @@
+[Unit]
+Description=Termisol Auto-Commit Service
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/house/termisol/scripts/auto_commit.sh
+User=house
+WorkingDirectory=/home/house/termisol
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+
+[Install]
+WantedBy=multi-user.target

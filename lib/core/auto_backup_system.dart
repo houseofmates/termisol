@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:convert';
+import 'package:path/path.dart' as p;
 
 class AutoBackupSystem {
   static const String _backupDirectory = '/home/house/backups';
@@ -37,7 +38,7 @@ class AutoBackupSystem {
     final backupDir = Directory(_backupDirectory);
     if (!backupDir.existsSync()) {
       backupDir.createSync(recursive: true);
-      backupDir.setPermissionsSync(0o755);
+      Process.runSync('chmod', ['755', _backupDirectory]);
     }
   }
 
@@ -170,7 +171,7 @@ echo "Backup command sent to Termisol"
 ''';
       
       backupScript.writeAsStringSync(scriptContent);
-      backupScript.setPermissionsSync(0o755);
+      Process.runSync('chmod', ['755', '/usr/local/bin/backup']);
       
       developer.log('💾 Setup /backup command');
       
@@ -349,7 +350,7 @@ echo "Backup command sent to Termisol"
           continue;
         }
         
-        await _backupDirectory(
+        await _createBackupDirectory(
           sourceDir,
           backupDir,
           operation,
@@ -369,7 +370,7 @@ echo "Backup command sent to Termisol"
     return result;
   }
 
-  Future<void> _backupDirectory(
+  Future<void> _createBackupDirectory(
     Directory sourceDir,
     Directory backupDir,
     BackupOperation operation,
@@ -573,8 +574,8 @@ echo "Backup command sent to Termisol"
           continue;
         }
         
-        final backupSourceDir = Directory('${backupDir.path}/${path.basename(sourcePath)}');
-        final restoreTargetDir = Directory('$restorePath/${path.basename(sourcePath)}');
+        final backupSourceDir = Directory('${backupDir.path}/${p.basename(sourcePath)}');
+        final restoreTargetDir = Directory('$restorePath/${p.basename(sourcePath)}');
         
         if (backupSourceDir.existsSync()) {
           await _copyDirectory(backupSourceDir, restoreTargetDir);
@@ -791,7 +792,7 @@ echo "Backup command sent to Termisol"
     if (backupDir.existsSync()) {
       for (final entity in backupDir.listSync()) {
         if (entity is Directory) {
-          backups.add(path.basename(entity.path));
+          backups.add(p.basename(entity.path));
         }
       }
     }

@@ -142,6 +142,10 @@ void main() {
         tunnelManagement: TunnelManagement(),
         sshConnectionPersistence: SSHConnectionPersistence(),
         codeIntelligence: CodeIntelligence(),
+        databaseClient: DatabaseClient(),
+        sessionRecovery: SessionRecovery(),
+        commandGuard: CommandGuard(),
+        asciicastRecorder: AsciicastRecorder(),
       );
 
     expect(app, isNotNull);

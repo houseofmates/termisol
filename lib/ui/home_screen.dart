@@ -44,13 +44,17 @@ import '../core/multihop_ssh.dart';
 import '../core/tunnel_management.dart';
 import '../core/ssh_connection_persistence.dart';
 import '../core/code_intelligence.dart';
-import '../core/database_client.dart';
+import '../core/context_aware_prompt_optimizer.dart';
 import '../core/session_recovery.dart';
 import '../core/command_guard.dart';
 import '../core/asciicast_recorder.dart';
 import '../ui/edit.dart';
 import '../ui/file_browser.dart';
 import '../ui/file_viewer.dart';
+import '../core/session_persistence.dart';
+import '../core/crash_recovery.dart';
+import '../core/long_command_notifier.dart';
+import '../core/termisol_plugin_system.dart';
 
 class HomeScreen extends StatefulWidget {
   final NvidiaAITerminalAssistant aiAssistant;

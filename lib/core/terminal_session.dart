@@ -68,6 +68,19 @@ class TerminalSession extends ChangeNotifier {
   }) {
     terminal = Terminal(maxLines: maxLines);
     controller = TerminalController();
+    
+    // Initialize optimization managers
+    _textBuffer = OptimizedTextBuffer(maxLines: maxLines);
+    _lazyOutput = LazyTerminalOutput(sessionId: id, visibleLines: 1000);
+    _autoComplete = SmartAutoComplete();
+    _sessionPersistence = SessionPersistence();
+    _crashRecovery = CrashRecovery();
+    _commandNotifier = LongCommandNotifier();
+    _pluginSystem = TermisolPluginSystem();
+    
+    // Start health monitoring and auto-save
+    _crashRecovery._startHealthMonitoring();
+    _sessionPersistence.startAutoSave(() => _saveSessionState());
   }
 
   /// rename this session and notify listeners.

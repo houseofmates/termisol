@@ -180,11 +180,105 @@ class _HomeScreenState extends State<HomeScreen> {
     widget.llmPluginSystem.initialize();
     widget.pluginManager.initialize();
     widget.performanceEnforcer.addListener(_onPerformanceUpdate);
+    
+    // Initialize optimization systems
+    _initializeOptimizationSystems();
+    
     if (widget.sessionRecovery.wasRecovered) {
       _restoreRecoveredSession();
     } else {
       _createInitialSession();
     }
+    
+    // Check for crash recovery
+    _checkCrashRecovery();
+  }
+
+  /// Initialize optimization systems
+  void _initializeOptimizationSystems() {
+    // Start crash recovery monitoring
+    widget.crashRecovery._startHealthMonitoring();
+    
+    // Start session persistence auto-save
+    widget.sessionPersistence.startAutoSave(() {
+      _saveAllSessions();
+    });
+    
+    // Load plugins
+    _loadOptimizationPlugins();
+  }
+
+  /// Check for crash recovery
+  Future<void> _checkCrashRecovery() async {
+    if (await widget.crashRecovery.needsRecovery()) {
+      final crashLog = await widget.crashRecovery.getCrashLog();
+      if (crashLog.isNotEmpty) {
+        // Show crash recovery dialog
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Crash Recovery'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Termisol detected a previous crash.'),
+                const SizedBox(height: 8),
+                Text('Crash log: ${crashLog.first}'),
+                const SizedBox(height: 8),
+                const Text('Would you like to recover your sessions?'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _restoreRecoveredSession();
+                },
+                child: const Text('Recover'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  widget.crashRecovery.clearCrashLog();
+                },
+                child: const Text('Start Fresh'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
+  /// Load optimization plugins
+  Future<void> _loadOptimizationPlugins() async {
+    // Load built-in optimization plugins
+    final pluginPaths = [
+      '/home/house/termisol/plugins/text_optimization.tisol',
+      '/home/house/termisol/plugins/memory_optimization.tisol',
+      '/home/house/termisol/plugins/performance_optimization.tisol',
+    ];
+    
+    for (final pluginPath in pluginPaths) {
+      try {
+        await widget.pluginSystem.loadPlugin(pluginPath);
+      } catch (e) {
+        print('Failed to load plugin $pluginPath: $e');
+      }
+    }
+  }
+
+  /// Save all sessions
+  Future<void> _saveAllSessions() async {
+    final sessionDataList = _sessions.map((session) => TerminalSessionData(
+      id: session.id,
+      name: session.name,
+      type: 'local',
+      state: session.getSessionStats(),
+      timestamp: DateTime.now(),
+    )).toList();
+    
+    await widget.sessionPersistence.saveSessions(sessionDataList);
   }
 
   void _restoreRecoveredSession() {

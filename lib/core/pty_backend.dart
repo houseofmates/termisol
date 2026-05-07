@@ -12,6 +12,7 @@ abstract class TermisolPtyBackend {
   Future<void> start({int cols, int rows});
   void write(List<int> data);
   void resize(int cols, int rows);
+  Future<void> stop();
   Future<void> terminate();
 
   /// auto-detect the best backend for the current platform.

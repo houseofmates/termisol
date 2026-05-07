@@ -51,10 +51,23 @@ import '../core/asciicast_recorder.dart';
 import '../ui/edit.dart';
 import '../ui/file_browser.dart';
 import '../ui/file_viewer.dart';
-import '../core/session_persistence.dart';
-import '../core/crash_recovery.dart';
-import '../core/long_command_notifier.dart';
-import '../core/termisol_plugin_system.dart';
+
+// Session data for saving/loading
+class TerminalSessionData {
+  final String id;
+  final String name;
+  final String type;
+  final Map<String, dynamic> state;
+  final DateTime timestamp;
+
+  TerminalSessionData({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.state,
+    required this.timestamp,
+  });
+}
 
 class HomeScreen extends StatefulWidget {
   final NvidiaAITerminalAssistant aiAssistant;

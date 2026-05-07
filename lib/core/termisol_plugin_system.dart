@@ -155,7 +155,7 @@ class TermisolPluginSystem {
 }
 
 /// Plugin worker isolate
-static Future<void> _pluginWorker(SendPort sendPort) async {
+Future<void> _pluginWorker(SendPort sendPort) async {
   final receivePort = ReceivePort();
   
   while (true) {

@@ -1722,17 +1722,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    // Save all sessions before disposal
+    _saveAllSessions();
+    
+    // Dispose all sessions with optimization cleanup
     for (final session in _sessions) {
-      session.dispose();
+      session.disposeSession();
     }
-    for (final node in _sessionFocusNodes.values) {
-      node.dispose();
-    }
-    for (final ctrl in _renameControllers.values) {
-      ctrl.dispose();
-    }
+    
+    // Dispose optimization systems
+    widget.sessionPersistence.stopAutoSave();
+    widget.crashRecovery.dispose();
+    widget.commandNotifier.dispose();
+    widget.pluginSystem.disposeAll();
+    
     widget.performanceEnforcer.removeListener(_onPerformanceUpdate);
-    widget.aiAssistant.dispose();
     widget.pluginManager.dispose();
     widget.llmPluginSystem.dispose();
     super.dispose();

@@ -1318,6 +1318,300 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildDatabasePanel() {
+    final dbCtrl = TextEditingController();
+    final queryCtrl = TextEditingController();
+
+    return StatefulBuilder(builder: (ctx, setDbState) {
+      final profiles = widget.databaseClient.profiles;
+      return Container(
+        width: 500,
+        color: const Color(0xFF0a0a0a),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: Color(0xFF1a1a1a), width: 1)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.storage, size: 14, color: Color(0xFF7CB9FF)),
+                  const SizedBox(width: 8),
+                  const Text('database client',
+                    style: TextStyle(color: Color(0xFF999999), fontSize: 11, fontWeight: FontWeight.w600)),
+                  const Spacer(),
+                  InkWell(
+                    onTap: () => setState(() => _showDatabasePanel = false),
+                    child: const Icon(Icons.close, size: 14, color: Color(0xFF666666)),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(10),
+                children: [
+                  const Text('add profile', style: TextStyle(color: Color(0xFF666666), fontSize: 10, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+                  Row(children: [
+                    Expanded(
+                      child: TextField(
+                        controller: dbCtrl,
+                        style: const TextStyle(color: Color(0xFFCDD6E0), fontSize: 11),
+                        decoration: const InputDecoration(
+                          hintText: 'profile name',
+                          hintStyle: TextStyle(color: Color(0xFF666666), fontSize: 11),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                          filled: true,
+                          fillColor: Color(0xFF1a1a1a),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2a2a2a)),
+                      onPressed: () => widget.databaseClient.addProfile(
+                        name: dbCtrl.text, type: DbType.sqlite, filePath: '/home/house/${dbCtrl.text}.db',
+                      ).then((_) { dbCtrl.clear(); setDbState(() {}); }),
+                      child: const Text('+ sqlite', style: TextStyle(fontSize: 10, color: Color(0xFF999999))),
+                    ),
+                    const SizedBox(width: 4),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2a2a2a)),
+                      onPressed: () => widget.databaseClient.addProfile(
+                        name: dbCtrl.text, type: DbType.postgresql,
+                        host: 'localhost', database: dbCtrl.text, username: 'postgres',
+                      ).then((_) { dbCtrl.clear(); setDbState(() {}); }),
+                      child: const Text('+ pg', style: TextStyle(fontSize: 10, color: Color(0xFF999999))),
+                    ),
+                  ]),
+                  const SizedBox(height: 10),
+                  if (profiles.isNotEmpty) ...[
+                    const Text('profiles', style: TextStyle(color: Color(0xFF666666), fontSize: 10, fontWeight: FontWeight.w600)),
+                    ...profiles.map((p) => Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        children: [
+                          Icon(p.type == DbType.postgresql ? Icons.dns : Icons.sd_card, size: 12, color: const Color(0xFF7CB9FF)),
+                          const SizedBox(width: 6),
+                          Expanded(child: Text('${p.name} (${p.type.name})', style: const TextStyle(color: Color(0xFF999999), fontSize: 10))),
+                          TextButton(
+                            onPressed: () => widget.databaseClient.connect(p.id).then((_) => setDbState(() {})),
+                            child: Text('connect', style: TextStyle(color: widget.databaseClient.activeProfile?.id == p.id ? Colors.green : const Color(0xFF7CB9FF), fontSize: 10)),
+                          ),
+                          TextButton(
+                            onPressed: () => widget.databaseClient.removeProfile(p.id).then((_) => setDbState(() {})),
+                            child: const Text('del', style: TextStyle(color: Color(0xFF666666), fontSize: 10)),
+                          ),
+                        ],
+                      ),
+                    )),
+                  ],
+                  if (widget.databaseClient.activeProfile != null) ...[
+                    const SizedBox(height: 12),
+                    const Divider(color: Color(0xFF1a1a1a)),
+                    const Text('query', style: TextStyle(color: Color(0xFF666666), fontSize: 10, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    Row(children: [
+                      Expanded(
+                        child: TextField(
+                          controller: queryCtrl,
+                          style: const TextStyle(color: Color(0xFFCDD6E0), fontSize: 11),
+                          decoration: const InputDecoration(
+                            hintText: 'SELECT * FROM ...',
+                            hintStyle: TextStyle(color: Color(0xFF666666), fontSize: 11),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                            filled: true,
+                            fillColor: Color(0xFF1a1a1a),
+                          ),
+                          onSubmitted: (sql) {
+                            widget.databaseClient.executeQuery(sql).then((r) {
+                              setDbState(() {});
+                            }).catchError((_) { setDbState(() {}); });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7CB9FF)),
+                        onPressed: () {
+                          widget.databaseClient.executeQuery(queryCtrl.text).then((_) => setDbState(() {})).catchError((_) { setDbState(() {}); });
+                        },
+                        child: const Text('run', style: TextStyle(fontSize: 10, color: Colors.black)),
+                      ),
+                    ]),
+                  ],
+                  if (widget.databaseClient.history.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    const Divider(color: Color(0xFF1a1a1a)),
+                    const Text('history', style: TextStyle(color: Color(0xFF666666), fontSize: 10, fontWeight: FontWeight.w600)),
+                    ...widget.databaseClient.history.take(10).map((h) => Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        h.sql.length > 60 ? '${h.sql.substring(0, 60)}...' : h.sql,
+                        style: TextStyle(
+                          color: h.success ? const Color(0xFF999999) : Colors.red.withOpacity(0.7),
+                          fontSize: 9,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    )),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildGuardPanel() {
+    final patternCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+
+    return StatefulBuilder(builder: (ctx, setGuardState) {
+      return Container(
+        width: 380,
+        color: const Color(0xFF0a0a0a),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: Color(0xFF1a1a1a), width: 1)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.security, size: 14, color: Color(0xFF7CB9FF)),
+                  const SizedBox(width: 8),
+                  const Text('command guard',
+                    style: TextStyle(color: Color(0xFF999999), fontSize: 11, fontWeight: FontWeight.w600)),
+                  const Spacer(),
+                  Switch(
+                    value: widget.commandGuard.isEnabled,
+                    onChanged: (_) {
+                      widget.commandGuard.toggleEnabled();
+                      setGuardState(() {});
+                    },
+                    activeColor: const Color(0xFF7CB9FF),
+                  ),
+                  const SizedBox(width: 4),
+                  InkWell(
+                    onTap: () => setState(() => _showGuardPanel = false),
+                    child: const Icon(Icons.close, size: 14, color: Color(0xFF666666)),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(10),
+                children: [
+                  const Text('add rule', style: TextStyle(color: Color(0xFF666666), fontSize: 10, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 4),
+                  TextField(
+                    controller: patternCtrl,
+                    style: const TextStyle(color: Color(0xFFCDD6E0), fontSize: 11),
+                    decoration: const InputDecoration(
+                      hintText: 'pattern (e.g. rm -rf)',
+                      hintStyle: TextStyle(color: Color(0xFF666666), fontSize: 11),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      filled: true,
+                      fillColor: Color(0xFF1a1a1a),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  TextField(
+                    controller: descCtrl,
+                    style: const TextStyle(color: Color(0xFFCDD6E0), fontSize: 11),
+                    decoration: const InputDecoration(
+                      hintText: 'description (optional)',
+                      hintStyle: TextStyle(color: Color(0xFF666666), fontSize: 11),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      filled: true,
+                      fillColor: Color(0xFF1a1a1a),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7CB9FF)),
+                    onPressed: () {
+                      if (patternCtrl.text.isNotEmpty) {
+                        widget.commandGuard.addRule(
+                          pattern: patternCtrl.text,
+                          description: descCtrl.text.isEmpty ? null : descCtrl.text,
+                        ).then((_) {
+                          patternCtrl.clear();
+                          descCtrl.clear();
+                          setGuardState(() {});
+                        });
+                      }
+                    },
+                    child: const Text('add rule', style: TextStyle(fontSize: 10, color: Colors.black)),
+                  ),
+                  const SizedBox(height: 10),
+                  if (widget.commandGuard.rules.isEmpty)
+                    Text('no rules defined \u2014 all commands allowed',
+                      style: TextStyle(color: PkmTheme.secondary.withOpacity(0.5), fontSize: 10))
+                  else ...[
+                    const Text('rules', style: TextStyle(color: Color(0xFF666666), fontSize: 10, fontWeight: FontWeight.w600)),
+                    ...widget.commandGuard.rules.map((r) => Container(
+                      margin: const EdgeInsets.only(top: 4),
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1a1a1a),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(r.pattern, style: const TextStyle(color: Color(0xFFF92672), fontSize: 10, fontFamily: 'monospace')),
+                                if (r.description.isNotEmpty)
+                                  Text(r.description, style: const TextStyle(color: Color(0xFF666666), fontSize: 9)),
+                              ],
+                            ),
+                          ),
+                          Text('${r.matchCount}', style: const TextStyle(color: Color(0xFF666666), fontSize: 9)),
+                          const SizedBox(width: 4),
+                          InkWell(
+                            onTap: () => widget.commandGuard.toggleRule(r.id).then((_) => setGuardState(() {})),
+                            child: Icon(
+                              r.enabled ? Icons.toggle_on : Icons.toggle_off,
+                              size: 16,
+                              color: r.enabled ? Colors.green : const Color(0xFF666666),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          InkWell(
+                            onTap: () => widget.commandGuard.removeRule(r.id).then((_) => setGuardState(() {})),
+                            child: const Icon(Icons.close, size: 12, color: Color(0xFF666666)),
+                          ),
+                        ],
+                      ),
+                    )),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
   @override
   void dispose() {
     for (final session in _sessions) {

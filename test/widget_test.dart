@@ -42,6 +42,10 @@ import 'package:termisol/core/multihop_ssh.dart';
 import 'package:termisol/core/tunnel_management.dart';
 import 'package:termisol/core/ssh_connection_persistence.dart';
 import 'package:termisol/core/code_intelligence.dart';
+import 'package:termisol/core/database_client.dart';
+import 'package:termisol/core/session_recovery.dart';
+import 'package:termisol/core/command_guard.dart';
+import 'package:termisol/core/asciicast_recorder.dart';
 import 'package:termisol/core/terminal_pane_manager.dart';
 
 void main() {

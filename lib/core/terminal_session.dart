@@ -51,6 +51,15 @@ class TerminalSession extends ChangeNotifier {
   /// by character, so we accumulate input until we see a newline.
   final StringBuffer _inputBuffer = StringBuffer();
 
+  // Optimization managers
+  late final OptimizedTextBuffer _textBuffer;
+  late final LazyTerminalOutput _lazyOutput;
+  late final SmartAutoComplete _autoComplete;
+  late final SessionPersistence _sessionPersistence;
+  late final CrashRecovery _crashRecovery;
+  late final LongCommandNotifier _commandNotifier;
+  late final TermisolPluginSystem _pluginSystem;
+
   bool get connected => _connected;
   String? get error => _error;
 

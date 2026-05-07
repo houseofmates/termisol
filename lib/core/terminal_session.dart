@@ -156,6 +156,9 @@ class TerminalSession extends ChangeNotifier {
       final line = _inputBuffer.toString().trim();
       _inputBuffer.clear();
 
+      // Add to auto-complete history
+      _autoComplete.addToHistory(line);
+
       if (onAiQuery != null && line.startsWith('/ai ')) {
         final query = line.substring(4);
         _processAiQuery(query);
@@ -167,11 +170,35 @@ class TerminalSession extends ChangeNotifier {
         _processEditCommand(filename);
         return; // Do not send to shell.
       }
+
+      // Check for long-running commands
+      _checkForLongCommand(line);
     } else {
       _inputBuffer.write(data);
     }
 
+    // Add to optimized text buffer
+    _textBuffer.append(data);
+    _lazyOutput.addContent([data]);
+
     _backend?.write(bytes);
+  }
+
+  /// Check if command should trigger long-running notification
+  void _checkForLongCommand(String command) {
+    final longCommands = [
+      'apt-get install', 'apt install', 'dnf install', 'yum install',
+      'make', 'cmake', 'cargo build', 'npm install', 'yarn install',
+      'pip install', 'pip3 install', 'docker build', 'docker-compose up',
+      'git clone', 'wget', 'curl', 'rsync', 'scp', 'ffmpeg',
+    ];
+
+    for (final longCmd in longCommands) {
+      if (command.startsWith(longCmd)) {
+        _commandNotifier.notifyLongCommand(command);
+        break;
+      }
+    }
   }
 
   /// Send the AI query and display the response in the terminal.
@@ -210,15 +237,72 @@ class TerminalSession extends ChangeNotifier {
     _backend?.write(data);
   }
 
-  Future<void> disposeSession() async {
-    await _outputSub?.cancel();
-    _outputSub = null;
-    if (_backend != null) {
-      await _backend!.terminate();
-      _backend = null;
+  /// Save current session state
+  Future<void> _saveSessionState() async {
+    try {
+      final sessionData = TerminalSessionData(
+        id: id,
+        name: name,
+        type: _backend?.runtimeType.toString() ?? 'local',
+        state: {
+          'terminal_content': _textBuffer.getVisibleText(1000),
+          'cursor_position': _textBuffer._cursorPosition,
+          'history': _autoComplete._recentCommands,
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+        timestamp: DateTime.now(),
+      );
+      
+      await _sessionPersistence.saveSessions([sessionData]);
+    } catch (e) {
+      print('Failed to save session state: $e');
     }
-    controller.dispose();
-    _connected = false;
+  }
+
+  /// Get auto-complete suggestions for current input
+  Future<List<CommandSuggestion>> getAutoCompleteSuggestions(String partialCommand) async {
+    return await _autoComplete.getSuggestions(partialCommand);
+  }
+
+  /// Get session statistics
+  Map<String, dynamic> getSessionStats() {
+    return {
+      'buffer_stats': _textBuffer.stats,
+      'lazy_output_stats': {
+        'total_lines': _lazyOutput.totalLineCount,
+        'visible_lines': _lazyOutput.visibleLineCount,
+        'is_loading': _lazyOutput.isLoading,
+      },
+      'auto_complete_stats': {
+        'history_size': _autoComplete._recentCommands.length,
+        'command_frequency': _autoComplete._commandFrequency,
+      },
+      'active_plugins': _pluginSystem.loadedPlugins.map((p) => p.name).toList(),
+      'active_long_commands': _commandNotifier.activeCommands,
+    };
+  }
+
+  Future<void> disposeSession() async {
+    // Save session state before disposal
+    await _saveSessionState();
+    
+    // Cancel long command notifications
+    for (final command in _commandNotifier.activeCommands.keys) {
+      _commandNotifier.cancelNotification(command);
+    }
+    
+    // Dispose optimization managers
+    _textBuffer.clear();
+    _lazyOutput.dispose();
+    _autoComplete.clearHistory();
+    _sessionPersistence.stopAutoSave();
+    _crashRecovery.dispose();
+    _commandNotifier.dispose();
+    await _pluginSystem.disposeAll();
+    
+    _outputSub?.cancel();
+    await _backend?.stop();
+    _backend = null;
   }
 
   @override

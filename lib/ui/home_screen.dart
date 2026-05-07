@@ -97,6 +97,10 @@ class HomeScreen extends StatefulWidget {
   final SessionRecovery sessionRecovery;
   final CommandGuard commandGuard;
   final AsciicastRecorder asciicastRecorder;
+  final SessionPersistence sessionPersistence;
+  final CrashRecovery crashRecovery;
+  final LongCommandNotifier commandNotifier;
+  final TermisolPluginSystem pluginSystem;
 
   const HomeScreen({
     super.key,
@@ -140,6 +144,10 @@ class HomeScreen extends StatefulWidget {
     required this.sessionRecovery,
     required this.commandGuard,
     required this.asciicastRecorder,
+    required this.sessionPersistence,
+    required this.crashRecovery,
+    required this.commandNotifier,
+    required this.pluginSystem,
   });
 
   @override

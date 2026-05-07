@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../core/nvidia_ai_client.dart';
+import '../core/integrated_plugin_system.dart';
 
 /// NVIDIA AI Terminal Assistant for Termisol.
 ///

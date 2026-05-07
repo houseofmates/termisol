@@ -1,0 +1,6 @@
+package com.termisol
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity() {
+}

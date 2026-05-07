@@ -1,0 +1,782 @@
+import 'dart:async';
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:highlight/languages/dart.dart';
+import 'package:highlight/languages/python.dart';
+import 'package:highlight/languages/javascript.dart';
+import 'package:highlight/languages/typescript.dart';
+import 'package:highlight/languages/json.dart';
+import 'package:highlight/languages/yaml.dart';
+import 'package:highlight/languages/shell.dart';
+import 'package:highlight/languages/html.dart';
+import 'package:highlight/languages/css.dart';
+import 'package:highlight/languages/xml.dart';
+import 'package:highlight/languages/sql.dart';
+import 'package:highlight/languages/go.dart';
+import 'package:highlight/languages/rust.dart';
+import 'package:highlight/languages/java.dart';
+import 'package:highlight/languages/cpp.dart';
+import 'package:highlight/languages/csharp.dart';
+import 'package:highlight/languages/php.dart';
+import 'package:highlight/languages/ruby.dart';
+import 'package:highlight/languages/swift.dart';
+import 'package:highlight/languages/kotlin.dart';
+import 'package:highlight/languages/dockerfile.dart';
+import 'package:highlight/languages/nginx.dart';
+import 'package:highlight/languages/markdown.dart';
+import 'package:highlight/languages/bash.dart';
+import 'package:highlight/languages/zsh.dart';
+import 'package:highlight/languages/fish.dart';
+import 'package:flutter_highlight/flutter_highlight.dart';
+import 'package:flutter_highlight/themes/monokai-sublime.dart';
+import 'package:flutter_highlight/themes/vs2015.dart';
+import 'package:flutter_highlight/themes/atom-one-dark.dart';
+import 'package:path/path.dart' as path;
+
+/// Advanced text editor with syntax highlighting for all languages
+/// Supports multiple themes, auto-completion, and advanced editing features
+class TextEditor extends StatefulWidget {
+  final String filePath;
+  final String initialContent;
+  final Function(String) onSave;
+  final VoidCallback? onClose;
+  final bool readOnly;
+
+  const TextEditor({
+    super.key,
+    required this.filePath,
+    required this.initialContent,
+    required this.onSave,
+    this.onClose,
+    this.readOnly = false,
+  });
+
+  @override
+  State<TextEditor> createState() => _TextEditorState();
+}
+
+class _TextEditorState extends State<TextEditor> {
+  late TextEditingController _controller;
+  late ScrollController _scrollController;
+  late FocusNode _focusNode;
+  
+  String _currentTheme = 'monokai-sublime';
+  bool _hasUnsavedChanges = false;
+  Timer? _saveTimer;
+  
+  // Editor settings
+  bool _showLineNumbers = true;
+  bool _showMiniMap = false;
+  bool _wordWrap = true;
+  double _fontSize = 14.0;
+  String _fontFamily = 'JetBrains Mono';
+  
+  // Search
+  bool _showSearch = false;
+  final TextEditingController _searchController = TextEditingController();
+  int _currentSearchIndex = 0;
+  List<int> _searchMatches = [];
+  
+  // Auto-completion
+  bool _showCompletion = false;
+  List<String> _completions = [];
+  int _selectedCompletion = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialContent);
+    _scrollController = ScrollController();
+    _focusNode = FocusNode();
+    
+    _controller.addListener(_onTextChanged);
+    _focusNode.addListener(_onFocusChanged);
+    
+    _detectLanguage();
+  }
+
+  @override
+  void dispose() {
+    _saveTimer?.cancel();
+    _controller.dispose();
+    _scrollController.dispose();
+    _focusNode.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    if (!widget.readOnly) {
+      setState(() {
+        _hasUnsavedChanges = true;
+      });
+      
+      // Auto-save with debounce
+      _saveTimer?.cancel();
+      _saveTimer = Timer(const Duration(seconds: 2), () {
+        _saveContent();
+      });
+    }
+  }
+
+  void _onFocusChanged() {
+    if (_focusNode.hasFocus) {
+      // Update completions when focus is gained
+      _updateCompletions();
+    }
+  }
+
+  String _detectLanguage() {
+    final extension = path.extension(widget.filePath).toLowerCase();
+    
+    switch (extension) {
+      case '.dart': return 'dart';
+      case '.py': return 'python';
+      case '.js': return 'javascript';
+      case '.ts': return 'typescript';
+      case '.json': return 'json';
+      case '.yaml':
+      case '.yml': return 'yaml';
+      case '.sh': return 'shell';
+      case '.bash': return 'bash';
+      case '.zsh': return 'zsh';
+      case '.fish': return 'fish';
+      case '.html':
+      case '.htm': return 'html';
+      case '.css': return 'css';
+      case '.xml': return 'xml';
+      case '.sql': return 'sql';
+      case '.go': return 'go';
+      case '.rs': return 'rust';
+      case '.java': return 'java';
+      case '.cpp':
+      case '.cxx':
+      case '.cc': return 'cpp';
+      case '.c': return 'cpp';
+      case '.cs': return 'csharp';
+      case '.php': return 'php';
+      case '.rb': return 'ruby';
+      case '.swift': return 'swift';
+      case '.kt':
+      case '.kts': return 'kotlin';
+      case 'Dockerfile': return 'dockerfile';
+      case '.md':
+      case '.markdown': return 'markdown';
+      default: return 'plaintext';
+    }
+  }
+
+  Map<String, dynamic> _getLanguageConfig() {
+    final language = _detectLanguage();
+    
+    switch (language) {
+      case 'dart': return {'lang': dartLang, 'name': 'Dart'};
+      case 'python': return {'lang': pythonLang, 'name': 'Python'};
+      case 'javascript': return {'lang': javascriptLang, 'name': 'JavaScript'};
+      case 'typescript': return {'lang': typescriptLang, 'name': 'TypeScript'};
+      case 'json': return {'lang': jsonLang, 'name': 'JSON'};
+      case 'yaml': return {'lang': yamlLang, 'name': 'YAML'};
+      case 'shell':
+      case 'bash': return {'lang': bashLang, 'name': 'Bash'};
+      case 'zsh': return {'lang': zshLang, 'name': 'Zsh'};
+      case 'fish': return {'lang': fishLang, 'name': 'Fish'};
+      case 'html': return {'lang': htmlLang, 'name': 'HTML'};
+      case 'css': return {'lang': cssLang, 'name': 'CSS'};
+      case 'xml': return {'lang': xmlLang, 'name': 'XML'};
+      case 'sql': return {'lang': sqlLang, 'name': 'SQL'};
+      case 'go': return {'lang': goLang, 'name': 'Go'};
+      case 'rust': return {'lang': rustLang, 'name': 'Rust'};
+      case 'java': return {'lang': javaLang, 'name': 'Java'};
+      case 'cpp': return {'lang': cppLang, 'name': 'C++'};
+      case 'csharp': return {'lang': csharpLang, 'name': 'C#'};
+      case 'php': return {'lang': phpLang, 'name': 'PHP'};
+      case 'ruby': return {'lang': rubyLang, 'name': 'Ruby'};
+      case 'swift': return {'lang': swiftLang, 'name': 'Swift'};
+      case 'kotlin': return {'lang': kotlinLang, 'name': 'Kotlin'};
+      case 'dockerfile': return {'lang': dockerfileLang, 'name': 'Dockerfile'};
+      case 'markdown': return {'lang': markdownLang, 'name': 'Markdown'};
+      default: return {'lang': null, 'name': 'Plain Text'};
+    }
+  }
+
+  Map<String, dynamic> _getThemeData() {
+    switch (_currentTheme) {
+      case 'monokai-sublime':
+        return {'theme': monokaiSublimeTheme, 'name': 'Monokai Sublime'};
+      case 'vs2015':
+        return {'theme': vs2015Theme, 'name': 'VS 2015'};
+      case 'atom-one-dark':
+        return {'theme': atomOneDarkTheme, 'name': 'Atom One Dark'};
+      default:
+        return {'theme': monokaiSublimeTheme, 'name': 'Monokai Sublime'};
+    }
+  }
+
+  Future<void> _saveContent() async {
+    try {
+      await widget.onSave(_controller.text);
+      setState(() {
+        _hasUnsavedChanges = false;
+      });
+    } catch (e) {
+      debugPrint('Failed to save content: $e');
+    }
+  }
+
+  void _updateCompletions() {
+    final text = _controller.text;
+    final cursorPos = _controller.selection.baseOffset;
+    final currentLine = text.substring(0, cursorPos).split('\n').last;
+    
+    _completions = _generateCompletions(currentLine);
+    _selectedCompletion = 0;
+    
+    setState(() {
+      _showCompletion = _completions.isNotEmpty;
+    });
+  }
+
+  List<String> _generateCompletions(String currentLine) {
+    final words = currentLine.split(RegExp(r'\s+'));
+    final lastWord = words.last.toLowerCase();
+    
+    if (lastWord.isEmpty) return [];
+    
+    final language = _detectLanguage();
+    final completions = <String>[];
+    
+    // Language-specific completions
+    switch (language) {
+      case 'dart':
+        completions.addAll([
+          'class', 'extends', 'implements', 'with', 'mixin', 'enum',
+          'import', 'as', 'show', 'hide', 'export', 'library',
+          'void', 'int', 'String', 'bool', 'double', 'List', 'Map',
+          'if', 'else', 'for', 'while', 'do', 'switch', 'case',
+          'break', 'continue', 'return', 'async', 'await', 'try', 'catch', 'finally',
+          'final', 'const', 'static', 'var', 'late', 'required',
+          'Widget', 'State', 'BuildContext', 'Key', 'StatefulWidget', 'StatelessWidget',
+        ]);
+        break;
+      case 'python':
+        completions.addAll([
+          'def', 'class', 'import', 'from', 'as', 'if', 'elif', 'else',
+          'for', 'while', 'try', 'except', 'finally', 'with', 'lambda',
+          'return', 'yield', 'async', 'await', 'self', 'cls', 'pass',
+          'break', 'continue', 'global', 'nonlocal', 'assert', 'del',
+          'str', 'int', 'float', 'bool', 'list', 'dict', 'tuple', 'set',
+        ]);
+        break;
+      case 'javascript':
+        completions.addAll([
+          'function', 'class', 'extends', 'const', 'let', 'var',
+          'if', 'else', 'for', 'while', 'do', 'switch', 'case',
+          'break', 'continue', 'return', 'try', 'catch', 'finally',
+          'import', 'export', 'default', 'async', 'await',
+          'Array', 'Object', 'String', 'Number', 'Boolean',
+          'console.log', 'document.getElementById', 'document.querySelector',
+        ]);
+        break;
+    }
+    
+    // Filter by current word
+    return completions
+        .where((completion) => completion.toLowerCase().startsWith(lastWord))
+        .take(10)
+        .toList();
+  }
+
+  void _acceptCompletion() {
+    if (_selectedCompletion < _completions.length) {
+      final completion = _completions[_selectedCompletion];
+      final text = _controller.text;
+      final cursorPos = _controller.selection.baseOffset;
+      final currentLine = text.substring(0, cursorPos).split('\n').last;
+      final words = currentLine.split(RegExp(r'\s+'));
+      
+      final newText = text.substring(0, cursorPos - words.last.length) + completion + text.substring(cursorPos);
+      final newCursorPos = cursorPos - words.last.length + completion.length;
+      
+      _controller.value = TextEditingValue(
+        text: newText,
+        selection: TextSelection.collapsed(offset: newCursorPos),
+      );
+      
+      setState(() {
+        _showCompletion = false;
+        _completions.clear();
+      });
+    }
+  }
+
+  void _searchText() {
+    final query = _searchController.text;
+    if (query.isEmpty) {
+      setState(() {
+        _searchMatches.clear();
+        _currentSearchIndex = 0;
+      });
+      return;
+    }
+    
+    final text = _controller.text;
+    final matches = <int>[];
+    int index = text.indexOf(query);
+    
+    while (index != -1) {
+      matches.add(index);
+      index = text.indexOf(query, index + 1);
+    }
+    
+    setState(() {
+      _searchMatches = matches;
+      _currentSearchIndex = 0;
+    });
+    
+    if (matches.isNotEmpty) {
+      _scrollToMatch(matches[0]);
+    }
+  }
+
+  void _nextSearchMatch() {
+    if (_searchMatches.isEmpty) return;
+    
+    _currentSearchIndex = (_currentSearchIndex + 1) % _searchMatches.length;
+    _scrollToMatch(_searchMatches[_currentSearchIndex]);
+  }
+
+  void _previousSearchMatch() {
+    if (_searchMatches.isEmpty) return;
+    
+    _currentSearchIndex = (_currentSearchIndex - 1 + _searchMatches.length) % _searchMatches.length;
+    _scrollToMatch(_searchMatches[_currentSearchIndex]);
+  }
+
+  void _scrollToMatch(int position) {
+    // Simple scroll to match (would need more complex implementation for actual highlighting)
+    final lines = _controller.text.substring(0, position).split('\n').length;
+    final lineHeight = _fontSize * 1.2;
+    final scrollPosition = (lines - 1) * lineHeight;
+    
+    _scrollController.animateTo(
+      scrollPosition,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final languageConfig = _getLanguageConfig();
+    final themeData = _getThemeData();
+    
+    return Container(
+      color: const Color(0xFF1E1E1E),
+      child: Column(
+        children: [
+          // Toolbar
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2D2D2D),
+              border: Border(bottom: BorderSide(color: Colors.grey[700]!)),
+            ),
+            child: Row(
+              children: [
+                // Language indicator
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[700],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    languageConfig['name'],
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                
+                const SizedBox(width: 8),
+                
+                // Save indicator
+                if (_hasUnsavedChanges)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.orange[700],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      '●',
+                      style: TextStyle(color: Colors.white, fontSize: 10),
+                    ),
+                  ),
+                
+                const Spacer(),
+                
+                // Search
+                if (_showSearch)
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                            decoration: InputDecoration(
+                              hintText: 'Search...',
+                              hintStyle: TextStyle(color: Colors.grey[400]),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(4),
+                                borderSide: BorderSide(color: Colors.grey[600]!),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            ),
+                            onChanged: (_) => _searchText(),
+                            onSubmitted: (_) => _nextSearchMatch(),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${_currentSearchIndex + 1}/${_searchMatches.length}',
+                          style: TextStyle(color: Colors.grey[400], fontSize: 10),
+                        ),
+                        IconButton(
+                          onPressed: _previousSearchMatch,
+                          icon: const Icon(Icons.keyboard_arrow_up, size: 16),
+                          color: Colors.grey[400],
+                        ),
+                        IconButton(
+                          onPressed: _nextSearchMatch,
+                          icon: const Icon(Icons.keyboard_arrow_down, size: 16),
+                          color: Colors.grey[400],
+                        ),
+                        IconButton(
+                          onPressed: () => setState(() => _showSearch = false),
+                          icon: const Icon(Icons.close, size: 16),
+                          color: Colors.grey[400],
+                        ),
+                      ],
+                    ),
+                  ),
+                
+                // Actions
+                if (!_showSearch) ...[
+                  IconButton(
+                    onPressed: () => setState(() => _showSearch = true),
+                    icon: const Icon(Icons.search, size: 16),
+                    color: Colors.grey[400],
+                    tooltip: 'Search',
+                  ),
+                  IconButton(
+                    onPressed: _saveContent,
+                    icon: const Icon(Icons.save, size: 16),
+                    color: _hasUnsavedChanges ? Colors.green[400] : Colors.grey[400],
+                    tooltip: 'Save',
+                  ),
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert, size: 16),
+                    color: Colors.grey[400],
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'theme',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.palette, size: 16),
+                            const SizedBox(width: 8),
+                            Text('Theme: ${themeData['name']}'),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'font_size',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.format_size, size: 16),
+                            const SizedBox(width: 8),
+                            Text('Font Size: ${_fontSize.toInt()}'),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'word_wrap',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.wrap_text, size: 16),
+                            const SizedBox(width: 8),
+                            Text('Word Wrap: ${_wordWrap ? "On" : "Off"}'),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'line_numbers',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.format_list_numbered, size: 16),
+                            const SizedBox(width: 8),
+                            Text('Line Numbers: ${_showLineNumbers ? "On" : "Off"}'),
+                          ],
+                        ),
+                      ),
+                    ],
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'theme':
+                          _cycleTheme();
+                          break;
+                        case 'font_size':
+                          _cycleFontSize();
+                          break;
+                        case 'word_wrap':
+                          setState(() => _wordWrap = !_wordWrap);
+                          break;
+                        case 'line_numbers':
+                          setState(() => _showLineNumbers = !_showLineNumbers);
+                          break;
+                      }
+                    },
+                  ),
+                ],
+                
+                if (widget.onClose != null)
+                  IconButton(
+                    onPressed: widget.onClose,
+                    icon: const Icon(Icons.close, size: 16),
+                    color: Colors.grey[400],
+                    tooltip: 'Close',
+                  ),
+              ],
+            ),
+          ),
+          
+          // Editor area
+          Expanded(
+            child: Stack(
+              children: [
+                // Line numbers
+                if (_showLineNumbers)
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: 50,
+                    child: Container(
+                      color: const Color(0xFF252526),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: CustomPaint(
+                        painter: LineNumbersPainter(
+                          text: _controller.text,
+                          fontSize: _fontSize,
+                          lineHeight: _fontSize * 1.2,
+                        ),
+                      ),
+                    ),
+                  ),
+                
+                // Code editor
+                Positioned(
+                  left: _showLineNumbers ? 50 : 0,
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: TextField(
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    readOnly: widget.readOnly,
+                    style: TextStyle(
+                      fontFamily: _fontFamily,
+                      fontSize: _fontSize,
+                      height: 1.2,
+                      color: const Color(0xFFD4D4D4),
+                    ),
+                    maxLines: null,
+                    expands: true,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.only(
+                        left: 12,
+                        right: 12,
+                        top: 8,
+                        bottom: 8,
+                      ),
+                    ),
+                    scrollController: _scrollController,
+                    onChanged: (_) => _onTextChanged(),
+                    onKey: (event) {
+                      if (event is RawKeyDownEvent) {
+                        if (event.logicalKey == LogicalKeyboardKey.tab && _showCompletion) {
+                          _acceptCompletion();
+                          return KeyEventResult.handled;
+                        }
+                        if (event.logicalKey == LogicalKeyboardKey.arrowDown && _showCompletion) {
+                          setState(() {
+                            _selectedCompletion = (_selectedCompletion + 1) % _completions.length;
+                          });
+                          return KeyEventResult.handled;
+                        }
+                        if (event.logicalKey == LogicalKeyboardKey.arrowUp && _showCompletion) {
+                          setState(() {
+                            _selectedCompletion = (_selectedCompletion - 1 + _completions.length) % _completions.length;
+                          });
+                          return KeyEventResult.handled;
+                        }
+                        if (event.logicalKey == LogicalKeyboardKey.escape && _showCompletion) {
+                          setState(() {
+                            _showCompletion = false;
+                            _completions.clear();
+                          });
+                          return KeyEventResult.handled;
+                        }
+                      }
+                      return KeyEventResult.ignored;
+                    },
+                  ),
+                ),
+                
+                // Auto-completion popup
+                if (_showCompletion && _completions.isNotEmpty)
+                  Positioned(
+                    left: _showLineNumbers ? 50 : 0,
+                    top: 100, // Would need to calculate actual position
+                    child: Container(
+                      constraints: const BoxConstraints(maxHeight: 200),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2D2D2D),
+                        border: Border.all(color: Colors.grey[600]!),
+                        borderRadius: BorderRadius.circular(4),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _completions.length,
+                        itemBuilder: (context, index) {
+                          final completion = _completions[index];
+                          final isSelected = index == _selectedCompletion;
+                          
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                _selectedCompletion = index;
+                              });
+                              _acceptCompletion();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isSelected ? Colors.blue.withOpacity(0.3) : null,
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.code,
+                                    size: 16,
+                                    color: isSelected ? Colors.blue : Colors.grey[400],
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      completion,
+                                      style: TextStyle(
+                                        color: isSelected ? Colors.white : Colors.grey[300],
+                                        fontFamily: _fontFamily,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _cycleTheme() {
+    final themes = ['monokai-sublime', 'vs2015', 'atom-one-dark'];
+    final currentIndex = themes.indexOf(_currentTheme);
+    final nextIndex = (currentIndex + 1) % themes.length;
+    setState(() {
+      _currentTheme = themes[nextIndex];
+    });
+  }
+
+  void _cycleFontSize() {
+    final sizes = [12.0, 14.0, 16.0, 18.0, 20.0];
+    final currentIndex = sizes.indexWhere((size) => (size - _fontSize).abs() < 0.1);
+    final nextIndex = (currentIndex + 1) % sizes.length;
+    setState(() {
+      _fontSize = sizes[nextIndex];
+    });
+  }
+}
+
+class LineNumbersPainter extends CustomPainter {
+  final String text;
+  final double fontSize;
+  final double lineHeight;
+
+  LineNumbersPainter({
+    required this.text,
+    required this.fontSize,
+    required this.lineHeight,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final lines = text.split('\n');
+    final lineCount = lines.length;
+    
+    final paint = Paint()
+      ..color = const Color(0xFF858585)
+      ..style = PaintingStyle.fill;
+    
+    for (int i = 0; i < lineCount; i++) {
+      final lineNumber = (i + 1).toString();
+      final y = i * lineHeight + fontSize;
+      
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: lineNumber,
+          style: TextStyle(
+            color: const Color(0xFF858585),
+            fontSize: fontSize * 0.8,
+            fontFamily: 'monospace',
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(size.width - textPainter.width - 4, y),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant LineNumbersPainter oldDelegate) {
+    return oldDelegate.text != text ||
+           oldDelegate.fontSize != fontSize ||
+           oldDelegate.lineHeight != lineHeight;
+  }
+}

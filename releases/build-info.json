@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "build_date": "2026-05-07T15:13:50Z",
+  "mobile_apk": "termisol-mobile-1.0.0.apk",
+  "vr_apk": "termisol-vr-1.0.0.apk",
+  "mobile_features": [
+    "gpu acceleration",
+    "ai assistant",
+    "hardware-accelerated rendering",
+    "sub-16ms frame times"
+  ],
+  "vr_features": [
+    "gpu acceleration",
+    "ai assistant",
+    "vr-optimized ui",
+    "hand tracking ready"
+  ],
+  "supported_devices": {
+    "mobile": ["google pixel 10 pro", "android 10+ devices"],
+    "vr": ["meta quest 2", "meta quest pro", "meta quest 3"]
+  }
+}

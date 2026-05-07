@@ -1,2 +1,0 @@
-This is a test file for auto-commit functionality.
-Created at: $(date)

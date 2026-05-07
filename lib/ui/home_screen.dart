@@ -302,7 +302,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final session = TerminalSession(id: '0', name: 'local');
     session.terminal.write('\r\n\x1b[32mtermisol ready.\x1b[0m\r\n\r\n');
     session.terminal.write('\x1b[2mtype /ai <query> for AI assistance\x1b[0m\r\n');
-    session.terminal.write('\x1b[2mtype edit <filename> to open editor\x1b[0m\r\n\r\n');
+    session.terminal.write('\x1b[2mtype edit <filename> to open editor\x1b[0m\r\n');
+    session.terminal.write('\x1b[2moptimizations enabled: text buffer, lazy loading, auto-complete\x1b[0m\r\n\r\n');
     session.onAiQuery = _handleAiQuery;
     session.onEditCommand = _handleEditCommand;
     session.start();

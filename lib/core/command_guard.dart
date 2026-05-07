@@ -39,7 +39,7 @@ class CommandGuard {
         _rules.add(GuardRule.fromJson(item));
       }
     } catch (e) {
-      debugPrint('CommandGuard: failed to load rules: $e');
+      print('CommandGuard: failed to load rules: $e');
     }
   }
 

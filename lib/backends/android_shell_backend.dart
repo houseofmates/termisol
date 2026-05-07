@@ -269,6 +269,20 @@ class AndroidShellBackend implements TermisolPtyBackend {
   }
 
   @override
+  Future<void> stop() async {
+    _isRunning = false;
+    if (_process != null) {
+      try {
+        _process!.kill(ProcessSignal.sigterm);
+        await _process!.exitCode.timeout(
+          const Duration(seconds: 2),
+          onTimeout: () => _process!.kill(ProcessSignal.sigkill),
+        );
+      } catch (_) {}
+    }
+  }
+
+  @override
   Future<void> terminate() async {
     _isRunning = false;
 

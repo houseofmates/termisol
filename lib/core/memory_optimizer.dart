@@ -7,6 +7,112 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
 
+// Memory management types
+class UnifiedBuffer {
+  final String id;
+  final List<String> lines;
+  final int maxLines;
+  int currentMemoryUsage = 0;
+
+  UnifiedBuffer({
+    required this.id,
+    this.maxLines = 10000,
+  }) : lines = [];
+
+  void addLine(String line) {
+    lines.add(line);
+    currentMemoryUsage += line.length;
+    if (lines.length > maxLines) {
+      final removed = lines.removeAt(0);
+      currentMemoryUsage -= removed.length;
+    }
+  }
+
+  void clear() {
+    lines.clear();
+    currentMemoryUsage = 0;
+  }
+}
+
+class ObjectTracker {
+  final String id;
+  final DateTime createdAt;
+  final String type;
+  int size = 0;
+  bool isLeaked = false;
+
+  ObjectTracker({
+    required this.id,
+    required this.type,
+  }) : createdAt = DateTime.now();
+}
+
+class LeakReport {
+  final String id;
+  final String objectId;
+  final String type;
+  final int size;
+  final DateTime detectedAt;
+
+  LeakReport({
+    required this.id,
+    required this.objectId,
+    required this.type,
+    required this.size,
+  }) : detectedAt = DateTime.now();
+}
+
+class LeakAnalysis {
+  final String id;
+  final List<String> leakedObjects;
+  final int totalMemoryLost;
+  final DateTime analyzedAt;
+  final String severity;
+
+  LeakAnalysis({
+    required this.id,
+    required this.leakedObjects,
+    required this.totalMemoryLost,
+    required this.severity,
+  }) : analyzedAt = DateTime.now();
+}
+
+class MemoryPool {
+  final String id;
+  final Map<String, dynamic> objects = {};
+}
+
+class CompressedBuffer {
+  final String id;
+  final List<String> compressedLines = [];
+}
+
+class BufferMetrics {
+  final String id;
+  int totalLines = 0;
+  int memoryUsage = 0;
+}
+
+class PoolMetrics {
+  final String id;
+  int totalObjects = 0;
+  int memoryUsage = 0;
+}
+
+class MemorySnapshot {
+  final int timestamp;
+  final int memoryUsage;
+  final int bufferCount;
+  final int poolCount;
+
+  MemorySnapshot({
+    required this.timestamp,
+    required this.memoryUsage,
+    required this.bufferCount,
+    required this.poolCount,
+  });
+}
+
 /// Unified Memory Optimizer - Best-in-class memory management for terminal
 /// 
 /// Consolidates all memory optimization functionality:

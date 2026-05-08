@@ -88,9 +88,10 @@ class CommandGuard {
     Set<String>? allowedCommands,
     Set<String>? blockedCommands,
   }) : _strictMode = strictMode,
-       _auditMode = auditMode,
-       _allowedCommands = allowedCommands ?? {},
-       _blockedCommands = blockedCommands ?? {};
+       _auditMode = auditMode {
+    _allowedCommands.addAll(allowedCommands ?? {});
+    _blockedCommands.addAll(blockedCommands ?? {});
+  }
   
   /// Validate and sanitize command
   CommandValidationResult validateCommand(String command, {
@@ -254,7 +255,7 @@ class CommandGuard {
   /// Check system directory access
   DangerousCommandCheck _checkSystemDirectoryAccess(String command, String? workingDirectory) {
     // Extract file paths from command
-    final pathPattern = RegExp(r'(/[^\s\|"\'<>]+)');
+    final pathPattern = RegExp(r'(/[^\s\|"\'<>\)]+');
     final matches = pathPattern.allMatches(command);
     
     for (final match in matches) {

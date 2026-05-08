@@ -248,7 +248,7 @@ class _VrTerminalState extends State<VrTerminal> with TickerProviderStateMixin {
           Container(
             padding: const EdgeInsets.all(16),
             color: PkmTheme.terminalBg,
-            child: Text(
+            child: const Text(
               'Terminal - 2D Mode',
               style: TextStyle(color: PkmTheme.primary, fontSize: 16, fontWeight: FontWeight.bold),
             ),

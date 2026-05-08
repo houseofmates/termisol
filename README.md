@@ -19,6 +19,14 @@ a terminal emulator built with Flutter. it uses the real `xterm.dart` package fo
 - **no sixel/kitty/iterm2 graphics in the terminal grid**: `GraphicsProtocolHandler` exists in `lib/multimedia/` but is not wired into the active `TerminalView`
 - **no "smart" features**: most files in `lib/core/` are aspirational fiction and are not imported by the working app. only the core terminal functionality (session management, PTY backend, AI assistant) is actually implemented and functional
 
+## recent fixes (2026-05-08)
+
+- **PluginManager**: converted from empty stub to fully functional plugin system with isolate-based execution
+- **CodeIntelligence**: converted from empty stub to comprehensive code analysis engine with linting and quality metrics
+- **TermisolPluginSystem**: implemented plugin loading from file with manifest parsing and execution
+- **Database operations**: real PostgreSQL client implementations exist but are not integrated into the UI
+- **Graphics decoders**: SIXEL decoder is fully implemented, Kitty graphics cache exists
+
 ## architecture (honest)
 
 ```

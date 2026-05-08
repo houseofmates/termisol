@@ -14,6 +14,7 @@ import 'optimized_text_buffer.dart';
 import 'lazy_terminal_output.dart';
 import 'smart_auto_complete.dart';
 import 'smart_command_chaining.dart';
+import 'semantic_search_engine.dart';
 import 'session_persistence.dart';
 import 'crash_recovery.dart';
 import 'long_command_notifier.dart';
@@ -97,6 +98,7 @@ class TerminalSession extends ChangeNotifier {
   late final LazyTerminalOutput _lazyOutput;
   late final SmartAutoComplete _autoComplete;
   late final SmartCommandChaining _commandChaining;
+  late final SemanticSearchEngine _semanticSearch;
   late final SessionPersistence _sessionPersistence;
   late final CrashRecovery _crashRecovery;
   late final LongCommandNotifier _commandNotifier;
@@ -126,6 +128,7 @@ class TerminalSession extends ChangeNotifier {
     _lazyOutput = LazyTerminalOutput(sessionId: id, visibleLines: 1000);
     _autoComplete = SmartAutoComplete();
     _commandChaining = SmartCommandChaining();
+    _semanticSearch = SemanticSearchEngine();
     _sessionPersistence = SessionPersistence();
     _crashRecovery = CrashRecovery();
     _commandNotifier = LongCommandNotifier();
@@ -176,6 +179,7 @@ class TerminalSession extends ChangeNotifier {
       unawaited(_pluginSystem.initialize());
       unawaited(graphicsHandler.initialize());
       unawaited(_commandChaining.initialize());
+      unawaited(_semanticSearch.initialize());
 
       // Enable terminal features
       terminal.write('\x1b[?2004h'); // bracketed paste

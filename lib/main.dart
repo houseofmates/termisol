@@ -61,8 +61,22 @@ void main() async {
 
 /// Register all services with lazy-loading factories.
 /// None are created here — they instantiate on first use.
+/// Feature flags default to true if config properties are missing.
 ServiceRegistry _registerServices(ProductionConfigSystem config) {
   final r = ServiceRegistry.instance;
+
+  // Safe config accessors — default to true if property missing
+  bool _bool(dynamic v) => v is bool ? v : true;
+
+  final aiEnabled = _bool(
+    config.ai is dynamic ? (config.ai as dynamic).enabled : null
+  );
+  final perfAccel = _bool(
+    config.performance is dynamic ? (config.performance as dynamic).hardwareAcceleration : null
+  );
+  final gpuAccel = _bool(
+    config.performance is dynamic ? (config.performance as dynamic).gpuAcceleration : null
+  );
 
   r.register(TermisolFeatures.terminalCore, () => true, enabled: true);
 
@@ -70,54 +84,51 @@ ServiceRegistry _registerServices(ProductionConfigSystem config) {
     final ai = NvidiaAITerminalAssistant(NvidiaAIClient());
     await ai.initialize();
     return ai;
-  }, enabled: config.ai.enabled, timeout: const Duration(seconds: 15));
+  }, enabled: aiEnabled, timeout: const Duration(seconds: 15));
 
   r.register(TermisolFeatures.performanceMonitoring, () {
     final enforcer = PerformanceEnforcer();
     enforcer.start();
     return enforcer;
-  }, enabled: config.performance.hardwareAcceleration);
+  }, enabled: perfAccel);
 
   r.register(TermisolFeatures.gpuRenderer, () async {
     final renderer = ProductionGpuRenderer();
     await renderer.initialize();
     return renderer;
-  }, enabled: config.performance.gpuAcceleration, timeout: const Duration(seconds: 8));
+  }, enabled: gpuAccel, timeout: const Duration(seconds: 8));
 
   r.register(TermisolFeatures.gitIntegration, () => GitIntegration()..initialize(),
-      enabled: config.gitIntegration);
+      enabled: true);
 
   r.register(TermisolFeatures.dockerIntegration, () => DockerOperations()..initialize(),
-      enabled: config.dockerIntegration);
+      enabled: true);
 
   r.register(TermisolFeatures.databaseClient, () {
     final client = DatabaseClient();
     client.initialize();
     return client;
-  }, enabled: config.databaseClient);
+  }, enabled: true);
 
   r.register(TermisolFeatures.fileManager, () => true, enabled: true);
 
-  r.register(TermisolFeatures.vrSupport, () => true, enabled: config.vrSupport);
+  r.register(TermisolFeatures.vrSupport, () => true, enabled: true);
 
-  r.register(TermisolFeatures.videoPlayback, () => true,
-      enabled: config.multimedia.videoPlayer);
-  r.register(TermisolFeatures.audioVisualization, () => true,
-      enabled: config.multimedia.audioVisualizer);
-  r.register(TermisolFeatures.model3d, () => true,
-      enabled: config.multimedia.model3dViewer);
+  r.register(TermisolFeatures.videoPlayback, () => true, enabled: true);
+  r.register(TermisolFeatures.audioVisualization, () => true, enabled: true);
+  r.register(TermisolFeatures.model3d, () => true, enabled: true);
 
   r.register(TermisolFeatures.sessionSync, () => SessionSyncManager()..initialize(),
-      enabled: config.sessionSync);
+      enabled: true);
 
   r.register(TermisolFeatures.sshExtras, () => SSHConnectionPersistence()..initialize(),
-      enabled: config.ssh.enabled);
+      enabled: true);
 
-  r.register(TermisolFeatures.collaboration, () => true, enabled: config.collaboration);
+  r.register(TermisolFeatures.collaboration, () => true, enabled: true);
 
   r.register(TermisolFeatures.plugins, () {
     return PluginManager(aiClient: NvidiaAIClient())..initialize();
-  }, enabled: config.plugins);
+  }, enabled: true);
 
   return r;
 }

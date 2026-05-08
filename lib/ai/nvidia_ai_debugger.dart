@@ -541,7 +541,7 @@ CONFIDENCE: [0.1-1.0 confidence level]
       } else if (currentSection == 'optimizations' && line.startsWith('- OPT_')) {
         suggestions.add(line.substring(line.indexOf(':') + 1).trim());
       } else if (currentSection == 'code') {
-        optimizedCode = (optimizedCode ?? '') + line + '\n';
+        optimizedCode = '$optimizedCode$line\n';
       }
     }
 

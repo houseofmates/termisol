@@ -80,7 +80,7 @@ class _EditTerminalState extends State<EditTerminal> {
         child: Row(
           children: [
             Icon(
-              title,
+              title as String,
               color: currentValue ? Colors.white : Colors.grey[400],
               size: 16,
             ),

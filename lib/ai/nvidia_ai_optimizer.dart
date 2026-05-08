@@ -434,6 +434,15 @@ class OptimizationRecommendation {
     required this.implementationTime,
     required this.riskLevel,
   });
+
+  Map<String, dynamic> toJson() => {
+    'timestamp': timestamp.toIso8601String(),
+    'overallScore': overallScore,
+    'suggestions': suggestions.map((s) => s.toJson()).toList(),
+    'predictedImprovement': predictedImprovement,
+    'implementationTime': implementationTime,
+    'riskLevel': riskLevel,
+  };
 }
 
 class OptimizationSuggestion {
@@ -541,6 +550,7 @@ class OptimizerEvent {
 
 enum OptimizerEventType {
   recommendationsGenerated,
+  recommendationGenerated,
   systemOptimizationGenerated,
   applicationOptimizationGenerated,
   predictiveOptimizationGenerated,

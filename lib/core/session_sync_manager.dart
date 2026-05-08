@@ -125,9 +125,9 @@ class SessionSyncManager {
       int conflicts = 0;
       int merged = 0;
 
-      final remoteSessions = remoteState['sessions'] as Map<String, dynamic>? ?? {};
+      final remoteSessions = (remoteState['sessions'] as Map<String, dynamic>?) ?? {};
       for (final entry in remoteSessions.entries) {
-        final remote = SyncedSession.fromJson(entry.value as Map<String, dynamic>);
+        final remote = SyncedSession.fromJson(Map<String, dynamic>.from(entry.value as Map));
         final local = _sessions[entry.key];
 
         if (local == null) {

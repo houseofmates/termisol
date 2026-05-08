@@ -561,7 +561,6 @@ MONITORING_PLAN: [How to monitor for predicted issues]
       priority: priority,
       applied: false,
     );
-  }
 
   SystemOptimization _parseSystemOptimizationResponse(String response) {
     final lines = response.split('\n');

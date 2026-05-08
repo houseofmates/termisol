@@ -284,7 +284,7 @@ class GraphicsProtocolHandler {
   }
 
   /// Put image via Kitty protocol
-  String _putKittyImage(Map<String, String> params) {
+  String _putKittyImage(Map<String, String> params, int cursorX, int cursorY) {
     final id = params['i'] ?? _nextImageId.toString();
     final width = int.tryParse(params['s'] ?? '0') ?? 0;
     final height = int.tryParse(params['h'] ?? '0') ?? 0;
@@ -297,6 +297,9 @@ class GraphicsProtocolHandler {
       data: '', // Will be filled by transmission
       format: 'kitty',
     );
+
+    // Store position
+    _imagePositions[id] = Offset(cursorX.toDouble(), cursorY.toDouble());
 
     _eventController.add(GraphicsEvent(
       GraphicsEventType.imageReceived,

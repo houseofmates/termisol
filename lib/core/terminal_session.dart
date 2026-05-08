@@ -74,7 +74,7 @@ class TerminalSession extends ChangeNotifier {
   /// Detected URLs from terminal output, updated on each output batch.
   final List<DetectedUrl> detectedUrls = [];
   final _urlRegex = RegExp(
-    r'https?://[^\s<>\"\'`\)\]\}]+',
+    r"https?://[^\s<>\"'`\)\]\}]+",
     caseSensitive: false,
   );
 

@@ -2168,15 +2168,35 @@ class _EditTerminalState extends State<EditTerminal> {
   }
 
   void _acceptCompletion() {
-    if (_selectedCompletion < _completions.length) {
+    try {
+      if (_completions.isEmpty || _selectedCompletion >= _completions.length) {
+        debugPrint('[COMPLETION] No valid completion to accept');
+        return;
+      }
+      
       final completion = _completions[_selectedCompletion];
       final text = _controller.text;
       final cursorPos = _controller.selection.baseOffset;
+      
+      // Validate cursor position
+      if (cursorPos < 0 || cursorPos > text.length) {
+        debugPrint('[COMPLETION] Invalid cursor position for completion: $cursorPos');
+        return;
+      }
+      
       final currentLine = text.substring(0, cursorPos).split('\n').last;
       final words = currentLine.split(RegExp(r'\s+'));
       
-      final newText = text.substring(0, cursorPos - words.last.length) + completion + text.substring(cursorPos);
-      final newCursorPos = cursorPos - words.last.length + completion.length;
+      if (words.isEmpty) {
+        debugPrint('[COMPLETION] No words found for completion replacement');
+        return;
+      }
+      
+      final lastWord = words.last;
+      final newText = text.substring(0, cursorPos - lastWord.length) + completion + text.substring(cursorPos);
+      final newCursorPos = cursorPos - lastWord.length + completion.length;
+      
+      debugPrint('[COMPLETION] Accepting completion: "$completion" at position $cursorPos');
       
       _controller.value = TextEditingValue(
         text: newText,
@@ -2186,9 +2206,15 @@ class _EditTerminalState extends State<EditTerminal> {
       setState(() {
         _showCompletion = false;
         _completions.clear();
+        _selectedCompletion = 0;
       });
       
       _onTextChanged();
+      debugPrint('[COMPLETION] Successfully applied completion');
+    } catch (e, stackTrace) {
+      debugPrint('[COMPLETION] Error accepting completion: $e');
+      debugPrint('[COMPLETION] Stack trace: $stackTrace');
+      _hideCompletion();
     }
   }
 

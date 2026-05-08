@@ -1,4 +1,6 @@
 import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
 import 'package:flutter/services.dart';
 

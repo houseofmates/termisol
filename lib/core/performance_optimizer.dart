@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:process_run/process_run.dart';
 import '../ai/nvidia_ai_terminal_assistant.dart';

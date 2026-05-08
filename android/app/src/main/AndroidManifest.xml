@@ -6,9 +6,11 @@
     <uses-feature android:name="oculus.software.handtracking" android:required="false" />
 
     <application
-        android:label="termisol"
-        android:name="com.termisol.MainActivity"
-        android:icon="@mipmap/ic_launcher">
+        android:label="${appLabel}"
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:resizeableActivity="true"
+        android:usesCleartextTraffic="false">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -17,8 +19,7 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize"
-            android:screenOrientation="landscape"
-            android:resizeableActivity="false">
+            android:screenOrientation="fullSensor">
             <!-- VR-specific metadata -->
             <meta-data android:name="com.oculus.intent.category.VR" android:value="vr_only"/>
             <meta-data android:name="com.oculus.vr.focusaware" android:value="true"/>
@@ -38,8 +39,6 @@
             android:value="2" />
     </application>
     <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <!-- VR permissions -->
     <uses-permission android:name="com.oculus.permission.HAND_TRACKING"/>

@@ -32,6 +32,7 @@ class GraphicsProtocolHandler {
 
   // Graphics state
   final Map<String, GraphicsImage> _imageCache = {};
+  final Map<String, Offset> _imagePositions = {}; // imageId -> character position (x,y)
   final Map<int, Color> _colorPalette = {};
   final Map<String, GraphicsOverlay> _overlays = {};
   final List<GraphicsAnimation> _animations = [];

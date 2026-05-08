@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart' as material;
 import 'package:flutter/services.dart';
+import 'package:flutter/painting.dart' as painting;
 import 'package:ffi/ffi.dart';
 import 'package:xterm/xterm.dart';
 import 'package:vector_math/vector_math.dart' as vm;
@@ -114,7 +115,7 @@ class OpenXRRenderer {
     // Set rotation using quaternion conversion
     final quat = view.pose.orientation;
     // Convert quaternion to rotation matrix
-    final rotationMatrix = vm.Matrix4.rotation(
+    final rotationMatrix = vm.Matrix4.fromRotation(
       vm.Quaternion(quat.x, quat.y, quat.z, quat.w)
     );
     transform.multiply(rotationMatrix);
@@ -211,13 +212,13 @@ class OpenXRRenderer {
     final lines = [
       'Welcome to Termisol VR Terminal',
       '',
-      'user@quest2:~$ ls -la',
+      'user@quest2:~\$ ls -la',
       'drwxr-xr-x 12 user user 4096 May  8 12:00 .',
       'drwxr-xr-x  3 root root 4096 May  8 11:00 ..',
       '-rwxr-xr-x  1 user user  8192 May  8 10:00 main.dart',
       '-rwxr-xr-x  1 user user  4096 May  8 09:00 README.md',
       '',
-      'user@quest2:~$ _',
+      'user@quest2:~\$ _',
     ];
     
     for (int i = 0; i < lines.length; i++) {
@@ -242,7 +243,7 @@ class OpenXRRenderer {
     final canvas = ui.Canvas(recorder);
     
     final paint = ui.Paint()
-      ..color = Colors.cyan.withValues(alpha: 0.3)
+      ..color = material.Colors.cyan.withValues(alpha: 0.3)
       ..style = ui.PaintingStyle.stroke
       ..strokeWidth = 4.0
       ..maskFilter = ui.MaskFilter.blur(ui.BlurStyle.outer, 8.0);
@@ -258,14 +259,14 @@ class OpenXRRenderer {
     final canvas = ui.Canvas(recorder);
     
     // Create gradient background
-    final gradient = ui.LinearGradient(
-      begin: ui.Alignment.topLeft,
-      end: ui.Alignment.bottomRight,
+    final gradient = painting.LinearGradient(
+      begin: material.Alignment.topLeft,
+      end: material.Alignment.bottomRight,
       colors: [
-        Colors.black,
-        Colors.blue.withValues(alpha: 0.1),
-        Colors.cyan.withValues(alpha: 0.05),
-        Colors.black,
+        material.Colors.black,
+        material.Colors.blue.withValues(alpha: 0.1),
+        material.Colors.cyan.withValues(alpha: 0.05),
+        material.Colors.black,
       ],
     );
     

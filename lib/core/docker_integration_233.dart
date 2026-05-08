@@ -18,8 +18,16 @@ import 'package:process_run/process_run.dart';
 /// - Resource usage monitoring
 /// - Container health checks
 class DockerIntegration233 {
-  static const String _dockerHost = '192.168.4.233';
-  static const int _dockerPort = 2375;
+  /// Docker daemon connection settings.
+  /// Defaults to secure HTTPS. Override via environment variables:
+  ///   DOCKER_HOST, DOCKER_PORT, DOCKER_TLS_VERIFY (0 or 1)
+  static String get _dockerHost =>
+      Platform.environment['DOCKER_HOST'] ?? '192.168.4.233';
+  static int get _dockerPort =>
+      int.tryParse(Platform.environment['DOCKER_PORT'] ?? '') ?? 2376;
+  static bool get _useHttps =>
+      (Platform.environment['DOCKER_TLS_VERIFY'] ?? '1') != '0';
+
   static const Duration _requestTimeout = Duration(seconds: 30);
   static const Duration _monitoringInterval = Duration(seconds: 10);
   
@@ -75,7 +83,8 @@ class DockerIntegration233 {
     Map<String, String>? headers,
     dynamic body,
   }) async {
-    final url = Uri.parse('http://$_dockerHost:$_dockerPort$endpoint');
+    final protocol = _useHttps ? 'https' : 'http';
+    final url = Uri.parse('$protocol://$_dockerHost:$_dockerPort$endpoint');
     
     final requestHeaders = <String, String>{
       'Content-Type': 'application/json',

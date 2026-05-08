@@ -10,6 +10,8 @@ import '../backends/android_shell_backend.dart';
 import 'crash_recovery.dart';
 import 'long_command_notifier.dart';
 import 'termisol_plugin_system.dart';
+import 'smart_auto_complete.dart';
+import 'session_persistence.dart';
 
 // Session data for saving/loading
 class TerminalSessionData {

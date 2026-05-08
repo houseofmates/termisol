@@ -559,7 +559,7 @@ CONFIDENCE: [0.1-1.0 confidence level]
   }
 
   String _generateFormatCacheKey(String code, String language) {
-    return '${code.hashCode}_${language}';
+    return '${code.hashCode}_$language';
   }
 
   List<DebugSession> getDebugHistory() {
@@ -577,7 +577,7 @@ CONFIDENCE: [0.1-1.0 confidence level]
   }
 
   Future<void> dispose() async {
-    _debugController.close();
+    await _debugController.close();
     _debugSessions.clear();
     _formatCache.clear();
   }

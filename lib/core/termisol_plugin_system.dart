@@ -138,11 +138,6 @@ class TermisolPluginSystem {
     }
     
     _plugins.clear();
-    
-    if (_pluginIsolate != null) {
-      _pluginIsolate?.kill(priority: Isolate.immediate);
-      _pluginIsolate = null;
-    }
   }
 }
 

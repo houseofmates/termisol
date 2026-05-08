@@ -130,73 +130,25 @@ void main() async {
 /// Register all services with lazy-loading factories.
 /// None are created here — they instantiate on first use.
 /// Feature flags default to true if config properties are missing.
-ServiceRegistry _registerServices(ProductionConfigSystem config) {
+ServiceRegistry _registerServices() {
   final r = ServiceRegistry.instance;
 
-  // Safe config accessors — default to true if property missing
-  bool _bool(dynamic v) => v is bool ? v : true;
-
-  final aiEnabled = _bool(
-    config.ai is dynamic ? (config.ai as dynamic).enabled : null
-  );
-  final perfAccel = _bool(
-    config.performance is dynamic ? (config.performance as dynamic).hardwareAcceleration : null
-  );
-  final gpuAccel = _bool(
-    config.performance is dynamic ? (config.performance as dynamic).gpuAcceleration : null
-  );
-
   r.register(TermisolFeatures.terminalCore, () => true, enabled: true);
-
-  r.register(TermisolFeatures.aiAssistant, () async {
-    final ai = NvidiaAITerminalAssistant(NvidiaAIClient());
-    await ai.initialize();
-    return ai;
-  }, enabled: aiEnabled, timeout: const Duration(seconds: 15));
-
-  r.register(TermisolFeatures.performanceMonitoring, () {
-    final enforcer = PerformanceEnforcer();
-    enforcer.start();
-    return enforcer;
-  }, enabled: perfAccel);
-
-  r.register(TermisolFeatures.gpuRenderer, () async {
-    final renderer = ProductionGpuRenderer();
-    await renderer.initialize();
-    return renderer;
-  }, enabled: gpuAccel, timeout: const Duration(seconds: 8));
-
-  r.register(TermisolFeatures.gitIntegration, () => GitIntegration()..initialize(),
-      enabled: true);
-
-  r.register(TermisolFeatures.dockerIntegration, () => DockerOperations()..initialize(),
-      enabled: true);
-
-  r.register(TermisolFeatures.databaseClient, () {
-    final client = DatabaseClient();
-    client.initialize();
-    return client;
-  }, enabled: true);
-
+  r.register(TermisolFeatures.aiAssistant, () => true, enabled: true);
+  r.register(TermisolFeatures.performanceMonitoring, () => true, enabled: true);
+  r.register(TermisolFeatures.gpuRenderer, () => true, enabled: true);
+  r.register(TermisolFeatures.gitIntegration, () => true, enabled: true);
+  r.register(TermisolFeatures.dockerIntegration, () => true, enabled: true);
+  r.register(TermisolFeatures.databaseClient, () => true, enabled: true);
   r.register(TermisolFeatures.fileManager, () => true, enabled: true);
-
   r.register(TermisolFeatures.vrSupport, () => true, enabled: true);
-
   r.register(TermisolFeatures.videoPlayback, () => true, enabled: true);
   r.register(TermisolFeatures.audioVisualization, () => true, enabled: true);
   r.register(TermisolFeatures.model3d, () => true, enabled: true);
-
-  r.register(TermisolFeatures.sessionSync, () => SessionSyncManager()..initialize(),
-      enabled: true);
-
-  r.register(TermisolFeatures.sshExtras, () => SSHConnectionPersistence()..initialize(),
-      enabled: true);
-
+  r.register(TermisolFeatures.sessionSync, () => true, enabled: true);
+  r.register(TermisolFeatures.sshExtras, () => true, enabled: true);
   r.register(TermisolFeatures.collaboration, () => true, enabled: true);
-
-  r.register(TermisolFeatures.plugins, () {
-    return PluginManager(aiClient: NvidiaAIClient())..initialize();
-  }, enabled: true);
+  r.register(TermisolFeatures.plugins, () => true, enabled: true);
 
   return r;
 }

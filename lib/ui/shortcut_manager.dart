@@ -20,21 +20,33 @@ class ShortcutManager {
       final prefs = await SharedPreferences.getInstance();
       final shortcutsJson = prefs.getString('user_shortcuts');
       
-      if (shortcutsJson != null) {
-        final Map<String, dynamic> shortcutsMap = jsonDecode(shortcutsJson);
-        _shortcuts.clear();
-        shortcutsMap.forEach((key, value) {
-          _shortcuts[key] = ShortcutConfig(
-            id: key,
-            description: value['description'] ?? '',
-            shortcut: value['shortcut'] ?? '',
-          );
-        });
+      if (shortcutsJson != null && shortcutsJson.isNotEmpty) {
+        try {
+          final Map<String, dynamic> shortcutsMap = jsonDecode(shortcutsJson);
+          _shortcuts.clear();
+          
+          shortcutsMap.forEach((key, value) {
+            if (key is String && value is Map) {
+              _shortcuts[key] = ShortcutConfig(
+                id: key,
+                description: value['description']?.toString() ?? '',
+                shortcut: value['shortcut']?.toString() ?? '',
+              );
+            } else {
+              debugPrint('[SHORTCUTS] Invalid shortcut entry: $key -> $value');
+            }
+          });
+          
+          debugPrint('[SHORTCUTS] Loaded ${_shortcuts.length} shortcuts from storage');
+        } catch (e) {
+          debugPrint('[SHORTCUTS] Failed to parse shortcuts JSON: $e');
+          _loadDefaults();
+        }
       } else {
         _loadDefaults();
       }
     } catch (e) {
-      // Fallback to defaults if loading fails
+      debugPrint('[SHORTCUTS] Failed to load shortcuts: $e');
       _loadDefaults();
     }
   }

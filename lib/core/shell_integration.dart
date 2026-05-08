@@ -55,7 +55,7 @@ class ShellIntegration {
       // Detect current shell
       await _detectShell();
       
-      // Load command database
+      // Load command database from assets
       await _loadCommandDatabase();
       
       // Load user preferences
@@ -361,7 +361,7 @@ class ShellIntegration {
   Future<List<Completion>> _getCommandCompletions(String partial) async {
     final completions = <Completion>[];
     
-    // Search command database
+    // Search command database for matches
     for (final entry in _commandDatabase.entries) {
       if (entry.key.startsWith(partial)) {
         completions.add(Completion(

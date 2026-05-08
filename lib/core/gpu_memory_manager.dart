@@ -284,7 +284,7 @@ class GPUMemoryManager {
 
   /// Compact memory by reorganizing blocks
   Future<void> _compactMemory() async {
-    // This is a placeholder for memory compaction
+    // This is a placeholder for advanced memory compaction algorithms
     // In a real implementation, this would reorganize memory blocks
     debugPrint('GPU Memory compaction completed');
   }

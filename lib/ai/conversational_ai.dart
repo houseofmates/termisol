@@ -670,7 +670,7 @@ class ConversationContext {
     this.topicFrequency = const {},
   });
   
-  String get summary => data['summary'] ?? 'No context available';
+  String get summary => (data['summary'] as String?) ?? 'No context available';
 }
 
 class DialogueState {

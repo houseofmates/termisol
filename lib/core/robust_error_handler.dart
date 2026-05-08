@@ -29,6 +29,9 @@ class RobustErrorHandler {
   final List<ErrorReport> _errorHistory = [];
   final _errorController = StreamController<ErrorReport>.broadcast();
   
+  // Connection pool for error recovery
+  final List<dynamic> _connectionPool = [];
+  
   Stream<ErrorReport> get errorStream => _errorController.stream;
   
   // Configuration

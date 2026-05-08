@@ -32,6 +32,8 @@ dependencies:
   audioplayers: ^6.1.0
   file_picker: ^8.1.2
   web_socket_channel: ^2.4.0
+  device_info_plus: ^10.0.0
+  system_info2: ^4.0.0
   pty:
     path: packages/pty
   # Security and crypto packages

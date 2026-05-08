@@ -84,6 +84,10 @@ class _EditTerminalState extends State<EditTerminal> {
   // Mouse cursor support
   bool _mouseEnabled = true;
   
+  // Multi-cursor support
+  final List<TextSelection> _cursors = [];
+  bool _multiCursorMode = false;
+  
   // Search
   bool _showSearch = false;
   final TextEditingController _searchController = TextEditingController();
@@ -2274,6 +2278,10 @@ Note: The above file and directory information is provided for context only and 
     // Focus the editor when clicked
     _focusNode.requestFocus();
     
+    // Check if Alt is pressed for multi-cursor
+    final isAltPressed = HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.altLeft) ||
+                        HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.altRight);
+    
     // Calculate cursor position from click coordinates
     final RenderBox box = context.findRenderObject() as RenderBox;
     final Offset localOffset = box.globalToLocal(details.globalPosition);
@@ -2297,9 +2305,24 @@ Note: The above file and directory information is provided for context only and 
         final targetOffset = lines.take(lineNumber).fold(0, (sum, line) => sum + line.length + 1) + 
                             columnNumber.clamp(0, line.length);
         
-        _controller.selection = TextSelection.fromPosition(
+        final newSelection = TextSelection.fromPosition(
           TextPosition(offset: targetOffset.clamp(0, text.length)),
         );
+        
+        if (isAltPressed) {
+          // Add cursor for multi-cursor mode
+          setState(() {
+            _multiCursorMode = true;
+            _cursors.add(newSelection);
+          });
+        } else {
+          // Normal click - clear multi-cursors and set single cursor
+          setState(() {
+            _multiCursorMode = false;
+            _cursors.clear();
+            _controller.selection = newSelection;
+          });
+        }
       }
     }
   }

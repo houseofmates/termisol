@@ -52,8 +52,9 @@ class DeepLTranslationService {
       } else {
         stderr.writeln('[deepL] HTTP ${response.statusCode}: ${response.body}');
       }
-    } catch (e) {
+    } catch (e, stack) {
       stderr.writeln('[deepL] translation error: $e');
+      debugPrintStack(stackTrace: stack);
     }
     return null;
   }

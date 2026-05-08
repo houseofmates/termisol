@@ -1270,7 +1270,7 @@ class AIAssistantIntegration {
   String _detectCodeIssues(String code) {
     final issues = <String>[];
     
-    if (code.contains('TODO:')) issues.add('Contains TODO comments');
+    if (code.contains('TODO:')) issues.add('Contains development TODO comments');
     if (code.contains('console.log') && !code.contains('//')) issues.add('Debug console.log found');
     if (code.contains('eval(')) issues.add('Use of eval() detected');
     if (code.length > 1000 && !code.contains('\n')) issues.add('Very long line detected');
@@ -1383,7 +1383,7 @@ function ${language == 'python' ? 'example_function()' : 'exampleFunction()'} {
     
     // Check for common issues
     if (code.contains('TODO:') || code.contains('FIXME:')) {
-      issues.add('Contains TODO/FIXME comments');
+      issues.add('Contains development TODO/FIXME comments');
     }
     
     if (code.contains('console.log') && language == 'javascript') {

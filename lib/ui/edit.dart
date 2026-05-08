@@ -112,21 +112,40 @@ class _EditTerminalState extends State<EditTerminal> {
   // Auto-save
   bool _hasUnsavedChanges = false;
   Timer? _saveTimer;
+  
+  // Crash recovery
+  final EditorCrashRecovery _crashRecovery = EditorCrashRecovery.instance;
+  final AutoSaveManager _autoSaveManager = AutoSaveManager();
+  bool _recoveryAvailable = false;
 
   @override
   void initState() {
     super.initState();
     
-    // Validate initial content
-    final validation = EditorValidator.validateFileContent(widget.filePath, widget.initialContent);
-    if (!validation.isValid) {
-      debugPrint('⚠️ Initial content validation failed: ${validation.error}');
-      // Use sanitized content if available, otherwise use empty string
-      final safeContent = validation.sanitizedContent ?? '';
-      _controller = TextEditingController(text: safeContent);
-    } else {
-      _controller = TextEditingController(text: widget.initialContent);
-    }
+    // Initialize crash recovery
+    ErrorMonitor.monitorError('Initialize crash recovery', () async {
+      await _crashRecovery.initialize();
+      _recoveryAvailable = await _crashRecovery.hasRecoveryData();
+      
+      // Try to recover previous state
+      final recoveredState = await _crashRecovery.loadEditorState();
+      if (recoveredState != null && recoveredState.filePath == widget.filePath) {
+        // Use recovered content if it matches current file
+        _controller = TextEditingController(text: recoveredState.content);
+        debugPrint('🔄 Editor state recovered from crash');
+      } else {
+        // Validate initial content
+        final validation = EditorValidator.validateFileContent(widget.filePath, widget.initialContent);
+        if (!validation.isValid) {
+          debugPrint('⚠️ Initial content validation failed: ${validation.error}');
+          // Use sanitized content if available, otherwise use empty string
+          final safeContent = validation.sanitizedContent ?? '';
+          _controller = TextEditingController(text: safeContent);
+        } else {
+          _controller = TextEditingController(text: widget.initialContent);
+        }
+      }
+    });
     
     _scrollController = ScrollController();
     _focusNode = FocusNode();
@@ -143,6 +162,9 @@ class _EditTerminalState extends State<EditTerminal> {
     
     // Check if AI is enabled via environment variable
     _isAIEnabled = Platform.environment['TERMISOL_AI_ENABLED'] == 'true';
+    
+    // Start auto-save
+    _autoSaveManager.startAutoSave(_saveEditorState);
     
     // Initialize collaboration listeners
     _collaborationManager.connectionStream.listen((connected) {

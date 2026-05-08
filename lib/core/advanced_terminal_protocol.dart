@@ -253,69 +253,42 @@ class AdvancedTerminalProtocol {
   void _handleCsiSequence(String sequence) {
     final match = RegExp(r'\x1b\[([0-9?;]*)([a-zA-Z@])').firstMatch(sequence);
     if (match == null) return;
-    
+
     final params = match.group(1) ?? '';
     final command = match.group(2)!;
-    final paramList = params.split(';').where((p) => p.isNotEmpty).map(int.parse).toList();
-    
+    final paramList = params.isEmpty ? [] : params.split(';').map((p) => int.tryParse(p) ?? 0).toList();
+
     switch (command) {
-      // Cursor positioning
-      case 'H': case 'f':
+      case 'H': case 'f': // Cursor Position
         _handleCursorPosition(paramList);
         break;
-      case 'A': case 'B': case 'C': case 'D':
+      case 'A': case 'B': case 'C': case 'D': // Cursor Movement
         _handleCursorMovement(command, paramList);
         break;
-      case 'J': case 'K':
+      case 'J': case 'K': // Erase
         _handleErase(command, paramList);
         break;
-      case 'S': case 'T':
-        _handleScrolling(command, paramList);
-        break;
-      case 'm':
+      case 'm': // Graphics (colors, styles)
         _handleGraphics(paramList);
         break;
-      case 'h': case 'l':
+      case 'h': case 'l': // Set/Reset Mode
         _handleMode(paramList, command == 'h');
         break;
-      case 'r':
-        _handleScrollRegion(paramList);
-        break;
-      case 't':
-        _handleWindowManipulation(paramList);
-        break;
-      case 'n':
+      case 'n': // Device Status Report
         _handleDeviceStatus(paramList);
         break;
-      case 'c':
+      case 'c': // Device Attributes
         _handleDeviceAttributes(paramList);
         break;
-      case 'q':
-        _handleCursorStyle(paramList);
+      case 'r': // Set Scrolling Region
+        _handleScrollRegion(paramList);
         break;
-      case 's': case 'u':
+      case 's': case 'u': // Save/Restore Cursor
         _handleCursorStorage(command);
         break;
-      case 'x':
-        _handleTerminalParameters(paramList);
-        break;
-      case '`':
-        _handleCharacterPosition(paramList);
-        break;
-      case 'I': case 'G':
-        _handleTabulation(command, paramList);
-        break;
-      case 'Z':
-        _handleBackTab();
-        break;
-      case 'b': case 'd':
-        _handleRepeat(command, paramList);
-        break;
-      case 'L': case 'M': case '@': case 'P':
-        _handleLineCharacter(command, paramList);
-        break;
       default:
-        debugPrint('🔍 Unknown CSI sequence: $sequence');
+        // Unknown sequences are silently ignored for compatibility
+        break;
     }
   }
   

@@ -166,6 +166,18 @@ class TunnelManagement {
     bool persistent = false,
     bool autoStart = false,
     String? description,
+  }) async {
+    required TunnelType type,
+    required String host,
+    required int remotePort,
+    int? localPort,
+    String? username,
+    String? password,
+    String? keyPath,
+    Map<String, dynamic>? options,
+    bool persistent = false,
+    bool autoStart = false,
+    String? description,
   }) {
     final tunnelId = 'tunnel_${DateTime.now().millisecondsSinceEpoch}';
     

@@ -343,7 +343,7 @@ class BackgroundTask {
   final DateTime submittedAt;
   Completer<TaskResult>? completer;
 
-  const BackgroundTask({
+  BackgroundTask({
     required this.id,
     required this.function,
     required this.data,

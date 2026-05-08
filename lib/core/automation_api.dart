@@ -1562,12 +1562,9 @@ class AIFileGenerator {
     } else if (description.toLowerCase().contains('script') && language == 'python') {
       buffer.writeln(template.structure['script']?.replaceAll('{Name}', className) ?? '');
     } else {
-      // Generic file content
-      buffer.writeln('// TODO: Implement $description');
-      buffer.writeln('');
-      buffer.writeln('void main() {');
-      buffer.writeln('  print("Hello from $filename");');
-      buffer.writeln('}');
+      // Generate meaningful file content based on description
+      final content = _generateFileContent(description, filename, language);
+      buffer.writeln(content);
     }
 
     return buffer.toString();

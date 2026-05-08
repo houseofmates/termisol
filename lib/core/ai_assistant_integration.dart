@@ -1117,6 +1117,167 @@ class AIAssistantIntegration {
     return _getLocalCommandFallback(command, capability);
   }
   
+  // Enhanced local processing methods
+  String _generateLocalTextEnhanced(String input) {
+    final patterns = _getLocalTextPatterns();
+    final response = _applyTextPatterns(input, patterns, null);
+    return response.isNotEmpty ? response : 'Generated response for: $input';
+  }
+  
+  String _analyzeLocalTextEnhanced(String input) {
+    final textType = _detectTextType(input);
+    final wordCount = input.split(' ').length;
+    final sentiment = _analyzeSentiment(input);
+    
+    return 'Text Analysis:\n'
+           '- Type: $textType\n'
+           '- Word count: $wordCount\n'
+           '- Sentiment: $sentiment\n'
+           '- Length: ${input.length} characters';
+  }
+  
+  String _summarizeLocalTextEnhanced(String input) {
+    final sentences = input.split(RegExp(r'[.!?]+')).where((s) => s.trim().isNotEmpty).toList();
+    if (sentences.length <= 3) return input;
+    
+    // Return first and last sentences as a simple summary
+    return '${sentences.first.trim()}. ... ${sentences.last.trim()}.';
+  }
+  
+  String _analyzeLocalCodeEnhanced(String code, String? language) {
+    final complexity = _calculateComplexity(code);
+    final imports = _extractImports(code);
+    final lines = code.split('\n').length;
+    
+    return 'Code Analysis ($language):\n'
+           '- Lines: $lines\n'
+           '- Complexity: $complexity\n'
+           '- Imports: ${imports.length}\n'
+           '- Issues: ${_detectCodeIssues(code)}';
+  }
+  
+  String _generateLocalCodeEnhanced(String code, String? language) {
+    // Simple code generation based on language
+    switch (language?.toLowerCase()) {
+      case 'dart':
+        return '''class GeneratedClass {
+  final String property;
+  
+  GeneratedClass(this.property);
+  
+  void method() {
+    print('Generated method called');
+  }
+}''';
+      case 'python':
+        return '''class GeneratedClass:
+    def __init__(self, property):
+        self.property = property
+    
+    def method(self):
+        print("Generated method called")''';
+      case 'javascript':
+        return '''class GeneratedClass {
+  constructor(property) {
+    this.property = property;
+  }
+  
+  method() {
+    console.log("Generated method called");
+  }
+}''';
+      default:
+        return '// Generated code for $language\n// TODO: Implement specific logic';
+    }
+  }
+  
+  String _completeLocalCodeEnhanced(String code, String? language) {
+    final lines = code.split('\n');
+    final lastLine = lines.last.trim();
+    
+    // Simple completion based on last line
+    if (lastLine.endsWith('if ')) {
+      return ' {\n  // TODO: Add condition logic\n}';
+    } else if (lastLine.endsWith('for ')) {
+      return '(let i = 0; i < 10; i++) {\n  // TODO: Add loop logic\n}';
+    } else if (lastLine.endsWith('function ')) {
+      return 'methodName() {\n  // TODO: Add function body\n}';
+    }
+    
+    return '// No completion available';
+  }
+  
+  String _suggestLocalCommandEnhanced(String command) {
+    final suggestions = {
+      'ls': 'ls -la', // Detailed listing
+      'cd': 'cd -', // Change to previous directory
+      'git': 'git status', // Show git status
+      'docker': 'docker ps', // List containers
+      'npm': 'npm run', // Run npm script
+    };
+    
+    final baseCommand = command.split(' ').first;
+    return suggestions[baseCommand] ?? command;
+  }
+  
+  String _explainLocalCommandEnhanced(String command) {
+    final explanations = {
+      'ls': 'List directory contents',
+      'cd': 'Change directory',
+      'git': 'Git version control command',
+      'docker': 'Docker container management',
+      'npm': 'Node Package Manager',
+    };
+    
+    final baseCommand = command.split(' ').first;
+    return explanations[baseCommand] ?? 'Unknown command: $command';
+  }
+  
+  String _optimizeLocalCommandEnhanced(String command) {
+    // Simple command optimizations
+    if (command.contains('rm ')) {
+      return command + ' -i'; // Add interactive flag
+    } else if (command == 'ls') {
+      return 'ls -la'; // Show all files with details
+    } else if (command.contains('grep ')) {
+      return command + ' --color=auto'; // Add color
+    }
+    
+    return command;
+  }
+  
+  String _analyzeSentiment(String input) {
+    final positiveWords = ['good', 'great', 'excellent', 'amazing', 'wonderful'];
+    final negativeWords = ['bad', 'terrible', 'awful', 'horrible', 'worst'];
+    
+    final lowerInput = input.toLowerCase();
+    int positiveScore = 0;
+    int negativeScore = 0;
+    
+    for (final word in positiveWords) {
+      if (lowerInput.contains(word)) positiveScore++;
+    }
+    
+    for (final word in negativeWords) {
+      if (lowerInput.contains(word)) negativeScore++;
+    }
+    
+    if (positiveScore > negativeScore) return 'Positive';
+    if (negativeScore > positiveScore) return 'Negative';
+    return 'Neutral';
+  }
+  
+  String _detectCodeIssues(String code) {
+    final issues = <String>[];
+    
+    if (code.contains('TODO:')) issues.add('Contains TODO comments');
+    if (code.contains('console.log') && !code.contains('//')) issues.add('Debug console.log found');
+    if (code.contains('eval(')) issues.add('Use of eval() detected');
+    if (code.length > 1000 && !code.contains('\n')) issues.add('Very long line detected');
+    
+    return issues.isNotEmpty ? issues.join(', ') : 'No issues detected';
+  }
+  
   // Local processing helper methods
   Map<String, String> _getLocalTextPatterns() {
     return {

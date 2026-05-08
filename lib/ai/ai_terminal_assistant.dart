@@ -436,7 +436,7 @@ class AIContext {
     final recent = _messages.sublist(maxLength > _messages.length ? 0 : _messages.length - maxLength);
 
     return recent.map((msg) => {
-      'role': msg.isUser ? 'user' : 'assistant',
+      'role': msg.role,
       'content': msg.content,
     }).toList();
   }

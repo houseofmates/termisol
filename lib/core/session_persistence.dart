@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:crypto/crypto.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'terminal_session.dart' as ui;
 
 /// Session Persistence and Crash Recovery System
 /// 
@@ -460,6 +462,32 @@ class SessionPersistence {
 
   Future<void> saveAllSessions() async {
     await _saveAllSessions();
+  }
+
+  // Simple SharedPreferences-based session restore
+  static const String _prefsKey = 'termisol_sessions';
+
+  Future<void> saveSessions(List<ui.TerminalSession> sessions) async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = sessions.map((s) => {
+      'id': s.id,
+      'name': s.name,
+      'workingDirectory': s.directory.value ?? '',
+    }).toList();
+    await prefs.setString(_prefsKey, jsonEncode(data));
+  }
+
+  Future<List<Map<String, dynamic>>> loadSessions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonStr = prefs.getString(_prefsKey);
+    if (jsonStr == null || jsonStr.isEmpty) return [];
+    final list = jsonDecode(jsonStr) as List<dynamic>;
+    return list.map((e) => e as Map<String, dynamic>).toList();
+  }
+
+  static Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_prefsKey);
   }
 
   Future<void> _saveAllSessions() async {

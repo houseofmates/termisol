@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:crypto/crypto.dart';
+import 'package:pointycastle/pointycastle.dart';
 
 /// SSH Key Manager with Agent Support
 /// 
@@ -48,6 +50,13 @@ class SSHKeyManager {
   SSHAgent? get sshAgent => _sshAgent;
   int get keyCount => _keys.length;
   int get connectionCount => _connections.length;
+
+  /// Generate cryptographically secure ID for keys
+  String _generateSecureId() {
+    final random = SecureRandom('AES/CTR/AUTO-PADDING:SHA256');
+    final bytes = random.nextBytes(16);
+    return base64Url.encode(bytes).replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+  }
 
   Future<void> initialize() async {
     if (_isInitialized) return;

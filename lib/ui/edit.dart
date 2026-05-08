@@ -266,40 +266,86 @@ class _EditTerminalState extends State<EditTerminal> {
   void _handleMultiCursorInput(String input) {
     if (!_multiCursorMode || _cursors.isEmpty) return;
     
-    final text = _controller.text;
-    final allCursors = List<TextSelection>.from(_cursors);
-    allCursors.add(_controller.selection);
-    
-    // Sort cursors by position to handle offset changes correctly
-    allCursors.sort((a, b) => a.baseOffset.compareTo(b.baseOffset));
-    
-    String newText = text;
-    int offsetAdjustment = 0;
-    
-    for (final cursor in allCursors) {
-      final adjustedOffset = cursor.baseOffset + offsetAdjustment;
-      if (adjustedOffset >= 0 && adjustedOffset <= newText.length) {
-        newText = newText.substring(0, adjustedOffset) + input + newText.substring(adjustedOffset);
-        offsetAdjustment += input.length;
-      }
-    }
-    
-    _controller.text = newText;
-    
-    // Update all cursor positions
-    setState(() {
-      _cursors.clear();
-      for (final cursor in allCursors) {
-        final newOffset = cursor.baseOffset + input.length;
-        _cursors.add(TextSelection.fromPosition(TextPosition(offset: newOffset)));
+    try {
+      // Validate input
+      if (input.isEmpty) return;
+      if (input.length > 1000) {
+        debugPrint('⚠️ Multi-cursor input too long: ${input.length} characters');
+        return;
       }
       
-      // Update main cursor
-      final mainCursorOffset = _controller.selection.baseOffset + input.length;
-      _controller.selection = TextSelection.fromPosition(TextPosition(offset: mainCursorOffset));
-    });
-    
-    _onTextChanged();
+      final text = _controller.text;
+      if (text.length > 1000000) {
+        debugPrint('⚠️ Text too large for multi-cursor operations: ${text.length} characters');
+        _clearMultiCursors();
+        return;
+      }
+      
+      final allCursors = List<TextSelection>.from(_cursors);
+      allCursors.add(_controller.selection);
+      
+      // Validate and deduplicate cursors
+      final validCursors = _validateAndDeduplicateCursors(allCursors, text.length);
+      if (validCursors.isEmpty) {
+        debugPrint('⚠️ No valid cursors for multi-cursor input');
+        return;
+      }
+      
+      // Sort cursors by position to handle offset changes correctly
+      validCursors.sort((a, b) => a.baseOffset.compareTo(b.baseOffset));
+      
+      String newText = text;
+      int offsetAdjustment = 0;
+      
+      for (final cursor in validCursors) {
+        final adjustedOffset = cursor.baseOffset + offsetAdjustment;
+        if (adjustedOffset >= 0 && adjustedOffset <= newText.length) {
+          try {
+            newText = newText.substring(0, adjustedOffset) + input + newText.substring(adjustedOffset);
+            offsetAdjustment += input.length;
+          } catch (e) {
+            debugPrint('⚠️ Error inserting text at cursor $adjustedOffset: $e');
+            continue;
+          }
+        }
+      }
+      
+      // Apply text changes safely
+      try {
+        _controller.text = newText;
+      } catch (e) {
+        debugPrint('⚠️ Error setting multi-cursor text: $e');
+        _clearMultiCursors();
+        return;
+      }
+      
+      // Update all cursor positions safely
+      try {
+        setState(() {
+          _cursors.clear();
+          for (final cursor in validCursors) {
+            final newOffset = cursor.baseOffset + input.length;
+            if (newOffset >= 0 && newOffset <= _controller.text.length) {
+              _cursors.add(TextSelection.fromPosition(TextPosition(offset: newOffset)));
+            }
+          }
+          
+          // Update main cursor
+          final mainCursorOffset = _controller.selection.baseOffset + input.length;
+          if (mainCursorOffset >= 0 && mainCursorOffset <= _controller.text.length) {
+            _controller.selection = TextSelection.fromPosition(TextPosition(offset: mainCursorOffset));
+          }
+        });
+      } catch (e) {
+        debugPrint('⚠️ Error updating cursor positions: $e');
+        _clearMultiCursors();
+      }
+      
+      _onTextChanged();
+    } catch (e) {
+      debugPrint('⚠️ Critical error in multi-cursor input: $e');
+      _clearMultiCursors();
+    }
   }
 
   void _handleMultiCursorSelection(TextSelection selection) {

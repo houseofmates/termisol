@@ -18,7 +18,7 @@ import '../core/semantic_search_engine.dart';
 import '../core/predictive_suggestions.dart';
 import '../core/conversational_ai.dart';
 import '../core/automated_workflows.dart';
-import '../vr/advanced_vr_terminal.dart';
+import '../vr/vr_terminal.dart';
 import '../core/github_integration.dart';
 import '../core/neural_processing.dart';
 import '../core/terminal_pane_manager.dart';

@@ -229,6 +229,13 @@ class _EditTerminalState extends State<EditTerminal> {
     );
   }
 
+  void _clearMultiCursors() {
+    setState(() {
+      _multiCursorMode = false;
+      _cursors.clear();
+    });
+  }
+
   String _getUndoDescription() {
     if (!_canUndo()) return 'No undo available';
     if (_currentUndoIndex > 0) {

@@ -28,8 +28,8 @@ abstract class TermisolPtyBackend {
     // Prefer FFI backend for desktop platforms for maximum performance
     try {
       return FfiPtyBackend(workingDirectory: workingDirectory);
-    } catch (e) {
-      debugPrint('[pty] FFI backend failed, falling back to PTY package: $e');
+    } catch (e, stack) {
+      debugPrint('[pty] FFI backend failed, falling back to PTY package: $e\n$stack');
       return _PtyBackend(workingDirectory: workingDirectory);
     }
   }

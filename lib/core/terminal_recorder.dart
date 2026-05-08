@@ -171,6 +171,158 @@ class TerminalRecorder {
     }
   }
   
+  /// Handle Ctrl+P recording toggle
+  Future<String?> handleCtrlPToggle() async {
+    try {
+      if (!_ctrlPRecording) {
+        // Start Ctrl+P recording
+        return await _startCtrlPRecording();
+      } else {
+        // Stop Ctrl+P recording and export to MP4
+        return await _stopCtrlPRecordingAndExport();
+      }
+    } catch (e) {
+      debugPrint('❌ Failed to handle Ctrl+P toggle: $e');
+      return null;
+    }
+  }
+  
+  /// Start Ctrl+P recording
+  Future<String> _startCtrlPRecording() async {
+    if (_isRecording) {
+      throw StateError('Cannot start Ctrl+P recording while another recording is active');
+    }
+    
+    try {
+      _ctrlPRecording = true;
+      _ctrlPStartTime = DateTime.now();
+      _ctrlPRecordingId = 'ctrlp_${DateTime.now().millisecondsSinceEpoch}';
+      
+      // Start a special Ctrl+P recording
+      await startRecording(
+        name: 'Ctrl+P Recording ${DateTime.now().toString().substring(0, 19)}',
+        description: 'Quick terminal recording via Ctrl+P',
+        format: RecordingFormat.asciinema,
+        sessionId: 'ctrlp_session',
+      );
+      
+      debugPrint('🎥 Started Ctrl+P recording');
+      return _ctrlPRecordingId!;
+    } catch (e) {
+      _ctrlPRecording = false;
+      _ctrlPStartTime = null;
+      _ctrlPRecordingId = null;
+      rethrow;
+    }
+  }
+  
+  /// Stop Ctrl+P recording and export to MP4
+  Future<String> _stopCtrlPRecordingAndExport() async {
+    if (!_ctrlPRecording || _currentRecording == null) {
+      throw StateError('No Ctrl+P recording in progress');
+    }
+    
+    try {
+      // Stop the recording
+      await stopRecording();
+      
+      final recording = _currentRecording!;
+      
+      // Export to MP4 on remote server
+      final mp4Path = await _exportToMP4(recording);
+      
+      _ctrlPRecording = false;
+      _ctrlPStartTime = null;
+      final recordingId = _ctrlPRecordingId;
+      _ctrlPRecordingId = null;
+      
+      debugPrint('🎥 Ctrl+P recording exported to MP4: $mp4Path');
+      return mp4Path;
+    } catch (e) {
+      _ctrlPRecording = false;
+      _ctrlPStartTime = null;
+      _ctrlPRecordingId = null;
+      rethrow;
+    }
+  }
+  
+  /// Export recording to MP4 format on remote server
+  Future<String> _exportToMP4(TerminalRecording recording) async {
+    try {
+      debugPrint('🎥 Exporting recording to MP4 on $_mp4ExportServer...');
+      
+      // First, save the asciinema recording
+      await _saveAsciinema(recording);
+      
+      // Create MP4 export request
+      final exportRequest = {
+        'recording_id': recording.id,
+        'recording_path': recording.path,
+        'output_path': '$_mp4ExportPath/${recording.id}.mp4',
+        'recording_name': recording.name,
+        'duration': recording.duration.inSeconds,
+        'frame_count': recording.frames.length,
+      };
+      
+      // Send to MP4 conversion server
+      final response = await http.post(
+        Uri.parse('http://$_mp4ExportServer:8080/api/convert-to-mp4'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(exportRequest),
+      ).timeout(Duration(minutes: 5));
+      
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body) as Map<String, dynamic>;
+        final mp4Path = result['mp4_path'] as String;
+        
+        debugPrint('🎥 Successfully exported to MP4: $mp4Path');
+        return mp4Path;
+      } else {
+        throw Exception('MP4 export failed: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('❌ Failed to export to MP4: $e');
+      
+      // Fallback: create a simple MP4 placeholder
+      return await _createMP4Placeholder(recording);
+    }
+  }
+  
+  /// Create MP4 placeholder when server conversion fails
+  Future<String> _createMP4Placeholder(TerminalRecording recording) async {
+    try {
+      // Create a simple text file as placeholder
+      final placeholderPath = '$_mp4ExportPath/${recording.id}_placeholder.txt';
+      final placeholderContent = '''
+Terminal Recording Placeholder
+============================
+Recording ID: ${recording.id}
+Name: ${recording.name}
+Duration: ${recording.duration.inSeconds} seconds
+Frames: ${recording.frames.length}
+Created: ${recording.createdAt}
+
+Note: MP4 conversion server was unavailable. 
+The original asciinema recording is saved at: ${recording.path}
+
+To convert manually:
+1. Install asciinema: pip install asciinema
+2. Convert: asciinema play ${recording.path} --record-output.mp4
+''';
+      
+      // Save placeholder locally (since remote server might be unavailable)
+      final localPlaceholder = File('${Platform.environment['HOME']}/.termisol/${recording.id}_placeholder.txt');
+      await localPlaceholder.parent.create(recursive: true);
+      await localPlaceholder.writeAsString(placeholderContent);
+      
+      debugPrint('📝 Created MP4 placeholder: ${localPlaceholder.path}');
+      return localPlaceholder.path;
+    } catch (e) {
+      debugPrint('❌ Failed to create placeholder: $e');
+      return 'MP4 export failed - check server availability';
+    }
+  }
+  
   /// Capture terminal frame
   void _captureFrame() {
     if (_currentRecording == null || !_isRecording) return;
@@ -630,6 +782,9 @@ class TerminalRecorder {
       'total_recordings': _recordings.length,
       'is_recording': _isRecording,
       'is_playing': _isPlaying,
+      'ctrl_p_recording': _ctrlPRecording,
+      'ctrl_p_start_time': _ctrlPStartTime?.toIso8601String(),
+      'ctrl_p_recording_id': _ctrlPRecordingId,
       'current_recording_id': _currentRecording?.id,
       'current_playback_id': _currentPlayback?.recording.id,
       'total_duration': totalDuration.inSeconds,
@@ -644,6 +799,8 @@ class TerminalRecorder {
       'playback_speed': _playbackSpeed,
       'playback_paused': _playbackPaused,
       'cache_size': _frameCache.length,
+      'mp4_export_server': _mp4ExportServer,
+      'mp4_export_path': _mp4ExportPath,
     };
   }
   

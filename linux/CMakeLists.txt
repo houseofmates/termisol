@@ -2,6 +2,11 @@
 cmake_minimum_required(VERSION 3.13)
 project(runner LANGUAGES CXX)
 
+# Use system linker to avoid snap Flutter GLIBC mismatch
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=/usr/bin/ld.lld")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=/usr/bin/ld.lld")
+set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fuse-ld=/usr/bin/ld.lld")
+
 # The name of the executable created for the application.
 set(BINARY_NAME "termisol")
 # The unique GTK application identifier for this application.

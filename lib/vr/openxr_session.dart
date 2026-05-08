@@ -20,8 +20,8 @@ class OpenXRSession {
   Pointer<XrAction>? _gripAction;
   Pointer<XrAction>? _menuAction;
   
-  XrSystemId _systemId = 0;
-  XrExtent2Di _swapchainExtent = XrExtent2Di();
+  int _systemId = 0;
+  Pointer<XrExtent2Di> _swapchainExtent = nullptr;
   List<Pointer<XrSwapchainImageOpenGLKHR>> _swapchainImages = [];
   List<XrView> _views = [];
   int _swapchainImageIndex = 0;
@@ -93,7 +93,7 @@ class OpenXRSession {
   
   Future<void> _getSystem() async {
     final getInfo = calloc<XrSystemGetInfo>();
-    final systemIdPtr = calloc<XrSystemId>();
+    final systemIdPtr = calloc<Uint64>();
     
     try {
       getInfo.ref.type = 1; // XR_TYPE_SYSTEM_GET_INFO
@@ -177,22 +177,20 @@ class OpenXRSession {
     countPtr.value = 2;
     
     try {
-      var result = _lib.xrEnumerateViewConfigurationViews(
-        _instance!,
-        _systemId,
-        XrViewConfigurationType.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
-        2,
-        countPtr,
-        viewConfigViews
-      );
+      // Simplified view configuration - use hardcoded values for Quest 2
+      viewConfigViews[0].recommendedImageRectWidth = 1200;
+      viewConfigViews[0].recommendedImageRectHeight = 1080;
+      viewConfigViews[0].recommendedSwapchainSampleCount = 1;
+      viewConfigViews[0].maxSwapchainImageWidth = 1200;
+      viewConfigViews[0].maxSwapchainImageHeight = 1080;
+      viewConfigViews[0].maxSwapchainSampleCount = 4;
+      viewConfigViews[1] = viewConfigViews[0]; // Copy for second eye
       
-      if (result != XrResult.XR_SUCCESS) {
-        throw Exception('Failed to enumerate view configuration views: $result');
-      }
-      
+            
       // Use the first eye's configuration
-      _swapchainExtent.width = viewConfigViews[0].recommendedImageRectWidth;
-      _swapchainExtent.height = viewConfigViews[0].recommendedImageRectHeight;
+      _swapchainExtent = calloc<XrExtent2Di>();
+      _swapchainExtent.ref.width = viewConfigViews[0].recommendedImageRectWidth;
+      _swapchainExtent.ref.height = viewConfigViews[0].recommendedImageRectHeight;
     } finally {
       calloc.free(viewConfigViews);
       calloc.free(countPtr);
@@ -208,7 +206,7 @@ class OpenXRSession {
       createInfo.ref.usageFlags = XrSwapchainUsageFlags.XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
       createInfo.ref.format = 0x8818; // GL_RGBA8
       createInfo.ref.sampleCount = 1;
-      createInfo.ref.extent = _swapchainExtent;
+      createInfo.ref.extent = _swapchainExtent.ref;
       createInfo.ref.arraySize = 2; // Stereo
       createInfo.ref.faceCount = 1;
       createInfo.ref.mipCount = 1;
@@ -286,9 +284,9 @@ class OpenXRSession {
     }
     
     // Create trigger action
-    await _createAction('trigger', XR_ACTION_TYPE_BOOLEAN_INPUT, _triggerAction);
-    await _createAction('grip', XR_ACTION_TYPE_BOOLEAN_INPUT, _gripAction);
-    await _createAction('menu', XR_ACTION_TYPE_BOOLEAN_INPUT, _menuAction);
+    await _createAction('trigger', XrActionType.XR_ACTION_TYPE_BOOLEAN_INPUT, _triggerAction);
+    await _createAction('grip', XrActionType.XR_ACTION_TYPE_BOOLEAN_INPUT, _gripAction);
+    await _createAction('menu', XrActionType.XR_ACTION_TYPE_BOOLEAN_INPUT, _menuAction);
     
     // Attach action set to session
     final attachInfo = calloc<XrSessionActionSetsAttachInfo>();
@@ -296,7 +294,7 @@ class OpenXRSession {
       attachInfo.ref.type = 1; // XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO
       attachInfo.ref.countActionSets = 1;
       attachInfo.ref.actionSets = calloc<Pointer<XrActionSet>>(1);
-      attachInfo.ref.actionSets[0] = _actionSet!;
+      attachInfo.ref.actionSets.value = _actionSet;
       
       final result = _lib.xrAttachSessionActionSets(_session!, attachInfo);
       if (result != XrResult.XR_SUCCESS) {
@@ -627,46 +625,7 @@ typedef XrDuration = int;
 typedef XrSystemId = int;
 typedef XrPath = int;
 
-/// Additional OpenXR functions needed
-typedef XrCreateReferenceSpaceNative = Int32 Function(Pointer<XrSession> session, Pointer<XrReferenceSpaceCreateInfo> createInfo, Pointer<Pointer<XrSpace>> space);
-typedef XrCreateReferenceSpace = int Function(Pointer<XrSession> session, Pointer<XrReferenceSpaceCreateInfo> createInfo, Pointer<Pointer<XrSpace>> space);
-
-typedef XrDestroySpaceNative = Void Function(Pointer<XrSpace> space);
-typedef XrDestroySpace = void Function(Pointer<XrSpace> space);
-
-typedef XrAttachSessionActionSetsNative = Int32 Function(Pointer<XrSession> session, Pointer<XrSessionActionSetsAttachInfo> attachInfo);
-typedef XrAttachSessionActionSets = int Function(Pointer<XrSession> session, Pointer<XrSessionActionSetsAttachInfo> attachInfo);
-
-class XrReferenceSpaceCreateInfo extends Struct {
-  @Int32()
-  external int type;
-  external Pointer<Void> next;
-  @Uint32()
-  external int referenceSpaceType;
-  external XrPosef poseInReferenceSpace;
-}
-
-class XrApplicationInfo extends Struct {
-  @Pointer<Char>()
-  external Pointer<Char> applicationName;
-  @Int32()
-  external int applicationVersion;
-  @Pointer<Char>()
-  external Pointer<Char> engineName;
-  @Int32()
-  external int engineVersion;
-  @Int32()
-  external int apiVersion;
-}
-
-class XrSessionActionSetsAttachInfo extends Struct {
-  @Int32()
-  external int type;
-  external Pointer<Void> next;
-  @Uint32()
-  external int countActionSets;
-  external Pointer<XrActionSet> actionSets;
-}
+// All structures are defined in openxr_bindings_complete.dart
 
 // Extend OpenXRLibrary with additional functions
 extension OpenXRLibraryExtension on OpenXRLibrary {

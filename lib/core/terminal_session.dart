@@ -9,6 +9,10 @@ import '../config/pkm_theme.dart';
 import 'bracketed_paste_manager.dart';
 import 'focus_manager.dart';
 import 'truecolor_manager.dart';
+import 'kitty_graphics_manager.dart';
+import 'mouse_protocol_manager.dart';
+import 'ligature_font_manager.dart';
+import 'throttled_renderer.dart';
 
 /// Called when the user types `/ai <query>` and presses Enter.
 /// If null, `/ai` commands are passed through to shell normally.

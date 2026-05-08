@@ -4,6 +4,10 @@ class SessionPersistence {
     // Stub implementation
   }
 
+  void stopAutoSave() {
+    // Stub implementation
+  }
+
   void dispose() {
     // Stub implementation
   }

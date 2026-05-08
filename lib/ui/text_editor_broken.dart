@@ -941,8 +941,49 @@ class _TextEditorState extends State<TextEditor> {
                     ),
                   ),
                 
+                // Command mode input
+                if (_commandMode)
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        border: Border.all(color: Colors.green[700]!),
+                      ),
+                      child: Row(
+                        children: [
+                          const Text(
+                            ':',
+                            style: TextStyle(
+                              color: Colors.green,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: TextField(
+                              controller: _commandController,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                              ),
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                hintText: 'Enter command...',
+                                hintStyle: TextStyle(color: Colors.grey),
+                              ),
+                              autofocus: true,
+                              onSubmitted: (value) => _executeCommand(value),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                
                 // Actions
-                if (!_showSearch) ...[
+                if (!_showSearch && !_commandMode) ...[
                   IconButton(
                     onPressed: () => setState(() => _showSearch = true),
                     icon: const Icon(Icons.search, size: 16),

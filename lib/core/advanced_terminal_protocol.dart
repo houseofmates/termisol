@@ -337,68 +337,35 @@ class AdvancedTerminalProtocol {
   void _handleCursorPosition(List<int> params) {
     final row = params.isNotEmpty && params[0] > 0 ? params[0] : 1;
     final col = params.length > 1 && params[1] > 0 ? params[1] : 1;
-    _controller.setCursorPosition(col - 1, row - 1);
+    // Use terminal's built-in cursor positioning
+    _terminal.write('\x1b[${row};${col}H');
   }
 
   void _handleCursorMovement(String command, List<int> params) {
     final count = params.isNotEmpty && params[0] > 0 ? params[0] : 1;
-    switch (command) {
-      case 'A': _controller.moveCursorUp(count); break;      // Up
-      case 'B': _controller.moveCursorDown(count); break;    // Down
-      case 'C': _controller.moveCursorForward(count); break; // Forward
-      case 'D': _controller.moveCursorBack(count); break;    // Back
-    }
+    // Use terminal's built-in cursor movement
+    _terminal.write('\x1b[${count}${command}');
   }
 
   void _handleErase(String command, List<int> params) {
     final mode = params.isNotEmpty ? params[0] : 0;
-    switch (command) {
-      case 'J': // Erase in Display
-        switch (mode) {
-          case 0: _controller.eraseFromCursorToEnd(); break;    // From cursor to end
-          case 1: _controller.eraseFromStartToCursor(); break;  // From start to cursor
-          case 2: _controller.eraseEntireDisplay(); break;      // Entire display
-        }
-        break;
-      case 'K': // Erase in Line
-        switch (mode) {
-          case 0: _controller.eraseFromCursorToEndOfLine(); break;    // From cursor to end of line
-          case 1: _controller.eraseFromStartOfLineToCursor(); break;  // From start of line to cursor
-          case 2: _controller.eraseEntireLine(); break;               // Entire line
-        }
-        break;
+    // Use terminal's built-in erase functions
+    if (command == 'J') {
+      _terminal.write('\x1b[${mode}J');
+    } else if (command == 'K') {
+      _terminal.write('\x1b[${mode}K');
     }
   }
 
   void _handleGraphics(List<int> params) {
     if (params.isEmpty) {
-      // Reset all attributes
-      _controller.resetAttributes();
+      _terminal.write('\x1b[m'); // Reset attributes
       return;
     }
 
-    for (final param in params) {
-      if (param == 0) {
-        _controller.resetAttributes();
-      } else if (param == 1) {
-        _controller.setBold(true);
-      } else if (param == 4) {
-        _controller.setUnderline(true);
-      } else if (param >= 30 && param <= 37) {
-        // Standard foreground colors
-        _controller.setForegroundColor(_getAnsiColor(param - 30));
-      } else if (param >= 40 && param <= 47) {
-        // Standard background colors
-        _controller.setBackgroundColor(_getAnsiColor(param - 40));
-      } else if (param >= 90 && param <= 97) {
-        // Bright foreground colors
-        _controller.setForegroundColor(_getAnsiBrightColor(param - 90));
-      } else if (param >= 100 && param <= 107) {
-        // Bright background colors
-        _controller.setBackgroundColor(_getAnsiBrightColor(param - 100));
-      }
-      // Note: True color sequences (38;2;r;g;b) would be handled in a more complex parser
-    }
+    // Build SGR sequence
+    final sequence = '\x1b[${params.join(';')}m';
+    _terminal.write(sequence);
   }
 
   Color _getAnsiColor(int index) {
@@ -431,35 +398,35 @@ class AdvancedTerminalProtocol {
   
   void _handleMode(List<int> params, bool set) {
     for (final param in params) {
+      final modeSequence = '\x1b[?${param}${set ? 'h' : 'l'}';
+      _terminal.write(modeSequence);
+
+      // Update internal state
       switch (param) {
-        case 25: // DECTCEM - Text Cursor Enable Mode
-          _controller.setCursorVisibility(set);
-          break;
-        case 1000: // Mouse tracking - normal mode
+        case 1000:
           _setMouseTracking(set ? MouseProtocol.normal : MouseProtocol.none);
           break;
-        case 1002: // Mouse tracking - button event mode
+        case 1002:
           _setMouseTracking(set ? MouseProtocol.buttonEvent : MouseProtocol.none);
           break;
-        case 1003: // Mouse tracking - any event mode
+        case 1003:
           _setMouseTracking(set ? MouseProtocol.anyEvent : MouseProtocol.none);
           break;
-        case 1004: // Focus tracking
+        case 1004:
           _setFocusTracking(set);
           break;
-        case 1005: // Mouse tracking - URXVT mode
+        case 1005:
           _setMouseTracking(set ? MouseProtocol.urxvt : MouseProtocol.none);
           break;
-        case 1006: // Mouse tracking - SGR mode
+        case 1006:
           _setMouseTracking(set ? MouseProtocol.sgr : MouseProtocol.none);
           break;
-        case 1016: // Mouse tracking - SGR pixels mode
+        case 1016:
           _setMouseTracking(set ? MouseProtocol.sgrPixels : MouseProtocol.none);
           break;
-        case 2004: // Bracketed paste mode
+        case 2004:
           _setBracketedPasteMode(set);
           break;
-        // Other modes are acknowledged but not implemented for simplicity
       }
     }
   }

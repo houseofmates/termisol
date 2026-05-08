@@ -72,13 +72,13 @@ class _HomeScreenState extends State<HomeScreen> {
         );
         break;
       case 'copy':
-        _activeSession?.controller.copy();
+        _activeSession?.clipboardManager.copy();
         break;
       case 'paste':
-        _activeSession?.controller.paste();
+        _activeSession?.clipboardManager.paste();
         break;
       case 'selectAll':
-        _activeSession?.controller.selectAll();
+        _activeSession?.clipboardManager.selectAll();
         break;
     }
   }

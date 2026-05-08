@@ -197,7 +197,7 @@ class GraphicsProtocolHandler {
   }
 
   /// Process Sixel graphics sequences in output
-  String _processSixelSequences(String output) {
+  String _processSixelSequences(String output, int cursorX, int cursorY) {
     if (!_sixelEnabled) return output;
 
     // Look for Sixel DCS sequences: ESC P ... ESC \
@@ -205,20 +205,20 @@ class GraphicsProtocolHandler {
     return output.replaceAllMapped(sixelRegex, (match) {
       final params = match.group(1) ?? '';
       final data = match.group(2) ?? '';
-      final response = handleSixel('\x1bP$params$data\x1b\\');
+      final response = handleSixel('\x1bP$params$data\x1b\\', cursorX, cursorY);
       return response.isNotEmpty ? response : '';
     });
   }
 
   /// Process Kitty graphics sequences in output
-  String _processKittySequences(String output) {
+  String _processKittySequences(String output, int cursorX, int cursorY) {
     if (!_kittyProtocolEnabled) return output;
 
     // Look for Kitty sequences: ESC _ G ... ESC \
     final kittyRegex = RegExp(r'\x1b_G([^\\]*)\x1b\\', dotAll: true);
     return output.replaceAllMapped(kittyRegex, (match) {
       final data = match.group(1) ?? '';
-      final response = handleKittyProtocol('\x1b_G$data\x1b\\');
+      final response = handleKittyProtocol('\x1b_G$data\x1b\\', cursorX, cursorY);
       return response.isNotEmpty ? response : '';
     });
   }

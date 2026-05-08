@@ -310,12 +310,6 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _showSearch = !_showSearch);
   }
 
-  void _toggleVrMode() {
-    final session = _activeSession;
-    if (session == null) return;
-    setState(() => _vrMode = !_vrMode);
-  }
-
   void _toggleHistorySearch() {
     setState(() => _showHistorySearch = !_showHistorySearch);
   }

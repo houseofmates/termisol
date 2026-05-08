@@ -26,9 +26,10 @@ class _HomeScreenState extends State<HomeScreen> {
     _createInitialTab();
   }
 
-  void _handleAiQuery(String query) {
+  Future<String> _handleAiQuery(String query) async {
     // Placeholder for AI query handling
     debugPrint('AI query: $query');
+    return 'AI response not implemented';
   }
 
   void _createInitialTab() {

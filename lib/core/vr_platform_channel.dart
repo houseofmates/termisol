@@ -205,7 +205,7 @@ class FingerData {
   factory FingerData.fromJson(Map<dynamic, dynamic> json) {
     return FingerData(
       type: FingerType.values[json['type'] ?? 0],
-      position: Offset(
+      tipPosition: Offset(
         (json['tipPosition']?['x'] as num?)?.toDouble() ?? 0.0,
         (json['tipPosition']?['y'] as num?)?.toDouble() ?? 0.0,
       ),

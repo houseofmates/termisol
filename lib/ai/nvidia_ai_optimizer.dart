@@ -209,15 +209,15 @@ Focus on:
     return '${systemType}_$metricsHash';
   }
 
-  void _analyzePerformance() {
+  Future<void> _analyzePerformance() async {
     try {
       debugPrint('🔍 Starting performance analysis...');
       
       // Monitor CPU usage
-      final cpuUsage = _getCpuUsage();
+      final cpuUsage = await _getCpuUsage();
       
       // Monitor memory usage
-      final memoryUsage = _getMemoryUsage();
+      final memoryUsage = await _getMemoryUsage();
       
       // Monitor GPU usage if available
       final gpuUsage = _getGpuUsage();
@@ -252,7 +252,7 @@ Focus on:
     }
   }
 
-  double _getCpuUsage() {
+  Future<double> _getCpuUsage() async {
     try {
       // Simple CPU usage calculation using /proc/stat on Linux
       final statFile = File('/proc/stat');
@@ -274,7 +274,7 @@ Focus on:
     return 0.0; // Default fallback
   }
 
-  double _getMemoryUsage() {
+  Future<double> _getMemoryUsage() async {
     try {
       final meminfoFile = File('/proc/meminfo');
       if (await meminfoFile.exists()) {

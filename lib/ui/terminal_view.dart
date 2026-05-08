@@ -331,7 +331,8 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
           '\r\n\x1b[36m[summary copied to clipboard]\x1b[0m\r\n',
         );
       }
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('summary failed: $e\n$stack');
       widget.session.terminal.write(
         '\r\n\x1b[31m[summary failed: $e]\x1b[0m\r\n',
       );
@@ -360,7 +361,8 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
           '\r\n\x1b[31m[translation failed]\x1b[0m\r\n',
         );
       }
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('translation error: $e\n$stack');
       widget.session.terminal.write(
         '\r\n\x1b[31m[translation error: $e]\x1b[0m\r\n',
       );

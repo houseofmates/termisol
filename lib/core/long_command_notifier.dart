@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:termisol/core/logging_system.dart';
 
 /// Long command notification system
 /// 
@@ -55,7 +56,7 @@ class LongCommandNotifier {
             await _audioPlayer?.setSourceAsset('assets/notif.mp3');
             await _audioPlayer?.resume();
         } catch (e) {
-          print('Failed to play notification sound: $e');
+          TermisolLogger().error('Failed to play notification sound', error: e);
         }
       });
       
@@ -65,7 +66,7 @@ class LongCommandNotifier {
         await _audioPlayer?.resume();
       });
     } catch (e) {
-      print('Failed to log long command: $e');
+      TermisolLogger().error('Failed to log long command', error: e);
     }
   }
 

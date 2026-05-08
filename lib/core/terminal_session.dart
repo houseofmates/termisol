@@ -72,6 +72,7 @@ class TerminalSession extends ChangeNotifier {
   late final LigatureFontManager ligatureFont;
   late final ThrottledRenderer throttledRenderer;
   late final TerminalClipboardManager clipboardManager;
+  late final GraphicsProtocolHandler graphicsHandler;
 
   /// Called whenever data is received from the backend.
   void Function(String output)? onOutputReceived;
@@ -130,6 +131,7 @@ class TerminalSession extends ChangeNotifier {
     ligatureFont = LigatureFontManager(terminal, controller);
     throttledRenderer = ThrottledRenderer(terminal);
     clipboardManager = TerminalClipboardManager(terminal, controller);
+    graphicsHandler = GraphicsProtocolHandler(terminal, controller);
 
     // Setup advanced features
     focusManager.enableFocusEvents();
@@ -137,6 +139,7 @@ class TerminalSession extends ChangeNotifier {
     kittyGraphics.enable();
     mouseProtocol.enable(TermisolMouseMode.any);
     ligatureFont.setFont('Fira Code', enableLigatures: true);
+    graphicsHandler.initialize();
 
     // Start health monitoring and auto-save
     _crashRecovery.startHealthMonitoring(id);

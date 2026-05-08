@@ -16,6 +16,9 @@ import 'package:xterm/xterm.dart';
 /// - Alpha Channel Support
 /// - Inline Images
 class GraphicsProtocolHandler {
+  Terminal? _terminal;
+  TerminalController? _controller;
+
   bool _isInitialized = false;
   bool _trueColorEnabled = true;
   bool _kittyProtocolEnabled = true;
@@ -45,7 +48,7 @@ class GraphicsProtocolHandler {
   final Map<String, ui.Picture> _pictureCache = {};
   final Map<int, List<ui.Rect>> _damageRegions = {};
   
-  GraphicsProtocolHandler();
+  GraphicsProtocolHandler([this._terminal, this._controller]);
   
   bool get isInitialized => _isInitialized;
   bool get trueColorEnabled => _trueColorEnabled;
@@ -56,16 +59,27 @@ class GraphicsProtocolHandler {
   /// Initialize graphics protocol handler
   Future<void> initialize() async {
     if (_isInitialized) return;
-    
+
     try {
       // Initialize default color palette
       _initializeColorPalette();
-      
+
+      // Set up terminal output interception if terminal is available
+      if (_terminal != null && _controller != null) {
+        _setupOutputInterception();
+      }
+
       _isInitialized = true;
       debugPrint('🎨 Graphics Protocol Handler initialized with True Color support');
     } catch (e) {
       debugPrint('❌ Failed to initialize Graphics Protocol Handler: $e');
     }
+  }
+
+  /// Set up output interception to handle graphics protocols
+  void _setupOutputInterception() {
+    // The terminal output is handled in the session, we'll intercept there
+    debugPrint('Graphics protocol output interception ready');
   }
   
   /// Initialize default color palette

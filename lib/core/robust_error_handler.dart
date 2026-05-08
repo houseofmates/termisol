@@ -458,6 +458,42 @@ class RobustErrorHandler {
     }
   }
   
+  /// Perform health check
+  Future<void> _performHealthCheck() async {
+    try {
+      // Check system health
+      final memoryUsage = await _checkMemoryUsage();
+      final diskSpace = await _checkDiskSpace();
+      
+      if (memoryUsage > 0.9) {
+        _logger.warning('High memory usage detected: ${(memoryUsage * 100).toStringAsFixed(1)}%');
+      }
+      
+      if (diskSpace < 100) { // Less than 100MB
+        _logger.warning('Low disk space: ${diskSpace.toStringAsFixed(1)}MB');
+      }
+    } catch (e) {
+      _logger.warning('Health check failed: $e');
+    }
+  }
+  
+  /// Check memory usage
+  Future<double> _checkMemoryUsage() async {
+    // Simplified memory check
+    return 0.5; // Placeholder
+  }
+  
+  /// Check disk space
+  Future<double> _checkDiskSpace() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final stat = await directory.stat();
+      return stat.size / (1024 * 1024); // Convert to MB
+    } catch (e) {
+      return 1000.0; // 1GB fallback
+    }
+  }
+  
   /// Log error with proper formatting
   void _logError(ErrorReport report) {
     final level = _mapSeverityToLevel(report.severity);

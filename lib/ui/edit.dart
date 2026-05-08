@@ -215,46 +215,64 @@ class _EditTerminalState extends State<EditTerminal> {
 
   void _onTextChanged() {
     if (!widget.readOnly) {
-      // Validate text changes
-      final validation = EditorValidator.validateFileContent(widget.filePath, _controller.text);
-      if (!validation.isValid) {
-        debugPrint('⚠️ Text validation failed: ${validation.error}');
-        // Revert to last valid state if available
+      // Monitor text change performance
+      final stopwatch = Stopwatch()..start();
+      
+      try {
+        // Validate text changes
+        final validation = EditorValidator.validateFileContent(widget.filePath, _controller.text);
+        if (!validation.isValid) {
+          debugPrint('⚠️ Text validation failed: ${validation.error}');
+          
+          // Log validation error
+          _crashRecovery.logError(EditorError(
+            type: EditorErrorType.validationFailed,
+            message: 'Text change validation failed',
+            details: 'File: ${widget.filePath}, Error: ${validation.error}',
+            timestamp: DateTime.now(),
+          ));
+          
+          // Revert to last valid state if available
+          if (_currentUndoIndex >= 0 && _currentUndoIndex < _undoStack.length) {
+            _controller.text = _undoStack[_currentUndoIndex];
+          }
+          return;
+        }
+        
+        _addToUndoStack(_controller.text);
+        
+        // Use debounced auto-save instead of timer
+        _autoSaveManager.debouncedSave(_saveEditorState);
+        
+        // Broadcast collaboration operation if enabled
+        if (_collaborationEnabled && !_isApplyingRemoteOperation) {
+          _broadcastTextChange();
+        }
+        
+        stopwatch.stop();
+        
+        // Report performance issues
+        if (stopwatch.elapsedMilliseconds > 100) {
+          ErrorMonitor.reportPerformanceIssue(
+            'Text change',
+            stopwatch.elapsed,
+            details: 'Content length: ${_controller.text.length}',
+          );
+        }
+      } catch (e, stackTrace) {
+        stopwatch.stop();
+        
+        // Log error
+        _crashRecovery.logError(EditorError(
+          type: EditorErrorType.systemError,
+          message: 'Error in text change handler',
+          details: 'File: ${widget.filePath}, Error: $e',
+          timestamp: DateTime.now(),
+          stackTrace: stackTrace.toString(),
+        ));
+        
+        debugPrint('❌ Error in text change handler: $e');
       }
-      
-      _addToUndoStack(_controller.text);
-      
-      // Use debounced auto-save instead of timer
-      _autoSaveManager.debouncedSave(_saveEditorState);
-      
-      // Broadcast collaboration operation if enabled
-      if (_collaborationEnabled && !_isApplyingRemoteOperation) {
-        _broadcastTextChange();
-      }
-      
-      stopwatch.stop();
-      
-      // Report performance issues
-      if (stopwatch.elapsedMilliseconds > 100) {
-        ErrorMonitor.reportPerformanceIssue(
-          'Text change',
-          stopwatch.elapsed,
-          details: 'Content length: ${_controller.text.length}',
-        );
-      }
-    } catch (e, stackTrace) {
-      stopwatch.stop();
-      
-      // Log error
-      _crashRecovery.logError(EditorError(
-        type: EditorErrorType.systemError,
-        message: 'Error in text change handler',
-        details: 'File: ${widget.filePath}, Error: $e',
-        timestamp: DateTime.now(),
-        stackTrace: stackTrace.toString(),
-      ));
-      
-      debugPrint('❌ Error in text change handler: $e');
     }
   }
 

@@ -55,8 +55,8 @@ ${stack ?? 'No stack trace available'}
 ''';
 
     await logFile.writeAsString(logEntry, mode: FileMode.append);
-  } catch (e) {
-    debugPrint('Failed to log error: $e');
+  } catch (e, stack) {
+    debugPrint('failed to log error: $e\n$stack');
   }
 }
 

@@ -3,8 +3,7 @@ Version: 1.0.0
 Section: utils
 Priority: optional
 Architecture: amd64
-Depends: libgtk-3-0, libblkid1, libgcrypt20, liblzma5, liblz4-1, libgpg-error0, libuuid1, libepoxy0, libfontconfig1
-Maintainer: Termisol Team <termisol@example.com>
-Description: Cross-platform terminal emulator
- A terminal emulator built with Flutter, featuring AI integration,
- customizable themes, and modern terminal capabilities.
+Depends: libgtk-3-0, libblkid1, liblzma5
+Maintainer: termisol <termisol@local>
+Description: Cross-platform terminal emulator with AI integration
+ A GPU-accelerated terminal emulator built with Flutter.

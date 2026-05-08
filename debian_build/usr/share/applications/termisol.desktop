@@ -1,8 +1,8 @@
 [Desktop Entry]
 Name=Termisol
-Comment=Cross-platform terminal emulator
-Exec=termisol
+Comment=Terminal emulator with AI integration
+Exec=/usr/bin/termisol
 Icon=termisol
 Type=Application
-Categories=System;TerminalEmulator;
 Terminal=false
+Categories=System;TerminalEmulator;

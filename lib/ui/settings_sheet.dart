@@ -6,10 +6,12 @@ import '../core/service_registry.dart';
 /// Settings sheet for Termisol configuration
 class SettingsSheet extends StatefulWidget {
   final PerformanceEnforcer? performanceEnforcer;
-  
+  final ServiceRegistry registry;
+
   const SettingsSheet({
-    super.key, 
+    super.key,
     this.performanceEnforcer,
+    required this.registry,
   });
 
   @override

@@ -73,9 +73,9 @@ class ServiceRegistry {
       _health[name] = ServiceHealth.healthy;
       debugPrint('✅ $name initialized');
       return result as T;
-    } catch (e) {
+    } catch (e, stack) {
       _health[name] = ServiceHealth.failed;
-      debugPrint('❌ $name failed: $e');
+      debugPrint('service $name failed: $e\n$stack');
       return null;
     }
   }
@@ -106,10 +106,10 @@ class ServiceRegistry {
       _health[name] = ServiceHealth.healthy;
       debugPrint('✅ $name initialized (async)');
       return result as T;
-    } catch (e) {
+    } catch (e, stack) {
       _health[name] = ServiceHealth.failed;
       entry._future = null;
-      debugPrint('❌ $name failed: $e');
+      debugPrint('service $name async failed: $e\n$stack');
       return null;
     }
   }
@@ -120,9 +120,9 @@ class ServiceRegistry {
       _services[name]!.instance = result;
       _health[name] = ServiceHealth.healthy;
       debugPrint('✅ $name async init complete');
-    } catch (e) {
+    } catch (e, stack) {
       _health[name] = ServiceHealth.failed;
-      debugPrint('❌ $name async init failed: $e');
+      debugPrint('service $name async init failed: $e\n$stack');
     }
   }
 
@@ -168,10 +168,10 @@ class ServiceRegistry {
       final name = _initQueue.removeFirst();
       final entry = _services[name];
       if (entry?._future != null) {
-        try { 
-          await entry!._future; 
-        } catch (e) {
-          debugPrint('Failed to complete async init for $name: $e');
+        try {
+          await entry!._future;
+        } catch (e, stack) {
+          debugPrint('failed to complete async init for $name: $e\n$stack');
         }
       }
     }

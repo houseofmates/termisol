@@ -149,12 +149,153 @@ class _TextEditorState extends State<TextEditor> {
         _hasUnsavedChanges = true;
       });
       
+      // Auto-indent on new line
+      if (_autoIndent) {
+        _handleAutoIndent();
+      }
+      
+      // Add to undo stack with debouncing
+      _undoTimer?.cancel();
+      _undoTimer = Timer(const Duration(milliseconds: 500), () {
+        _addToUndoStack(_controller.text);
+      });
+      
       // Auto-save with debounce
       _saveTimer?.cancel();
       _saveTimer = Timer(const Duration(seconds: 2), () {
         _saveContent();
       });
     }
+  }
+  
+  void _handleAutoIndent() {
+    final text = _controller.text;
+    final selection = _controller.selection;
+    
+    // Check if user just pressed Enter
+    if (selection.isValid && selection.baseOffset == selection.extentOffset) {
+      final cursorPos = selection.baseOffset;
+      
+      // Look for the newline character before cursor
+      if (cursorPos > 0 && text[cursorPos - 1] == '\n') {
+        // Find the start of the previous line
+        int lineStart = cursorPos - 2;
+        while (lineStart >= 0 && text[lineStart] != '\n') {
+          lineStart--;
+        }
+        lineStart++;
+        
+        // Calculate indentation of previous line
+        String previousLine = text.substring(lineStart, cursorPos - 1);
+        int indentLevel = _getIndentLevel(previousLine);
+        
+        // Check if we need extra indentation (e.g., after opening brace)
+        if (_shouldIncreaseIndent(previousLine)) {
+          indentLevel += _indentSize;
+        }
+        
+        // Apply indentation
+        if (indentLevel > 0) {
+          final indent = _useSpaces ? ' ' * indentLevel : '\t' * (indentLevel ~/ _indentSize);
+          final newText = text.substring(0, cursorPos) + indent + text.substring(cursorPos);
+          final newCursorPos = cursorPos + indent.length;
+          
+          _controller.value = TextEditingValue(
+            text: newText,
+            selection: TextSelection.collapsed(offset: newCursorPos),
+          );
+        }
+      }
+    }
+  }
+  
+  int _getIndentLevel(String line) {
+    int spaces = 0;
+    for (int i = 0; i < line.length; i++) {
+      if (line[i] == ' ') {
+        spaces++;
+      } else if (line[i] == '\t') {
+        spaces += _indentSize;
+      } else {
+        break;
+      }
+    }
+    return spaces;
+  }
+  
+  bool _shouldIncreaseIndent(String previousLine) {
+    final trimmed = previousLine.trimRight();
+    final language = _detectLanguage();
+    
+    switch (language) {
+      case 'dart':
+      case 'java':
+      case 'javascript':
+      case 'typescript':
+      case 'csharp':
+      case 'cpp':
+        return trimmed.endsWith('{') || 
+               trimmed.endsWith('(') || 
+               trimmed.endsWith('[') ||
+               trimmed.contains(':') && !trimmed.contains('//');
+               
+      case 'python':
+        return trimmed.endsWith(':') && !trimmed.startsWith('#');
+        
+      case 'yaml':
+      case 'yml':
+        return trimmed.endsWith(':');
+        
+      case 'shell':
+      case 'bash':
+        return trimmed.contains('then') || 
+               trimmed.contains('do') ||
+               trimmed.endsWith('\\');
+        
+      default:
+        return trimmed.endsWith('{') || trimmed.endsWith('(');
+    }
+  }
+  
+  void _formatDocument() {
+    final text = _controller.text;
+    final language = _detectLanguage();
+    final formattedText = _formatText(text, language);
+    
+    _controller.text = formattedText;
+    _onTextChanged();
+  }
+  
+  String _formatText(String text, String language) {
+    final lines = text.split('\n');
+    final formattedLines = <String>[];
+    int currentIndent = 0;
+    
+    for (int i = 0; i < lines.length; i++) {
+      String line = lines[i].trimRight();
+      
+      // Skip empty lines
+      if (line.isEmpty) {
+        formattedLines.add('');
+        continue;
+      }
+      
+      // Decrease indent for closing braces
+      if (line.startsWith('}') || line.startsWith(']') || line.startsWith(')')) {
+        currentIndent = (currentIndent - _indentSize).clamp(0, double.infinity).toInt();
+      }
+      
+      // Add current indentation
+      final indent = _useSpaces ? ' ' * currentIndent : '\t' * (currentIndent ~/ _indentSize);
+      formattedLines.add(indent + line);
+      
+      // Increase indent for opening braces
+      if (line.endsWith('{') || line.endsWith('[') || line.endsWith('(')) {
+        currentIndent += _indentSize;
+      }
+    }
+    
+    return formattedLines.join('\n');
   }
 
   void _onFocusChanged() {

@@ -1628,13 +1628,20 @@ void main() {
 
 class Test${filename.replaceAll('.', '')}(unittest.TestCase):
     def test_something(self):
-        # TODO: Add test implementation
+        # Add your test implementation here
         self.assertTrue(True)
 
 if __name__ == '__main__':
     unittest.main()''';
         default:
-          return '// Test file for $filename\n// TODO: Add test cases';
+          return '''// Test file for $filename
+// Add your test cases below
+void main() {
+  // Example test structure
+  test('Basic functionality', () {
+    expect(true, isTrue);
+  });
+}''';
       }
     } else {
       // Generic implementation based on language

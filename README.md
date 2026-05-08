@@ -1,6 +1,6 @@
 # termisol
 
-a next-generation terminal emulator that redefines how you interact with the command line. Built with Flutter for cross-platform excellence, Termisol combines the power of traditional terminals with modern AI assistance, multimedia capabilities, and stunning visual design.
+a next-generation terminal emulator built with Flutter for cross-platform excellence. Termisol combines the power of traditional terminals with cloud AI integration and a modern visual design.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -9,12 +9,10 @@ a next-generation terminal emulator that redefines how you interact with the com
 termisol is a complete command-line workspace designed for modern developers, system administrators, and power users who demand more from their terminal experience.
 
 **what makes termisol different:**
-- **AI-powered assistance**: natural language command translation and intelligent error recovery
-- **multimedia integration**: view images, play videos, and visualize audio directly in your terminal
-- **3D model viewing**: inspect 3D models without leaving your workflow
+- **cloud AI integration**: query external AI services from the terminal (requires API key)
 - **smart file management**: built-in file browser with editing preview
-- **performance optimized**: sub-16ms rendering with GPU acceleration
-- **cross-platform**: linux desktop, android mobile, and VR support
+- **performance optimized**: damage-aware terminal rendering with paragraph caching
+- **cross-platform**: linux desktop and android mobile
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

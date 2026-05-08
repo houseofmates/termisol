@@ -119,10 +119,10 @@ class _DamageAwareTerminalRendererState extends State<DamageAwareTerminalRendere
       
       bool lineChanged = false;
       for (int col = 0; col < cols; col++) {
-        final cell = line.getCell(col);
-        if (cell != null && cell.code != 0) {
+        final code = line.getCodePoint(col);
+        if (code != 0) {
           final cellKey = '${row}_$col';
-          if (_damageTracker.hasCellChanged(cellKey, cell)) {
+          if (_damageTracker.hasCellChanged(cellKey, code, line.getForeground(col), line.getBackground(col))) {
             _damageTracker.markCellDirty(row, col);
             lineChanged = true;
           }
@@ -300,13 +300,13 @@ class _DamageAwarePainter extends CustomPainter {
       if (line == null) continue;
       
       for (int col = 0; col < cols; col++) {
-        final cell = line.getCell(col);
-        if (cell == null || cell.code == 0) continue;
+        final code = line.getCodePoint(col);
+        if (code == 0) continue;
         
         final x = col * charWidth;
         final y = row * charHeight;
         
-        _paintCell(canvas, cell, x, y);
+        _paintCell(canvas, code, line.getForeground(col), line.getBackground(col), x, y);
       }
     }
     
@@ -328,13 +328,13 @@ class _DamageAwarePainter extends CustomPainter {
       if (line == null) continue;
       
       for (int col = startCol; col <= endCol; col++) {
-        final cell = line.getCell(col);
-        if (cell == null || cell.code == 0) continue;
+        final code = line.getCodePoint(col);
+        if (code == 0) continue;
         
         final x = col * charWidth;
         final y = row * charHeight;
         
-        _paintCell(canvas, cell, x, y);
+        _paintCell(canvas, code, line.getForeground(col), line.getBackground(col), x, y);
       }
     }
     
@@ -346,9 +346,9 @@ class _DamageAwarePainter extends CustomPainter {
     }
   }
 
-  void _paintCell(Canvas canvas, xterm.Cell cell, double x, double y) {
-    final backgroundColor = _getFlutterColor(cell.backgroundColor);
-    final foregroundColor = _getFlutterColor(cell.foregroundColor);
+  void _paintCell(Canvas canvas, int code, int foreground, int background, double x, double y) {
+    final backgroundColor = _resolveBackgroundColor(background);
+    final foregroundColor = _resolveForegroundColor(foreground);
     
     // Draw background
     if (backgroundColor != PkmTheme.terminalBg) {
@@ -359,7 +359,7 @@ class _DamageAwarePainter extends CustomPainter {
     }
     
     // Draw text
-    final text = String.fromCharCode(cell.code);
+    final text = String.fromCharCode(code);
     final cacheKey = '${text}_${foregroundColor.value}_${backgroundColor.value}';
     
     ui.Paragraph? paragraph = _paragraphCache[cacheKey];
@@ -389,18 +389,49 @@ class _DamageAwarePainter extends CustomPainter {
   }
 
   ui.Paragraph _createParagraph(String text, Color color) {
-    return ui.ParagraphBuilder(ui.ParagraphStyle(
+    final builder = ui.ParagraphBuilder(ui.ParagraphStyle(
       fontFamily: _fontFamily,
       fontSize: _fontSize,
-      color: color,
-    ))
-      ..addText(text)
-      ..build();
+    ));
+    builder.pushStyle(ui.TextStyle(color: color));
+    builder.addText(text);
+    return builder.build();
   }
 
-  Color _getFlutterColor(xterm.Color color) {
-    // Convert xterm color to Flutter color with caching
-    switch (color.index) {
+  Color _resolveForegroundColor(int cellColor) {
+    final colorType = cellColor & xterm.CellColor.typeMask;
+    final colorValue = cellColor & xterm.CellColor.valueMask;
+
+    switch (colorType) {
+      case xterm.CellColor.normal:
+        return PkmTheme.text;
+      case xterm.CellColor.named:
+      case xterm.CellColor.palette:
+        return _getPaletteColor(colorValue);
+      case xterm.CellColor.rgb:
+      default:
+        return Color(colorValue | 0xFF000000);
+    }
+  }
+
+  Color _resolveBackgroundColor(int cellColor) {
+    final colorType = cellColor & xterm.CellColor.typeMask;
+    final colorValue = cellColor & xterm.CellColor.valueMask;
+
+    switch (colorType) {
+      case xterm.CellColor.normal:
+        return PkmTheme.terminalBg;
+      case xterm.CellColor.named:
+      case xterm.CellColor.palette:
+        return _getPaletteColor(colorValue);
+      case xterm.CellColor.rgb:
+      default:
+        return Color(colorValue | 0xFF000000);
+    }
+  }
+
+  Color _getPaletteColor(int index) {
+    switch (index) {
       case 0: return const Color(0xFF000000);
       case 1: return const Color(0xFFE06C75);
       case 2: return const Color(0xFF98C379);
@@ -471,8 +502,8 @@ class _DamageTracker {
     _dirtyRegions.add(region);
   }
 
-  bool hasCellChanged(String cellKey, xterm.Cell cell) {
-    final state = '${cell.code}_${cell.foregroundColor.index}_${cell.backgroundColor.index}';
+  bool hasCellChanged(String cellKey, int code, int foreground, int background) {
+    final state = '${code}_${foreground}_${background}';
     final oldState = _cellStates[cellKey];
     _cellStates[cellKey] = state;
     return oldState != state;

@@ -218,17 +218,16 @@ class MainActivity : FlutterActivity() {
 
     private fun startHandTrackingUpdates() {
         scope.launch {
-            while (handTrackingSink != null && handTracking != null) {
+            while (handTrackingSink != null && vrInitialized) {
                 try {
-                    val handData = handTracking?.getHandTrackingData()
-                    if (handData != null) {
-                        val data = mapOf(
-                            "leftHand" to mapHandData(handData.leftHand),
-                            "rightHand" to mapHandData(handData.rightHand),
-                            "confidence" to handData.confidence
-                        )
-                        handTrackingSink?.success(data)
-                    }
+                    // In full implementation: get real hand tracking data from Oculus SDK
+                    // For now, provide mock data that matches the expected structure
+                    val mockHandData = mapOf(
+                        "leftHand" to mapMockHandData(true, 200.0, 300.0),
+                        "rightHand" to mapMockHandData(true, 600.0, 300.0),
+                        "confidence" to 0.95
+                    )
+                    handTrackingSink?.success(mockHandData)
                     delay(16) // ~60fps
                 } catch (e: Exception) {
                     Log.e(TAG, "Hand tracking update failed", e)

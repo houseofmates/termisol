@@ -169,14 +169,14 @@ class AutomatedWorkflowSystem {
         id: 'database-migration', // Automated database migration workflow
         name: 'Database Migration Workflow',
         description: 'Safe database migration with backup and rollback capabilities',
-        category: 'database',
+        category: 'database', // Database management workflows
         variables: [],
         steps: [
           WorkflowStep(
             id: 'backup-db',
             name: 'Backup Database',
             command: 'pg_dump mydb > backup_\$(date +%Y%m%d_%H%M%S).sql',
-            description: 'Create database backup before migration',
+            description: 'Create database backup before migration to ensure data safety',
             type: StepType.command,
           ),
           WorkflowStep(

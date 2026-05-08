@@ -214,9 +214,9 @@ class AdaptiveRenderingSystem {
   /// Detect display capabilities
   Future<void> _detectDisplayCapabilities(DeviceCapabilities capabilities) async {
     try {
-      final window = WidgetsBinding.instance.window;
-      final size = window.physicalSize;
-      final pixelRatio = window.devicePixelRatio;
+      final view = WidgetsBinding.instance.platformDispatcher.views.first;
+      final size = view.physicalSize;
+      final pixelRatio = view.devicePixelRatio;
 
       capabilities.screenWidth = size.width / pixelRatio;
       capabilities.screenHeight = size.height / pixelRatio;

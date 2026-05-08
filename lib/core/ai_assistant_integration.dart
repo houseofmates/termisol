@@ -611,7 +611,7 @@ class AIAssistantIntegration {
         );
       }
       
-      // Process with OpenAI API (placeholder implementation)
+      // Process with OpenAI API
       final response = await _callOpenAI(input, capability, context, apiKey);
       
       return AIResponse(
@@ -659,7 +659,7 @@ class AIAssistantIntegration {
         );
       }
       
-      // Process with OpenAI API (placeholder implementation)
+      // Process with OpenAI API
       final response = await _callOpenAICode(code, capability, language, context, apiKey);
       
       return AIResponse(
@@ -706,7 +706,7 @@ class AIAssistantIntegration {
         );
       }
       
-      // Process with OpenAI API (placeholder implementation)
+      // Process with OpenAI API
       final response = await _callOpenAICommand(command, capability, context, apiKey);
       
       return AIResponse(

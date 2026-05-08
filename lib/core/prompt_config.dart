@@ -19,6 +19,10 @@ class PromptConfig {
   static String get bashPs1 =>
       '$_usernameColor\\u@\\h$_reset:$_directoryColor\\w$_reset$_promptCharColor\\\$_reset ';
 
+  /// SSH PS1 string with termisol colors.
+  static String get sshPs1 =>
+      '$_usernameColor\\u@\\h$_reset:$_directoryColor\\w$_reset$_promptCharColor\\\$_reset ';
+
   /// Portable PS1 for shells that don't support \\u/\\h/\\w (e.g. Android /system/bin/sh).
   /// Callers should substitute USER, HOST, and PWD before sending.
   static String portablePs1({required String user, required String host, required String pwd}) {

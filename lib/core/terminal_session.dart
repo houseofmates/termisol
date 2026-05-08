@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
 import '../backends/pty_backend.dart';
-import '../ai/ai_terminal_assistant.dart';
-import '../core/advanced_terminal_protocol.dart';
-import '../config/pkm_theme.dart';
 import 'bracketed_paste_manager.dart';
 import 'focus_manager.dart';
 import 'truecolor_manager.dart';
@@ -13,6 +11,13 @@ import 'kitty_graphics_manager.dart';
 import 'mouse_protocol_manager.dart';
 import 'ligature_font_manager.dart';
 import 'throttled_renderer.dart';
+import 'optimized_text_buffer.dart';
+import 'lazy_terminal_output.dart';
+import 'smart_auto_complete.dart';
+import 'session_persistence.dart';
+import 'crash_recovery.dart';
+import 'long_command_notifier.dart';
+import 'termisol_plugin_system.dart';
 
 /// Called when the user types `/ai <query>` and presses Enter.
 /// If null, `/ai` commands are passed through to shell normally.
@@ -44,11 +49,9 @@ class TerminalSession extends ChangeNotifier {
   StreamSubscription? _outputSub;
 
   /// Called when the user types `/ai <query>` and presses Enter.
-  /// If null, `/ai` commands are passed through to shell normally.
   AiQueryHandler? onAiQuery;
 
   /// Called when the user types `edit <filename>` and presses Enter.
-  /// If null, edit commands are passed through to the shell normally.
   EditCommandHandler? onEditCommand;
 
   /// Called when the terminal widget gains or loses focus.
@@ -57,37 +60,22 @@ class TerminalSession extends ChangeNotifier {
   /// Called when the terminal receives focus events (bracketed paste mode).
   void Function(bool)? onFocusEvent;
 
-  /// Focus manager for bracketed paste integration.
   late final FocusManager focusManager;
-
-  /// TrueColor manager for 24-bit color support.
   late final TrueColorManager trueColor;
-
-  /// Kitty graphics manager for inline images.
   late final KittyGraphicsManager kittyGraphics;
-
-  /// Mouse protocol manager for interactive apps.
   late final MouseProtocolManager mouseProtocol;
-
-  /// Ligature font manager for better code readability.
   late final LigatureFontManager ligatureFont;
-
-  /// Throttled renderer for performance.
   late final ThrottledRenderer throttledRenderer;
 
   /// Called whenever data is received from the backend.
-  /// Useful for monitoring output to detect errors or context changes.
   void Function(String output)? onOutputReceived;
 
-  /// Detected URLs from terminal output, updated on each output batch.
   final List<DetectedUrl> detectedUrls = [];
   final _urlRegex = RegExp(
     r"https?://[^\s<>\"'`\)\]\}]+",
     caseSensitive: false,
   );
 
-  /// Buffer for intercepting /ai commands. xterm sends data character
-  /// by character, so we accumulate input until we see a newline.
   final StringBuffer _inputBuffer = StringBuffer();
 
   // Optimization managers
@@ -98,6 +86,7 @@ class TerminalSession extends ChangeNotifier {
   late final CrashRecovery _crashRecovery;
   late final LongCommandNotifier _commandNotifier;
   late final TermisolPluginSystem _pluginSystem;
+  late final BracketedPasteManager bracketedPaste;
 
   bool get connected => _connected;
   String? get error => _error;
@@ -109,7 +98,7 @@ class TerminalSession extends ChangeNotifier {
   }) {
     terminal = Terminal(maxLines: maxLines);
     controller = TerminalController();
-    
+
     // Initialize optimization managers
     _textBuffer = OptimizedTextBuffer(maxLines: maxLines);
     _lazyOutput = LazyTerminalOutput(sessionId: id, visibleLines: 1000);
@@ -118,6 +107,7 @@ class TerminalSession extends ChangeNotifier {
     _crashRecovery = CrashRecovery();
     _commandNotifier = LongCommandNotifier();
     _pluginSystem = TermisolPluginSystem();
+
     bracketedPaste = BracketedPasteManager(terminal, controller);
     focusManager = FocusManager(terminal, controller, onFocusChanged, onFocusEvent);
     trueColor = TrueColorManager(terminal, controller);
@@ -125,31 +115,20 @@ class TerminalSession extends ChangeNotifier {
     mouseProtocol = MouseProtocolManager(terminal, controller);
     ligatureFont = LigatureFontManager(terminal, controller);
     throttledRenderer = ThrottledRenderer(terminal);
-    
+
+    // Setup advanced features
+    focusManager.enableFocusEvents();
+    trueColor.enable();
+    kittyGraphics.enable();
+    mouseProtocol.enable(MouseProtocolManager.MouseMode.any);
+    ligatureFont.setFont('Fira Code', enableLigatures: true);
+
     // Start health monitoring and auto-save
-      _crashRecovery.startHealthMonitoring();
+    _crashRecovery.startHealthMonitoring(id);
     _sessionPersistence.startAutoSave(() => _saveSessionState());
-      
-      // Setup all advanced features
-      focusManager = FocusManager(terminal, controller, onFocusChanged, onFocusEvent);
-      focusManager.enableFocusEvents();
-      
-      trueColor = TrueColorManager(terminal, controller);
-      trueColor.enable();
-      
-      kittyGraphics = KittyGraphicsManager(terminal, controller);
-      kittyGraphics.enable();
-      
-      mouseProtocol = MouseProtocolManager(terminal, controller);
-      mouseProtocol.enable(MouseProtocolManager.MouseMode.any);
-      
-      ligatureFont = LigatureFontManager(terminal, controller);
-      ligatureFont.setFont('Fira Code', enableLigatures: true);
-      
-      throttledRenderer = ThrottledRenderer(terminal);
   }
 
-  /// rename this session and notify listeners.
+  /// Rename this session and notify listeners.
   void rename(String newName) {
     name = newName;
     notifyListeners();
@@ -160,54 +139,31 @@ class TerminalSession extends ChangeNotifier {
     if (_connected) return;
 
     try {
-      // Detect platform and create appropriate backend
-      if (Platform.isAndroid) {
-        _backend = AndroidShellBackend();
-      } else if (Platform.isLinux || Platform.isMacOS) {
-        _backend = LocalPtyBackend();
-      } else if (Platform.isWindows) {
-        _backend = WindowsPtyBackend();
-      } else {
-        throw UnsupportedError('Unsupported platform: ${Platform.operatingSystem}');
-      }
+      // Use the cross-platform auto-detect factory
+      _backend = TermisolPtyBackend.autoDetect(workingDirectory: workingDirectory);
 
       // Start the backend
-      await _backend!.start(workingDirectory: workingDirectory);
+      await _backend!.start();
       _connected = true;
       _error = null;
 
-      // Enable bracketed paste mode
-      terminal.write('\x1b[?2004h');
+      // Enable terminal features
+      terminal.write('\x1b[?2004h'); // bracketed paste
+      terminal.write('\x1b[?1004h'); // focus tracking
+      terminal.write('\x1b[?1;2c'); // TrueColor (DA1 response)
+      terminal.write('\x1b[?1000h'); // mouse protocol
+      terminal.write('\x1b[?1002h'); // button-event tracking
+      terminal.write('\x1b[?1005h'); // UTF-8 mouse encoding
 
-      // Enable focus tracking
-      terminal.write('\x1b[?1004h');
-
-      // Enable TrueColor (24-bit)
-      terminal.write('\x1b[?1;2c');
-
-      // Enable mouse protocol
-      terminal.write('\x1b[?1000h');
-
-      // Enable extended keyboard
-      terminal.write('\x1b[?1002h');
-
-      // Enable Unicode
-      terminal.write('\x1b[?1005h');
-
-      // Enable bracketed paste
       bracketedPaste.enable();
 
       // Start listening for output with throttled rendering
       _outputSub = _backend!.output.listen(
         (data) {
           final text = utf8.decode(data, allowMalformed: true);
-          // Android shells run without a PTY, so their output uses raw \n
-          // line endings. A real TTY translates \n -> \r\n (ONLCR). We
-          // emulate that here so the terminal displays lines correctly.
-          final normalized =
-              text.replaceAll('\r\n', '\n').replaceAll('\n', '\r\n');
-          
-          // Use throttled renderer to prevent UI freezing
+          // Normalize line endings for display consistency
+          final normalized = text.replaceAll('\r\n', '\n').replaceAll('\n', '\r\n');
+
           throttledRenderer.write(normalized);
           _extractUrls(text);
           onOutputReceived?.call(text);
@@ -224,9 +180,13 @@ class TerminalSession extends ChangeNotifier {
       );
 
       notifyListeners();
-    } catch (e) {
+    } catch (e, stack) {
       _error = e.toString();
+      if (kDebugMode) {
+        debugPrint('TerminalSession start error: $e\n$stack');
+      }
       notifyListeners();
+      rethrow;
     }
   }
 
@@ -234,10 +194,8 @@ class TerminalSession extends ChangeNotifier {
   void writeInput(String input) {
     if (_backend == null || !_connected) return;
 
-    // Accumulate input for AI command detection
     _inputBuffer.write(input);
 
-    // Check for AI query command
     if (input.contains('\n') || input.contains('\r')) {
       final bufferText = _inputBuffer.toString().trim();
       _inputBuffer.clear();
@@ -246,22 +204,39 @@ class TerminalSession extends ChangeNotifier {
         final query = bufferText.substring(4).trim();
         onAiQuery?.call(query).then((response) {
           terminal.write('\r\n[AI Response]\r\n$response\r\n');
+        }).catchError((e) {
+          terminal.write('\r\n[AI Error: $e]\r\n');
         });
-        return; // Don't send to shell
+        return;
       }
 
       if (bufferText.startsWith('edit ')) {
         final filePath = bufferText.substring(5).trim();
         onEditCommand?.call(filePath);
-        return; // Don't send to shell
+        return;
       }
     }
 
-    // Use throttled renderer for better performance
-    throttledRenderer.write(input);
+    // Actually send input to the backend
+    try {
+      _backend!.write(utf8.encode(input));
+    } catch (e) {
+      if (kDebugMode) debugPrint('writeInput error: $e');
+      _error = e.toString();
+      notifyListeners();
+    }
   }
 
   /// Resize the terminal.
+  void resize(int cols, int rows) {
+    terminal.resize(cols, rows);
+    try {
+      _backend?.resize(cols, rows);
+    } catch (e) {
+      if (kDebugMode) debugPrint('resize error: $e');
+    }
+  }
+
   void _extractUrls(String text) {
     final matches = _urlRegex.allMatches(text);
     for (final match in matches) {
@@ -271,7 +246,6 @@ class TerminalSession extends ChangeNotifier {
           url: url,
           detectedAt: DateTime.now(),
         ));
-        // Keep list bounded
         if (detectedUrls.length > 100) {
           detectedUrls.removeAt(0);
         }
@@ -279,26 +253,61 @@ class TerminalSession extends ChangeNotifier {
     }
   }
 
-  /// Copy session data from another session
+  /// Persist current session state.
+  Map<String, dynamic> _saveSessionState() {
+    return {
+      'id': id,
+      'name': name,
+      'connected': _connected,
+      'error': _error,
+      'timestamp': DateTime.now().toIso8601String(),
+    };
+  }
+
+  /// Copy session data from another session.
   void copyFrom(TerminalSession other) {
-    // Copy terminal state
     terminal.buffer.copyFrom(other.terminal.buffer);
     terminal.resize(other.terminal.viewWidth, other.terminal.viewHeight);
-    
-    // Copy backend state if available
+
     if (other._backend != null) {
       _backend = other._backend;
       _connected = other._connected;
       _error = other._error;
     }
-    
-    // Copy detected URLs
+
     detectedUrls.clear();
     detectedUrls.addAll(other.detectedUrls);
-    
-    // Copy handlers
+
     onAiQuery = other.onAiQuery;
     onEditCommand = other.onEditCommand;
+  }
+
+  /// Gracefully dispose the session and all resources.
+  Future<void> disposeSession() async {
+    await _outputSub?.cancel();
+    _outputSub = null;
+    _connected = false;
+
+    try {
+      await _backend?.stop();
+    } catch (e) {
+      if (kDebugMode) debugPrint('disposeSession stop error: $e');
+    }
+
+    try {
+      await _backend?.terminate();
+    } catch (e) {
+      if (kDebugMode) debugPrint('disposeSession terminate error: $e');
+    }
+
+    _backend = null;
+    _sessionPersistence.dispose();
+    _crashRecovery.dispose();
+    _commandNotifier.dispose();
+    _pluginSystem.dispose();
+    _autoComplete.dispose();
+    _lazyOutput.dispose();
+    _textBuffer.dispose();
   }
 
   @override

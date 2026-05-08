@@ -134,6 +134,13 @@ class FfiPtyBackend implements TermisolPtyBackend {
       _startFlowControlMonitoring();
       
       debugPrint('[ffi_pty] PTY started with fd=$_ptyFd, shell=$shell');
+
+      // Inject termisol-colored PS1 after shell initializes
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (_isRunning && _ptyFd >= 0) {
+          write(utf8.encode("export PS1='${PromptConfig.bashPs1}'\n"));
+        }
+      });
     } catch (e) {
       debugPrint('[ffi_pty] Failed to start PTY: $e');
       rethrow;

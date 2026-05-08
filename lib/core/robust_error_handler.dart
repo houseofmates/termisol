@@ -336,7 +336,7 @@ class RobustErrorHandler {
       
       _logger.info('Filesystem check completed');
     } catch (e) {
-      _logger.error('Filesystem check failed: $e');
+      _logger.severe('Filesystem check failed: $e');
     }
   }
   

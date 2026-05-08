@@ -281,21 +281,23 @@ class PersonalIntegrationManager {
   
   Future<void> _loadToolConfigurations() async {
     // Load N8N API key from environment
-    final n8nApiKey = Platform.environment['N8N_API_KEY'] ?? 
+    final n8nApiKey = Platform.environment['N8N_API_KEY'] ??
                    _prefs.getString('n8n_api_key');
-    
-    if (n8nApiKey != null && n8nApiKey!.isNotEmpty) {
+    final n8nBaseUrl = _toolIntegrations['n8n']?.config['base_url'] as String? ?? '';
+
+    if (n8nApiKey != null && n8nApiKey.isNotEmpty && n8nBaseUrl.isNotEmpty) {
       final n8nIntegration = _toolIntegrations['n8n']!;
       n8nIntegration.enabled = true;
       n8nIntegration.config['api_key'] = n8nApiKey;
       _toolIntegrations['n8n'] = n8nIntegration;
     }
-    
+
     // Load Nextcloud API key from environment
     final nextcloudApiKey = Platform.environment['NEXTCLOUD_API_KEY'] ??
                            _prefs.getString('nextcloud_api_key');
-    
-    if (nextcloudApiKey != null && nextcloudApiKey!.isNotEmpty) {
+    final nextcloudBaseUrl = _toolIntegrations['nextcloud']?.config['base_url'] as String? ?? '';
+
+    if (nextcloudApiKey != null && nextcloudApiKey.isNotEmpty && nextcloudBaseUrl.isNotEmpty) {
       final nextcloudIntegration = _toolIntegrations['nextcloud']!;
       nextcloudIntegration.enabled = true;
       nextcloudIntegration.config['api_key'] = nextcloudApiKey;

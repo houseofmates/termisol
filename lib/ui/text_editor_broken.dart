@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/gestures.dart';
 import 'package:highlight/languages/dart.dart';
 import 'package:highlight/languages/python.dart';
 import 'package:highlight/languages/javascript.dart';
@@ -32,7 +33,9 @@ import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/monokai-sublime.dart';
 import 'package:flutter_highlight/themes/vs2015.dart';
 import 'package:flutter_highlight/themes/atom-one-dark.dart';
+import 'package:flutter_highlight/themes/markdown.dart';
 import 'package:path/path.dart' as path;
+import '../core/deep_l_service.dart';
 
 /// Advanced text editor with syntax highlighting for all languages
 /// Supports multiple themes, auto-completion, and advanced editing features
@@ -82,6 +85,13 @@ class _TextEditorState extends State<TextEditor> {
   bool _showCompletion = false;
   List<String> _completions = [];
   int _selectedCompletion = 0;
+  
+  // Translation
+  final DeepLTranslationService _deepL = DeepLTranslationService();
+  bool _showTranslation = false;
+  String? _translatedText;
+  bool _isTranslating = false;
+  String? _selectedText;
 
   @override
   void initState() {
@@ -94,6 +104,7 @@ class _TextEditorState extends State<TextEditor> {
     _focusNode.addListener(_onFocusChanged);
     
     _detectLanguage();
+    _deepL.initialize();
   }
 
   @override
@@ -635,6 +646,13 @@ class _TextEditorState extends State<TextEditor> {
                       }
                       return KeyEventResult.ignored;
                     },
+                    onTapDown: (details) {
+                      // Check if right-click
+                      if (details.kind == PointerDeviceKind.mouse && 
+                          details.buttons == kSecondaryButton) {
+                        _handleRightClick(details.globalPosition);
+                      }
+                    },
                   ),
                 ),
                 
@@ -719,6 +737,35 @@ class _TextEditorState extends State<TextEditor> {
     });
   }
 
+  void _handleRightClick(Offset position) {
+    final selectedText = _controller.selection.textInside(_controller.text);
+    if (selectedText.isNotEmpty && _deepL.isAvailable) {
+      _translateSelectedText(selectedText);
+    }
+  }
+  
+  Future<void> _translateSelectedText(String text) async {
+    setState(() {
+      _selectedText = text;
+      _isTranslating = true;
+      _showTranslation = true;
+      _translatedText = null;
+    });
+    
+    try {
+      final translation = await _deepL.translateToEnglish(text);
+      setState(() {
+        _translatedText = translation;
+        _isTranslating = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isTranslating = false;
+        _translatedText = 'Translation failed: $e';
+      });
+    }
+  }
+  
   void _cycleFontSize() {
     final sizes = [12.0, 14.0, 16.0, 18.0, 20.0];
     final currentIndex = sizes.indexWhere((size) => (size - _fontSize).abs() < 0.1);

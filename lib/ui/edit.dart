@@ -130,10 +130,10 @@ class _EditTerminalState extends State<EditTerminal> {
   bool _hasUnsavedChanges = false;
   Timer? _saveTimer;
   
-  // Crash recovery
-  final EditorCrashRecovery _crashRecovery = EditorCrashRecovery.instance;
-  final AutoSaveManager _autoSaveManager = AutoSaveManager();
-  bool _recoveryAvailable = false;
+  // Simplified error handling
+  // final EditorCrashRecovery _crashRecovery = EditorCrashRecovery.instance;
+  // final AutoSaveManager _autoSaveManager = AutoSaveManager();
+  // bool _recoveryAvailable = false;
 
   @override
   void initState() {

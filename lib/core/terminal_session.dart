@@ -67,6 +67,12 @@ class TerminalSession extends ChangeNotifier {
   /// If null, edit commands are passed through to the shell normally.
   EditCommandHandler? onEditCommand;
 
+  /// Called when the terminal widget gains or loses focus.
+  void Function(bool)? onFocusChanged;
+
+  /// Called when terminal receives focus events (bracketed paste mode).
+  void Function(bool)? onFocusEvent;
+
   /// Called whenever data is received from the backend.
   /// Useful for monitoring output to detect errors or context changes.
   void Function(String output)? onOutputReceived;

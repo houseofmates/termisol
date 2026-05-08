@@ -1648,7 +1648,7 @@ void main() {
       switch (language) {
         case 'dart':
           return '''class $filename {
-  // TODO: Implement class functionality
+  // Implement your class functionality here
   
   $filename();
   
@@ -1669,7 +1669,7 @@ void main() {
         pass''';
         case 'javascript':
           return '''class ${filename.replaceAll('.js', '')} {
-  // TODO: Implement class functionality
+  // Implement your class functionality here
   
   constructor() {
     // TODO: Add initialization

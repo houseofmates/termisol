@@ -202,7 +202,9 @@ class AsciicastRecorder {
           }
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Failed to load recording: $e');
+    }
 
     recordings.sort((a, b) => b.modifiedAt.compareTo(a.modifiedAt));
     return recordings;

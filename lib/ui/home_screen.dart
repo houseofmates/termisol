@@ -233,10 +233,10 @@ class _HomeScreenState extends State<HomeScreen> {
           // Terminal area
           Expanded(
             child: IndexedStack(
-              index: _activeTab,
-              children: _tabs.asMap().entries.map((entry) {
+              index: _tabs.indexWhere((tab) => tab.id == _activeTab),
+              children: _tabs.map((tab) {
                 return Container(
-                  key: ValueKey(entry.key),
+                  key: ValueKey(tab.id),
                   color: PkmTheme.terminalBg,
                   child: Column(
                     children: [
@@ -253,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Terminal ${entry.key + 1} - Ready',
+                              '${tab.name} - Ready',
                               style: TextStyle(
                                 color: PkmTheme.primary,
                                 fontSize: 14,
@@ -277,7 +277,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                       ),
-                      
+
                       // Terminal content
                       Expanded(
                         child: Container(
@@ -300,9 +300,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ],
-                  );
+                  ),
                 );
-              }).values.toList(),
+              }).toList(),
             ),
           ),
           
@@ -336,11 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
     for (final node in _tabFocusNodes.values) {
       node.dispose();
     }
-    
-    // Dispose core systems
-    widget.aiAssistant.dispose();
-    widget.performanceEnforcer.dispose();
-    
+
     super.dispose();
   }
 }

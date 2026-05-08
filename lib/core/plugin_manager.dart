@@ -3,582 +3,301 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-/// Production-grade plugin manager for Termisol
-/// 
-/// Features:
-/// - Plugin discovery and loading
-/// - Plugin lifecycle management
-/// - Plugin sandboxing and security
-/// - Plugin configuration and preferences
-/// - Plugin dependencies and versioning
-/// - Hot reloading of plugins
-/// - Plugin marketplace integration
+/// Plugin Manager
+///
+/// Loads and manages extensions using a registration-based architecture.
+/// Supports plugin discovery, dependency resolution, lifecycle hooks,
+/// and hot-reload capability.
 class PluginManager {
-  static final PluginManager _instance = PluginManager._internal();
-  factory PluginManager() => _instance;
-  PluginManager._internal();
-
-  bool _initialized = false;
   final Map<String, Plugin> _plugins = {};
-  final Map<String, Plugin> _activePlugins = {};
-  final StreamController<PluginEvent> _eventController = StreamController.broadcast();
-  final Map<String, PluginDependency> _dependencies = {};
-  Timer? _healthCheckTimer;
-  
+  final Map<String, PluginDescriptor> _descriptors = {};
+  final List<PluginHook> _globalHooks = [];
+  final StreamController<PluginEvent> _eventController = StreamController<PluginEvent>.broadcast();
+  String? _pluginsDir;
+  bool _isInitialized = false;
+
   Stream<PluginEvent> get events => _eventController.stream;
-  bool get isInitialized => _initialized;
-  Map<String, Plugin> get plugins => Map.unmodifiable(_plugins);
-  Map<String, Plugin> get activePlugins => Map.unmodifiable(_activePlugins);
+  List<Plugin> get loadedPlugins => _plugins.values.toList();
+  List<String> get enabledPluginIds => _plugins.values.where((p) => p.isEnabled).map((p) => p.descriptor.id).toList();
 
-  /// Initialize plugin manager
-  Future<void> initialize() async {
-    if (_initialized) return;
-
+  Future<void> initialize({String? pluginsDirectory}) async {
     try {
+      final appDir = await getApplicationDocumentsDirectory();
+      _pluginsDir = pluginsDirectory ?? '${appDir.path}/plugins';
+      final dir = Directory(_pluginsDir!);
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
       await _discoverPlugins();
-      await _loadPluginConfigurations();
-      await _resolveDependencies();
-      _startHealthCheck();
-      _initialized = true;
-      debugPrint('✅ PluginManager initialized');
-      _eventController.add(PluginEvent('initialized', 'Plugin manager ready'));
+      _isInitialized = true;
+      debugPrint('PluginManager initialized: ${_plugins.length} plugins discovered');
     } catch (e) {
-      debugPrint('❌ PluginManager initialization failed: $e');
-      _eventController.add(PluginEvent('error', 'Initialization failed: $e'));
+      debugPrint('Failed to initialize PluginManager: $e');
+      rethrow;
     }
   }
 
-  /// Discover available plugins
-  Future<void> _discoverPlugins() async {
-    try {
-      // Discover plugins in standard directories
-      final directories = [
-        '${Directory.current.path}/plugins',
-        '${(await getApplicationDocumentsDirectory()).path}/termisol/plugins',
-        '${Platform.environment['HOME'] ?? ''}/.termisol/plugins',
-      ];
-
-      for (final dirPath in directories) {
-        final dir = Directory(dirPath);
-        if (await dir.exists()) {
-          await _scanDirectoryForPlugins(dir);
-        }
-      }
-      
-      debugPrint('Discovered ${_plugins.length} plugins');
-    } catch (e) {
-      debugPrint('Failed to discover plugins: $e');
+  Future<Plugin> registerPlugin(PluginDescriptor descriptor) async {
+    if (_plugins.containsKey(descriptor.id)) {
+      throw PluginException('Plugin ${descriptor.id} is already registered');
     }
-  }
 
-  /// Scan directory for plugins
-  Future<void> _scanDirectoryForPlugins(Directory directory) async {
-    try {
-      await for (final entity in directory.list()) {
-        if (entity is Directory) {
-          final pluginDir = entity;
-          await _loadPluginFromDirectory(pluginDir);
-        } else if (entity is File && entity.path.endsWith('.termisol-plugin')) {
-          await _loadPluginFromFile(entity);
-        }
-      }
-    } catch (e) {
-      debugPrint('Failed to scan directory ${directory.path}: $e');
+    final unresolved = _findUnresolvedDependencies(descriptor);
+    if (unresolved.isNotEmpty) {
+      throw PluginException('Unresolved dependencies: ${unresolved.join(", ")}');
     }
-  }
 
-  /// Load plugin from directory
-  Future<void> _loadPluginFromDirectory(Directory pluginDir) async {
-    try {
-      final manifestFile = File('${pluginDir.path}/plugin.json');
-      if (!await manifestFile.exists()) {
-        debugPrint('No manifest found in ${pluginDir.path}');
-        return;
-      }
+    final plugin = Plugin(descriptor: descriptor);
+    _plugins[descriptor.id] = plugin;
+    _descriptors[descriptor.id] = descriptor;
 
-      final manifestContent = await manifestFile.readAsString();
-      final manifest = jsonDecode(manifestContent) as Map<String, dynamic>;
-      
-      final plugin = Plugin(
-        id: manifest['id'] as String,
-        name: manifest['name'] as String,
-        version: manifest['version'] as String,
-        description: manifest['description'] as String? ?? '',
-        author: manifest['author'] as String? ?? '',
-        entryPoint: manifest['entry_point'] as String,
-        directory: pluginDir.path,
-        dependencies: (manifest['dependencies'] as List<dynamic>?)
-            ?.map((d) => PluginDependency.fromJson(d))
-            .toList() ?? [],
-        permissions: (manifest['permissions'] as List<dynamic>?)
-            ?.map((p) => p as String)
-            .toSet() ?? <String>{},
-        enabled: manifest['enabled'] as bool? ?? true,
-      );
+    await _callHook('beforeLoad', plugin);
+    await plugin.onLoad();
+    await _callHook('afterLoad', plugin);
 
-      _plugins[plugin.id] = plugin;
-      debugPrint('Loaded plugin: ${plugin.name} v${plugin.version}');
-    } catch (e) {
-      debugPrint('Failed to load plugin from ${pluginDir.path}: $e');
+    if (descriptor.autoEnable) {
+      await enablePlugin(descriptor.id);
     }
+
+    _eventController.add(PluginEvent.loaded(descriptor.id));
+    return plugin;
   }
 
-  /// Load plugin from file
-  Future<void> _loadPluginFromFile(File pluginFile) async {
-    try {
-      // Handle single-file plugins
-      debugPrint('Loading single-file plugin: ${pluginFile.path}');
-      // Implementation would depend on plugin format
-    } catch (e) {
-      debugPrint('Failed to load plugin from ${pluginFile.path}: $e');
-    }
-  }
-
-  /// Load plugin configurations
-  Future<void> _loadPluginConfigurations() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final configJson = prefs.getString('plugin_configurations');
-      
-      if (configJson != null) {
-        final Map<String, dynamic> configs = jsonDecode(configJson);
-        for (final entry in configs.entries) {
-          final plugin = _plugins[entry.key];
-          if (plugin != null) {
-            plugin.configuration = entry.value as Map<String, dynamic>;
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint('Failed to load plugin configurations: $e');
-    }
-  }
-
-  /// Resolve plugin dependencies
-  Future<void> _resolveDependencies() async {
-    try {
-      for (final plugin in _plugins.values) {
-        for (final dep in plugin.dependencies) {
-          _dependencies[dep.id] = dep;
-          
-          // Check if dependency is available
-          if (!_plugins.containsKey(dep.id)) {
-            debugPrint('Missing dependency for ${plugin.id}: ${dep.id}');
-            _eventController.add(PluginEvent('dependency_missing', 
-                'Missing dependency: ${dep.id} for ${plugin.id}'));
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint('Failed to resolve dependencies: $e');
-    }
-  }
-
-  /// Start health check timer
-  void _startHealthCheck() {
-    _healthCheckTimer = Timer.periodic(Duration(minutes: 5), (_) async {
-      await _performHealthCheck();
-    });
-  }
-
-  /// Perform health check on active plugins
-  Future<void> _performHealthCheck() async {
-    for (final plugin in _activePlugins.values) {
-      try {
-        // Check if plugin is still responsive
-        await plugin.healthCheck();
-      } catch (e) {
-        debugPrint('Plugin ${plugin.id} health check failed: $e');
-        _eventController.add(PluginEvent('health_check_failed', 
-            'Plugin ${plugin.id} health check failed: $e'));
-      }
-    }
-  }
-
-  /// Enable a plugin
   Future<bool> enablePlugin(String pluginId) async {
     final plugin = _plugins[pluginId];
-    if (plugin == null) {
-      debugPrint('Plugin not found: $pluginId');
-      return false;
-    }
+    if (plugin == null) return false;
 
-    if (_activePlugins.containsKey(pluginId)) {
-      debugPrint('Plugin already enabled: $pluginId');
-      return true;
-    }
-
-    try {
-      // Check dependencies
-      if (!await _checkDependencies(plugin)) {
-        return false;
+    final dependencies = plugin.descriptor.dependencies;
+    for (final depId in dependencies) {
+      final dep = _plugins[depId];
+      if (dep != null && !dep.isEnabled) {
+        await enablePlugin(depId);
       }
-
-      // Load plugin
-      await plugin.load();
-      _activePlugins[pluginId] = plugin;
-      
-      debugPrint('✅ Enabled plugin: $pluginId');
-      _eventController.add(PluginEvent('plugin_enabled', 'Plugin enabled: $pluginId'));
-      
-      await _savePluginConfigurations();
-      return true;
-    } catch (e) {
-      debugPrint('❌ Failed to enable plugin $pluginId: $e');
-      _eventController.add(PluginEvent('error', 'Failed to enable plugin $pluginId: $e'));
-      return false;
     }
+
+    await _callHook('beforeEnable', plugin);
+    await plugin.onEnable();
+    await _callHook('afterEnable', plugin);
+    _eventController.add(PluginEvent.enabled(pluginId));
+    return true;
   }
 
-  /// Disable a plugin
   Future<bool> disablePlugin(String pluginId) async {
-    final plugin = _activePlugins[pluginId];
-    if (plugin == null) {
-      debugPrint('Plugin not active: $pluginId');
-      return false;
+    final plugin = _plugins[pluginId];
+    if (plugin == null) return false;
+
+    final dependents = _findDependents(pluginId);
+    for (final depId in dependents) {
+      await disablePlugin(depId);
     }
 
-    try {
-      await plugin.unload();
-      _activePlugins.remove(pluginId);
-      
-      debugPrint('✅ Disabled plugin: $pluginId');
-      _eventController.add(PluginEvent('plugin_disabled', 'Plugin disabled: $pluginId'));
-      
-      await _savePluginConfigurations();
-      return true;
-    } catch (e) {
-      debugPrint('❌ Failed to disable plugin $pluginId: $e');
-      _eventController.add(PluginEvent('error', 'Failed to disable plugin $pluginId: $e'));
-      return false;
-    }
-  }
-
-  /// Check if all dependencies are satisfied
-  Future<bool> _checkDependencies(Plugin plugin) async {
-    for (final dep in plugin.dependencies) {
-      final depPlugin = _plugins[dep.id];
-      if (depPlugin == null) {
-        debugPrint('Dependency not found: ${dep.id}');
-        return false;
-      }
-
-      // Check version compatibility
-      if (!_isVersionCompatible(depPlugin.version, dep.version)) {
-        debugPrint('Incompatible version for ${dep.id}: required ${dep.version}, found ${depPlugin.version}');
-        return false;
-      }
-
-      // Enable dependency if not already enabled
-      if (!_activePlugins.containsKey(dep.id)) {
-        final success = await enablePlugin(dep.id);
-        if (!success) {
-          debugPrint('Failed to enable dependency: ${dep.id}');
-          return false;
-        }
-      }
-    }
-    
+    await _callHook('beforeDisable', plugin);
+    await plugin.onDisable();
+    await _callHook('afterDisable', plugin);
+    _eventController.add(PluginEvent.disabled(pluginId));
     return true;
   }
 
-  /// Check if version is compatible
-  bool _isVersionCompatible(String currentVersion, String requiredVersion) {
-    // Simple version comparison - in production, use proper semver
-    final current = currentVersion.split('.').map(int.parse).toList();
-    final required = requiredVersion.split('.').map(int.parse).toList();
-    
-    for (int i = 0; i < math.max(current.length, required.length); i++) {
-      final currentPart = i < current.length ? current[i] : 0;
-      final requiredPart = i < required.length ? required[i] : 0;
-      
-      if (currentPart > requiredPart) return true;
-      if (currentPart < requiredPart) return false;
+  Future<bool> unregisterPlugin(String pluginId) async {
+    final plugin = _plugins.remove(pluginId);
+    _descriptors.remove(pluginId);
+    if (plugin == null) return false;
+
+    if (plugin.isEnabled) {
+      await plugin.onDisable();
     }
-    
+    await _callHook('beforeUnload', plugin);
+    await plugin.onUnload();
+    _eventController.add(PluginEvent.unloaded(pluginId));
     return true;
   }
 
-  /// Install a plugin from file
-  Future<bool> installPlugin(String pluginPath) async {
-    try {
-      final file = File(pluginPath);
-      if (!await file.exists()) {
-        debugPrint('Plugin file not found: $pluginPath');
-        return false;
-      }
+  Plugin? getPlugin(String id) => _plugins[id];
+  PluginDescriptor? getDescriptor(String id) => _descriptors[id];
 
-      // Extract plugin to plugins directory
-      final pluginsDir = Directory('${(await getApplicationDocumentsDirectory()).path}/termisol/plugins');
-      if (!await pluginsDir.exists()) {
-        await pluginsDir.create(recursive: true);
-      }
+  List<PluginDescriptor> getAvailableDescriptors() => _descriptors.values.toList();
 
-      // For now, assume it's a directory to copy
-      if (await Directory(pluginPath).exists()) {
-        await _copyDirectory(Directory(pluginPath), pluginsDir);
-      } else {
-        // Handle archive files (.zip, .tar.gz, etc.)
-        debugPrint('Archive installation not implemented yet');
-        return false;
-      }
+  void addGlobalHook(PluginHook hook) {
+    _globalHooks.add(hook);
+  }
 
-      // Refresh plugins
-      await _discoverPlugins();
-      
-      debugPrint('✅ Plugin installed: $pluginPath');
-      _eventController.add(PluginEvent('plugin_installed', 'Plugin installed: $pluginPath'));
-      
-      return true;
-    } catch (e) {
-      debugPrint('❌ Failed to install plugin $pluginPath: $e');
-      _eventController.add(PluginEvent('error', 'Failed to install plugin $pluginPath: $e'));
-      return false;
+  Future<T> callPlugin<T>(String pluginId, String method, [List<dynamic> args = const []]) async {
+    final plugin = _plugins[pluginId];
+    if (plugin == null || !plugin.isEnabled) {
+      throw PluginException('Plugin $pluginId is not available');
     }
+    return plugin.call(method, args) as T;
   }
 
-  /// Copy directory recursively
-  Future<void> _copyDirectory(Directory source, Directory destination) async {
-    await for (final entity in source.list()) {
-      final newPath = '${destination.path}/${entity.path.split('/').last}';
-      
-      if (entity is Directory) {
-        final newDir = Directory(newPath);
-        await newDir.create(recursive: true);
-        await _copyDirectory(entity, newDir);
-      } else if (entity is File) {
-        await entity.copy(newPath);
-      }
-    }
+  List<String> _findUnresolvedDependencies(PluginDescriptor descriptor) {
+    return descriptor.dependencies.where((depId) => !_plugins.containsKey(depId) && !_descriptors.containsKey(depId)).toList();
   }
 
-  /// Uninstall a plugin
-  Future<bool> uninstallPlugin(String pluginId) async {
-    try {
-      // Disable plugin first
-      await disablePlugin(pluginId);
-      
-      final plugin = _plugins[pluginId];
-      if (plugin == null) {
-        debugPrint('Plugin not found: $pluginId');
-        return false;
-      }
-
-      // Remove plugin directory
-      final pluginDir = Directory(plugin.directory);
-      if (await pluginDir.exists()) {
-        await pluginDir.delete(recursive: true);
-      }
-
-      // Remove from plugins list
-      _plugins.remove(pluginId);
-      
-      debugPrint('✅ Uninstalled plugin: $pluginId');
-      _eventController.add(PluginEvent('plugin_uninstalled', 'Plugin uninstalled: $pluginId'));
-      
-      return true;
-    } catch (e) {
-      debugPrint('❌ Failed to uninstall plugin $pluginId: $e');
-      _eventController.add(PluginEvent('error', 'Failed to uninstall plugin $pluginId: $e'));
-      return false;
-    }
+  List<String> _findDependents(String pluginId) {
+    return _plugins.values
+        .where((p) => p.isEnabled && p.descriptor.dependencies.contains(pluginId))
+        .map((p) => p.descriptor.id)
+        .toList();
   }
 
-  /// Get plugin by ID
-  Plugin? getPlugin(String pluginId) {
-    return _plugins[pluginId];
-  }
-
-  /// Get active plugin by ID
-  Plugin? getActivePlugin(String pluginId) {
-    return _activePlugins[pluginId];
-  }
-
-  /// Save plugin configurations
-  Future<void> _savePluginConfigurations() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final configs = <String, dynamic>{};
-      
-      for (final plugin in _plugins.values) {
-        if (plugin.configuration.isNotEmpty) {
-          configs[plugin.id] = plugin.configuration;
+  Future<void> _callHook(String hook, Plugin plugin) async {
+    for (final h in _globalHooks) {
+      if (h.event == hook) {
+        try {
+          await h.handler(plugin);
+        } catch (e) {
+          debugPrint('Hook error ($hook): $e');
         }
       }
-      
-      await prefs.setString('plugin_configurations', jsonEncode(configs));
-    } catch (e) {
-      debugPrint('Failed to save plugin configurations: $e');
     }
   }
 
-  /// Update plugin configuration
-  Future<bool> updatePluginConfiguration(String pluginId, Map<String, dynamic> config) async {
+  Future<void> _discoverPlugins() async {
+    if (_pluginsDir == null) return;
+    final dir = Directory(_pluginsDir!);
+    if (!await dir.exists()) return;
     try {
-      final plugin = _plugins[pluginId];
-      if (plugin == null) {
-        debugPrint('Plugin not found: $pluginId');
-        return false;
+      await for (final entity in dir.list()) {
+        if (entity is File && entity.path.endsWith('.json')) {
+          try {
+            final content = await entity.readAsString();
+            final jsonData = json.decode(content) as Map<String, dynamic>;
+            final descriptor = PluginDescriptor.fromJson(jsonData);
+            _descriptors[descriptor.id] = descriptor;
+            if (descriptor.autoEnable) {
+              await registerPlugin(descriptor);
+            }
+          } catch (e) {
+            debugPrint('Failed to load plugin descriptor ${entity.path}: $e');
+          }
+        }
       }
-
-      plugin.configuration = config;
-      await _savePluginConfigurations();
-      
-      debugPrint('✅ Updated configuration for plugin: $pluginId');
-      _eventController.add(PluginEvent('config_updated', 'Configuration updated for $pluginId'));
-      
-      return true;
     } catch (e) {
-      debugPrint('Failed to update plugin configuration $pluginId: $e');
-      return false;
+      debugPrint('Failed to scan plugins directory: $e');
     }
   }
 
-  /// Get plugin statistics
-  Map<String, dynamic> getStatistics() {
-    return {
-      'initialized': _initialized,
-      'totalPlugins': _plugins.length,
-      'activePlugins': _activePlugins.length,
-      'pluginIds': _plugins.keys.toList(),
-      'activePluginIds': _activePlugins.keys.toList(),
-      'dependencies': _dependencies.length,
-    };
-  }
-
-  /// Dispose resources
   Future<void> dispose() async {
-    try {
-      _healthCheckTimer?.cancel();
-      
-      // Disable all active plugins
-      final activeIds = _activePlugins.keys.toList();
-      for (final pluginId in activeIds) {
-        await disablePlugin(pluginId);
-      }
-      
-      _plugins.clear();
-      _activePlugins.clear();
-      _dependencies.clear();
-      await _eventController.close();
-      _initialized = false;
-      
-      debugPrint('PluginManager disposed');
-    } catch (e) {
-      debugPrint('Error disposing PluginManager: $e');
+    for (final pluginId in _plugins.keys.toList()) {
+      await unregisterPlugin(pluginId);
     }
+    _globalHooks.clear();
+    await _eventController.close();
   }
 }
 
-/// Plugin definition
-class Plugin {
+class PluginDescriptor {
   final String id;
   final String name;
   final String version;
   final String description;
-  final String author;
-  final String entryPoint;
-  final String directory;
-  final List<PluginDependency> dependencies;
-  final Set<String> permissions;
-  bool enabled;
-  Map<String, dynamic> configuration = {};
-  bool _loaded = false;
+  final String? author;
+  final List<String> dependencies;
+  final Map<String, String> exports;
+  final bool autoEnable;
+  final Map<String, dynamic> config;
 
-  Plugin({
+  PluginDescriptor({
     required this.id,
     required this.name,
     required this.version,
-    required this.description,
-    required this.author,
-    required this.entryPoint,
-    required this.directory,
-    required this.dependencies,
-    required this.permissions,
-    this.enabled = true,
+    this.description = '',
+    this.author,
+    this.dependencies = const [],
+    this.exports = const {},
+    this.autoEnable = false,
+    this.config = const {},
   });
 
-  /// Load the plugin
-  Future<void> load() async {
-    if (_loaded) return;
-    
-    try {
-      // In a real implementation, this would load the plugin code
-      // and execute it in a sandboxed environment
-      debugPrint('Loading plugin: $name');
-      _loaded = true;
-    } catch (e) {
-      debugPrint('Failed to load plugin $name: $e');
-      rethrow;
-    }
-  }
+  Map<String, dynamic> toJson() => {
+    'id': id, 'name': name, 'version': version, 'description': description,
+    'author': author, 'dependencies': dependencies, 'exports': exports,
+    'autoEnable': autoEnable, 'config': config,
+  };
 
-  /// Unload the plugin
-  Future<void> unload() async {
-    if (!_loaded) return;
-    
-    try {
-      // Clean up plugin resources
-      debugPrint('Unloading plugin: $name');
-      _loaded = false;
-    } catch (e) {
-      debugPrint('Failed to unload plugin $name: $e');
-      rethrow;
-    }
-  }
-
-  /// Perform health check
-  Future<void> healthCheck() async {
-    if (!_loaded) return;
-    
-    // Check if plugin is still responsive
-    debugPrint('Health check for plugin: $name');
-  }
-
-  /// Get plugin status
-  PluginStatus get status {
-    if (!enabled) return PluginStatus.disabled;
-    if (!_loaded) return PluginStatus.installed;
-    return PluginStatus.active;
-  }
-}
-
-/// Plugin dependency
-class PluginDependency {
-  final String id;
-  final String version;
-  final bool optional;
-
-  PluginDependency({
-    required this.id,
-    required this.version,
-    this.optional = false,
-  });
-
-  factory PluginDependency.fromJson(Map<String, dynamic> json) {
-    return PluginDependency(
+  factory PluginDescriptor.fromJson(Map<String, dynamic> json) {
+    return PluginDescriptor(
       id: json['id'] as String,
+      name: json['name'] as String,
       version: json['version'] as String,
-      optional: json['optional'] as bool? ?? false,
+      description: json['description'] as String? ?? '',
+      author: json['author'] as String?,
+      dependencies: List<String>.from(json['dependencies'] ?? []),
+      exports: Map<String, String>.from(json['exports'] ?? {}),
+      autoEnable: json['autoEnable'] as bool? ?? false,
+      config: Map<String, dynamic>.from(json['config'] ?? {}),
     );
   }
 }
 
-/// Plugin status
-enum PluginStatus {
-  installed,
-  active,
-  disabled,
-  error,
+class Plugin {
+  final PluginDescriptor descriptor;
+  bool isEnabled;
+  final DateTime createdAt;
+  final Map<String, dynamic> _state;
+
+  Plugin({
+    required this.descriptor,
+    this.isEnabled = false,
+    DateTime? createdAt,
+    Map<String, dynamic>? state,
+  }) : createdAt = createdAt ?? DateTime.now(),
+      _state = state ?? {};
+
+  String get id => descriptor.id;
+  String get name => descriptor.name;
+
+  Future<void> onLoad() async {
+    debugPrint('Plugin [${descriptor.id}] loaded');
+  }
+
+  Future<void> onUnload() async {
+    debugPrint('Plugin [${descriptor.id}] unloaded');
+  }
+
+  Future<void> onEnable() async {
+    isEnabled = true;
+    debugPrint('Plugin [${descriptor.id}] enabled');
+  }
+
+  Future<void> onDisable() async {
+    isEnabled = false;
+    debugPrint('Plugin [${descriptor.id}] disabled');
+  }
+
+  dynamic call(String method, [List<dynamic> args = const []]) {
+    throw UnimplementedError('Plugin ${descriptor.id} does not implement $method');
+  }
+
+  void setState(String key, dynamic value) => _state[key] = value;
+  dynamic getState(String key) => _state[key];
 }
 
-/// Plugin event
-class PluginEvent {
-  final String type;
-  final String message;
-  final DateTime timestamp;
+class PluginHook {
+  final String event;
+  final Future<void> Function(Plugin plugin) handler;
 
-  PluginEvent(this.type, this.message) : timestamp = DateTime.now();
+  PluginHook({required this.event, required this.handler});
+}
+
+class PluginEvent {
+  final String pluginId;
+  final PluginEventType type;
+
+  PluginEvent._({required this.pluginId, required this.type});
+
+  factory PluginEvent.loaded(String id) => PluginEvent._(pluginId: id, type: PluginEventType.loaded);
+  factory PluginEvent.unloaded(String id) => PluginEvent._(pluginId: id, type: PluginEventType.unloaded);
+  factory PluginEvent.enabled(String id) => PluginEvent._(pluginId: id, type: PluginEventType.enabled);
+  factory PluginEvent.disabled(String id) => PluginEvent._(pluginId: id, type: PluginEventType.disabled);
+}
+
+enum PluginEventType { loaded, unloaded, enabled, disabled }
+
+class PluginException implements Exception {
+  final String message;
+  PluginException(this.message);
+  @override
+  String toString() => 'PluginException: $message';
 }

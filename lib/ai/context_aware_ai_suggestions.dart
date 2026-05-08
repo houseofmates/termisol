@@ -525,7 +525,7 @@ Focus on:
 
   Future<void> dispose() async {
     _cleanupTimer?.cancel();
-    _suggestionController.close();
+    await _suggestionController.close();
     _contextCache.clear();
     _cacheTimestamps.clear();
   }

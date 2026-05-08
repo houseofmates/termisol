@@ -218,7 +218,7 @@ Focus on:
 
   Future<void> dispose() async {
     _analysisTimer?.cancel();
-    _optimizerController.close();
+    await _optimizerController.close();
     _recommendations.clear();
     _profiles.clear();
     _history.clear();

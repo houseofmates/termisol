@@ -117,28 +117,71 @@ void main() async {
   });
 }
 
-/// Register all services with lazy-loading factories.
-/// None are created here — they instantiate on first use.
-/// Feature flags default to true if config properties are missing.
+/// Register all services with real implementations.
+/// Services are created lazily on first use for better performance.
 ServiceRegistry _registerServices() {
   final r = ServiceRegistry.instance;
 
+  // Core terminal features
   r.register(TermisolFeatures.terminalCore, () => true);
-  r.register(TermisolFeatures.aiAssistant, () => true);
-  r.register(TermisolFeatures.performanceMonitoring, () => true);
-  r.register(TermisolFeatures.gpuRenderer, () => true);
-  r.register(TermisolFeatures.gitIntegration, () => true);
-  r.register(TermisolFeatures.dockerIntegration, () => true);
-  r.register(TermisolFeatures.databaseClient, () => true);
+  
+  // AI and performance features
+  r.register(TermisolFeatures.aiAssistant, () => ServiceFactories.createAIAssistant());
+  r.register(TermisolFeatures.performanceMonitoring, () => ServiceFactories.createPerformanceEnforcer());
+  r.register(TermisolFeatures.gpuRenderer, () => ServiceFactories.createGpuRenderer());
+  r.register(TermisolFeatures.sub16msLatencyOptimizer, () => ServiceFactories.createLatencyOptimizer());
+  r.register(TermisolFeatures.adaptiveFramePacer, () => ServiceFactories.createFramePacer());
+  r.register(TermisolFeatures.productionConfigSystem, () => ServiceFactories.createConfigSystem());
+  r.register(TermisolFeatures.backgroundProcessor, () => ServiceFactories.createBackgroundProcessor());
+  r.register(TermisolFeatures.memoryOptimizer, () => ServiceFactories.createMemoryOptimizer());
+  r.register(TermisolFeatures.networkResilience, () => ServiceFactories.createNetworkResilience());
+  
+  // Advanced features
+  r.register(TermisolFeatures.sessionSync, () => ServiceFactories.createSessionSyncManager());
+  r.register(TermisolFeatures.llmPluginSystem, () => ServiceFactories.createLLMPluginSystem());
+  r.register(TermisolFeatures.gnomeIntegration, () => ServiceFactories.createGnomeIntegration());
+  r.register(TermisolFeatures.smartCommandChaining, () => ServiceFactories.createSmartCommandChaining());
+  r.register(TermisolFeatures.semanticSearchEngine, () => ServiceFactories.createSemanticSearchEngine());
+  r.register(TermisolFeatures.enhancedAISuggestions, () => ServiceFactories.createEnhancedAISuggestions());
+  r.register(TermisolFeatures.conversationalAI, () => ServiceFactories.createConversationalAI());
+  r.register(TermisolFeatures.automatedWorkflows, () => ServiceFactories.createAutomatedWorkflowSystem());
+  r.register(TermisolFeatures.vrSupport, () => ServiceFactories.createAdvancedVRTerminal());
+  
+  // Integration features
+  r.register(TermisolFeatures.gitIntegration, () => ServiceFactories.createGitHubIntegration());
+  r.register(TermisolFeatures.neuralProcessing, () => ServiceFactories.createNeuralProcessingSystem());
+  r.register(TermisolFeatures.terminalPaneManager, () => ServiceFactories.createPaneManager());
+  r.register(TermisolFeatures.plugins, () => ServiceFactories.createPluginManager());
+  r.register(TermisolFeatures.audioAlertService, () => ServiceFactories.createAudioAlertService());
+  r.register(TermisolFeatures.keyboardMacroReader, () => ServiceFactories.createKeyboardMacroReader());
+  r.register(TermisolFeatures.syncServices, () => ServiceFactories.createSyncServices());
+  
+  // Development and operations features
+  r.register(TermisolFeatures.dockerIntegration, () => ServiceFactories.createDockerOperations());
+  r.register(TermisolFeatures.integratedDebugger, () => ServiceFactories.createIntegratedDebugger());
+  r.register(TermisolFeatures.taskRunner, () => ServiceFactories.createTaskRunner());
+  r.register(TermisolFeatures.configurableHotkeys, () => ServiceFactories.createConfigurableHotkeys());
+  r.register(TermisolFeatures.smoothAnimations, () => ServiceFactories.createSmoothAnimations());
+  r.register(TermisolFeatures.autoBackupSystem, () => ServiceFactories.createAutoBackupSystem());
+  r.register(TermisolFeatures.sshExtras, () => ServiceFactories.createAutoSSHKeyManagement());
+  r.register(TermisolFeatures.sshExtras, () => ServiceFactories.createMultihopSSH());
+  r.register(TermisolFeatures.sshExtras, () => ServiceFactories.createTunnelManagement());
+  r.register(TermisolFeatures.sshExtras, () => ServiceFactories.createSSHConnectionPersistence());
+  r.register(TermisolFeatures.codeIntelligence, () => ServiceFactories.createCodeIntelligence());
+  r.register(TermisolFeatures.databaseClient, () => ServiceFactories.createDatabaseClient());
+  r.register(TermisolFeatures.sessionRecovery, () => ServiceFactories.createSessionRecovery());
+  r.register(TermisolFeatures.commandGuard, () => ServiceFactories.createCommandGuard());
+  r.register(TermisolFeatures.asciicastRecorder, () => ServiceFactories.createAsciicastRecorder());
+  
+  // Content and media features
   r.register(TermisolFeatures.fileManager, () => true);
-  r.register(TermisolFeatures.vrSupport, () => true);
   r.register(TermisolFeatures.videoPlayback, () => true);
   r.register(TermisolFeatures.audioVisualization, () => true);
   r.register(TermisolFeatures.model3d, () => true);
-  r.register(TermisolFeatures.sessionSync, () => true);
-  r.register(TermisolFeatures.sshExtras, () => true);
-  r.register(TermisolFeatures.collaboration, () => true);
-  r.register(TermisolFeatures.plugins, () => true);
+  
+  // Protocol and rendering features
+  r.register(TermisolFeatures.advancedTerminalProtocol, () => ServiceFactories.createAdvancedTerminalProtocol());
+  r.register(TermisolFeatures.adaptiveCompressionNetwork, () => ServiceFactories.createAdaptiveCompressionNetwork());
 
   return r;
 }

@@ -337,7 +337,7 @@ class TerminalSession extends ChangeNotifier {
     _lazyOutput.dispose();
     _textBuffer.dispose();
     clipboardManager.dispose();
-    await _pluginSystem.disposeAll();
+    await _pluginSystem.dispose();
   }
 
   @override

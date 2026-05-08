@@ -905,6 +905,272 @@ class _TextEditorState extends State<TextEditor> {
                       ),
                     ),
                   ),
+                
+                // Context menu
+                if (_showContextMenu)
+                  Positioned(
+                    left: _contextMenuPosition.dx,
+                    top: _contextMenuPosition.dy,
+                    child: GestureDetector(
+                      onTap: _hideContextMenu,
+                      child: Container(
+                        constraints: const BoxConstraints(maxWidth: 200),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2D2D2D),
+                          border: Border.all(color: Colors.grey[600]!),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.4),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Cut
+                            if (_contextMenuSelectedText != null)
+                              _buildContextMenuItem(
+                                icon: Icons.content_cut,
+                                label: 'Cut',
+                                onPressed: _cutSelection,
+                              ),
+                            
+                            // Copy
+                            if (_contextMenuSelectedText != null)
+                              _buildContextMenuItem(
+                                icon: Icons.content_copy,
+                                label: 'Copy',
+                                onPressed: _copySelection,
+                              ),
+                            
+                            // Paste
+                            _buildContextMenuItem(
+                              icon: Icons.content_paste,
+                              label: 'Paste',
+                              onPressed: _pasteFromClipboard,
+                            ),
+                            
+                            // Paste and Replace
+                            _buildContextMenuItem(
+                              icon: Icons.content_paste_off,
+                              label: 'Paste & Replace',
+                              onPressed: _pasteAndReplace,
+                            ),
+                            
+                            if (_contextMenuSelectedText != null) ...[
+                              const Divider(height: 1, color: Colors.grey),
+                              
+                              // Translate
+                              if (_deepL.isAvailable)
+                                _buildContextMenuItem(
+                                  icon: Icons.translate,
+                                  label: 'Translate',
+                                  onPressed: () {
+                                    _hideContextMenu();
+                                    _translateSelectedText(_contextMenuSelectedText!);
+                                  },
+                                ),
+                              
+                              // Summarize
+                              if (_nvidiaClient.isInitialized)
+                                _buildContextMenuItem(
+                                  icon: Icons.summarize,
+                                  label: 'Summarize',
+                                  onPressed: () {
+                                    _hideContextMenu();
+                                    _summarizeText(_contextMenuSelectedText!);
+                                  },
+                                ),
+                            ],
+                            
+                            const Divider(height: 1, color: Colors.grey),
+                            
+                            // Select All
+                            _buildContextMenuItem(
+                              icon: Icons.select_all,
+                              label: 'Select All',
+                              onPressed: _selectAll,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                
+                // Summary popup
+                if (_showSummary)
+                  Positioned(
+                    left: 20,
+                    top: 100,
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 400, maxHeight: 400),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2D2D2D),
+                        border: Border.all(color: Colors.purple[600]!),
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.4),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Header
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.purple[700],
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(8),
+                                topRight: Radius.circular(8),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.summarize, color: Colors.white, size: 16),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'AI Summary',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const Spacer(),
+                                IconButton(
+                                  onPressed: () => setState(() => _showSummary = false),
+                                  icon: const Icon(Icons.close, color: Colors.white, size: 16),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                                ),
+                              ],
+                            ),
+                          ),
+                          
+                          // Content
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Original text preview
+                                if (_contextMenuSelectedText != null)
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Original:',
+                                        style: TextStyle(
+                                          color: Colors.grey[400],
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black54,
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          _contextMenuSelectedText!,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                    ],
+                                  ),
+                                
+                                // Summary
+                                Text(
+                                  'Summary:',
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                if (_isSummarizing)
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black54,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Row(
+                                      children: [
+                                        SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
+                                          ),
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Summarizing...',
+                                          style: TextStyle(
+                                            color: Colors.grey[400],
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                else if (_summaryText != null)
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black54,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      _summaryText!,
+                                      style: const TextStyle(
+                                        color: Colors.purple,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black54,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      'Summarization unavailable',
+                                      style: TextStyle(
+                                        color: Colors.red[400],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -1071,6 +1337,38 @@ class _TextEditorState extends State<TextEditor> {
     setState(() {
       _fontSize = sizes[nextIndex];
     });
+  }
+  
+  Widget _buildContextMenuItem({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return InkWell(
+      onTap: onPressed,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: Colors.grey[300],
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.grey[300],
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

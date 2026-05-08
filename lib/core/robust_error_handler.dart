@@ -267,7 +267,7 @@ class RobustErrorHandler {
       
       _logger.info('Memory cleanup completed');
     } catch (e) {
-      _logger.error('Memory cleanup failed: $e');
+      _logger.severe('Memory cleanup failed: $e');
     }
   }
   

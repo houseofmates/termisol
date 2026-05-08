@@ -452,10 +452,20 @@ MONITORING_PLAN: [How to monitor for predicted issues]
     ).timeout(_timeout);
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['choices'][0]['message']['content'];
+      try {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final choices = data['choices'] as List<dynamic>?;
+        if (choices != null && choices.isNotEmpty) {
+          final firstChoice = choices[0] as Map<String, dynamic>;
+          final message = firstChoice['message'] as Map<String, dynamic>?;
+          return message?['content'] as String? ?? '';
+        }
+        return '';
+      } catch (e) {
+        throw OptimizationException('Failed to parse NVIDIA API response: $e');
+      }
     } else {
-      throw Exception('NVIDIA API error: ${response.statusCode} - ${response.body}');
+      throw OptimizationException('NVIDIA API error: ${response.statusCode} - ${response.reasonPhrase}');
     }
   }
 

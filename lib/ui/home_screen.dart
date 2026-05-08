@@ -6,6 +6,7 @@ import '../core/terminal_session.dart';
 import '../backends/local_backend.dart';
 import '../production_fps_overlay.dart';
 import '../config/pkm_theme.dart';
+import 'settings_sheet.dart';
 
 /// Home screen with core terminal functionality.
 /// Services are pulled lazily from the registry on first use.

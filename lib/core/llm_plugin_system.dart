@@ -359,13 +359,12 @@ class LLMProvider {
       ).timeout(const Duration(seconds: 30));
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
-        final choices = data['choices'] as List?;
-        final message = choices?.isNotEmpty == true
-            ? (choices!.first as Map<String, dynamic>)['message'] as Map<String, dynamic>?
-            : null;
-        final text = message?['content'] ?? '';
-        final tokens = data['usage']?['total_tokens'] ?? text.toString().length ~/ 4;
-        return CompletionResult(text: text.toString(), tokens: tokens as int);
+final choices = data['choices'] as List;
+        final text = choices.isNotEmpty
+            ? (((choices.first as Map<String, dynamic>)['message'] as Map<String, dynamic>?)?['content'] ?? '') as String
+            : '';
+        final tokens = (data['usage'] as Map<String, dynamic>?)?['total_tokens'] as int? ?? text.length ~/ 4;
+        return CompletionResult(text: text, tokens: tokens);
       }
       return CompletionResult(text: '', tokens: 0);
     } catch (e) {

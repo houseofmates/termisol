@@ -214,7 +214,7 @@ lib/
 
 ```bash
 # Clone the repository
-git clone https://github.com/houseofmates/termisol.git
+git clone https://github.com/YOUR_USERNAME/termisol.git
 cd termisol
 
 # Install dependencies
@@ -397,7 +397,7 @@ databases:
 
 ```bash
 # Clone the repository
-git clone https://github.com/houseofmates/termisol.git
+git clone https://github.com/YOUR_USERNAME/termisol.git
 cd termisol
 
 # Install Flutter dependencies
@@ -561,7 +561,7 @@ Special thanks to all contributors who have helped make Termisol better.
 ## 📞 Contact
 
 - **Website**: [termisol.dev](https://termisol.dev)
-- **GitHub**: [github.com/houseofmates/termisol](https://github.com/houseofmates/termisol)
+- **GitHub**: [github.com/YOUR_USERNAME/termisol](https://github.com/YOUR_USERNAME/termisol)
 - **Email**: hello@termisol.dev
 - **Twitter**: [@termisol_term](https://twitter.com/termisol_term)
 

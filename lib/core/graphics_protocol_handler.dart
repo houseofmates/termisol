@@ -333,7 +333,7 @@ class GraphicsProtocolHandler {
   }
 
   /// Handle Kitty graphics transmission
-  String _handleKittyTransmission(Map<String, String> params) {
+  String _handleKittyTransmission(Map<String, String> params, int cursorX, int cursorY) {
     // Handle image data transmission
     final format = params['t'] ?? 'f';
     final id = params['i'] ?? _nextImageId.toString();
@@ -341,9 +341,9 @@ class GraphicsProtocolHandler {
     // Process image data based on format
     switch (format) {
       case 'f': // Direct transmission
-        return _processDirectTransmission(params, id);
+        return _processDirectTransmission(params, id, cursorX, cursorY);
       case 't': // Temporary file
-        return _processTemporaryFileTransmission(params, id);
+        return _processTemporaryFileTransmission(params, id, cursorX, cursorY);
       default:
         return '';
     }

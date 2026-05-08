@@ -312,7 +312,6 @@ class _VrTerminalState extends State<VrTerminal> with TickerProviderStateMixin {
           const SizedBox(width: 16),
           _VrButton(icon: Icons.menu, onPressed: _showVrMenu, label: 'Menu'),
           const SizedBox(width: 16),
-          Container(
             width: 10,
             height: 10,
             decoration: BoxDecoration(color: _handTrackingActive ? Colors.green : Colors.red, shape: BoxShape.circle),

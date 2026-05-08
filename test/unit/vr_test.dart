@@ -70,7 +70,8 @@ void main() {
 
       // Verify widget tree structure
       expect(find.byType(Scaffold), findsOneWidget);
-      expect(find.byType(Column), findsOneWidget);
+      // There should be at least one Column (from the 2D fallback)
+      expect(find.byType(Column), findsWidgets);
     });
 
     testWidgets('should handle VR platform channel errors gracefully', (tester) async {

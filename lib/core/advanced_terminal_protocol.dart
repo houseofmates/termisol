@@ -865,89 +865,17 @@ class AdvancedTerminalProtocol {
     }
   }
   
-  void _handleSixelGraphics(String sequence) {
-    // Handle sixel graphics
-    debugPrint('🖼️ Sixel graphics detected');
-  }
-  
-  void _handleRegisGraphics(String sequence) {
-    // Handle ReGIS graphics
-    debugPrint('🖼️ ReGIS graphics detected');
-  }
-  
-  void _handleKittyGraphics(String sequence) {
-    // Handle Kitty graphics protocol
-    debugPrint('🖼️ Kitty graphics detected');
-  }
-  
-  void _saveCursor() {
-    // Save cursor position and attributes
-  }
-  
-  void _restoreCursor() {
-    // Restore cursor position and attributes
-  }
-  
-  void _indexDown() {
-    // Move cursor down one line with scrolling
-  }
-  
-  void _nextLine() {
-    // Move cursor to first position on next line
-  }
-  
-  void _setTabStop() {
-    // Set horizontal tab stop at current position
-  }
-  
-  void _reverseIndex() {
-    // Move cursor up one line with scrolling
-  }
-  
-  void _singleShiftSelect() {
-    // Select G1 character set
-  }
-  
-  void _singleShiftSelect2() {
-    // Select G2 character set
-  }
-  
-  void _deviceControlString() {
-    // Handle device control string
-  }
-  
-  void _startGuardedArea() {
-    // Start protected area
-  }
-  
-  void _endGuardedArea() {
-    // End protected area
-  }
-  
-  void _startString() {
-    // Start string
-  }
-  
-  void _decPrivateIdentification() {
-    // DEC private identification
-    _sendResponse('\x1b[?63;1;2;3;4;6;7;8;9;15;18;21;22;23;24;28;39c');
-  }
-  
-  void _fullReset() {
-    // Full terminal reset
-    debugPrint('🔄 Full terminal reset');
-  }
-  
-  void _handleDoubleHeightDoubleWidth(String command) {
-    // Handle double height/double width characters
-  }
-  
-  void _handleCharacterSet(String charset, bool g1) {
-    // Handle character set selection
-  }
-  
-  void _setNumericKeypadMode(bool application) {
-    // Set numeric keypad mode
+  void _handleEscapeSequence(String sequence) {
+    if (sequence.length < 2) return;
+
+    final command = sequence[1];
+
+    switch (command) {
+      case 'c': // Reset to initial state
+        _controller.reset();
+        break;
+      // Other escape sequences are handled by xterm library
+    }
   }
   
   /// Handle mouse events

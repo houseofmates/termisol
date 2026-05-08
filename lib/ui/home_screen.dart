@@ -28,8 +28,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<String> _handleAiQuery(String query) async {
-    // Placeholder for AI query handling
     debugPrint('AI query: $query');
+    // TODO: wire to real AI service via registry when available
     return 'AI response not implemented';
   }
 
@@ -39,19 +39,11 @@ class _HomeScreenState extends State<HomeScreen> {
       name: 'Terminal',
     );
     session.onAiQuery = _handleAiQuery;
+    session.start();
 
     _tabs.add(session);
     _tabFocusNodes['0'] = FocusNode();
     _activeTab = '0';
-  }
-
-  void _handleAiQuery(String query) {
-    try {
-      _ai?.processQuery(query);
-    } catch (e) {
-      // Graceful degradation: AI fails, but terminal continues working
-      debugPrint('AI query failed, continuing without AI: $e');
-    }
   }
 
   void _showSettings() {
@@ -71,6 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
       name: 'Terminal ${_tabs.length + 1}',
     );
     newTab.onAiQuery = _handleAiQuery;
+    newTab.start();
 
     setState(() {
       _tabs.add(newTab);

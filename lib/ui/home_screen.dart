@@ -71,6 +71,15 @@ class _HomeScreenState extends State<HomeScreen> {
           const SnackBar(content: Text('dictation not yet implemented')),
         );
         break;
+      case 'copy':
+        _activeSession?.controller.copy();
+        break;
+      case 'paste':
+        _activeSession?.controller.paste();
+        break;
+      case 'selectAll':
+        _activeSession?.controller.selectAll();
+        break;
     }
   }
 

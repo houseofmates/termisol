@@ -372,6 +372,7 @@ Focus on:
     // Memory-based recommendations
     if (memoryUsage > 0.85) {
       recommendations.add(OptimizationRecommendation(
+        id: 'mem_opt_1',
         timestamp: DateTime.now(),
         overallScore: 0.8,
         suggestions: [OptimizationSuggestion(

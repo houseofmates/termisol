@@ -119,7 +119,7 @@ class _VrTerminalState extends State<VrTerminal> with TickerProviderStateMixin {
         _eyeTrackingActive = _deviceInfo?.supportsEyeTracking ?? false;
       });
 
-      _fadeController.forward();
+      _fadeController.forward().orCancel;
 
     } catch (e) {
       setState(() {

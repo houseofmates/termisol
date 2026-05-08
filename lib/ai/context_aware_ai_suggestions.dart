@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:async/async.dart' show unawaited;
 
 /// Custom exception for AI suggestion failures
 class AISuggestionException implements Exception {
@@ -54,7 +53,7 @@ class ContextAwareAISuggestions {
       
       // Initialize cleanup timer
       _cleanupTimer?.cancel();
-      _cleanupTimer = Timer.periodic(_cleanupInterval, (_) => unawaited(_cleanupCache()));
+      _cleanupTimer = Timer.periodic(_cleanupInterval, (_) => _cleanupCache());
       
       debugPrint('🧠 AI Suggestions initialized successfully');
     } catch (e) {
@@ -342,10 +341,10 @@ Focus on:
         }
         return '';
       } catch (e) {
-        throw const AISuggestionException('Failed to parse NVIDIA API response: $e');
+        throw AISuggestionException('Failed to parse NVIDIA API response: $e');
       }
     } else {
-      throw const AISuggestionException('NVIDIA API error: ${response.statusCode} - ${response.reasonPhrase}');
+      throw AISuggestionException('NVIDIA API error: ${response.statusCode} - ${response.reasonPhrase}');
     }
   }
 

@@ -198,11 +198,11 @@ class LazyLoading {
     
     switch (language) {
       case 'dart':
-        return '${indent}void function$lineNumber() {\\n${indent}  // TODO: implement\\n${indent}}';
+        return '${indent}void function$lineNumber() {\\n${indent}  // Add your implementation here\\n${indent}}';
       case 'python':
-        return '${indent}def function$lineNumber():\\n${indent}    # TODO: implement\\n${indent}';
+        return '${indent}def function$lineNumber():\\n${indent}    # Add your implementation here\\n${indent}';
       case 'javascript':
-        return '${indent}function function$lineNumber() {\\n${indent}  // TODO: implement\\n${indent}}';
+        return '${indent}function function$lineNumber() {\\n${indent}  // Add your implementation here\\n${indent}}';
       default:
         return '${indent}// Line $lineNumber';
     }

@@ -20,6 +20,60 @@ import 'core/plugin_ecosystem.dart';
 import 'config/production_config_system.dart';
 import 'config/ssh_passcode_manager.dart';
 
+/// Setup global error handling and crash reporting
+Future<void> _setupErrorHandling() async {
+  // Handle Flutter errors
+  FlutterError.onError = (FlutterErrorDetails details) async {
+    await _logError('Flutter Error', details.exceptionAsString(), details.stack);
+    _showErrorDialog(details.exceptionAsString());
+  };
+
+  // Handle platform errors
+  PlatformDispatcher.instance.onError = (error, stack) {
+    _logError('Platform Error', error.toString(), stack);
+    _showErrorDialog(error.toString());
+    return true;
+  };
+
+  // Handle uncaught errors in zones
+  runZonedGuarded(() {
+    // The main app will run in this zone
+  }, (error, stackTrace) async {
+    await _logError('Uncaught Error', error.toString(), stackTrace);
+    _showErrorDialog(error.toString());
+  });
+}
+
+/// Log error to local file
+Future<void> _logError(String type, String error, StackTrace? stack) async {
+  try {
+    final directory = await getApplicationDocumentsDirectory();
+    final logFile = File('${directory.path}/termisol_crash_log.txt');
+
+    final timestamp = DateTime.now().toIso8601String();
+    final logEntry = '''
+[$timestamp] $type:
+Error: $error
+Stack Trace:
+${stack ?? 'No stack trace available'}
+
+---
+''';
+
+    await logFile.writeAsString(logEntry, mode: FileMode.append);
+  } catch (e) {
+    // If logging fails, at least print to console
+    debugPrint('Failed to log error: $e');
+  }
+}
+
+/// Show user-friendly error dialog
+void _showErrorDialog(String error) {
+  // This will be shown when the app is running
+  // For now, we'll just ensure the error is logged
+  debugPrint('Error occurred: $error');
+}
+
 /// entry point for termisol with lazy-loading service registry.
 /// critical services start immediately; everything else is on-demand.
 void main() async {
@@ -62,7 +116,12 @@ void main() async {
   await registry.initializeCritical();
 
   debugPrint('🚀 termisol started (lazy init)');
-  runApp(TermisolApp(registry: registry));
+  runZonedGuarded(() {
+    runApp(TermisolApp(registry: registry));
+  }, (error, stackTrace) async {
+    await _logError('App Error', error.toString(), stackTrace);
+    _showErrorDialog(error.toString());
+  });
 }
 
 /// Register all services with lazy-loading factories.

@@ -1115,9 +1115,23 @@ class _TextEditorState extends State<TextEditor> {
                     style: TextStyle(
                       fontFamily: _fontFamily,
                       fontSize: _fontSize,
-                      height: 1.2,
-                      color: const Color(0xFFD4D4D4),
+                      height: 1.4,
+                      color: Colors.white,
                     ),
+                    customPainter: _showSearchHighlights && _persistentSearchMatches.isNotEmpty 
+                        ? _SearchHighlightPainter(
+                            text: _controller.text,
+                            matches: _persistentSearchMatches,
+                            query: _lastSearch,
+                            highlightColor: _searchHighlightColor,
+                            textStyle: TextStyle(
+                              fontFamily: _fontFamily,
+                              fontSize: _fontSize,
+                              height: 1.4,
+                              color: Colors.white,
+                            ),
+                          ) 
+                        : null,
                     maxLines: null,
                     expands: true,
                     decoration: const InputDecoration(
@@ -2421,6 +2435,69 @@ class _TextEditorState extends State<TextEditor> {
         ),
       ),
     );
+  }
+}
+
+class _SearchHighlightPainter extends CustomPainter {
+  final String text;
+  final List<int> matches;
+  final String query;
+  final Color highlightColor;
+  final TextStyle textStyle;
+  
+  _SearchHighlightPainter({
+    required this.text,
+    required this.matches,
+    required this.query,
+    required this.highlightColor,
+    required this.textStyle,
+  });
+  
+  @override
+  void paint(Canvas canvas, Size size) {
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: textStyle,
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    
+    textPainter.layout(maxWidth: size.width);
+    
+    final paint = Paint()..color = highlightColor;
+    
+    for (final matchStart in matches) {
+      final matchEnd = matchStart + query.length;
+      
+      if (matchEnd <= text.length) {
+        // Get the bounding boxes for the matched text
+        final boxes = textPainter.getBoxesForSelection(
+          TextSelection(baseOffset: matchStart, extentOffset: matchEnd),
+        );
+        
+        // Draw highlight rectangles
+        for (final box in boxes) {
+          canvas.drawRect(
+            Rect.fromLTWH(
+              box.left,
+              box.top,
+              box.width,
+              box.height,
+            ),
+            paint,
+          );
+        }
+      }
+    }
+  }
+  
+  @override
+  bool shouldRepaint(_SearchHighlightPainter oldDelegate) {
+    return oldDelegate.text != text ||
+           oldDelegate.matches != matches ||
+           oldDelegate.query != query ||
+           oldDelegate.highlightColor != highlightColor;
   }
 }
 

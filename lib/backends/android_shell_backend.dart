@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import '../core/pty_backend.dart';
+import '../core/prompt_config.dart';
 
 /// Android-specific shell backend with robust shell probing and environment
 /// bootstrap.
@@ -148,9 +149,10 @@ class AndroidShellBackend implements TermisolPtyBackend {
       // Set a colored PS1 and emit the first prompt.
       Future.delayed(const Duration(milliseconds: 300), () {
         if (!_isRunning || _isDisposed) return;
-        _safeWriteStdin(
-          "export PS1='\\[\\e[38;2;246;176;18m\\]termisol\\[\\e[0m\\]:\\[\\e[38;2;53;199;255m\\]\\\$PWD\\[\\e[0m\\]\\\$ '\n",
-        );
+        final user = Platform.environment['USER'] ?? 'user';
+        final host = Platform.environment['HOSTNAME'] ?? 'android';
+        final ps1 = PromptConfig.portablePs1(user: user, host: host, pwd: r'\$PWD');
+        _safeWriteStdin("export PS1='$ps1'\n");
         _safeAdd(utf8.encode('\r\n'));
       });
     } on ProcessException catch (e) {

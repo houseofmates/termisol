@@ -121,6 +121,22 @@ class _TextEditorState extends State<TextEditor> {
   bool _autoIndent = true;
   int _indentSize = 2;
   bool _useSpaces = true;
+  
+  // Vim-style Command Mode
+  bool _commandMode = false;
+  final TextEditingController _commandController = TextEditingController();
+  String _lastCommand = '';
+  
+  // Visual Mode
+  bool _visualMode = false;
+  int _visualStart = 0;
+  
+  // Marks System
+  final Map<String, int> _marks = {};
+  
+  // Persistent Search
+  String _lastSearch = '';
+  List<int> _persistentSearchMatches = [];
 
   @override
   void initState() {
@@ -151,6 +167,7 @@ class _TextEditorState extends State<TextEditor> {
     _focusNode.dispose();
     _searchController.dispose();
     _replaceController.dispose();
+    _commandController.dispose();
     HardwareKeyboard.instance.removeHandler(_handleAltKeyChange);
     super.dispose();
   }

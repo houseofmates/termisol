@@ -870,25 +870,6 @@ MONITORING_PLAN: [How to monitor for predicted issues]
   }
 }
 
-/// Data classes
-class OptimizationRecommendation {
-  final DateTime timestamp;
-  final double overallScore;
-  final List<OptimizationSuggestion> suggestions;
-  final String predictedImprovement;
-  final String implementationTime;
-  final String riskLevel;
-  
-  OptimizationRecommendation({
-    required this.timestamp,
-    required this.overallScore,
-    required this.suggestions,
-    required this.predictedImprovement,
-    required this.implementationTime,
-    required this.riskLevel,
-  });
-}
-
 class OptimizationSuggestion {
   final String id;
   final String title;

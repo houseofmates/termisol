@@ -125,9 +125,9 @@ Termisol can forward queries to external AI APIs (e.g., NVIDIA NIM). This requir
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-## 🏗️ Architecture
+## 🏗️ architecture
 
-Termisol is built with a modular, extensible architecture:
+termisol is built with a modular, extensible architecture:
 
 ```
 lib/

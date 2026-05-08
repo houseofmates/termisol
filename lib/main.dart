@@ -8,6 +8,7 @@ import 'package:window_manager/window_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'app.dart';
+import 'core/headerbar_actions.dart';
 import 'core/service_registry.dart';
 import 'core/service_factories.dart';
 import 'core/adaptive_rendering_system.dart';
@@ -105,22 +106,28 @@ void main() async {
   // Initialize robust systems
   await _initializeRobustSystems();
 
+  const headerBarChannel = MethodChannel('com.termisol/headerbar');
+  headerBarChannel.setMethodCallHandler((call) async {
+    if (call.method == 'headerbar_action') {
+      final action = call.arguments as String?;
+      if (action != null) HeaderbarActions.dispatch(action);
+    }
+  });
+
   if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
     await windowManager.ensureInitialized();
-    if (!Platform.isLinux) {
-      const windowOptions = WindowOptions(
-        size: Size(1280, 720),
-        center: true,
-        backgroundColor: Colors.black,
-        skipTaskbar: false,
-        titleBarStyle: TitleBarStyle.normal,
-        title: 'termisol',
-      );
-      await windowManager.waitUntilReadyToShow(windowOptions, () async {
-        await windowManager.show();
-        await windowManager.focus();
-      });
-    }
+    const windowOptions = WindowOptions(
+      size: Size(1280, 720),
+      center: true,
+      backgroundColor: Colors.black,
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.normal,
+      title: 'termisol',
+    );
+    await windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
   }
 
   // Only set mobile orientations on actual mobile platforms

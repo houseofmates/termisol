@@ -611,34 +611,43 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               // Terminal area
               Expanded(
-                child: IndexedStack(
-                  index: _tabs.indexWhere((tab) => tab.id == _activeTab),
-                  children: _tabs.map((tab) {
-                    return Container(
-                      key: ValueKey(tab.id),
-                      color: PkmTheme.terminalBg,
-                      padding: EdgeInsets.zero,
-                      child: Container(
-                        constraints: const BoxConstraints.expand(),
-                        decoration: BoxDecoration(
-                          color: Colors.black,
-                          border: Border.all(
-                            color: PkmTheme.primary.withValues(alpha: 0.3),
-                          ),
-                          borderRadius: BorderRadius.zero,
-                        ),
-                        child: TermisolTerminalView(
-                          session: tab,
-                          focusNode: _tabFocusNodes[tab.id],
-                          onNewTab: _addTab,
-                          onCloseTab: () => _closeTab(
-                            _tabs.indexWhere((t) => t.id == tab.id),
-                          ),
-                        ),
+                child: _isSplit && _tabs.length >= 2
+                    ? SplitPane(
+                        sessions: [activeSession, lastSession].whereType<TerminalSession>().toList(),
+                        onNewTab: _addTab,
+                        onCloseTab: () {
+                          final idx = _tabs.indexWhere((t) => t.id == _activeTab);
+                          if (idx >= 0) _closeTab(idx);
+                        },
+                      )
+                    : IndexedStack(
+                        index: _tabs.indexWhere((tab) => tab.id == _activeTab),
+                        children: _tabs.map((tab) {
+                          return Container(
+                            key: ValueKey(tab.id),
+                            color: PkmTheme.terminalBg,
+                            padding: EdgeInsets.zero,
+                            child: Container(
+                              constraints: const BoxConstraints.expand(),
+                              decoration: BoxDecoration(
+                                color: Colors.black,
+                                border: Border.all(
+                                  color: PkmTheme.primary.withValues(alpha: 0.3),
+                                ),
+                                borderRadius: BorderRadius.zero,
+                              ),
+                              child: TermisolTerminalView(
+                                session: tab,
+                                focusNode: _tabFocusNodes[tab.id],
+                                onNewTab: _addTab,
+                                onCloseTab: () => _closeTab(
+                                  _tabs.indexWhere((t) => t.id == tab.id),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
-                    );
-                  }).toList(),
-                ),
               ),
             ],
           ),

@@ -2708,14 +2708,23 @@ Once configured, I'll provide intelligent assistance based on your file context.
             child: _buildLineNumbers(),
           ),
         
-        // Markdown editor
+        // Markdown editor with custom scrollbar
         Expanded(
           child: GestureDetector(
             onTapDown: _mouseEnabled ? (details) => _handleMouseClick(details) : null,
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(12),
-              child: _buildMarkdownRenderer(_controller.text),
+            child: Row(
+              children: [
+                // Editor content
+                Expanded(
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(12),
+                    child: _buildMarkdownRenderer(_controller.text),
+                  ),
+                ),
+                // Custom scrollbar
+                _buildCustomScrollbar(),
+              ],
             ),
           ),
         ),

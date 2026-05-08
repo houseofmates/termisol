@@ -220,7 +220,6 @@ class HighPerformanceTerminalRenderer extends CustomPainter {
     ))
       ..pushStyle(ui.TextStyle(
         color: style.foregroundColor ?? const ui.Color(0xFFf7da88),
-        backgroundColor: style.backgroundColor,
         fontWeight: style.bold ? FontWeight.bold : FontWeight.normal,
         fontStyle: style.italic ? FontStyle.italic : FontStyle.normal,
         decoration: style.underline ? TextDecoration.underline : TextDecoration.none,

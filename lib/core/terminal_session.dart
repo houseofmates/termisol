@@ -169,6 +169,7 @@ class TerminalSession extends ChangeNotifier {
       // Initialize async subsystems
       unawaited(_pluginSystem.initialize());
       unawaited(graphicsHandler.initialize());
+      unawaited(_commandChaining.initialize());
 
       // Enable terminal features
       terminal.write('\x1b[?2004h'); // bracketed paste
@@ -245,6 +246,8 @@ class TerminalSession extends ChangeNotifier {
       // Record non-empty commands to history
       if (bufferText.isNotEmpty) {
         commandHistory.add(bufferText);
+        // Record for smart chaining
+        _commandChaining.recordCommand(id, bufferText, cwd: _backend?.workingDirectory);
       }
     }
 

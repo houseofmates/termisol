@@ -22,6 +22,7 @@ import 'termisol_plugin_system.dart';
 import 'graphics_protocol_handler.dart';
 import 'ring_buffer_scrollback.dart';
 import 'command_history.dart';
+import 'directory_tracker.dart';
 import '../ui/clipboard_manager.dart';
 
 /// Called when the user types `/ai <query>` and presses Enter.
@@ -54,6 +55,9 @@ class TerminalSession extends ChangeNotifier {
   String? _error;
   final CommandHistory commandHistory = CommandHistory();
   StreamSubscription<List<int>>? _outputSub;
+  late final DirectoryTracker _directoryTracker;
+  late final ValueNotifier<String?> _directoryNotifier;
+  ValueNotifier<String?> get directory => _directoryNotifier;
 
   /// Called when the user types `/ai <query>` and presses Enter.
   AiQueryHandler? onAiQuery;
@@ -149,6 +153,12 @@ class TerminalSession extends ChangeNotifier {
     throttledRenderer = ThrottledRenderer(terminal);
     clipboardManager = TerminalClipboardManager(terminal, controller);
     graphicsHandler = GraphicsProtocolHandler(terminal, controller);
+
+    _directoryTracker = DirectoryTracker();
+    _directoryNotifier = ValueNotifier<String?>(null);
+    _directoryTracker.directory.addListener(() {
+      _directoryNotifier.value = _directoryTracker.currentDirectory;
+    });
 
     // Setup advanced features
     focusManager.enableFocusEvents();
@@ -353,6 +363,8 @@ class TerminalSession extends ChangeNotifier {
     }
 
     _backend = null;
+    _directoryTracker.dispose();
+    _directoryNotifier.dispose();
     _sessionPersistence.dispose();
     _crashRecovery.dispose();
     _commandNotifier.dispose();

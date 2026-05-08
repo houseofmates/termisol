@@ -46,12 +46,27 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     HeaderbarActions.action.removeListener(_onHeaderbarAction);
     for (final tab in _tabs) {
+      tab.directory.removeListener(_onDirectoryChanged);
       tab.dispose();
     }
     for (final node in _tabFocusNodes.values) {
       node.dispose();
     }
     super.dispose();
+  }
+
+  void _onDirectoryChanged() {
+    if (mounted) setState(() {});
+  }
+
+  String _tabDisplayName(TerminalSession tab) {
+    final dir = tab.directory.value;
+    if (dir == null || dir.isEmpty) return tab.name;
+    if (dir == '~') return '~';
+    final home = Platform.environment['HOME'] ?? '';
+    if (dir == home) return '~';
+    final parts = dir.split('/');
+    return parts.lastWhere((p) => p.isNotEmpty, orElse: () => dir);
   }
 
   void _onHeaderbarAction() {
@@ -156,6 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     session.onAiQuery = _handleAiQuery;
     session.onEditCommand = _handleEditCommand;
+    session.directory.addListener(_onDirectoryChanged);
     session.start();
 
     _tabs.add(session);
@@ -178,6 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
       name: 'Terminal ${_tabs.length + 1}',
     );
     newTab.onAiQuery = _handleAiQuery;
+    newTab.directory.addListener(_onDirectoryChanged);
     newTab.start();
 
     setState(() {
@@ -201,6 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_tabs.length > 1 && index >= 0 && index < _tabs.length) {
       final tab = _tabs[index];
       final tabId = tab.id;
+      tab.directory.removeListener(_onDirectoryChanged);
       tab.dispose();
       _tabFocusNodes[tabId]?.dispose();
 
@@ -568,7 +586,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           height: double.infinity,
                                           alignment: Alignment.centerLeft,
                                           child: Text(
-                                            tab.name,
+                                            _tabDisplayName(tab),
                                             style: TextStyle(
                                               color: isActive
                                                   ? PkmTheme.primary

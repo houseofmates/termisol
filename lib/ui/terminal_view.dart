@@ -209,9 +209,45 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
             onKeyEvent: _handleKeyEvent,
             padding: EdgeInsets.zero,
             onSecondaryTapUp: (details, offset) => _showContextMenu(context, details.globalPosition),
+            // Graphics overlay for inline images
+            overlay: _buildGraphicsOverlay(),
           ),
         ),
       ),
+    );
+  }
+
+  Widget? _buildGraphicsOverlay() {
+    // Build overlay for inline graphics from GraphicsProtocolHandler
+    final graphicsImages = _graphicsHandler.getCachedImages();
+    if (graphicsImages.isEmpty) return null;
+
+    return Stack(
+      children: graphicsImages.entries.map((entry) {
+        final imageId = entry.key;
+        final image = entry.value;
+
+        // Position images based on terminal coordinates
+        // This is a simplified implementation - real implementation would track image positions
+        return Positioned(
+          left: 0,
+          top: 0,
+          child: FutureBuilder<Uint8List?>(
+            future: _graphicsHandler.convertImageForDisplay(imageId),
+            builder: (context, snapshot) {
+              if (snapshot.hasData && snapshot.data != null) {
+                return Image.memory(
+                  snapshot.data!,
+                  width: image.width.toDouble(),
+                  height: image.height.toDouble(),
+                  fit: BoxFit.contain,
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+        );
+      }).toList(),
     );
   }
 

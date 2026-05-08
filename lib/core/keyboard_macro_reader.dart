@@ -120,15 +120,8 @@ class KeyboardMacroReader {
             'modifiers': mods,
           });
         }
-        await ServicesBinding.instance.keyEventManager.handleKeyEvent(
-          KeyMessage.fromRawKeyDownData(
-            LogicalKeyboardKey.fromInt(event.key.codeUnitAt(0)),
-            physicalKey: PhysicalKeyboardKey.fromInt(event.key.codeUnitAt(0)),
-            character: event.key,
-            timeStamp: Duration.zero,
-            synthesized: false,
-          ),
-        );
+        // Keyboard event replay not available in Flutter's public API
+        // await ServicesBinding.instance.keyEventManager.handleKeyEvent(...);
       }
     }
 

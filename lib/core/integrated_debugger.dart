@@ -36,7 +36,7 @@ class IntegratedDebugger {
 
   /// Initialize debugger
   Future<void> initialize() async {
-    if (_initialized) return;
+    if (_initialized) return null;
 
     try {
       await _loadDebugAdapters();
@@ -133,7 +133,7 @@ class IntegratedDebugger {
 
   /// Stop current debug session
   Future<void> stopDebugSession() async {
-    if (_currentSession == null) return;
+    if (_currentSession == null) return null;
 
     try {
       await _currentSession!.adapter.stopSession(_currentSession!);
@@ -194,7 +194,7 @@ class IntegratedDebugger {
 
   /// Step over
   Future<void> stepOver() async {
-    if (_currentSession == null) return;
+    if (_currentSession == null) return null;
     
     try {
       await _currentSession!.adapter.stepOver(_currentSession!);
@@ -206,7 +206,7 @@ class IntegratedDebugger {
 
   /// Step into
   Future<void> stepInto() async {
-    if (_currentSession == null) return;
+    if (_currentSession == null) return null;
     
     try {
       await _currentSession!.adapter.stepInto(_currentSession!);
@@ -218,7 +218,7 @@ class IntegratedDebugger {
 
   /// Step out
   Future<void> stepOut() async {
-    if (_currentSession == null) return;
+    if (_currentSession == null) return null;
     
     try {
       await _currentSession!.adapter.stepOut(_currentSession!);
@@ -230,7 +230,7 @@ class IntegratedDebugger {
 
   /// Continue execution
   Future<void> continue() async {
-    if (_currentSession == null) return;
+    if (_currentSession == null) return null;
     
     try {
       await _currentSession!.adapter.continue(_currentSession!);

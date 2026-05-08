@@ -53,7 +53,9 @@ class SSHKeyManager {
 
   /// Generate cryptographically secure ID for keys
   String _generateSecureId() {
-    final random = SecureRandom('AES/CTR/AUTO-PADDING:SHA256');
+    final seed = math.Random().nextInt(1000000);
+    final random = SecureRandom('AES/CTR/AUTO-PADDING:SHA256')
+      ..seed(KeyParameter(Uint8List.fromList(seed.toRadixString(16).padLeft(8, '0').codeUnits)));
     final bytes = random.nextBytes(16);
     return base64Url.encode(bytes).replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
   }

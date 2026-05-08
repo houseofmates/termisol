@@ -500,7 +500,7 @@ class PoolingStats {
   });
 }
 
-/// Example factory for database connections
+/// Example factory for database connections - demonstrates resource pooling pattern
 class DatabaseConnectionFactory implements PoolFactory<DatabaseConnection> {
   @override
   Future<DatabaseConnection> create([Map<String, dynamic>? parameters]) async {
@@ -530,7 +530,7 @@ class DatabaseConnectionFactory implements PoolFactory<DatabaseConnection> {
   }
 }
 
-/// Example database connection class
+/// Example database connection class - shows pooled resource implementation
 class DatabaseConnection {
   bool _connected = false;
   

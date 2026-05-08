@@ -245,7 +245,7 @@ class SyncConflictResolver {
       if (host == '192.168.4.250') {
         return '{"memster_host": "192.168.4.233", "database": "memster.db"}'; // Production NocoBase host
       } else {
-        return '{"memster_host": "192.168.4.250", "database": "memster.db"}';
+        return '{"memster_host": "192.168.4.250", "database": "memster.db"}'; // Production Memster host
       }
     }
     return null;

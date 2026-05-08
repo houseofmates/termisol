@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
@@ -10,60 +9,41 @@ import 'package:path_provider/path_provider.dart';
 import 'app.dart';
 import 'core/service_registry.dart';
 import 'core/service_factories.dart';
-import 'core/adaptive_rendering_system.dart';
 
 /// Setup global error handling and crash reporting
 Future<void> _setupErrorHandling() async {
-  // Handle Flutter errors
   FlutterError.onError = (FlutterErrorDetails details) async {
     await _logError('Flutter Error', details.exceptionAsString(), details.stack);
-    _reportErrorToUser(details.exceptionAsString());
+    _showErrorDialog(details.exceptionAsString());
   };
 
-  // Handle platform errors
   PlatformDispatcher.instance.onError = (error, stack) {
     _logError('Platform Error', error.toString(), stack);
-    _reportErrorToUser(error.toString());
+    _showErrorDialog(error.toString());
     return true;
   };
 }
 
-/// Enhanced error logging with structured data
+/// Log error to local file
 Future<void> _logError(String type, String error, StackTrace? stack) async {
   try {
     final directory = await getApplicationDocumentsDirectory();
     final logFile = File('${directory.path}/termisol_crash_log.txt');
-    
-    // Keep log file size manageable (max 10MB)
-    if (await logFile.exists() && await logFile.length() > 10 * 1024 * 1024) {
-      await logFile.rename('${directory.path}/termisol_crash_log_${DateTime.now().millisecondsSinceEpoch}.txt');
-    }
 
     final timestamp = DateTime.now().toIso8601String();
-    final structuredLog = {
-      'timestamp': timestamp,
-      'type': type,
-      'error': error,
-      'stack': stack?.toString(),
-      'platform': Platform.operatingSystem,
-      'version': '1.0.0',
-    };
+    final logEntry = '''
+[$timestamp] $type:
+Error: $error
+Stack Trace:
+${stack ?? 'No stack trace available'}
 
-    await logFile.writeAsString(
-      '${jsonEncode(structuredLog)}\n',
-      mode: FileMode.append,
-    );
+---
+''';
+
+    await logFile.writeAsString(logEntry, mode: FileMode.append);
   } catch (e) {
-    // Fallback to system logging
-    if (kDebugMode) {
-      print('CRITICAL: Failed to log error: $e');
-    }
+    debugPrint('Failed to log error: $e');
   }
-}
-
-/// User-friendly error reporting
-void _reportErrorToUser(String error) {
-  ErrorReporter.reportError(error);
 }
 
 /// Global error state
@@ -82,13 +62,16 @@ class ErrorReporter {
   }
 }
 
+/// Show user-friendly error dialog
+void _showErrorDialog(String error) {
+  ErrorReporter.reportError(error);
+}
 
-/// entry point for termisol with lazy-loading service registry.
-/// critical services start immediately; everything else is on-demand.
+/// Entry point for termisol with lazy-loading service registry.
+/// Critical services start immediately; everything else is on-demand.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Setup global error handling
   await _setupErrorHandling();
 
   if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
@@ -109,22 +92,21 @@ void main() async {
     }
   }
 
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  // Only set mobile orientations on actual mobile platforms
+  if (Platform.isAndroid || Platform.isIOS) {
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  }
 
   final registry = _registerServices();
   await registry.initializeCritical();
 
-  // Initialize adaptive rendering system for multi-device optimization
-  await AdaptiveRenderingSystem.instance.initialize();
-
-  debugPrint('🚀 termisol started (lazy init)');
+  if (kDebugMode) debugPrint('termisol started (lazy init)');
   runZonedGuarded(() {
     runApp(TermisolApp(registry: registry));
   }, (error, stackTrace) async {
@@ -140,7 +122,7 @@ ServiceRegistry _registerServices() {
 
   // Core terminal features
   r.register(TermisolFeatures.terminalCore, () => true);
-  
+
   // AI and performance features
   r.register(TermisolFeatures.aiAssistant, () => ServiceFactories.createAIAssistant());
   r.register(TermisolFeatures.performanceMonitoring, () => ServiceFactories.createPerformanceEnforcer());
@@ -151,7 +133,7 @@ ServiceRegistry _registerServices() {
   r.register(TermisolFeatures.backgroundProcessor, () => ServiceFactories.createBackgroundProcessor());
   r.register(TermisolFeatures.memoryOptimizer, () => ServiceFactories.createMemoryOptimizer());
   r.register(TermisolFeatures.networkResilience, () => ServiceFactories.createNetworkResilience());
-  
+
   // Advanced features
   r.register(TermisolFeatures.sessionSync, () => ServiceFactories.createSessionSyncManager());
   r.register(TermisolFeatures.llmPluginSystem, () => ServiceFactories.createLLMPluginSystem());
@@ -162,7 +144,7 @@ ServiceRegistry _registerServices() {
   r.register(TermisolFeatures.conversationalAI, () => ServiceFactories.createConversationalAI());
   r.register(TermisolFeatures.automatedWorkflows, () => ServiceFactories.createAutomatedWorkflowSystem());
   r.register(TermisolFeatures.vrSupport, () => ServiceFactories.createAdvancedVRTerminal());
-  
+
   // Integration features
   r.register(TermisolFeatures.gitIntegration, () => ServiceFactories.createGitHubIntegration());
   r.register(TermisolFeatures.neuralProcessing, () => ServiceFactories.createNeuralProcessingSystem());
@@ -171,7 +153,7 @@ ServiceRegistry _registerServices() {
   r.register(TermisolFeatures.audioAlertService, () => ServiceFactories.createAudioAlertService());
   r.register(TermisolFeatures.keyboardMacroReader, () => ServiceFactories.createKeyboardMacroReader());
   r.register(TermisolFeatures.syncServices, () => ServiceFactories.createSyncServices());
-  
+
   // Development and operations features
   r.register(TermisolFeatures.dockerIntegration, () => ServiceFactories.createDockerOperations());
   r.register(TermisolFeatures.integratedDebugger, () => ServiceFactories.createIntegratedDebugger());
@@ -179,25 +161,35 @@ ServiceRegistry _registerServices() {
   r.register(TermisolFeatures.configurableHotkeys, () => ServiceFactories.createConfigurableHotkeys());
   r.register(TermisolFeatures.smoothAnimations, () => ServiceFactories.createSmoothAnimations());
   r.register(TermisolFeatures.autoBackupSystem, () => ServiceFactories.createAutoBackupSystem());
-   r.register(TermisolFeatures.autoSshKeyManagement, () => ServiceFactories.createAutoSSHKeyManagement());
-   r.register(TermisolFeatures.multihopSsh, () => ServiceFactories.createMultihopSSH());
-   r.register(TermisolFeatures.tunnelManagement, () => ServiceFactories.createTunnelManagement());
-   r.register(TermisolFeatures.sshConnectionPersistence, () => ServiceFactories.createSSHConnectionPersistence());
+
+  // SSH extras - use a single composite registration instead of overwriting
+  r.register(TermisolFeatures.sshExtras, () => _createSshExtras());
+
   r.register(TermisolFeatures.codeIntelligence, () => ServiceFactories.createCodeIntelligence());
   r.register(TermisolFeatures.databaseClient, () => ServiceFactories.createDatabaseClient());
   r.register(TermisolFeatures.sessionRecovery, () => ServiceFactories.createSessionRecovery());
   r.register(TermisolFeatures.commandGuard, () => ServiceFactories.createCommandGuard());
   r.register(TermisolFeatures.asciicastRecorder, () => ServiceFactories.createAsciicastRecorder());
-  
+
   // Content and media features
   r.register(TermisolFeatures.fileManager, () => true);
   r.register(TermisolFeatures.videoPlayback, () => true);
   r.register(TermisolFeatures.audioVisualization, () => true);
   r.register(TermisolFeatures.model3d, () => true);
-  
+
   // Protocol and rendering features
   r.register(TermisolFeatures.advancedTerminalProtocol, () => ServiceFactories.createAdvancedTerminalProtocol());
   r.register(TermisolFeatures.adaptiveCompressionNetwork, () => ServiceFactories.createAdaptiveCompressionNetwork());
 
   return r;
+}
+
+/// Composite SSH extras factory.
+dynamic _createSshExtras() {
+  return {
+    'autoSSHKeyManagement': ServiceFactories.createAutoSSHKeyManagement(),
+    'multihopSSH': ServiceFactories.createMultihopSSH(),
+    'tunnelManagement': ServiceFactories.createTunnelManagement(),
+    'sshConnectionPersistence': ServiceFactories.createSSHConnectionPersistence(),
+  };
 }

@@ -23,7 +23,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<TerminalSession> _tabs = [];
   final Map<String, FocusNode> _tabFocusNodes = {};
   String _activeTab = '0';
-  bool _showFps = false;
 
   @override
   void initState() {
@@ -49,10 +48,6 @@ class _HomeScreenState extends State<HomeScreen> {
       // Graceful degradation: AI fails, but terminal continues working
       debugPrint('AI query failed, continuing without AI: $e');
     }
-  }
-
-  void _toggleFps() {
-    setState(() => _showFps = !_showFps);
   }
 
   void _showSettings() {
@@ -120,14 +115,6 @@ class _HomeScreenState extends State<HomeScreen> {
             color: PkmTheme.terminalBg,
             child: Row(
               children: [
-                IconButton(
-                  onPressed: _toggleFps,
-                  icon: Icon(
-                    _showFps ? Icons.speed : Icons.speed_outlined,
-                    color: _showFps ? Colors.red : PkmTheme.primary,
-                  ),
-                  tooltip: 'Toggle FPS',
-                ),
                 IconButton(
                   onPressed: _addTab,
                   icon: const Icon(Icons.add, color: PkmTheme.primary),

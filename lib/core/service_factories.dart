@@ -1,3 +1,4 @@
+import 'package:xterm/xterm.dart';
 import '../ai/ai_terminal_assistant.dart';
 import '../core/advanced_terminal_protocol.dart';
 import '../core/adaptive_compression_network.dart';

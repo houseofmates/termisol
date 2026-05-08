@@ -1322,6 +1322,8 @@ class GPUShader {
   bool compiled;
   Uint8List binary;
   final DateTime createdAt;
+  Duration? compilationTime;
+  String? error;
 
   GPUShader({
     required this.id,
@@ -1333,6 +1335,8 @@ class GPUShader {
     required this.compiled,
     required this.binary,
     required this.createdAt,
+    this.compilationTime,
+    this.error,
   });
 }
 

@@ -242,13 +242,11 @@ class TerminalCollaboration {
         break;
         
       case CollaborationEventType.chatMessage:
-        final message = ChatMessage.fromJson(event.data);
-        _onChatMessage.forEach((callback) => callback(message));
+        _onChatMessage.forEach((callback) => callback(event.data as Map<String, dynamic>));
         break;
         
       case CollaborationEventType.systemNotification:
-        final notification = SystemNotification.fromJson(event.data);
-        _onSystemNotification.forEach((callback) => callback(notification));
+        _onSystemNotification.forEach((callback) => callback(event.data as Map<String, dynamic>));
         break;
     }
     

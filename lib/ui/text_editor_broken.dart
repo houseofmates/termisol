@@ -696,20 +696,24 @@ class _TextEditorState extends State<TextEditor> {
                 const Spacer(),
                 
                 // Multi-cursor indicator
-                if (_multiCursorMode)
+                if (_multiCursorMode || _isAltPressed)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.purple[700],
+                      color: _isAltPressed ? Colors.orange[700] : Colors.purple[700],
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.control_point, color: Colors.white, size: 12),
+                        Icon(
+                          _isAltPressed ? Icons.keyboard_alt : Icons.control_point,
+                          color: Colors.white,
+                          size: 12,
+                        ),
                         const SizedBox(width: 4),
                         Text(
-                          '${_cursors.length} Cursors',
+                          _isAltPressed ? 'Alt Mode' : '${_cursors.length} Cursors',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,

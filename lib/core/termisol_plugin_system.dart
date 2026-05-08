@@ -1,11 +1,7 @@
 import 'dart:async';
-import 'dart:collection';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
-import 'package:termisol/core/logging_system.dart';
 
 /// Termisol Plugin System
 ///
@@ -136,7 +132,7 @@ class TermisolPluginSystem {
       ));
 
       return true;
-    } catch (e, stack) {
+    } catch (e) {
       _eventController.add(PluginSystemEvent(
         PluginSystemEventType.loadFailed,
         'Failed to load plugin from $pluginPath: $e',

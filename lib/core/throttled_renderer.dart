@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
 
@@ -43,7 +42,7 @@ class ThrottledRenderer {
     
     try {
       // Batch all pending output
-      final batch = _pendingOutput.join('');
+      final batch = _pendingOutput.join();
       _pendingOutput.clear();
       
       // Send to terminal in one go

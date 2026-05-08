@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -138,7 +137,6 @@ class EnhancedAISuggestions {
           results.add(Suggestion(
             text: cmd,
             description: 'Previously used command',
-            type: SuggestionType.command,
             confidence: 0.7,
             sourceId: 'history',
           ));
@@ -156,16 +154,15 @@ class EnhancedAISuggestions {
         results.add(Suggestion(
           text: 'npm test',
           description: 'Run tests in $dir',
-          type: SuggestionType.command,
           confidence: 0.6,
           sourceId: 'semantic',
         ));
       }
       if (input.startsWith('git')) {
         results.addAll([
-          Suggestion(text: 'git status', description: 'Check repository status', type: SuggestionType.command, confidence: 0.8, sourceId: 'semantic'),
-          Suggestion(text: 'git add -A && git commit -m "update"', description: 'Stage and commit all changes', type: SuggestionType.command, confidence: 0.7, sourceId: 'semantic'),
-          Suggestion(text: 'git push', description: 'Push to remote', type: SuggestionType.command, confidence: 0.7, sourceId: 'semantic'),
+          Suggestion(text: 'git status', description: 'Check repository status', confidence: 0.8, sourceId: 'semantic'),
+          Suggestion(text: 'git add -A && git commit -m "update"', description: 'Stage and commit all changes', confidence: 0.7, sourceId: 'semantic'),
+          Suggestion(text: 'git push', description: 'Push to remote', confidence: 0.7, sourceId: 'semantic'),
         ]);
       }
     }
@@ -232,7 +229,6 @@ class EnhancedAISuggestions {
             text: (m['text'] as String?) ?? '',
             description: (m['description'] as String?) ?? '',
             type: SuggestionType.values.byName(m['type']?.toString() ?? 'command'),
-            confidence: 0.5,
             sourceId: 'llm',
           );
         }).where((s) => s.text.isNotEmpty).toList();

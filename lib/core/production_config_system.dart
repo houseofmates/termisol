@@ -120,28 +120,28 @@ class ProductionConfigSystem {
     _validators['performance.target_fps'] = (value) {
       final fps = value as num?;
       if (fps == null || fps < 30 || fps > 120) {
-        throw ConfigValidationError('FPS must be between 30 and 120');
+        throw const ConfigValidationError('FPS must be between 30 and 120');
       }
     };
 
     _validators['performance.max_memory_mb'] = (value) {
       final memory = value as num?;
       if (memory == null || memory < 64 || memory > 4096) {
-        throw ConfigValidationError('Memory limit must be between 64MB and 4GB');
+        throw const ConfigValidationError('Memory limit must be between 64MB and 4GB');
       }
     };
 
     _validators['terminal.scrollback_lines'] = (value) {
       final lines = value as num?;
       if (lines == null || lines < 100 || lines > 100000) {
-        throw ConfigValidationError('Scrollback lines must be between 100 and 100,000');
+        throw const ConfigValidationError('Scrollback lines must be between 100 and 100,000');
       }
     };
 
     _validators['ai.max_tokens'] = (value) {
       final tokens = value as num?;
       if (tokens == null || tokens < 128 || tokens > 32768) {
-        throw ConfigValidationError('Max tokens must be between 128 and 32,768');
+        throw const ConfigValidationError('Max tokens must be between 128 and 32,768');
       }
     };
   }
@@ -433,7 +433,7 @@ class ProductionConfigSystem {
     final key = keys[0];
     final remaining = keys.sublist(1);
 
-    if (!map.containsKey(key) || !(map[key] is Map)) {
+    if (!map.containsKey(key) || map[key] is! Map) {
       map[key] = <String, dynamic>{};
     }
 
@@ -454,7 +454,7 @@ class ProductionConfigSystem {
       }
 
       // Save new config
-      final jsonString = JsonEncoder.withIndent('  ').convert(_config);
+      final jsonString = const JsonEncoder.withIndent('  ').convert(_config);
       await _configFile!.writeAsString(jsonString);
 
       _lastSaveTime = DateTime.now();
@@ -490,7 +490,7 @@ class ProductionConfigSystem {
 
   /// Export configuration for backup/sharing
   Future<String> export() async {
-    return JsonEncoder.withIndent('  ').convert(_config);
+    return const JsonEncoder.withIndent('  ').convert(_config);
   }
 
   /// Import configuration from string

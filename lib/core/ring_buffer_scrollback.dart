@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:xterm/xterm.dart';
 
 /// High-performance ring buffer for terminal scrollback with memory optimization
 /// Prevents memory exhaustion and provides configurable limits with compression
@@ -150,7 +148,7 @@ class RingBufferScrollback {
     for (int i = 0; i < linesToCompress; i++) {
       final index = (startIndex + i) % maxLines;
       final line = _buffer[index];
-      if (line != null && !line.isCompressed) {
+      if (!line.isCompressed) {
         _compressLine(index);
       }
     }
@@ -161,7 +159,7 @@ class RingBufferScrollback {
   /// Compress a single line
   void _compressLine(int index) {
     final line = _buffer[index];
-    if (line == null || line.isCompressed) return;
+    if (line.isCompressed) return;
     
     try {
       final text = line.getText();

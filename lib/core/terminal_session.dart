@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
 import 'pty_backend.dart';
@@ -111,7 +110,7 @@ class TerminalSession extends ChangeNotifier {
       gcThreshold: maxLines ~/ 2, // GC at 50% capacity
     );
     
-    terminal = Terminal(maxLines: 1000); // Keep terminal buffer small for performance
+    terminal = Terminal(); // Keep terminal buffer small for performance
     controller = TerminalController();
 
     // Initialize optimization managers
@@ -138,7 +137,7 @@ class TerminalSession extends ChangeNotifier {
     trueColor.enable();
     kittyGraphics.enable();
     mouseProtocol.enable(TermisolMouseMode.any);
-    ligatureFont.setFont('Fira Code', enableLigatures: true);
+    ligatureFont.setFont('Fira Code');
 
     // Start health monitoring and auto-save
     _crashRecovery.startHealthMonitoring(id);

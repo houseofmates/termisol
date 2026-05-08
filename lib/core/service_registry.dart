@@ -65,7 +65,7 @@ class ServiceRegistry {
       if (result is Future) {
         // Async initialization - return null for now, queue for completion
         _initQueue.add(name);
-        _completeAsyncInit(name, result as Future<dynamic>);
+        _completeAsyncInit(name, result);
         return null;
       }
 

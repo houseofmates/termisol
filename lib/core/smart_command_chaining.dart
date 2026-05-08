@@ -48,7 +48,7 @@ class SmartCommandChaining {
     if (duration != null) stats.totalDuration += duration;
     stats.lastUsed = DateTime.now();
 
-    CommandSession? activeSession = _getOrCreateSession(sessionId, cwd);
+    final CommandSession activeSession = _getOrCreateSession(sessionId, cwd);
 
     final previousCommand = activeSession.commands.isNotEmpty ? activeSession.commands.last : null;
     activeSession.commands.add(CommandEntry(
@@ -187,8 +187,12 @@ class SmartCommandChaining {
     if (a.isEmpty && b.isEmpty) return 1.0;
     if (a.isEmpty || b.isEmpty) return 0.0;
     final distances = List.generate(a.length + 1, (i) => List.filled(b.length + 1, 0));
-    for (int i = 0; i <= a.length; i++) distances[i][0] = i;
-    for (int j = 0; j <= b.length; j++) distances[0][j] = j;
+    for (int i = 0; i <= a.length; i++) {
+      distances[i][0] = i;
+    }
+    for (int j = 0; j <= b.length; j++) {
+      distances[0][j] = j;
+    }
     for (int i = 1; i <= a.length; i++) {
       for (int j = 1; j <= b.length; j++) {
         final cost = a[i - 1] == b[j - 1] ? 0 : 1;

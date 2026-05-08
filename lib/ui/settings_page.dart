@@ -240,14 +240,14 @@ class _SettingsPageState extends State<SettingsPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                const Row(
                   children: [
                     Icon(
                       Icons.health_and_safety,
                       color: PkmTheme.primary,
                       size: 20,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Text(
                       'service health report',
                       style: TextStyle(
@@ -298,7 +298,7 @@ class _SettingsPageState extends State<SettingsPage>
                         Expanded(
                           child: Text(
                             entry.key.replaceAll('_', ' ').toUpperCase(),
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 12,
                               color: PkmTheme.text,
                               fontFamily: PkmTheme.fontTerminal,
@@ -336,7 +336,7 @@ class _SettingsPageState extends State<SettingsPage>
   Widget _sectionTitle(String text) {
     return Text(
       text,
-      style: TextStyle(
+      style: const TextStyle(
         color: PkmTheme.primary,
         fontSize: 16,
         fontWeight: FontWeight.w600,
@@ -449,7 +449,7 @@ class _SettingsPageState extends State<SettingsPage>
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Colors.grey.shade700, width: 1),
+        border: Border.all(color: Colors.grey.shade700),
       ),
     );
   }

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
-import 'package:path/path.dart' as path;
 
 /// Comprehensive Logging and Debugging System for Termisol
 /// 

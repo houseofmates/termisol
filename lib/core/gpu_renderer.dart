@@ -1,6 +1,5 @@
 import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// GPU performance helper for Termisol.
@@ -26,7 +25,7 @@ class GpuRenderer {
     _initialized = true;
   }
 
-  void _warmUpGpu() async {
+  Future<void> _warmUpGpu() async {
     try {
       final recorder = ui.PictureRecorder();
       final canvas = ui.Canvas(recorder);

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -17,8 +16,8 @@ import 'package:xterm/xterm.dart';
 /// - Inline Images with proper rendering
 class GraphicsProtocolHandler {
   // Terminal reference for output interception
-  Terminal? _terminal;
-  TerminalController? _controller;
+  final Terminal? _terminal;
+  final TerminalController? _controller;
 
   bool _isInitialized = false;
   bool _trueColorEnabled = true;
@@ -42,7 +41,7 @@ class GraphicsProtocolHandler {
   int _nextImageId = 1;
 
   // Protocol state
-  GraphicsProtocolState _protocolState = GraphicsProtocolState();
+  final GraphicsProtocolState _protocolState = GraphicsProtocolState();
 
   // Rendering optimization
   final Map<String, ui.Picture> _pictureCache = {};
@@ -172,9 +171,9 @@ class GraphicsProtocolHandler {
       final code = int.parse(match.group(1)!);
       final colorMap = {
         30: Colors.black, 31: Colors.red, 32: Colors.green, 33: Colors.yellow,
-        34: Colors.blue, 35: Color(0xFFFF00FF), 36: Colors.cyan, 37: Colors.white,
+        34: Colors.blue, 35: const Color(0xFFFF00FF), 36: Colors.cyan, 37: Colors.white,
         40: Colors.black, 41: Colors.red, 42: Colors.green, 43: Colors.yellow,
-        44: Colors.blue, 45: Color(0xFFFF00FF), 46: Colors.cyan, 47: Colors.white,
+        44: Colors.blue, 45: const Color(0xFFFF00FF), 46: Colors.cyan, 47: Colors.white,
       };
       return colorMap[code] ?? Colors.white;
     }

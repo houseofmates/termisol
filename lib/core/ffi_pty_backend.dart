@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:ffi/ffi.dart';
 import 'pty_backend.dart';
@@ -191,7 +190,7 @@ class FfiPtyBackend implements TermisolPtyBackend {
     
     try {
       _ptyResize(_ptyFd, cols, rows);
-      debugPrint('[ffi_pty] Resized to ${cols}x${rows}');
+      debugPrint('[ffi_pty] Resized to ${cols}x$rows');
     } catch (e) {
       debugPrint('[ffi_pty] Resize error: $e');
     }

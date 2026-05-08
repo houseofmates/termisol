@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'package:flutter/foundation.dart';
@@ -114,7 +113,7 @@ class PluginManager {
       }
 
       return false;
-    } catch (e, stack) {
+    } catch (e) {
       _eventController.add(PluginEvent(
         PluginEventType.loadFailed,
         'Failed to load plugin: $e',

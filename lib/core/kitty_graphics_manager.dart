@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
-import 'package:flutter/services.dart';
 
 /// Manages Kitty Graphics Protocol for inline image rendering.
 /// Supports PNG, RGB, and 32-bit RGBA formats.
@@ -58,14 +56,14 @@ class KittyGraphicsManager {
       // Build Kitty graphics command
       final command = [
         'a=T', // Transmit to terminal
-        'f=${format.length},t=${format}', // Format and transmission
+        'f=${format.length},t=$format', // Format and transmission
         'i=$_imageId', // Image ID
-        's=${width},v=${height}', // Dimensions
+        's=$width,v=$height', // Dimensions
         'C=1', // More control data
       ];
       
       final header = 'G${command.join(',')};';
-      final payload = '${base64Image}\x1b\\';
+      final payload = '$base64Image\x1b\\';
       
       // Send in chunks to avoid terminal buffer limits
       const chunkSize = 4096;
@@ -75,7 +73,7 @@ class KittyGraphicsManager {
         final isLast = end >= base64Image.length;
         final chunkHeader = isLast ? 'm=1;' : 'm=0;';
         
-        terminal.write('\x1b_G${header}${chunkHeader}chunk$payload');
+        terminal.write('\x1b_G$header${chunkHeader}chunk$payload');
       }
       
       _imageId++;

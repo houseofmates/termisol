@@ -1,11 +1,11 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Colors;
 import 'package:flutter/services.dart';
 import 'package:ffi/ffi.dart';
 import 'package:xterm/xterm.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import '../core/terminal_session.dart';
 import 'openxr_bindings_complete.dart';
 import 'openxr_session.dart';
@@ -98,12 +98,12 @@ class OpenXRRenderer {
     final eyeTransform = _calculateEyeTransform(eyeIndex, view.pose);
     
     // Render terminal with depth
-    await _renderTerminalWithDepth(eyeTransform, eyeIndex);
+    await _renderTerminalWithDepth(eyeTransform, view);
   }
   
   /// Calculate eye transformation matrix
-  Matrix4 _calculateEyeTransform(int eyeIndex, XrView view) {
-    final transform = Matrix4.identity();
+  vm.Matrix4 _calculateEyeTransform(int eyeIndex, XrView view) {
+    final transform = vm.Matrix4.identity();
     
     // Set position
     transform.setTranslation(
@@ -121,17 +121,17 @@ class OpenXRRenderer {
   }
   
   /// Render terminal with 3D depth effects
-  Future<void> _renderTerminalWithDepth(Matrix4 transform, int eyeIndex) async {
-    _sceneBuilder.pushTransform(transform.storage);
+  Future<void> _renderTerminalWithDepth(vm.Matrix4 transform, XrView view) async {
+    _sceneBuilder.pushTransform(Float64List.fromList(transform.storage));
     
     // Render terminal background with depth
     _sceneBuilder.pushOpacity(200);
     
     // Add a rectangle for terminal background
     final backgroundPaint = ui.Paint()
-      ..color = Colors.black
+      ..color = MaterialColors.black
       ..style = ui.PaintingStyle.fill;
-    _sceneBuilder.addRect(ui.Rect.fromLTRB(-2, -1, 2, 1), backgroundPaint);
+    _sceneBuilder.addPicture(ui.Offset.zero, _getTerminalPicture());
     
     _sceneBuilder.addPicture(ui.Offset.zero, _getTerminalPicture());
     _sceneBuilder.pop();
@@ -151,26 +151,15 @@ class OpenXRRenderer {
     // Layer 1: Glowing edges
     _sceneBuilder.pushOpacity(100);
     final glowPaint = ui.Paint()
-      ..color = Colors.cyan.withValues(alpha: 0.3)
+      ..color = MaterialColors.cyan.withValues(alpha: 0.3)
       ..style = ui.PaintingStyle.stroke
       ..strokeWidth = 4.0;
-    _sceneBuilder.addRect(ui.Rect.fromLTRB(-2.1, -1.1, 2.1, 1.1), glowPaint);
+    _sceneBuilder.addPicture(ui.Offset.zero, _createGlowEffect());
     _sceneBuilder.pop();
     
     // Layer 2: Parallax background
     _sceneBuilder.pushOpacity(50);
-    final gradientPaint = ui.Paint()
-      ..shader = ui.Gradient.linear(
-        ui.Offset(-3, -2),
-        ui.Offset(3, 2),
-        [
-          Colors.black,
-          Colors.blue.withValues(alpha: 0.1),
-          Colors.cyan.withValues(alpha: 0.05),
-          Colors.black,
-        ],
-      );
-    _sceneBuilder.addRect(ui.Rect.fromLTRB(-3, -2, 3, 2), gradientPaint);
+    _sceneBuilder.addPicture(ui.Offset.zero, _createParallaxBackground());
     _sceneBuilder.pop();
   }
   
@@ -189,7 +178,7 @@ class OpenXRRenderer {
     
     // Draw terminal background
     final paint = ui.Paint()
-      ..color = Colors.black
+      ..color = MaterialColors.black
       ..style = ui.PaintingStyle.fill;
     canvas.drawRect(ui.Rect.fromLTRB(0, 0, 800, 600), paint);
     
@@ -203,7 +192,7 @@ class OpenXRRenderer {
   void _drawTerminalContent(ui.Canvas canvas, int rows, int cols) {
     // Draw terminal background
     final backgroundPaint = ui.Paint()
-      ..color = Colors.black
+      ..color = MaterialColors.black
       ..style = ui.PaintingStyle.fill;
     canvas.drawRect(ui.Rect.fromLTRB(0, 0, cols * 12.0, rows * 24.0), backgroundPaint);
     
@@ -240,7 +229,7 @@ class OpenXRRenderer {
         style: ui.TextStyle(
           fontFamily: 'DroidSansMono',
           fontSize: fontSize,
-          color: i == lines.length - 1 ? Colors.cyan : Colors.white,
+          color: i == lines.length - 1 ? MaterialColors.cyan : MaterialColors.white,
           height: 1.4,
         ),
       );

@@ -853,7 +853,11 @@ class _EditTerminalState extends State<EditTerminal> {
                             HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.shiftRight);
       
       if (event.logicalKey == LogicalKeyboardKey.escape) {
-        _showExitDialog();
+        if (_multiCursorMode) {
+          _clearMultiCursors();
+        } else {
+          _showExitDialog();
+        }
         return;
       }
       

@@ -226,9 +226,8 @@ class EnhancedAISuggestions {
       final end = response.lastIndexOf(']');
       if (start >= 0 && end > start) {
         final jsonStr = response.substring(start, end + 1);
-        final list = json.decode(jsonStr) as List;
-        return list.map((item) {
-          final m = item as Map<String, dynamic>;
+        final list = (json.decode(jsonStr) as List).cast<Map<String, dynamic>>();
+        return list.map((m) {
           return Suggestion(
             text: m['text'] ?? '',
             description: m['description'] ?? '',

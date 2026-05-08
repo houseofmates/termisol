@@ -4,11 +4,13 @@ import 'package:flutter/services.dart';
 import '../core/service_registry.dart';
 import '../core/terminal_session.dart';
 import '../core/ai_assistant_integration.dart';
+import '../core/headerbar_actions.dart';
 import '../config/pkm_theme.dart';
 import 'settings_page.dart';
 import 'terminal_view.dart';
 import 'command_palette.dart';
 import 'search_overlay.dart';
+import 'edit.dart';
 
 /// Home screen with core terminal functionality.
 /// Services are pulled lazily from the registry on first use.
@@ -32,6 +34,56 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _createInitialTab();
+    HeaderbarActions.action.addListener(_onHeaderbarAction);
+  }
+
+  @override
+  void dispose() {
+    HeaderbarActions.action.removeListener(_onHeaderbarAction);
+    for (final tab in _tabs) {
+      tab.dispose();
+    }
+    for (final node in _tabFocusNodes.values) {
+      node.dispose();
+    }
+    super.dispose();
+  }
+
+  void _onHeaderbarAction() {
+    final action = HeaderbarActions.action.value;
+    if (action == null) return;
+    switch (action) {
+      case 'newTab':
+        _addTab();
+        break;
+      case 'search':
+        _toggleSearch();
+        break;
+      case 'settings':
+        _showSettings();
+        break;
+      case 'dictate':
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('dictation not yet implemented')),
+        );
+        break;
+    }
+  }
+
+  void _handleEditCommand(String filePath) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => EditTerminal(
+          filePath: filePath,
+          initialContent: '',
+          onSave: (content) async {
+            final file = File(filePath);
+            await file.writeAsString(content);
+          },
+          onClose: () => Navigator.of(context).pop(),
+        ),
+      ),
+    );
   }
 
   TerminalSession? get _activeSession {
@@ -71,6 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
       name: 'Terminal',
     );
     session.onAiQuery = _handleAiQuery;
+    session.onEditCommand = _handleEditCommand;
     session.start();
 
     _tabs.add(session);

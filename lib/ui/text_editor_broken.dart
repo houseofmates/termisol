@@ -971,6 +971,27 @@ class _TextEditorState extends State<TextEditor> {
                             if (_contextMenuSelectedText != null) ...[
                               const Divider(height: 1, color: Colors.grey),
                               
+                              // Multi-cursor options
+                              _buildContextMenuItem(
+                                icon: Icons.control_point,
+                                label: 'Add Cursor Here',
+                                onPressed: () {
+                                  _hideContextMenu();
+                                  _addCursorAtPosition(_contextMenuPosition);
+                                },
+                              ),
+                              
+                              _buildContextMenuItem(
+                                icon: Icons.select_all,
+                                label: 'Select All Occurrences',
+                                onPressed: () {
+                                  _hideContextMenu();
+                                  _selectAllOccurrences();
+                                },
+                              ),
+                              
+                              const Divider(height: 1, color: Colors.grey),
+                              
                               // Translate
                               if (_deepL.isAvailable)
                                 _buildContextMenuItem(

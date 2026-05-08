@@ -14,14 +14,29 @@ import 'core/robust_error_handler.dart';
 
 /// Setup global error handling and crash reporting
 Future<void> _setupErrorHandling() async {
+  // Initialize robust error handler
+  await RobustErrorHandler().initialize();
+  
+  // Handle Flutter errors
   FlutterError.onError = (FlutterErrorDetails details) async {
-    await _logError('Flutter Error', details.exceptionAsString(), details.stack);
-    _showErrorDialog(details.exceptionAsString());
+    await RobustErrorHandler().handleError(
+      details.exception,
+      details.stack,
+      context: 'Flutter Error',
+      severity: ErrorSeverity.error,
+    );
+    _reportErrorToUser(details.exceptionAsString());
   };
 
+  // Handle platform errors
   PlatformDispatcher.instance.onError = (error, stack) {
-    _logError('Platform Error', error.toString(), stack);
-    _showErrorDialog(error.toString());
+    RobustErrorHandler().handleError(
+      error,
+      stack,
+      context: 'Platform Error',
+      severity: ErrorSeverity.error,
+    );
+    _reportErrorToUser(error.toString());
     return true;
   };
 }

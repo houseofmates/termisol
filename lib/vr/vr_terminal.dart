@@ -48,8 +48,6 @@ class _VrTerminalState extends State<VrTerminal> with TickerProviderStateMixin {
 
   // Animations
   late AnimationController _fadeController;
-  late Animation<double> _fadeAnimation;
-
   // Gesture state
   Timer? _gestureTimer;
   HandGesture _currentGesture = HandGesture.unknown;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../config/pkm_theme.dart';
 import '../core/service_registry.dart';
-import '../core/session_persistence.dart';
 import 'settings_items.dart';
 
 /// full-screen settings page with tabs and a back button.
@@ -26,6 +26,7 @@ class _SettingsPageState extends State<SettingsPage>
   bool _useSystemTheme = false;
   bool _transparentBackground = false;
   double _transparency = 1.0;
+  TermisolThemeMode _themeMode = TermisolThemeMode.dark;
 
   // terminal state
   bool _bellEnabled = true;
@@ -40,12 +41,32 @@ class _SettingsPageState extends State<SettingsPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _loadTheme();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('termisol_theme_mode');
+    if (saved != null) {
+      try {
+        final mode = TermisolThemeMode.values.byName(saved);
+        setState(() => _themeMode = mode);
+        PkmTheme.themeMode.value = mode;
+      } catch (_) {
+        // Invalid saved theme, ignore
+      }
+    }
+  }
+
+  Future<void> _saveTheme(TermisolThemeMode mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('termisol_theme_mode', mode.name);
   }
 
   @override
@@ -109,6 +130,35 @@ class _SettingsPageState extends State<SettingsPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _sectionTitle('theme'),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: TermisolThemeMode.values.map((mode) {
+              return ChoiceChip(
+                label: Text(
+                  mode.name,
+                  style: TextStyle(
+                    color: _themeMode == mode ? Colors.black : Colors.white,
+                    fontFamily: PkmTheme.fontUi,
+                    fontSize: 13,
+                  ),
+                ),
+                selected: _themeMode == mode,
+                selectedColor: PkmTheme.primary,
+                backgroundColor: PkmTheme.tabInactiveBg,
+                onSelected: (selected) {
+                  if (selected) {
+                    setState(() => _themeMode = mode);
+                    PkmTheme.themeMode.value = mode;
+                    _saveTheme(mode);
+                  }
+                },
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 24),
+
           _sectionTitle('font'),
           SettingsSlider(
             label: 'font size',
@@ -320,37 +370,6 @@ class _SettingsPageState extends State<SettingsPage>
                   );
                 }),
               ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          _sectionTitle('session history'),
-          const SizedBox(height: 8),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: PkmTheme.primary,
-              foregroundColor: PkmTheme.background,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            onPressed: () async {
-              await SessionPersistence.clear();
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'session history cleared',
-                      style: TextStyle(fontFamily: PkmTheme.fontUi),
-                    ),
-                    backgroundColor: PkmTheme.tabActiveBg,
-                  ),
-                );
-              }
-            },
-            child: const Text(
-              'clear session history',
-              style: TextStyle(fontFamily: PkmTheme.fontUi),
             ),
           ),
           const SizedBox(height: 24),

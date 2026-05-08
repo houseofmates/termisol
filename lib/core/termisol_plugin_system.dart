@@ -120,7 +120,7 @@ class TermisolPluginSystem {
       try {
         await plugin.dispose();
       } catch (e) {
-        print('Failed to dispose plugin ${plugin.name}: $e');
+        TermisolLogger().error('Failed to dispose plugin ${plugin.name}', error: e);
       }
     }
     

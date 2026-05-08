@@ -36,6 +36,7 @@ import 'package:flutter_highlight/themes/atom-one-dark.dart';
 import 'package:flutter_highlight/themes/markdown.dart';
 import 'package:path/path.dart' as path;
 import '../core/deep_l_service.dart';
+import '../core/nvidia_ai_client.dart';
 
 /// Advanced text editor with syntax highlighting for all languages
 /// Supports multiple themes, auto-completion, and advanced editing features
@@ -92,6 +93,17 @@ class _TextEditorState extends State<TextEditor> {
   String? _translatedText;
   bool _isTranslating = false;
   String? _selectedText;
+  
+  // Context menu
+  bool _showContextMenu = false;
+  Offset _contextMenuPosition = Offset.zero;
+  String? _contextMenuSelectedText;
+  
+  // AI Summarization
+  final NvidiaAIClient _nvidiaClient = NvidiaAIClient();
+  bool _showSummary = false;
+  String? _summaryText;
+  bool _isSummarizing = false;
 
   @override
   void initState() {
@@ -105,6 +117,7 @@ class _TextEditorState extends State<TextEditor> {
     
     _detectLanguage();
     _deepL.initialize();
+    _nvidiaClient.initialize();
   }
 
   @override
@@ -911,8 +924,121 @@ class _TextEditorState extends State<TextEditor> {
 
   void _handleRightClick(Offset position) {
     final selectedText = _controller.selection.textInside(_controller.text);
-    if (selectedText.isNotEmpty && _deepL.isAvailable) {
-      _translateSelectedText(selectedText);
+    setState(() {
+      _showContextMenu = true;
+      _contextMenuPosition = position;
+      _contextMenuSelectedText = selectedText.isNotEmpty ? selectedText : null;
+    });
+  }
+  
+  void _hideContextMenu() {
+    setState(() {
+      _showContextMenu = false;
+    });
+  }
+  
+  void _cutSelection() {
+    final selectedText = _controller.selection.textInside(_controller.text);
+    if (selectedText.isNotEmpty) {
+      Clipboard.setData(ClipboardData(text: selectedText));
+      final currentSelection = _controller.selection;
+      final newText = _controller.text.replaceRange(
+        currentSelection.start,
+        currentSelection.end,
+        '',
+      );
+      _controller.text = newText;
+      _controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: currentSelection.start),
+      );
+      _onTextChanged();
+    }
+    _hideContextMenu();
+  }
+  
+  void _copySelection() {
+    final selectedText = _controller.selection.textInside(_controller.text);
+    if (selectedText.isNotEmpty) {
+      Clipboard.setData(ClipboardData(text: selectedText));
+    }
+    _hideContextMenu();
+  }
+  
+  void _pasteFromClipboard() async {
+    final clipboardData = await Clipboard.getData('text/plain');
+    if (clipboardData?.text != null) {
+      final textToInsert = clipboardData!.text!;
+      final currentSelection = _controller.selection;
+      final newText = _controller.text.replaceRange(
+        currentSelection.start,
+        currentSelection.end,
+        textToInsert,
+      );
+      
+      _controller.text = newText;
+      _controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: currentSelection.start + textToInsert.length),
+      );
+      
+      _onTextChanged();
+    }
+    _hideContextMenu();
+  }
+  
+  void _pasteAndReplace() async {
+    final clipboardData = await Clipboard.getData('text/plain');
+    if (clipboardData?.text != null) {
+      final textToInsert = clipboardData!.text!;
+      _controller.text = textToInsert;
+      _controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: textToInsert.length),
+      );
+      _onTextChanged();
+    }
+    _hideContextMenu();
+  }
+  
+  void _selectAll() {
+    _controller.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: _controller.text.length,
+    );
+    _hideContextMenu();
+  }
+  
+  Future<void> _summarizeText(String text) async {
+    setState(() {
+      _isSummarizing = true;
+      _showSummary = true;
+      _summaryText = null;
+    });
+    
+    try {
+      final response = await _nvidiaClient.chatCompletion(
+        messages: [
+          ChatMessage(
+            role: 'system',
+            content: 'You are a helpful AI assistant. Summarize the given text concisely while preserving the main points and key details.',
+          ),
+          ChatMessage(
+            role: 'user',
+            content: 'Please summarize this text:\n\n$text',
+          ),
+        ],
+        model: 'moonshotai/kimi-k2.6',
+        maxTokens: 500,
+        temperature: 0.3,
+      );
+      
+      setState(() {
+        _summaryText = response.content;
+        _isSummarizing = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isSummarizing = false;
+        _summaryText = 'Summarization failed: $e';
+      });
     }
   }
   

@@ -558,7 +558,7 @@ class RobustErrorHandler {
         }
       }
     } catch (e) {
-      developer.log('Failed to load error history: $e');
+      debugPrint('Failed to load error history: $e');
     }
   }
   
@@ -587,9 +587,9 @@ class RobustErrorHandler {
       'totalErrors': _errorHistory.length,
       'errorCounts': _errorCounts,
       'lastErrors': _errorHistory.take(10).map((e) => e.toJson()).toList(),
-      'mostCommonErrors': _errorCounts.entries
+      'mostCommonErrors': (_errorCounts.entries
           .toList()
-          ..sort((a, b) => b.value.compareTo(a.value))
+          ..sort((a, b) => b.value.compareTo(a.value)))
           .take(5)
           .map((e) => {'error': e.key, 'count': e.value})
           .toList(),

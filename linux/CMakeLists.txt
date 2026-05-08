@@ -3,20 +3,18 @@ cmake_minimum_required(VERSION 3.13)
 project(runner LANGUAGES CXX)
 
 # Workaround for snap Flutter's bundled linker being incompatible with newer system libs.
-# Detect system lld first, then fall back to system ld. If neither exists, warn and continue.
-if(NOT CMAKE_LINKER OR CMAKE_LINKER STREQUAL "")
-  find_program(_SYSTEM_LINKER ld.lld PATHS /usr/bin /usr/local/bin)
-  if(NOT _SYSTEM_LINKER)
-    find_program(_SYSTEM_LINKER ld PATHS /usr/bin /usr/local/bin)
-  endif()
-  if(_SYSTEM_LINKER)
-    message(STATUS "termisol: using system linker ${_SYSTEM_LINKER}")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=${_SYSTEM_LINKER}")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=${_SYSTEM_LINKER}")
-    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fuse-ld=${_SYSTEM_LINKER}")
-  else()
-    message(WARNING "termisol: no system linker found (ld.lld or ld). Build may fail on snap Flutter.")
-  endif()
+# Force the use of the system linker regardless of what Flutter's toolchain sets.
+find_program(_SYSTEM_LINKER ld.lld PATHS /usr/bin /usr/local/bin)
+if(NOT _SYSTEM_LINKER)
+  find_program(_SYSTEM_LINKER ld PATHS /usr/bin /usr/local/bin)
+endif()
+if(_SYSTEM_LINKER)
+  message(STATUS "termisol: using system linker ${_SYSTEM_LINKER}")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=${_SYSTEM_LINKER}")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=${_SYSTEM_LINKER}")
+  set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fuse-ld=${_SYSTEM_LINKER}")
+else()
+  message(WARNING "termisol: no system linker found (ld.lld or ld). Build may fail on snap Flutter.")
 endif()
 
 # The name of the executable created for the application.

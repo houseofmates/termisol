@@ -1199,9 +1199,9 @@ class AIAssistantIntegration {
     if (lastLine.endsWith('if ')) {
       return ' {\n  // Add your condition logic here\n}';
     } else if (lastLine.endsWith('for ')) {
-      return '(let i = 0; i < 10; i++) {\n  // TODO: Add loop logic\n}';
+      return '(let i = 0; i < 10; i++) {\n  // Add your loop logic here\n}';
     } else if (lastLine.endsWith('function ')) {
-      return 'methodName() {\n  // TODO: Add function body\n}';
+      return 'methodName() {\n  // Add your function body here\n}';
     }
     
     return '// No completion available';

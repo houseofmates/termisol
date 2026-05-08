@@ -103,7 +103,7 @@ class TerminalSession extends ChangeNotifier {
     _pluginSystem = TermisolPluginSystem();
     
     // Start health monitoring and auto-save
-    _crashRecovery._startHealthMonitoring();
+      _crashRecovery.startHealthMonitoring();
     _sessionPersistence.startAutoSave(() => _saveSessionState());
   }
 

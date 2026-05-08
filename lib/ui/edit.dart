@@ -8,6 +8,7 @@ import 'package:flutter_highlight/themes/vs2015.dart';
 import 'package:flutter_highlight/themes/atom-one-dark.dart';
 import 'package:flutter_highlight/themes/github.dart';
 import 'package:path/path.dart' as path;
+import 'package:file_picker/file_picker.dart';
 import 'editor_validator.dart';
 import 'edit_collaboration_manager.dart';
 import 'editor_crash_recovery.dart';

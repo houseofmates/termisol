@@ -4,6 +4,8 @@ import '../core/terminal_session.dart';
 import '../config/pkm_theme.dart';
 import 'settings_sheet.dart';
 import 'terminal_view.dart';
+import 'command_palette.dart';
+import 'search_overlay.dart';
 
 /// Home screen with core terminal functionality.
 /// Services are pulled lazily from the registry on first use.
@@ -354,6 +356,20 @@ class _HomeScreenState extends State<HomeScreen> {
               }).toList(),
             ),
           ),
+
+          // Command palette overlay
+          if (_showCommandPalette)
+            CommandPalette(
+              actions: _buildPaletteActions(),
+              onClose: () => setState(() => _showCommandPalette = false),
+            ),
+
+          // Search overlay
+          if (_showSearch && _activeSession != null)
+            TerminalSearchOverlay(
+              terminal: _activeSession!.terminal,
+              onClose: () => setState(() => _showSearch = false),
+            ),
         ],
       ),
     );

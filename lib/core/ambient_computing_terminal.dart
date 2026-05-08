@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:xterm/xterm.dart';
+import 'package:logging/logging.dart';
 
 /// Ambient Computing Terminal - Revolutionary environmental sensor integration
 /// 

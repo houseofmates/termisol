@@ -3261,3 +3261,155 @@ Once configured, I'll provide intelligent assistance based on your file context.
     super.dispose();
   }
 }
+
+// Custom scrollbar widget with rounded thin design and custom color
+class _CustomScrollbar extends StatefulWidget {
+  final ScrollController controller;
+  final Color color;
+  final double thickness;
+  final double radius;
+
+  const _CustomScrollbar({
+    required this.controller,
+    required this.color,
+    this.thickness = 6.0,
+    this.radius = 3.0,
+  });
+
+  @override
+  State<_CustomScrollbar> createState() => _CustomScrollbarState();
+}
+
+class _CustomScrollbarState extends State<_CustomScrollbar> {
+  bool _isHovered = false;
+  bool _isDragging = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_onScrollChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onScrollChanged);
+    super.dispose();
+  }
+
+  void _onScrollChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: _handleTapDown,
+      onVerticalDragUpdate: _handleDragUpdate,
+      onVerticalDragStart: _handleDragStart,
+      onVerticalDragEnd: _handleDragEnd,
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: Container(
+          width: widget.thickness + 2,
+          child: Stack(
+            children: [
+              // Track (transparent)
+              Container(
+                width: widget.thickness,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(widget.radius),
+                ),
+              ),
+              // Thumb
+              if (widget.controller.hasClients)
+                Positioned.fill(
+                  child: _buildThumb(),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThumb() {
+    if (!widget.controller.hasClients) return const SizedBox.shrink();
+
+    final maxScrollExtent = widget.controller.position.maxScrollExtent;
+    final viewportDimension = widget.controller.position.viewportDimension;
+    
+    if (maxScrollExtent <= 0) return const SizedBox.shrink();
+
+    final thumbHeight = (viewportDimension / (viewportDimension + maxScrollExtent)) * viewportDimension;
+    final thumbPosition = (widget.controller.offset / maxScrollExtent) * (viewportDimension - thumbHeight);
+
+    return Positioned(
+      top: thumbPosition.clamp(0.0, double.infinity),
+      child: Container(
+        width: widget.thickness,
+        height: thumbHeight.clamp(20.0, double.infinity), // Minimum thumb height
+        decoration: BoxDecoration(
+          color: widget.color.withValues(
+            alpha: _isDragging ? 1.0 : (_isHovered ? 0.8 : 0.6),
+          ),
+          borderRadius: BorderRadius.circular(widget.radius),
+          boxShadow: [
+            BoxShadow(
+              color: widget.color.withValues(alpha: 0.3),
+              blurRadius: 2,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleTapDown(TapDownDetails details) {
+    if (!widget.controller.hasClients) return;
+
+    final localPosition = details.localPosition;
+    final viewportDimension = widget.controller.position.viewportDimension;
+    final maxScrollExtent = widget.controller.position.maxScrollExtent;
+    
+    if (maxScrollExtent <= 0) return;
+
+    // Calculate where to scroll based on tap position
+    final scrollRatio = localPosition.dy / viewportDimension;
+    final targetOffset = scrollRatio * maxScrollExtent;
+
+    widget.controller.animateTo(
+      targetOffset,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+    );
+  }
+
+  void _handleDragStart(DragStartDetails details) {
+    setState(() => _isDragging = true);
+  }
+
+  void _handleDragUpdate(DragUpdateDetails details) {
+    if (!widget.controller.hasClients || !_isDragging) return;
+
+    final viewportDimension = widget.controller.position.viewportDimension;
+    final maxScrollExtent = widget.controller.position.maxScrollExtent;
+    
+    if (maxScrollExtent <= 0) return;
+
+    // Calculate new scroll position based on drag
+    final dragDelta = details.primaryDelta ?? 0;
+    final scrollRatio = dragDelta / viewportDimension;
+    final newOffset = widget.controller.offset + (scrollRatio * maxScrollExtent);
+
+    widget.controller.jumpTo(newOffset.clamp(0.0, maxScrollExtent));
+  }
+
+  void _handleDragEnd(DragEndDetails details) {
+    setState(() => _isDragging = false);
+  }
+}

@@ -3,7 +3,15 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'nvidia_ai_optimizer_classes.dart';
+
+/// Custom exception for optimization failures
+class OptimizationException implements Exception {
+  final String message;
+  const OptimizationException(this.message);
+  
+  @override
+  String toString() => 'OptimizationException: $message';
+}
 
 /// NVIDIA AI Optimization Recommendations - AI-powered performance optimization
 class NVIDIAAIOptimizer {
@@ -223,243 +231,247 @@ Focus on:
     _profiles.clear();
     _history.clear();
   }
+}
 
-  /// Generate cache key for optimization recommendations
-  String _generateCacheKey(Map<String, dynamic> metrics, String systemType) {
-    final metricsHash = metrics.toString().hashCode;
-    return '${systemType}_$metricsHash';
-  }
+// Data classes
+class OptimizationRecommendation {
+  final DateTime timestamp;
+  final double overallScore;
+  final List<OptimizationSuggestion> suggestions;
+  final String predictedImprovement;
+  final String implementationTime;
+  final String riskLevel;
+  
+  OptimizationRecommendation({
+    required this.timestamp,
+    required this.overallScore,
+    required this.suggestions,
+    required this.predictedImprovement,
+    required this.implementationTime,
+    required this.riskLevel,
+  });
+}
 
-  /// Load default performance profiles
-  void _loadDefaultProfiles() {
-    _profiles['default'] = PerformanceProfile(
-      name: 'default',
-      description: 'Default performance profile',
-      parameters: {
-        'cpu_threshold': 0.8,
-        'memory_threshold': 0.85,
-        'disk_threshold': 0.9,
-        'network_threshold': 0.8,
-      },
-      createdAt: DateTime.now(),
-    );
-    
-    _profiles['high_performance'] = PerformanceProfile(
-      name: 'high_performance',
-      description: 'High performance profile',
-      parameters: {
-        'cpu_threshold': 0.6,
-        'memory_threshold': 0.7,
-        'disk_threshold': 0.8,
-        'network_threshold': 0.7,
-      },
-      createdAt: DateTime.now(),
-    );
-  }
+class OptimizationSuggestion {
+  final String id;
+  final String title;
+  final String description;
+  final String impact;
+  final String effort;
+  final String category;
+  final String command;
+  final int priority;
+  bool applied;
+  DateTime? appliedAt;
+  
+  OptimizationSuggestion({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.impact,
+    required this.effort,
+    required this.category,
+    required this.command,
+    required this.priority,
+    this.applied = false,
+    this.appliedAt,
+  });
+}
 
-  /// Parse NVIDIA optimization response
-  OptimizationRecommendation _parseOptimizationResponse(String response) {
-    final lines = response.split('\n');
-    double overallScore = 0.5;
-    final suggestions = <OptimizationSuggestion>[];
-    String? predictedImprovement;
-    String? implementationTime;
-    String? riskLevel;
-    String? currentSection;
+class PerformanceProfile {
+  final String name;
+  final String description;
+  final Map<String, dynamic> parameters;
+  final DateTime createdAt;
+  
+  PerformanceProfile({
+    required this.name,
+    required this.description,
+    required this.parameters,
+    required this.createdAt,
+  });
+}
 
-    for (int i = 0; i < lines.length - 2; i += 3) {
-      if (lines[i].startsWith('OPTIMIZATION:') && 
-          lines[i + 1].startsWith('IMPACT:') && 
-          lines[i + 2].startsWith('CONFIDENCE:')) {
-        
-        final text = lines[i].substring(13).trim();
-        final impact = lines[i + 1].substring(8).trim();
-        final confidence = double.tryParse(lines[i + 2].substring(12)) ?? 0.5;
-        final time = lines[i + 3].split(':')[1].trim();
-        final risk = lines.length > i + 4 ? lines[i + 4].split(':')[1].trim() : null;
-        
-        suggestions.add(OptimizationSuggestion(
-          text: text,
-          impact: impact,
-          confidence: confidence,
-          implementationTime: time,
-          riskLevel: risk,
-        ));
-      }
-    }
-    
-    return OptimizationRecommendation(
-      overallScore: overallScore,
-      suggestions: suggestions,
-      predictedImprovement: predictedImprovement,
-      implementationTime: implementationTime,
-      riskLevel: riskLevel,
-    );
-  }
+class OptimizationHistory {
+  final DateTime timestamp;
+  final String systemType;
+  final Map<String, dynamic> metrics;
+  final List<OptimizationSuggestion> recommendations;
+  bool applied;
+  DateTime? appliedAt;
+  
+  OptimizationHistory({
+    required this.timestamp,
+    required this.systemType,
+    required this.metrics,
+    required this.recommendations,
+    this.applied = false,
+    this.appliedAt,
+  });
+}
 
-  /// Parse system optimization response
-  OptimizationRecommendation _parseSystemOptimizationResponse(String response) {
-    final lines = response.split('\n');
-    double overallScore = 0.5;
-    final suggestions = <OptimizationSuggestion>[];
-    String? predictedImprovement;
-    String? implementationTime;
-    String? riskLevel;
-    String? currentSection;
-
-    for (int i = 0; i < lines.length - 2; i += 3) {
-      if (lines[i].startsWith('OPTIMIZATION:') && 
-          lines[i + 1].startsWith('IMPACT:') && 
-          lines[i + 2].startsWith('CONFIDENCE:')) {
-        
-        final text = lines[i].substring(13).trim();
-        final impact = lines[i + 1].substring(8).trim();
-        final confidence = double.tryParse(lines[i + 2].substring(12)) ?? 0.5;
-        final time = lines[i + 3].split(':')[1].trim();
-        final risk = lines.length > i + 4 ? lines[i + 4].split(':')[1].trim() : null;
-        
-        suggestions.add(OptimizationSuggestion(
-          text: text,
-          impact: impact,
-          confidence: confidence,
-          implementationTime: time,
-          riskLevel: riskLevel,
-        ));
-      }
-    }
-    
-    return OptimizationRecommendation(
-      overallScore: overallScore,
-      suggestions: suggestions,
-      predictedImprovement: predictedImprovement,
-      implementationTime: implementationTime,
-      riskLevel: riskLevel,
+class OptimizationResult {
+  final bool success;
+  final OptimizationRecommendation? recommendations;
+  final SystemOptimization? systemOptimization;
+  final ApplicationOptimization? applicationOptimization;
+  final PredictiveOptimization? predictiveOptimization;
+  final String? error;
+  
+  OptimizationResult({
+    required this.success,
+    this.recommendations,
+    this.systemOptimization,
+    this.applicationOptimization,
+    this.predictiveOptimization,
+    this.error,
+  });
+  
+  factory OptimizationResult.success({OptimizationRecommendation? recommendations, SystemOptimization? systemOptimization, ApplicationOptimization? applicationOptimization, PredictiveOptimization? predictiveOptimization}) {
+    return OptimizationResult(
+      success: true,
+      recommendations: recommendations,
+      systemOptimization: systemOptimization,
+      applicationOptimization: applicationOptimization,
+      predictiveOptimization: predictiveOptimization,
     );
   }
-
-  /// Parse predictive optimization response
-  OptimizationRecommendation _parsePredictiveOptimizationResponse(String response) {
-    final lines = response.split('\n');
-    double overallScore = 0.5;
-    final suggestions = <OptimizationSuggestion>[];
-    String? predictedImprovement;
-    String? implementationTime;
-    String? riskLevel;
-    String? currentSection;
-
-    for (int i = 0; i < lines.length - 2; i += 3) {
-      if (lines[i].startsWith('OPTIMIZATION:') && 
-          lines[i + 1].startsWith('IMPACT:') && 
-          lines[i + 2].startsWith('CONFIDENCE:')) {
-        
-        final text = lines[i].substring(13).trim();
-        final impact = lines[i + 1].substring(8).trim();
-        final confidence = double.tryParse(lines[i + 2].substring(12)) ?? 0.5;
-        final time = lines[i + 3].split(':')[1].trim();
-        final risk = lines.length > i + 4 ? lines[i + 4].split(':')[1].trim() : null;
-        
-        suggestions.add(OptimizationSuggestion(
-          text: text,
-          impact: impact,
-          confidence: confidence,
-          implementationTime: time,
-          riskLevel: riskLevel,
-        ));
-      }
-    }
-    
-    return OptimizationRecommendation(
-      overallScore: overallScore,
-      suggestions: suggestions,
-      predictedImprovement: predictedImprovement,
-      implementationTime: implementationTime,
-      riskLevel: riskLevel,
+  
+  factory OptimizationResult.error(String error) {
+    return OptimizationResult(
+      success: false,
+      error: error,
     );
   }
+}
 
-  /// Execute optimization with monitoring
-  Future<void> _executeOptimization(Optimization) async {
-    try {
-      // Apply optimization
-      debugPrint('🚀 Applying optimization: ${optimization.text}');
-      
-      // Track execution
-      _history.add(OptimizationHistory(
-        timestamp: DateTime.now(),
-        systemType: optimization.systemType,
-        metrics: optimization.metrics,
-        recommendations: [optimization],
-        applied: true,
-      ));
-      
-      _optimizerController.add(OptimizerEvent(
-        type: OptimizerEventType.optimizationApplied,
-        data: {
-          'optimization': optimization.text,
-          'impact': optimization.impact,
-        },
-      ));
-      
-    } catch (e) {
-      debugPrint('❌ Failed to apply optimization: $e');
-      
-      _optimizerController.add(OptimizerEvent(
-        type: OptimizerEventType.optimizationFailed,
-        data: {
-          'error': e.toString(),
-          'optimization': optimization.text,
-        },
-      ));
-    }
-  }
+class OptimizerEvent {
+  final OptimizerEventType type;
+  final Map<String, dynamic>? data;
+  
+  OptimizerEvent({
+    required this.type,
+    this.data,
+  });
+}
 
-  /// Format metrics for display
-  String _formatMetrics(Map<String, dynamic> metrics) {
-    final buffer = StringBuffer();
-    metrics.forEach((key, value) {
-      buffer.writeln('$key: $value');
-    });
-    return buffer.toString();
-  }
+enum OptimizerEventType {
+  recommendationsGenerated,
+  systemOptimizationGenerated,
+  applicationOptimizationGenerated,
+  predictiveOptimizationGenerated,
+  optimizationApplied,
+  profileSaved,
+}
 
-  /// Format context for display
-  String _formatContext(Map<String, dynamic> context) {
-    final buffer = StringBuffer();
-    context.forEach((key, value) {
-      if (value is List) {
-        buffer.writeln('$key: ${(value as List).join(', ')}');
-      } else {
-        buffer.writeln('$key: $value');
-      }
-    });
-    return buffer.toString();
-  }
+class SystemOptimization {
+  final List<SystemConfigChange> optimizations;
+  final String implementationPlan;
+  final String rollbackPlan;
+  final DateTime timestamp;
+  
+  SystemOptimization({
+    required this.optimizations,
+    required this.implementationPlan,
+    required this.rollbackPlan,
+    required this.timestamp,
+  });
+}
 
-  /// Format configuration for display
-  String _formatConfig(Map<String, dynamic> config) {
-    final buffer = StringBuffer();
-    config.forEach((key, value) {
-      buffer.writeln('$key: $value');
-    });
-    return buffer.toString();
-  }
+class SystemConfigChange {
+  final String title;
+  final String parameter;
+  final String currentValue;
+  final String recommendedValue;
+  final String reason;
+  final String impact;
+  final String risk;
+  
+  SystemConfigChange({
+    required this.title,
+    required this.parameter,
+    required this.currentValue,
+    required this.recommendedValue,
+    required this.reason,
+    required this.impact,
+    required this.risk,
+  });
+}
 
-  /// Format constraints for display
-  String _formatConstraints(Map<String, dynamic> constraints) {
-    final buffer = StringBuffer();
-    constraints.forEach((key, value) {
-      buffer.writeln('$key: $value');
-    });
-    return buffer.toString();
-  }
+class ApplicationOptimization {
+  final List<ApplicationOptimizationChange> optimizations;
+  final String codeChanges;
+  final String monitoring;
+  final DateTime timestamp;
+  
+  ApplicationOptimization({
+    required this.optimizations,
+    required this.codeChanges,
+    required this.monitoring,
+    required this.timestamp,
+  });
+}
 
-  /// Get statistics
-  Map<String, dynamic> getStatistics() {
-    return {
-      'recommendations_count': _recommendations.length,
-      'profiles_count': _profiles.length,
-      'history_count': _history.length,
-      'applied_optimizations': _history.where((h) => h.applied).length,
-    };
-  }
+class ApplicationOptimizationChange {
+  final String title;
+  final String area;
+  final String description;
+  final String implementation;
+  final String impact;
+  final String effort;
+  
+  ApplicationOptimizationChange({
+    required this.title,
+    required this.area,
+    required this.description,
+    required this.implementation,
+    required this.impact,
+    required this.effort,
+  });
+}
+
+class PredictiveOptimization {
+  final List<PerformancePrediction> predictions;
+  final List<PreemptiveAction> preemptiveActions;
+  final String monitoringPlan;
+  final DateTime timestamp;
+  
+  PredictiveOptimization({
+    required this.predictions,
+    required this.preemptiveActions,
+    required this.monitoringPlan,
+    required this.timestamp,
+  });
+}
+
+class PerformancePrediction {
+  final String issue;
+  final String predictedTime;
+  final double probability;
+  final String impact;
+  final List<String> metricsAffected;
+  
+  PerformancePrediction({
+    required this.issue,
+    required this.predictedTime,
+    required this.probability,
+    required this.impact,
+    required this.metricsAffected,
+  });
+}
+
+class PreemptiveAction {
+  final String action;
+  final String targetPrediction;
+  final String timing;
+  final String effectiveness;
+  final String effort;
+  
+  PreemptiveAction({
+    required this.action,
+    required this.targetPrediction,
+    required this.timing,
+    required this.effectiveness,
+    required this.effort,
+  });
 }

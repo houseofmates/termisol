@@ -266,10 +266,16 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     );
   }
 
-  Offset _calculateImagePosition(String imageId) {
-    // Graphics overlay is not fully implemented.
-    // Return a fixed position; real implementation would track terminal cursor.
-    return Offset.zero;
+  Offset _convertCharToPixel(Offset charPosition) {
+    // Convert character coordinates to pixel coordinates
+    // Assuming monospace font, approximate character width as fontSize * 0.6
+    final charWidth = _fontSize * 0.6;
+    final charHeight = _fontSize * 1.2; // Line height
+
+    return Offset(
+      charPosition.dx * charWidth,
+      charPosition.dy * charHeight,
+    );
   }
 
   Future<void> _handleCtrlC() async {

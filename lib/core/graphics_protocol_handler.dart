@@ -653,6 +653,7 @@ class GraphicsProtocolHandler {
   /// Clear image cache
   void clearImageCache() {
     _imageCache.clear();
+    _imagePositions.clear();
     _pendingImages.clear();
     _pictureCache.clear();
     _damageRegions.clear();

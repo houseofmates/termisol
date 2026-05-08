@@ -195,32 +195,38 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
               shift: true,
             ): () => _clipboard.pasteBracketed(),
           },
-          child: TerminalView(
-            widget.session.terminal,
-            controller: widget.session.controller,
-            focusNode: widget.focusNode,
-            autofocus: widget.autofocus,
-            theme: termisolTerminalTheme,
-            textStyle: TerminalStyle(
-              fontFamily: 'DroidSansMono',
-              fontSize: _fontSize,
-              height: 1.2,
-            ),
-            onKeyEvent: _handleKeyEvent,
-            padding: EdgeInsets.zero,
-            onSecondaryTapUp: (details, offset) => _showContextMenu(context, details.globalPosition),
-            // Graphics overlay for inline images
-            overlay: _buildGraphicsOverlay(),
+          child: Stack(
+            children: [
+              TerminalView(
+                widget.session.terminal,
+                controller: widget.session.controller,
+                focusNode: widget.focusNode,
+                autofocus: widget.autofocus,
+                theme: termisolTerminalTheme,
+                textStyle: TerminalStyle(
+                  fontFamily: 'DroidSansMono',
+                  fontSize: _fontSize,
+                  height: 1.2,
+                ),
+                onKeyEvent: _handleKeyEvent,
+                padding: EdgeInsets.zero,
+                onSecondaryTapUp: (details, offset) => _showContextMenu(context, details.globalPosition),
+              ),
+              // Graphics overlay positioned over terminal
+              Positioned.fill(
+                child: _buildGraphicsOverlay(),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget? _buildGraphicsOverlay() {
+  Widget _buildGraphicsOverlay() {
     // Build overlay for inline graphics from GraphicsProtocolHandler
     final graphicsImages = _graphicsHandler.getCachedImages();
-    if (graphicsImages.isEmpty) return null;
+    if (graphicsImages.isEmpty)               return SizedBox.shrink();
 
     return Stack(
       children: graphicsImages.entries.map((entry) {
@@ -250,7 +256,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
                   ),
                 );
               }
-              return const SizedBox.shrink();
+              return SizedBox.shrink();
             },
           ),
         );

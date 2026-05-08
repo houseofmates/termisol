@@ -129,13 +129,12 @@ class ProductionGpuRenderer {
       }
       
       // Create fragment shader for GPU acceleration
-      final fragmentShader = await ui.FragmentShader.fromAsset('shaders/terminal.glsl');
-      if (fragmentShader != null) {
-        _shaderCache[source] = fragmentShader;
-        debugPrint('Shader compiled and cached successfully');
-        return fragmentShader;
-      }
-      
+      final program = await ui.FragmentProgram.fromAsset('shaders/terminal.glsl');
+      final fragmentShader = program.fragmentShader();
+      _shaderCache[source] = fragmentShader;
+      debugPrint('Shader compiled and cached successfully');
+      return fragmentShader;
+    } on Exception catch (_) {
       // Fallback to gradient shader for basic effects
       final gradientShader = ui.Gradient.linear(
         const Offset(0, 0),
@@ -143,16 +142,9 @@ class ProductionGpuRenderer {
         [const Color(0xFF000000), const Color(0xFFFFFFFF)],
       );
       
-      // Create a simple shader from gradient
-      final shader = Shader.linear(
-        gradientShader,
-        const Offset(0, 0),
-        const Offset(1, 1),
-      );
-      
-      _shaderCache[source] = shader;
+      _shaderCache[source] = gradientShader;
       debugPrint('Fallback shader created');
-      return shader;
+      return gradientShader;
     } catch (e) {
       debugPrint('Shader compilation failed: $e');
       return null;

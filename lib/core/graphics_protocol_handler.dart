@@ -261,15 +261,83 @@ class GraphicsProtocolHandler {
   
   /// Process direct image transmission
   String _processDirectTransmission(Map<String, String> params) {
-    // Implementation for direct image data processing
-    // This would handle base64 encoded image data
-    return '\x1b_GOK\x1b\\';
+    try {
+      final data = params['d'];
+      final format = params['f'] ?? '100';
+      final width = params['w'];
+      final height = params['h'];
+      
+      if (data == null) return '\x1b_Gi=1,f=32\x1b\\'; // Error: no data
+      
+      // Validate base64 data
+      try {
+        base64.decode(data);
+      } catch (e) {
+        return '\x1b_Gi=1,f=32\x1b\\'; // Error: invalid base64
+      }
+      
+      // Store image data for rendering
+      final imageId = _nextImageId++;
+      _pendingImages[imageId] = PendingImage(
+        data: data,
+        format: format,
+        width: width != null ? int.tryParse(width) : null,
+        height: height != null ? int.tryParse(height) : null,
+      );
+      
+      return '\x1b_Gi=$imageId,f=$format\x1b\\';
+    } catch (e) {
+      debugPrint('Error processing direct transmission: $e');
+      return '\x1b_Gi=1,f=32\x1b\\'; // Error response
+    }
   }
   
   /// Process temporary file transmission
   String _processTemporaryFile(Map<String, String> params) {
-    // Implementation for temporary file handling
-    return '\x1b_GOK\x1b\\';
+    try {
+      final filename = params['t'];
+      final format = params['f'] ?? '100';
+      
+      if (filename == null) return '\x1b_Gi=1,f=32\x1b\\'; // Error: no filename
+      
+      // Validate filename
+      if (filename.contains('..') || filename.startsWith('/')) {
+        return '\x1b_Gi=1,f=32\x1b\\'; // Error: invalid filename
+      }
+      
+      final file = File('${Directory.systemTemp.path}/$filename');
+      if (!file.existsSync()) {
+        return '\x1b_Gi=1,f=32\x1b\\'; // Error: file not found
+      }
+      
+      // Read and validate file
+      final bytes = file.readAsBytesSync();
+      if (bytes.isEmpty) {
+        return '\x1b_Gi=1,f=32\x1b\\'; // Error: empty file
+      }
+      
+      // Store image data
+      final imageId = _nextImageId++;
+      final base64Data = base64.encode(bytes);
+      _pendingImages[imageId] = PendingImage(
+        data: base64Data,
+        format: format,
+        width: null,
+        height: null,
+      );
+      
+      // Clean up temp file
+      try {
+        file.deleteSync();
+      } catch (e) {
+        debugPrint('Warning: Failed to delete temp file $filename: $e');
+      }
+      
+      return '\x1b_Gi=$imageId,f=$format\x1b\\';
+    } catch (e) {
+      debugPrint('Error processing temporary file: $e');
+      return '\x1b_Gi=1,f=32\x1b\\'; // Error response
+    }
   }
   
   /// Handle Kitty graphics queries

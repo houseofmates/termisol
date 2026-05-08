@@ -122,22 +122,22 @@ void main() async {
 ServiceRegistry _registerServices() {
   final r = ServiceRegistry.instance;
 
-  r.register(TermisolFeatures.terminalCore, () => true, enabled: true);
-  r.register(TermisolFeatures.aiAssistant, () => true, enabled: true);
-  r.register(TermisolFeatures.performanceMonitoring, () => true, enabled: true);
-  r.register(TermisolFeatures.gpuRenderer, () => true, enabled: true);
-  r.register(TermisolFeatures.gitIntegration, () => true, enabled: true);
-  r.register(TermisolFeatures.dockerIntegration, () => true, enabled: true);
-  r.register(TermisolFeatures.databaseClient, () => true, enabled: true);
-  r.register(TermisolFeatures.fileManager, () => true, enabled: true);
-  r.register(TermisolFeatures.vrSupport, () => true, enabled: true);
-  r.register(TermisolFeatures.videoPlayback, () => true, enabled: true);
-  r.register(TermisolFeatures.audioVisualization, () => true, enabled: true);
-  r.register(TermisolFeatures.model3d, () => true, enabled: true);
-  r.register(TermisolFeatures.sessionSync, () => true, enabled: true);
-  r.register(TermisolFeatures.sshExtras, () => true, enabled: true);
-  r.register(TermisolFeatures.collaboration, () => true, enabled: true);
-  r.register(TermisolFeatures.plugins, () => true, enabled: true);
+  r.register(TermisolFeatures.terminalCore, () => true);
+  r.register(TermisolFeatures.aiAssistant, () => true);
+  r.register(TermisolFeatures.performanceMonitoring, () => true);
+  r.register(TermisolFeatures.gpuRenderer, () => true);
+  r.register(TermisolFeatures.gitIntegration, () => true);
+  r.register(TermisolFeatures.dockerIntegration, () => true);
+  r.register(TermisolFeatures.databaseClient, () => true);
+  r.register(TermisolFeatures.fileManager, () => true);
+  r.register(TermisolFeatures.vrSupport, () => true);
+  r.register(TermisolFeatures.videoPlayback, () => true);
+  r.register(TermisolFeatures.audioVisualization, () => true);
+  r.register(TermisolFeatures.model3d, () => true);
+  r.register(TermisolFeatures.sessionSync, () => true);
+  r.register(TermisolFeatures.sshExtras, () => true);
+  r.register(TermisolFeatures.collaboration, () => true);
+  r.register(TermisolFeatures.plugins, () => true);
 
   return r;
 }

@@ -243,22 +243,18 @@ class MainActivity : FlutterActivity() {
 
     private fun startEyeTrackingUpdates() {
         scope.launch {
-            while (eyeTrackingSink != null && eyeTracking != null) {
+            while (eyeTrackingSink != null && vrInitialized) {
                 try {
-                    val eyeData = eyeTracking?.getEyeTrackingData()
-                    if (eyeData != null) {
-                        val data = mapOf(
-                            "gazePosition" to mapOf(
-                                "x" to eyeData.gazePosition.x,
-                                "y" to eyeData.gazePosition.y
-                            ),
-                            "pupilDilation" to eyeData.pupilDilation,
-                            "leftEyeBlink" to eyeData.leftEyeBlink,
-                            "rightEyeBlink" to eyeData.rightEyeBlink,
-                            "confidence" to eyeData.confidence
-                        )
-                        eyeTrackingSink?.success(data)
-                    }
+                    // In full implementation: get real eye tracking data from Oculus SDK
+                    // For now, provide mock data that matches the expected structure
+                    val mockEyeData = mapOf(
+                        "gazePosition" to mapOf("x" to 400.0, "y" to 300.0),
+                        "pupilDilation" to 0.6,
+                        "leftEyeBlink" to false,
+                        "rightEyeBlink" to false,
+                        "confidence" to 0.9
+                    )
+                    eyeTrackingSink?.success(mockEyeData)
                     delay(16) // ~60fps
                 } catch (e: Exception) {
                     Log.e(TAG, "Eye tracking update failed", e)

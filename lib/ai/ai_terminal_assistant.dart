@@ -297,7 +297,7 @@ class NvidiaAITerminalAssistant {
             errors: (data['errors'] as List<dynamic>?)?.cast<String>() ?? [],
             warnings: (data['warnings'] as List<dynamic>?)?.cast<String>() ?? [],
             suggestions: (data['suggestions'] as List<dynamic>?)?.cast<String>() ?? [],
-            summary: data['summary'] ?? '',
+            summary: (data['summary'] as String?) ?? '',
           );
         } catch (e) {
           debugPrint('Failed to parse analysis response: $e');

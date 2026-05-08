@@ -395,6 +395,7 @@ Focus on:
     final fps = terminalMetrics['rendering_fps'] as double? ?? 60.0;
     if (fps < 30.0) {
       recommendations.add(OptimizationRecommendation(
+        id: 'gpu_opt_1',
         timestamp: DateTime.now(),
         overallScore: 0.6,
         suggestions: [OptimizationSuggestion(

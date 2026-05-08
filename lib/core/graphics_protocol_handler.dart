@@ -317,6 +317,7 @@ class GraphicsProtocolHandler {
     final id = params['i'];
     if (id != null) {
       _imageCache.remove(id);
+      _imagePositions.remove(id);
       _eventController.add(GraphicsEvent(
         GraphicsEventType.imageDeleted,
         'Kitty image deleted',

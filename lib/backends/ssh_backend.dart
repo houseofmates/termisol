@@ -50,7 +50,7 @@ class SshBackend implements TermisolPtyBackend {
       );
 
       // Start shell session
-      _session = await _client!.execute('bash');
+      _session = _client!.execute('bash');
 
       _isRunning = true;
 

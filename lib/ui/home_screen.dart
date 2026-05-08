@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/service_registry.dart';
-import '../core/headerbar_actions.dart';
 import '../core/terminal_session.dart';
 import '../core/ai_assistant_integration.dart';
 import '../config/pkm_theme.dart';
@@ -33,29 +32,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _createInitialTab();
-    HeaderbarActions.action.addListener(_onHeaderbarAction);
-  }
-
-  void _onHeaderbarAction() {
-    final action = HeaderbarActions.action.value;
-    if (action == null) return;
-    switch (action) {
-      case 'newTab':
-        _addTab();
-        break;
-      case 'search':
-        _toggleSearch();
-        break;
-      case 'settings':
-        _showSettings();
-        break;
-      case 'dictate':
-        // Show a snackbar or start speech-to-text if available
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('dictation not yet implemented')),
-        );
-        break;
-    }
   }
 
   TerminalSession? get _activeSession {
@@ -135,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _tabFocusNodes[tabId]?.requestFocus();
     }
   }
-  
+
   void _closeTab(int index) {
     if (_tabs.length > 1 && index >= 0 && index < _tabs.length) {
       final tab = _tabs[index];
@@ -154,7 +130,121 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
   }
-  
+
+  void _onReorder(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) {
+        newIndex -= 1;
+      }
+      final item = _tabs.removeAt(oldIndex);
+      _tabs.insert(newIndex, item);
+    });
+  }
+
+  void _showTabContextMenu(TapUpDetails details, int index) {
+    final overlay = Navigator.of(context).overlay!;
+    final renderBox = overlay.context.findRenderObject() as RenderBox;
+    showMenu(
+      context: context,
+      position: RelativeRect.fromRect(
+        details.globalPosition & Size.zero,
+        Offset.zero & renderBox.size,
+      ),
+      color: PkmTheme.popup,
+      items: [
+        PopupMenuItem(
+          value: 'new',
+          onTap: _addTab,
+          child: Text(
+            '+ new',
+            style: TextStyle(color: PkmTheme.text),
+          ),
+        ),
+        PopupMenuItem(
+          value: 'rename',
+          onTap: () => _renameTab(index),
+          child: Text(
+            'rename',
+            style: TextStyle(color: PkmTheme.text),
+          ),
+        ),
+        PopupMenuItem(
+          value: 'close',
+          onTap: () => _closeTab(index),
+          child: Text(
+            'close',
+            style: TextStyle(color: PkmTheme.text),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _renameTab(int index) {
+    final tab = _tabs[index];
+    final controller = TextEditingController(text: tab.name);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: PkmTheme.background,
+        title: Text(
+          'rename tab',
+          style: TextStyle(
+            color: PkmTheme.primary,
+            fontFamily: PkmTheme.fontUi,
+          ),
+        ),
+        content: TextField(
+          controller: controller,
+          style: TextStyle(
+            color: PkmTheme.text,
+            fontFamily: PkmTheme.fontUi,
+          ),
+          decoration: InputDecoration(
+            hintText: 'tab name',
+            hintStyle: TextStyle(
+              color: PkmTheme.text.withValues(alpha: 0.5),
+              fontFamily: PkmTheme.fontUi,
+            ),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: PkmTheme.primary),
+            ),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: PkmTheme.primary, width: 2),
+            ),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'cancel',
+              style: TextStyle(
+                color: PkmTheme.text,
+                fontFamily: PkmTheme.fontUi,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              tab.rename(controller.text);
+              setState(() {});
+              Navigator.of(context).pop();
+            },
+            child: Text(
+              'rename',
+              style: TextStyle(
+                color: PkmTheme.primary,
+                fontFamily: PkmTheme.fontUi,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _toggleCommandPalette() {
     setState(() => _showCommandPalette = !_showCommandPalette);
   }
@@ -268,49 +358,124 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               // Tab bar
               Container(
-                height: 40,
-                color: PkmTheme.tabActiveBg,
+                height: PkmTheme.tabBarHeight,
+                color: PkmTheme.background,
                 child: Row(
                   children: [
                     Expanded(
-                      child: SingleChildScrollView(
+                      child: ReorderableListView.builder(
                         scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: _tabs.asMap().entries.map((entry) {
-                            final tabId = entry.value.id;
-                            return GestureDetector(
-                              onTap: () => _switchTab(entry.key),
-                              onSecondaryTap: () => _closeTab(entry.key),
+                        buildDefaultDragHandles: false,
+                        onReorder: _onReorder,
+                        itemCount: _tabs.length,
+                        proxyDecorator: (child, index, animation) {
+                          return AnimatedBuilder(
+                            animation: animation,
+                            builder: (context, child) {
+                              return Material(
+                                elevation: 0,
+                                color: Colors.transparent,
+                                child: child,
+                              );
+                            },
+                            child: child,
+                          );
+                        },
+                        itemBuilder: (context, index) {
+                          final tab = _tabs[index];
+                          final isActive = _activeTab == tab.id;
+                          return ConstrainedBox(
+                            key: ValueKey(tab.id),
+                            constraints: const BoxConstraints(
+                              minWidth: 120,
+                              maxWidth: 220,
+                            ),
+                            child: Container(
+                              height: PkmTheme.tabBarHeight,
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 2,
+                                vertical: 4,
+                              ),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: _activeTab == tabId
+                                  color: isActive
                                       ? PkmTheme.tabActiveBg
                                       : PkmTheme.tabInactiveBg,
-                                  border: Border(
-                                    top: BorderSide(
-                                      color: _activeTab == tabId
-                                          ? PkmTheme.primary
-                                          : Colors.transparent,
-                                      width: 2,
-                                    ),
-                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: isActive
+                                      ? Border.all(
+                                          color: PkmTheme.primary,
+                                          width: 1.5,
+                                        )
+                                      : null,
                                 ),
-                                child: Text(
-                                  entry.value.name,
-                                  style: TextStyle(
-                                    color: _activeTab == tabId
-                                        ? PkmTheme.primary
-                                        : PkmTheme.text,
-                                    fontWeight: _activeTab == tabId
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                  ),
+                                child: Row(
+                                  children: [
+                                    // Drag handle
+                                    ReorderableDragStartListener(
+                                      index: index,
+                                      child: Container(
+                                        width: 20,
+                                        height: double.infinity,
+                                        color: Colors.transparent,
+                                        child: Center(
+                                          child: Icon(
+                                            Icons.drag_indicator,
+                                            size: 12,
+                                            color: PkmTheme.text.withValues(
+                                              alpha: 0.3,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    // Tab content (tap + right-click)
+                                    Expanded(
+                                      child: GestureDetector(
+                                        onTap: () => _switchTab(index),
+                                        onSecondaryTapUp: (details) =>
+                                            _showTabContextMenu(details, index),
+                                        child: Container(
+                                          height: double.infinity,
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                            tab.name,
+                                            style: TextStyle(
+                                              color: isActive
+                                                  ? PkmTheme.primary
+                                                  : PkmTheme.text,
+                                              fontWeight: isActive
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                              fontFamily: PkmTheme.fontUi,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    // Close button
+                                    InkWell(
+                                      onTap: () => _closeTab(index),
+                                      child: SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: Icon(
+                                          Icons.close,
+                                          size: 14,
+                                          color: PkmTheme.text.withValues(
+                                            alpha: 0.7,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                  ],
                                 ),
                               ),
-                            );
-                          }).toList(),
-                        ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                     IconButton(
@@ -329,67 +494,24 @@ class _HomeScreenState extends State<HomeScreen> {
                     return Container(
                       key: ValueKey(tab.id),
                       color: PkmTheme.terminalBg,
-                      child: Column(
-                        children: [
-                          // Terminal header
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            color: PkmTheme.tabActiveBg,
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.terminal,
-                                  color: PkmTheme.primary,
-                                  size: 16,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  '${tab.name} - Ready',
-                                  style: const TextStyle(
-                                    color: PkmTheme.primary,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const Spacer(),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: PkmTheme.statusConnected,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Text(
-                                    'Connected',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                      padding: EdgeInsets.zero,
+                      child: Container(
+                        constraints: const BoxConstraints.expand(),
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          border: Border.all(
+                            color: PkmTheme.primary.withValues(alpha: 0.3),
                           ),
-                          // Terminal content
-                          Expanded(
-                            child: Container(
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: Colors.black,
-                                border: Border.all(
-                                  color: PkmTheme.primary.withOpacity(0.3),
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: TermisolTerminalView(
-                                session: tab,
-                                focusNode: _tabFocusNodes[tab.id],
-                                onNewTab: _addTab,
-                                onCloseTab: () => _closeTab(
-                                  _tabs.indexWhere((t) => t.id == tab.id),
-                                ),
-                              ),
-                            ),
+                          borderRadius: BorderRadius.zero,
+                        ),
+                        child: TermisolTerminalView(
+                          session: tab,
+                          focusNode: _tabFocusNodes[tab.id],
+                          onNewTab: _addTab,
+                          onCloseTab: () => _closeTab(
+                            _tabs.indexWhere((t) => t.id == tab.id),
                           ),
-                        ],
+                        ),
                       ),
                     );
                   }).toList(),
@@ -416,7 +538,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    HeaderbarActions.action.removeListener(_onHeaderbarAction);
     // Dispose all tabs
     for (final tab in _tabs) {
       tab.dispose();

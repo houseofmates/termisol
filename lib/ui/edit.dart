@@ -2765,20 +2765,34 @@ Once configured, I'll provide intelligent assistance based on your file context.
                 // Syntax highlighted display
                 Positioned.fill(
                   child: IgnorePointer(
-                    child: SingleChildScrollView(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.all(12),
-                      child: Stack(
-                        children: [
-                          // Main text content
-                          RichText(
-                            text: TextSpan(children: _applyRainbowSyntax(_controller.text)),
-                          ),
-                          // Multi-cursor indicators
-                          if (_multiCursorMode)
-                            ..._buildMultiCursorIndicators(),
-                        ],
-                      ),
+                    child: Stack(
+                      children: [
+                        // Main content with custom scrollbar
+                        Row(
+                          children: [
+                            // Editor content
+                            Expanded(
+                              child: SingleChildScrollView(
+                                controller: _scrollController,
+                                padding: const EdgeInsets.all(12),
+                                child: Stack(
+                                  children: [
+                                    // Main text content
+                                    RichText(
+                                      text: TextSpan(children: _applyRainbowSyntax(_controller.text)),
+                                    ),
+                                    // Multi-cursor indicators
+                                    if (_multiCursorMode)
+                                      ..._buildMultiCursorIndicators(),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            // Custom scrollbar
+                            _buildCustomScrollbar(),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -2859,6 +2873,17 @@ Once configured, I'll provide intelligent assistance based on your file context.
     }
     
     return indicators;
+  }
+
+  Widget _buildCustomScrollbar() {
+    return Container(
+      width: 8,
+      margin: const EdgeInsets.only(right: 4),
+      child: _CustomScrollbar(
+        controller: _scrollController,
+        color: const Color(0xFFffb30d), // Golden yellow color
+      ),
+    );
   }
 
   void _handleMouseClick(TapDownDetails details) {

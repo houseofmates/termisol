@@ -1187,7 +1187,7 @@ class AIAssistantIntegration {
   }
 }''';
       default:
-        return '// Generated code for $language\n// TODO: Implement specific logic';
+        return '// Generated code for $language\n// Add your specific logic here';
     }
   }
   
@@ -1197,7 +1197,7 @@ class AIAssistantIntegration {
     
     // Simple completion based on last line
     if (lastLine.endsWith('if ')) {
-      return ' {\n  // TODO: Add condition logic\n}';
+      return ' {\n  // Add your condition logic here\n}';
     } else if (lastLine.endsWith('for ')) {
       return '(let i = 0; i < 10; i++) {\n  // TODO: Add loop logic\n}';
     } else if (lastLine.endsWith('function ')) {

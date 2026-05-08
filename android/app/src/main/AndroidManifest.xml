@@ -1,10 +1,4 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- VR Feature Requirements -->
-    <uses-feature android:name="android.hardware.vr.headtracking" android:version="1" android:required="false" />
-    <uses-feature android:name="android.hardware.vr.high_performance" android:version="1" android:required="false" />
-    <uses-feature android:name="android.software.vr.mode" android:required="false" />
-    <uses-feature android:name="oculus.software.handtracking" android:required="false" />
-
     <application
         android:label="${appLabel}"
         android:icon="@mipmap/ic_launcher"
@@ -20,9 +14,6 @@
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize"
             android:screenOrientation="fullSensor">
-            <!-- VR-specific metadata -->
-            <meta-data android:name="com.oculus.intent.category.VR" android:value="vr_only"/>
-            <meta-data android:name="com.oculus.vr.focusaware" android:value="true"/>
             <meta-data android:name="android.max_aspect" android:value="2.1"/>
             <meta-data
               android:name="io.flutter.embedding.android.NormalTheme"
@@ -31,7 +22,6 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
-                <category android:name="com.oculus.intent.category.VR"/>
             </intent-filter>
         </activity>
         <meta-data
@@ -40,7 +30,4 @@
     </application>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <!-- VR permissions -->
-    <uses-permission android:name="com.oculus.permission.HAND_TRACKING"/>
-    <uses-permission android:name="com.oculus.permission.EYE_TRACKING"/>
 </manifest>

@@ -3,6 +3,7 @@ import '../core/service_registry.dart';
 import '../core/terminal_session.dart';
 import '../config/pkm_theme.dart';
 import 'settings_sheet.dart';
+import 'terminal_view.dart';
 
 /// Home screen with core terminal functionality.
 /// Services are pulled lazily from the registry on first use.

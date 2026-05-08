@@ -3,6 +3,23 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 
+// Import all feature managers
+import 'natural_language_commands.dart';
+import 'automatic_error_correction.dart';
+import 'terminal_recorder.dart';
+import 'ai_bottleneck_detector.dart';
+import 'resource_monitor.dart';
+import 'session_persistence.dart';
+import 'universal_search.dart';
+import 'custom_shortcuts.dart';
+import 'clipboard_history.dart';
+import 'cross_device_sync.dart';
+import 'malware_detection.dart';
+import 'vscode_integration.dart';
+import 'context_aware_suggestions.dart';
+import 'git_integration.dart';
+import 'ssh_key_manager.dart';
+
 /// Termisol Integration Manager
 /// 
 /// Central manager for all advanced features integration:
@@ -36,8 +53,8 @@ class TermisolIntegrationManager {
   
   // Configuration
   final Map<String, dynamic> _globalConfig = {};
-  bool _autoRecoveryEnabled = true;
-  int _maxRetryAttempts = 3;
+  final bool _autoRecoveryEnabled = true;
+  final int _maxRetryAttempts = 3;
   
   bool get isInitialized => _isInitialized;
   bool get isInitializing => _isInitializing;

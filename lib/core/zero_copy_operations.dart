@@ -23,7 +23,7 @@ class ZeroCopyOperations {
   void _initializeBufferPool() {
     for (int i = 0; i < _maxBuffers; i++) {
       final buffer = allocateBuffer(_bufferPoolSize);
-      _bufferPool.add(buffer.buffer);
+      _bufferPool.add(ByteBuffer.view(buffer));
     }
   }
 

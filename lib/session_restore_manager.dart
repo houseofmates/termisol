@@ -5,6 +5,51 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'core/terminal_session.dart';
 
+/// Represents a saved terminal session state.
+class SessionState {
+  final String id;
+  final String name;
+  final String workingDirectory;
+  final String? shell;
+  final List<String> commandHistory;
+  final DateTime lastSaved;
+  final Map<String, dynamic>? metadata;
+
+  SessionState({
+    required this.id,
+    required this.name,
+    required this.workingDirectory,
+    this.shell,
+    required this.commandHistory,
+    required this.lastSaved,
+    this.metadata,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'workingDirectory': workingDirectory,
+      'shell': shell,
+      'commandHistory': commandHistory,
+      'lastSaved': lastSaved.toIso8601String(),
+      'metadata': metadata,
+    };
+  }
+
+  factory SessionState.fromJson(Map<String, dynamic> json) {
+    return SessionState(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      workingDirectory: json['workingDirectory'] as String,
+      shell: json['shell'] as String?,
+      commandHistory: List<String>.from(json['commandHistory'] as List? ?? []),
+      lastSaved: DateTime.parse(json['lastSaved'] as String),
+      metadata: json['metadata'] as Map<String, dynamic>?,
+    );
+  }
+}
+
 /// Manages session restoration across app crashes and restarts.
 /// Saves tab state, working directories, and command history.
 class SessionRestoreManager {
@@ -23,51 +68,6 @@ class SessionRestoreManager {
 
   /// Ensure sessions are loaded before accessing them.
   Future<void> load() => _loadCompleter.future;
-
-  /// Represents a saved terminal session state.
-  class SessionState {
-    final String id;
-    final String name;
-    final String workingDirectory;
-    final String? shell;
-    final List<String> commandHistory;
-    final DateTime lastSaved;
-    final Map<String, dynamic>? metadata;
-
-    SessionState({
-      required this.id,
-      required this.name,
-      required this.workingDirectory,
-      this.shell,
-      required this.commandHistory,
-      required this.lastSaved,
-      this.metadata,
-    });
-
-    Map<String, dynamic> toJson() {
-      return {
-        'id': id,
-        'name': name,
-        'workingDirectory': workingDirectory,
-        'shell': shell,
-        'commandHistory': commandHistory,
-        'lastSaved': lastSaved.toIso8601String(),
-        'metadata': metadata,
-      };
-    }
-
-    factory SessionState.fromJson(Map<String, dynamic> json) {
-      return SessionState(
-        id: json['id'] as String,
-        name: json['name'] as String,
-        workingDirectory: json['workingDirectory'] as String,
-        shell: json['shell'] as String?,
-        commandHistory: List<String>.from(json['commandHistory'] as List? ?? []),
-        lastSaved: DateTime.parse(json['lastSaved'] as String),
-        metadata: json['metadata'] as Map<String, dynamic>?,
-      );
-    }
-  }
 
   /// Save current session state.
   Future<void> saveSession(TerminalSession session) async {

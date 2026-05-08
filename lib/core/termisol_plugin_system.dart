@@ -261,7 +261,7 @@ class SimplePlugin implements Plugin {
     final methodName = args[0] as String?;
     final methodArgs = args.length > 1 ? args.sublist(1) : [];
 
-    // Execute custom plugin methods based on config
+    // Execute custom plugin methods based on manifest configuration
     final methods = config['methods'] as Map<String, dynamic>? ?? {};
     final methodConfig = methods[methodName];
 
@@ -269,8 +269,7 @@ class SimplePlugin implements Plugin {
       throw Exception('Method not found: $methodName');
     }
 
-    // Simple execution - in a real implementation, this would involve
-    // compiling and running actual plugin code
+    // Plugin method execution - in production would compile and run actual code
     return {'method': methodName, 'args': methodArgs, 'result': 'executed'};
   }
 

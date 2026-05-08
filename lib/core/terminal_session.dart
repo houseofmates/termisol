@@ -218,6 +218,7 @@ class TerminalSession extends ChangeNotifier {
           final processedText = graphicsHandler.processOutput(normalized, 0, 0);
 
            throttledRenderer.write(processedText);
+           _directoryTracker.processOutput(text);
            _extractUrls(text);
            // Index output for semantic search
            _semanticSearch.indexDocument('terminal_output_$id', DateTime.now().millisecondsSinceEpoch.toString(), text);

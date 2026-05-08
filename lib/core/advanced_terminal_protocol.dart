@@ -38,6 +38,9 @@ class AdvancedTerminalProtocol {
   final List<Color> _colorPalette = List.generate(256, (i) => Color.fromARGB(255, 0, 0, 0));
   bool _trueColorSupported = true;
 
+  // Keyboard protocol
+  final Map<String, String> _keyMappings = {};
+
   AdvancedTerminalProtocol(this._terminal, this._controller);
 
   bool get isInitialized => _isInitialized;
@@ -218,19 +221,13 @@ class AdvancedTerminalProtocol {
   /// Process incoming escape sequence
   void processSequence(String sequence) {
     if (sequence.isEmpty) return;
-    
+
     try {
       // Determine sequence type
       if (sequence.startsWith('\x1b[')) {
         _handleCsiSequence(sequence);
       } else if (sequence.startsWith('\x1b]')) {
         _handleOscSequence(sequence);
-      } else if (sequence.startsWith('\x1bP')) {
-        _handleDeviceControlString(sequence);
-      } else if (sequence.startsWith('\x1b^')) {
-        _handlePrivacyMessage(sequence);
-      } else if (sequence.startsWith('\x1b_')) {
-        _handleApplicationProgramCommand(sequence);
       } else if (sequence.startsWith('\x1b')) {
         _handleEscapeSequence(sequence);
       }

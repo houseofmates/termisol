@@ -1680,7 +1680,7 @@ void main() {
   }
 }''';
         default:
-          return '// Implementation for $filename\n// Based on: $description\n// TODO: Add specific logic';
+          return '// Implementation for $filename\n// Based on: $description\n// Add your specific logic here';
       }
     }
   }

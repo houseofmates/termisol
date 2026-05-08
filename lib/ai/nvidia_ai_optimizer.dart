@@ -61,8 +61,9 @@ class NVIDIAAIOptimizer {
     try {
       // Check cache first
       final cacheKey = _generateCacheKey(performanceMetrics, systemType);
-      if (_recommendations.containsKey(cacheKey)) {
-        return OptimizationResult.success(recommendations: _recommendations[cacheKey]);
+      final cachedRecommendations = _recommendations.where((r) => r.id == cacheKey).toList();
+      if (cachedRecommendations.isNotEmpty) {
+        return OptimizationResult.success(recommendations: cachedRecommendations);
       }
 
       // Build optimization prompt

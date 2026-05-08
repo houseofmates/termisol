@@ -442,23 +442,6 @@ class AIContext {
   }
 }
 
-/// AI message
-class AIMessage {
-  final String content;
-  final bool isUser;
-  final Map<String, dynamic>? metadata;
-  final DateTime timestamp;
-
-  const AIMessage._(this.content, this.isUser, this.timestamp, {this.metadata});
-
-  factory AIMessage.user(String content, {Map<String, dynamic>? metadata}) {
-    return AIMessage._(content, true, DateTime.now(), metadata: metadata);
-  }
-
-  factory AIMessage.assistant(String content, {Map<String, dynamic>? metadata}) {
-    return AIMessage._(content, false, DateTime.now(), metadata: metadata);
-  }
-}
 
 /// Analysis result for terminal output
 class AnalysisResult {

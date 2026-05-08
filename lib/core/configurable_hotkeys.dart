@@ -177,7 +177,7 @@ class ConfigurableHotkeys {
   /// Handle key down events
   void _handleKeyDown(KeyDownEvent event) {
     final key = event.logicalKey;
-    _keyStates[key.keyId] = DateTime.now().millisecondsSinceEpoch;
+    _keyStates[key.keyId.toString()] = DateTime.now().millisecondsSinceEpoch;
 
     // Debounce rapid key presses
     _debounceTimer?.cancel();
@@ -189,12 +189,12 @@ class ConfigurableHotkeys {
   /// Handle key up events
   void _handleKeyUp(KeyUpEvent event) {
     final key = event.logicalKey;
-    _keyStates.remove(key.keyId);
+    _keyStates.remove(key.keyId.toString());
   }
 
   /// Check if current key state matches any hotkey
   void _checkHotkeyMatch() {
-    final currentKeys = _keyStates.keys.toList();
+    final currentKeys = _keyStates.keys.map(int.parse).toList();
     final currentModifiers = _getCurrentModifiers();
 
     for (final binding in _bindings.values) {

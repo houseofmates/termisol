@@ -201,7 +201,7 @@ class TunnelManagement {
   }
 
   /// Find available port
-  int _findAvailablePort() {
+  Future<int> _findAvailablePort() async {
     try {
       final socket = await ServerSocket.bind('localhost', 0);
       final port = socket.port;

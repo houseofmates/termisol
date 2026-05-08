@@ -20,9 +20,7 @@ class MainActivity : FlutterActivity() {
     private val EYE_TRACKING_CHANNEL = "com.termisol/vr/eye_tracking"
     private val DEVICE_DETECTION_CHANNEL = "com.termisol/vr/device_detection"
 
-    private var vrApi: OculusVrApi? = null
-    private var handTracking: HandTracking? = null
-    private var eyeTracking: EyeTracking? = null
+    private var vrInitialized = false
     private var handTrackingSink: EventChannel.EventSink? = null
     private var eyeTrackingSink: EventChannel.EventSink? = null
     private var deviceDetectionSink: EventChannel.EventSink? = null

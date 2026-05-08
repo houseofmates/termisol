@@ -71,6 +71,7 @@ class TerminalSession extends ChangeNotifier {
   late final MouseProtocolManager mouseProtocol;
   late final LigatureFontManager ligatureFont;
   late final ThrottledRenderer throttledRenderer;
+  late final TerminalClipboardManager clipboardManager;
 
   /// Called whenever data is received from the backend.
   void Function(String output)? onOutputReceived;

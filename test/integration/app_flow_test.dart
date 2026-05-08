@@ -121,7 +121,7 @@ void main() {
         enhancedAISuggestions: enhancedAISuggestions,
         conversationalAI: conversationalAI,
         automatedWorkflows: automatedWorkflows,
-        advancedVRTerminal: advancedVRTerminal,
+        vrTerminal: vrTerminal,
         githubIntegration: githubIntegration,
         neuralProcessing: neuralProcessing,
         paneManager: paneManager,

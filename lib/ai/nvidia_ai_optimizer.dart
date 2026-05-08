@@ -19,7 +19,7 @@ class NVIDIAAIOptimizer {
   NVIDIAAIOptimizer._internal();
 
   final String _nimEndpoint = 'https://integrate.nvidia.com/v1/chat/completions';
-  final String _apiKey = 'nvapi-'; // User will need to set this
+  String? _apiKey;
   final Map<String, OptimizationRecommendation> _recommendations = {};
   final Map<String, PerformanceProfile> _profiles = {};
   final List<OptimizationHistory> _history = [];

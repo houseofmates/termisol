@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'app.dart';
 import 'core/service_registry.dart';
 import 'core/service_factories.dart';
+import 'core/adaptive_rendering_system.dart';
 
 /// Setup global error handling and crash reporting
 Future<void> _setupErrorHandling() async {
@@ -107,6 +108,9 @@ void main() async {
 
   final registry = _registerServices();
   await registry.initializeCritical();
+
+  // Initialize adaptive rendering system for multi-device optimization
+  await AdaptiveRenderingSystem.instance.initialize();
 
   debugPrint('🚀 termisol started (lazy init)');
   runZonedGuarded(() {

@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/service_registry.dart';
@@ -123,13 +122,13 @@ class _HomeScreenState extends State<HomeScreen> {
     debugPrint('AI query: $query');
     try {
       // Get AI service from registry
-      final aiService = widget.registry.getAIAssistant();
+      final aiService = widget.registry.getAIAssistant() as NvidiaAITerminalAssistant?;
       if (aiService != null) {
         final response = await aiService.processText(
           input: query,
           capability: AICapability.text_generation,
           contextId: 'terminal_$_activeTab',
-        ) as AIResponse;
+        );
         final success = response.success;
         final output = response.output;
         return success && output.isNotEmpty

@@ -38,7 +38,7 @@ class LongCommandNotifier {
       // Play notification sound after 30 seconds
       Timer(const Duration(seconds: 30), () async {
         try {
-            await _audioPlayer.play(AssetSource('assets/notif.mp3'));
+            await _audioPlayer.play(AssetSource.asset('assets/notif.mp3'));
         } catch (e) {
           print('Failed to play notification sound: $e');
         }

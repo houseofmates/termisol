@@ -11,4 +11,8 @@ class CrashRecovery {
   void onSessionEnd() {
     // Stub implementation
   }
+
+  void dispose() {
+    // Stub implementation
+  }
 }

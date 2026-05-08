@@ -48,9 +48,9 @@ class _Model3DViewerState extends State<Model3DViewer> {
         backgroundColor: widget.backgroundColor,
       );
 
-      // Load 3D model (simplified for this example)
+      // Load 3D model from provided path
       _model = Object(
-        fileName: 'assets/models/default_cube.obj',
+        fileName: widget.modelPath,
         backfaceCulling: true,
         lighting: true,
       );

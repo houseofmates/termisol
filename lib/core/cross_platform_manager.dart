@@ -372,7 +372,10 @@ class CrossPlatformManager {
         if (lines.length > 1) {
           final parts = lines[1].split(RegExp(r'\s+'));
           if (parts.length >= 4) {
-            return int.tryParse(parts[3]) * 1024; // Convert to bytes
+            final value = int.tryParse(parts[3]);
+            if (value != null) {
+              return value * 1024; // Convert to bytes
+            }
           }
         }
       }

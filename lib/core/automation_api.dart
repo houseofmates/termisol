@@ -1658,10 +1658,10 @@ void main() {
 }''';
         case 'python':
           return '''class ${filename.replaceAll('.py', '')}:
-    """TODO: Add class documentation"""
+    """Add your class documentation here"""
     
     def __init__(self):
-        # TODO: Add initialization
+        # Add your initialization code here
         pass
     
     def method(self):

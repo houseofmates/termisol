@@ -1,9 +1,9 @@
 import 'dart:ui' as ui;
+import 'dart:typed_data';
 
-void main() {
-  final shader = ui.Gradient.linear(
-    ui.Offset(0, 0),
-    ui.Offset(1, 1),
-    [const ui.Color(0xFF000000), const ui.Color(0xFFFFFFFF)],
+void main() async {
+  final program = await ui.FragmentProgram.fromAsset('test');
+  final shader = program.fragmentShader(
+    floatUniforms: Float32List(0),
   );
 }

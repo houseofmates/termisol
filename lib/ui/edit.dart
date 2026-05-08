@@ -7,7 +7,6 @@ import 'package:flutter_highlight/themes/vs2015.dart';
 import 'package:flutter_highlight/themes/atom-one-dark.dart';
 import 'package:flutter_highlight/themes/github.dart';
 import 'package:path/path.dart' as path;
-import 'package:http/http.dart' as http;
 
 /// Edit - A modern terminal text editor with WYSIWYG markdown, rainbow syntax highlighting,
 /// and Windows Notepad-style hotkeys
@@ -75,18 +74,21 @@ class _EditTerminalState extends State<EditTerminal> {
   
   final Map<String, String> _currentHotkeys = {};
   
-  // Undo/Redo system
+  // Undo/Redo system - optimize memory usage
   final List<String> _undoStack = [];
   final List<String> _redoStack = [];
   int _currentUndoIndex = -1;
   Timer? _undoTimer;
+  static const int _maxUndoStackSize = 100; // Limit stack size
   
   // Mouse cursor support
   bool _mouseEnabled = true;
   
-  // Multi-cursor support
+  // Multi-cursor support - optimize performance
   final List<TextSelection> _cursors = [];
   bool _multiCursorMode = false;
+  static const int _maxCursors = 50; // Limit cursors for performance
+  bool _isAIEnabled = false; // Add AI enable/disable flag
   
   // Search
   bool _showSearch = false;

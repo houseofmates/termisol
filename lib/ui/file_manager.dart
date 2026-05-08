@@ -1539,6 +1539,20 @@ class _TerminalFileManagerState extends State<TerminalFileManager>
     );
   }
   
+  Future<ui.Image?> _loadImageFromFile(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (!await file.exists()) return null;
+      final bytes = await file.readAsBytes();
+      final codec = await ui.instantiateImageCodec(bytes);
+      final frame = await codec.getNextFrame();
+      return frame.image;
+    } catch (e) {
+      debugPrint('Failed to load image $filePath: $e');
+      return null;
+    }
+  }
+
   @override
   void dispose() {
     _tabController.dispose();

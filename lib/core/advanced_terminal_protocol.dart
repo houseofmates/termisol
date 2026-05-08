@@ -444,12 +444,6 @@ class AdvancedTerminalProtocol {
   }
 
 
-  }
-
-  void _handleDeviceAttributes(List<int> params) {
-    // Primary Device Attributes - respond as VT220 compatible
-    _terminal.write('\x1b[?62c');
-  }
 
   void _handleCursorStorage(String command) {
     if (command == 's') {

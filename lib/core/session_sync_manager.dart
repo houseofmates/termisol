@@ -219,7 +219,7 @@ class SessionSyncManager {
       }
       final sessions = (decoded['sessions'] as Map<String, dynamic>?) ?? {};
       for (final entry in sessions.entries) {
-        _sessions[entry.key] = SyncedSession.fromJson((entry.value as Map).cast<String, dynamic>());
+        _sessions[entry.key] = SyncedSession.fromJson(Map<String, dynamic>.from(entry.value as Map));
       }
     } catch (e) {
       debugPrint('Failed to load persisted sync state: $e');

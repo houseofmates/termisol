@@ -198,9 +198,9 @@ class FingerData {
 
   FingerData({
     required this.type,
-    required this.position,
+    required Offset tipPosition,
     required this.confidence,
-  });
+  }) : tipPosition = tipPosition;
 
   factory FingerData.fromJson(Map<dynamic, dynamic> json) {
     return FingerData(

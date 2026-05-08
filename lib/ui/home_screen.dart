@@ -20,11 +20,21 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<TerminalSession> _tabs = [];
   final Map<String, FocusNode> _tabFocusNodes = {};
   String _activeTab = '0';
+  bool _showCommandPalette = false;
+  bool _showSearch = false;
 
   @override
   void initState() {
     super.initState();
     _createInitialTab();
+  }
+
+  TerminalSession? get _activeSession {
+    try {
+      return _tabs.firstWhere((t) => t.id == _activeTab);
+    } catch (_) {
+      return _tabs.isNotEmpty ? _tabs.first : null;
+    }
   }
 
   Future<String> _handleAiQuery(String query) async {

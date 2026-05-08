@@ -97,7 +97,7 @@ class IntelligentCacheManager {
       
       final patternsJson = _prefs.getString('access_patterns');
       if (patternsJson != null) {
-        _patternsMap = Map<String, CachePattern>.from(jsonDecode(patternsJson));
+        _accessPatterns = Map<String, CachePattern>.from(jsonDecode(patternsJson));
       }
     } catch (e) {
       debugPrint('Failed to load cache data: $e');

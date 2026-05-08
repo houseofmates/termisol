@@ -1061,10 +1061,34 @@ class _TextEditorState extends State<TextEditor> {
                       return KeyEventResult.ignored;
                     },
                     onTapDown: (details) {
-                      // Check if right-click
-                      if (details.kind == PointerDeviceKind.mouse && 
-                          details.buttons == kSecondaryButton) {
-                        _handleRightClick(details.globalPosition);
+                      if (_isAltPressed) {
+                        _handleAltClick(details.globalPosition);
+                      } else {
+                        // Check if right-click
+                        if (details.kind == PointerDeviceKind.mouse && 
+                            details.buttons == kSecondaryButton) {
+                          _handleRightClick(details.globalPosition);
+                        }
+                      }
+                    },
+                    onTapUp: (details) {
+                      if (_isDragging) {
+                        _handleAltDragEnd();
+                      }
+                    },
+                    onPanStart: (details) {
+                      if (_isAltPressed) {
+                        _handleAltDragStart(details.globalPosition);
+                      }
+                    },
+                    onPanUpdate: (details) {
+                      if (_isAltPressed) {
+                        _handleAltDragUpdate(details.globalPosition);
+                      }
+                    },
+                    onPanEnd: (details) {
+                      if (_isDragging) {
+                        _handleAltDragEnd();
                       }
                     },
                   ),

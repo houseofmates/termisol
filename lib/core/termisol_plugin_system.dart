@@ -269,7 +269,7 @@ class SimplePlugin implements Plugin {
       throw Exception('Method not found: $methodName');
     }
 
-    // Plugin method execution - in production would compile and run actual code
+    // Plugin method execution - in production would compile and run actual plugin code
     return {'method': methodName, 'args': methodArgs, 'result': 'executed'};
   }
 

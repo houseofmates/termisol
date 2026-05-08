@@ -172,7 +172,10 @@ class SmartSplitViews {
   }
 
   void removeView(String viewId) {
-    final view = _views.firstWhere((v) => v.id == viewId, orElse: () => null as SplitView);
+    final view = _views.cast<SplitView?>().firstWhere(
+      (v) => v?.id == viewId,
+      orElse: () => null,
+    );
     if (view == null) return;
     
     // Don't remove the last view
@@ -216,7 +219,10 @@ class SmartSplitViews {
   }
 
   void setActiveView(String viewId) {
-    final view = _views.firstWhere((v) => v.id == viewId, orElse: () => null as SplitView);
+    final view = _views.cast<SplitView?>().firstWhere(
+      (v) => v?.id == viewId,
+      orElse: () => null,
+    );
     if (view == null) return;
     
     // Deactivate all views
@@ -249,7 +255,10 @@ class SmartSplitViews {
   }
 
   void resizeView(String viewId, double newWidth, double newHeight) {
-    final view = _views.firstWhere((v) => v.id == viewId, orElse: () => null as SplitView);
+    final view = _views.cast<SplitView?>().firstWhere(
+      (v) => v?.id == viewId,
+      orElse: () => null,
+    );
     if (view == null) return;
     
     // Ensure minimum size
@@ -319,7 +328,10 @@ class SmartSplitViews {
     final affectedViews = _getAffectedViews(_draggedHandleId!);
     
     for (final viewId in affectedViews) {
-      final view = _views.firstWhere((v) => v.id == viewId, orElse: () => null as SplitView);
+      final view = _views.cast<SplitView?>().firstWhere(
+        (v) => v?.id == viewId,
+        orElse: () => null,
+      );
       if (view == null) continue;
       
       // Update view size based on drag direction
@@ -482,7 +494,10 @@ class SmartSplitViews {
   }
 
   void maximizeView(String viewId) {
-    final view = _views.firstWhere((v) => v.id == viewId, orElse: () => null as SplitView);
+    final view = _views.cast<SplitView?>().firstWhere(
+      (v) => v?.id == viewId,
+      orElse: () => null,
+    );
     if (view == null) return;
     
     // Save original size
@@ -510,7 +525,10 @@ class SmartSplitViews {
   }
 
   void restoreView(String viewId) {
-    final view = _views.firstWhere((v) => v.id == viewId, orElse: () => null as SplitView);
+    final view = _views.cast<SplitView?>().firstWhere(
+      (v) => v?.id == viewId,
+      orElse: () => null,
+    );
     if (view == null || !view.isMaximized) return;
     
     // Restore original size
@@ -534,7 +552,10 @@ class SmartSplitViews {
 
   SplitView? getActiveView() {
     if (_activeViewId == null) return null;
-    return _views.firstWhere((v) => v.id == _activeViewId, orElse: () => null as SplitView);
+    return _views.cast<SplitView?>().firstWhere(
+      (v) => v?.id == _activeViewId,
+      orElse: () => null,
+    );
   }
 
   List<SplitLayout> getLayoutHistory() {

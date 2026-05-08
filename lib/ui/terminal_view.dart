@@ -227,20 +227,27 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
         final imageId = entry.key;
         final image = entry.value;
 
-        // Position images based on terminal coordinates
-        // This is a simplified implementation - real implementation would track image positions
+        // Calculate position based on terminal cursor or stored position
+        // For now, display images at fixed positions - real implementation would track cursor
+        final position = _calculateImagePosition(imageId);
+
         return Positioned(
-          left: 0,
-          top: 0,
+          left: position.dx,
+          top: position.dy,
           child: FutureBuilder<Uint8List?>(
             future: _graphicsHandler.convertImageForDisplay(imageId),
             builder: (context, snapshot) {
               if (snapshot.hasData && snapshot.data != null) {
-                return Image.memory(
-                  snapshot.data!,
-                  width: image.width.toDouble(),
-                  height: image.height.toDouble(),
-                  fit: BoxFit.contain,
+                return Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+                  ),
+                  child: Image.memory(
+                    snapshot.data!,
+                    width: image.width.toDouble().clamp(0, 400),
+                    height: image.height.toDouble().clamp(0, 300),
+                    fit: BoxFit.contain,
+                  ),
                 );
               }
               return const SizedBox.shrink();
@@ -249,6 +256,16 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
         );
       }).toList(),
     );
+  }
+
+  Offset _calculateImagePosition(String imageId) {
+    // Calculate position based on terminal state
+    // This is a simplified implementation
+    final terminal = widget.session.terminal;
+    final cursorY = terminal.cursorY;
+    final lineHeight = _fontSize * 1.2;
+
+    return Offset(0, cursorY * lineHeight);
   }
 
   Future<void> _handleCtrlC() async {

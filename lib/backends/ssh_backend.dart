@@ -1,24 +1,22 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:dartssh2/dartssh2.dart';
 import '../core/pty_backend.dart';
+import '../core/prompt_config.dart';
 
-/// SSH backend for remote terminal sessions using dartssh2.
-///
-/// Supports password and private-key authentication. The connection is
-/// established lazily on [start] and can be reconnected after [terminate].
+/// SSH backend for remote terminal connections
 class SshBackend implements TermisolPtyBackend {
   @override
   final String name = 'SSH Backend';
+
   final String host;
   final int port;
   final String username;
   final String? password;
   final String? privateKeyPath;
-  final String? privateKeyPassphrase;
+  final String? workingDirectory;
 
   SSHClient? _client;
   SSHSession? _session;
@@ -35,75 +33,73 @@ class SshBackend implements TermisolPtyBackend {
     required this.username,
     this.password,
     this.privateKeyPath,
-    this.privateKeyPassphrase,
+    this.workingDirectory,
   });
 
   @override
   Future<void> start({int cols = 80, int rows = 24, String? workingDirectory}) async {
     try {
-      final socket = await SSHSocket.connect(host, port)
-          .timeout(const Duration(seconds: 10));
-
+      // Connect to SSH server
       _client = SSHClient(
-        socket,
+        await SSHSocket.connect(host, port),
         username: username,
         onPasswordRequest: password != null ? () => password! : null,
-        identities: await _loadIdentities(),
+        identities: privateKeyPath != null
+            ? [SSHKeyPair.fromPem(await File(privateKeyPath!).readAsString())]
+            : null,
       );
 
-      _session = await _client!.execute(
-        'exec bash -l',
-        pty: SSHPtyConfig(
-          type: 'xterm-256color',
-          width: cols,
-          height: rows,
-        ),
-      );
+      // Start shell session
+      _session = await _client!.execute('bash');
 
       _isRunning = true;
 
+      // Listen to output
       _session!.stdout.listen(
         (data) => _safeAdd(data),
-        onDone: () => _isRunning = false,
-        onError: (e) {
-          if (kDebugMode) debugPrint('[SSH] stdout error: $e');
+        onError: (Object e) {
+          debugPrint('[ssh] stdout error: $e');
+        },
+        onDone: () {
           _isRunning = false;
         },
       );
 
       _session!.stderr.listen(
         (data) => _safeAdd(data),
-        onError: (e) {
-          if (kDebugMode) debugPrint('[SSH] stderr error: $e');
+        onError: (Object e) {
+          debugPrint('[ssh] stderr error: $e');
         },
       );
 
-      if (kDebugMode) debugPrint('[SSH] Connected to $host:$port as $username');
-    } catch (e) {
-      _safeAdd(utf8.encode('\r\n[ssh error: $e]\r\n'));
+      // Set terminal size
+      await resize(cols, rows);
+
+      // Set working directory if specified
+      if (workingDirectory != null || this.workingDirectory != null) {
+        final wd = workingDirectory ?? this.workingDirectory!;
+        write(utf8.encode('cd "$wd"\n'));
+      }
+
+      // Inject colored PS1
+      write(utf8.encode("export PS1='${PromptConfig.sshPs1}'\n"));
+
+      debugPrint('[ssh] connected to $username@$host:$port');
+    } catch (e, stack) {
+      debugPrint('[ssh] connection failed: $e\n$stack');
       _isRunning = false;
       rethrow;
     }
   }
 
-  Future<List<SSHKeyPair>> _loadIdentities() async {
-    if (privateKeyPath == null) return [];
-    try {
-      final keyData = await File(privateKeyPath!).readAsString();
-      return SSHKeyPair.fromPem(keyData, privateKeyPassphrase ?? '');
-    } catch (e) {
-      if (kDebugMode) debugPrint('[SSH] Failed to load private key: $e');
-      return [];
-    }
-  }
-
   @override
   void write(List<int> data) {
-    if (_session == null || !_isRunning) return;
-    try {
-      _session!.write(Uint8List.fromList(data));
-    } catch (e) {
-      if (kDebugMode) debugPrint('[SSH] Write error: $e');
+    if (_session != null && _isRunning) {
+      try {
+        _session!.stdin.add(data);
+      } catch (e) {
+        debugPrint('[ssh] write error: $e');
+      }
     }
   }
 
@@ -111,9 +107,12 @@ class SshBackend implements TermisolPtyBackend {
   void resize(int cols, int rows) {
     if (_session != null && _isRunning) {
       try {
-        _session!.resizeTerminal(cols, rows);
+        // Send SIGWINCH or use TIOCSWINSZ if supported
+        // For now, send escape sequence
+        final resizeSeq = '\x1b[8;$rows;${cols}t';
+        write(utf8.encode(resizeSeq));
       } catch (e) {
-        if (kDebugMode) debugPrint('[SSH] Resize error: $e');
+        debugPrint('[ssh] resize error: $e');
       }
     }
   }
@@ -122,30 +121,23 @@ class SshBackend implements TermisolPtyBackend {
   Future<void> stop() async {
     _isRunning = false;
     try {
-      _session?.close();
-      await _session?.done.timeout(const Duration(seconds: 5), onTimeout: () {});
-      _session = null;
+      await _session?.close();
+      await _client?.close();
     } catch (e) {
-      if (kDebugMode) debugPrint('[SSH] Stop error: $e');
-    } finally {
-      await _closeController();
+      debugPrint('[ssh] stop error: $e');
     }
+    await _closeController();
   }
 
   @override
   Future<void> terminate() async {
     _isRunning = false;
     try {
-      _session?.close();
-      await _session?.done.timeout(const Duration(seconds: 3), onTimeout: () {});
-      _session = null;
       _client?.close();
-      _client = null;
     } catch (e) {
-      if (kDebugMode) debugPrint('[SSH] Terminate error: $e');
-    } finally {
-      await _closeController();
+      debugPrint('[ssh] terminate error: $e');
     }
+    await _closeController();
   }
 
   Future<void> _closeController() async {
@@ -162,5 +154,5 @@ class SshBackend implements TermisolPtyBackend {
   }
 
   @override
-  bool get isConnected => _isRunning && _client != null && _session != null;
+  bool get isConnected => _isRunning && _client != null;
 }

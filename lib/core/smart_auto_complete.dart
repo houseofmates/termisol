@@ -4,6 +4,10 @@ class SmartAutoComplete {
     // Stub implementation
   }
 
+  void clearHistory() {
+    // Stub implementation
+  }
+
   void dispose() {
     // Stub implementation
   }

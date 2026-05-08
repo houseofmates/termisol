@@ -295,7 +295,7 @@ class SyncChange {
       value: json['value'],
       operation: SyncOperation.values.byName(json['operation'] as String),
       timestamp: DateTime.parse(json['timestamp'] as String),
-      metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
+      metadata: Map<String, dynamic>.from((json['metadata'] as Map?) ?? {}),
       syncVersion: json['syncVersion'] as int? ?? 0,
     );
   }

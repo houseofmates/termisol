@@ -2626,40 +2626,6 @@ Once configured, I'll provide intelligent assistance based on your file context.
                       //   onPressed: _toggleCollaboration,
                       //   icon: Icon(
                       //     Icons.people,
-                      //     size: 16,
-                      //     color: _collaborationEnabled ? Colors.green[400] : Colors.grey[400],
-                      //   ),
-                      //   tooltip: 'Toggle Collaboration (Ctrl+Shift+C)',
-                      // ),
-                      // Collaboration status indicator
-                      // if (_collaborationEnabled)
-                      //   Container(
-                      //     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      //     decoration: BoxDecoration(
-                      //       color: Colors.green.withValues(alpha: 0.2),
-                      //       borderRadius: BorderRadius.circular(4),
-                      //     ),
-                      //     child: Row(
-                      //       mainAxisSize: MainAxisSize.min,
-                      //       children: [
-                      //         Icon(Icons.people, size: 14, color: Colors.green[300]),
-                      //         const SizedBox(width: 4),
-                      //         Text(
-                      //           '${_activeCollaborators.length + 1} users',
-                      //           style: TextStyle(
-                      //             color: Colors.green[300],
-                      //             fontSize: 10,
-                      //             fontFamily: _fontFamily,
-                      //           ),
-                      //         ),
-                      //       ],
-                      //     ),
-                      //   ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.green.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(4),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,

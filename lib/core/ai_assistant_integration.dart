@@ -1049,14 +1049,42 @@ class AIAssistantIntegration {
   
   // OpenAI API helper methods
   Future<String> _makeOpenAIRequest(String input, AICapability capability, AIContext? context, String apiKey) async {
-    // Implement actual OpenAI API call
-    // For now, return enhanced local processing
-    return _getEnhancedLocalResponse(input, capability);
+    try {
+      // Prepare the request payload
+      final payload = _buildOpenAIPayload(input, capability, context);
+      
+      // Make HTTP request to OpenAI API
+      final response = await _makeOpenAIHttpCall(payload, apiKey);
+      
+      // Parse and validate response
+      final result = _parseOpenAIResponse(response);
+      
+      debugPrint('🤖 OpenAI API request successful for capability: ${capability.name}');
+      return result;
+    } catch (e) {
+      debugPrint('⚠️ OpenAI API request failed: $e');
+      // Fallback to enhanced local processing
+      return _getEnhancedLocalResponse(input, capability);
+    }
   }
   
   Future<String> _makeOpenAICodeRequest(String code, AICapability capability, String? language, AIContext? context, String apiKey) async {
-    // Implement actual OpenAI API call for code
-    return _getEnhancedCodeResponse(code, capability, language);
+    try {
+      // Prepare code-specific request payload
+      final payload = _buildOpenAICodePayload(code, capability, language, context);
+      
+      // Make HTTP request to OpenAI API
+      final response = await _makeOpenAIHttpCall(payload, apiKey);
+      
+      // Parse and validate response
+      final result = _parseOpenAIResponse(response);
+      
+      debugPrint('🤖 OpenAI Code API request successful for capability: ${capability.name}');
+      return result;
+    } catch (e) {
+      debugPrint('⚠️ OpenAI Code API request failed: $e');
+      return _getEnhancedCodeResponse(code, capability, language);
+    }
   }
   
   Future<String> _makeOpenAICommandRequest(String command, AICapability capability, AIContext? context, String apiKey) async {

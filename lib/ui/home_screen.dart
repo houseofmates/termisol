@@ -21,8 +21,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final List<TerminalSession> _tabs = [];
-  final Map<int, FocusNode> _tabFocusNodes = {};
-  int _activeTab = 0;
+  final Map<String, FocusNode> _tabFocusNodes = {};
+  String _activeTab = '0';
   bool _showFps = false;
 
   /// Lazily get the AI assistant; returns null if disabled or failed.
@@ -44,8 +44,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     _tabs.add(session);
-    _tabFocusNodes[0] = FocusNode();
-    _activeTab = 0;
+    _tabFocusNodes['0'] = FocusNode();
+    _activeTab = '0';
   }
 
   void _handleAiQuery(String query) {
@@ -74,19 +74,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _addTab() {
     final newTab = TerminalSession(
-      id: _tabs.length,
-      title: 'Terminal ${_tabs.length + 1}',
-      backend: LocalBackend(),
-      onAiQuery: _handleAiQuery,
+      id: _tabs.length.toString(),
+      name: 'Terminal ${_tabs.length + 1}',
     );
 
     setState(() {
       _tabs.add(newTab);
-      _tabFocusNodes[newTab.id] = FocusNode();
-      _activeTab = newTab.id;
+      _tabFocusNodes[int.parse(newTab.id)] = FocusNode();
+      _activeTab = int.parse(newTab.id);
     });
 
-    _tabFocusNodes[newTab.id]?.requestFocus();
+    _tabFocusNodes[int.parse(newTab.id)]?.requestFocus();
   }
 
   void _switchTab(int index) {

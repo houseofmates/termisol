@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/database_operations.dart';
+import '../core/service_registry.dart';
 import '../config/pkm_theme.dart';
 
 /// Database browser widget for querying databases

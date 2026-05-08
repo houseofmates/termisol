@@ -7,13 +7,14 @@ import 'vr_enhancements.dart';
 
 /// Quest 2 VR-optimized terminal mode.
 ///
-/// Quest 2 runs Android apps in a 2D panel inside the VR home environment.
+/// Quest 2 runs Android apps in a 2D panel inside VR home environment.
 /// This mode optimizes the terminal for readability through a VR headset:
 /// - Large fonts (24-32pt) for readability at headset distance
 /// - High contrast pure-black theme to reduce god rays
 /// - Minimal UI chrome to maximize terminal real estate
 /// - Controller-friendly hit targets and scroll
 /// - Supports both touch controller and hand tracking input
+/// - Premium 3D effects with parallax and depth shadows
 class Quest2VrTerminal extends StatefulWidget {
   final TerminalSession session;
   final VoidCallback? onExitVr;
@@ -69,56 +70,82 @@ class _Quest2VrTerminalState extends State<Quest2VrTerminal> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: RawKeyboardListener(
-        focusNode: _focusNode,
-        autofocus: true,
-        onKey: _handleKeyEvent,
-        child: Stack(
-          children: [
-            // Main terminal view - maximized for VR
-            Padding(
-              padding: _showControls
-                  ? const EdgeInsets.only(top: 80, bottom: 120)
-                  : EdgeInsets.zero,
-              child: _buildVrTerminalView(),
-            ),
+    return VrEnhancements.animateTransition(
+      duration: const Duration(milliseconds: 300),
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: RawKeyboardListener(
+          focusNode: _focusNode,
+          onKeyEvent: _handleKeyEvent,
+          child: Stack(
+            children: [
+              // Main terminal view with enhancements
+              Padding(
+                padding: _showControls
+                    ? const EdgeInsets.only(top: 80, bottom: 120)
+                    : EdgeInsets.zero,
+                child: _buildVrTerminalView(),
+              ),
 
-            // Top control bar
-            if (_showControls) _buildTopBar(),
+              // Top control bar
+              if (_showControls) _buildTopBar(),
 
-            // Bottom control bar with large controller-friendly buttons
-            if (_showControls) _buildBottomBar(),
+              // Bottom control bar with large controller-friendly buttons
+              if (_showControls) _buildBottomBar(),
 
-            // VR mode indicator
-            Positioned(
-              top: 16,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade900.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.vrpano, color: Colors.white, size: 20),
-                    SizedBox(width: 6),
-                    Text(
-                      'VR MODE',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
+              // Floating VR controls
+              ...VrEnhancements.createFloatingActions(
+                onToggle3D: () {
+                  setState(() {
+                    _is3DEnabled = !_is3DEnabled;
+                    VrEnhancements.set3DEnabled(_is3DEnabled);
+                  });
+                },
+                onToggleParallax: () {
+                  setState(() {
+                    _isParallaxEnabled = !_isParallaxEnabled;
+                  });
+                },
+                is3DEnabled: _is3DEnabled,
+                isParallaxEnabled: _isParallaxEnabled,
+              ),
+
+              // VR mode indicator
+              Positioned(
+                top: 16,
+                right: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade900.withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.red.withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        spreadRadius: 2,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.vrpano, color: Colors.white, size: 20),
+                      SizedBox(width: 6),
+                      Text(
+                        _is3DEnabled ? 'VR 3D' : 'VR MODE',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -136,7 +163,7 @@ class _Quest2VrTerminalState extends State<Quest2VrTerminal> {
         fontSize: _fontSize,
         height: 1.4,
       ),
-      onKeyEvent: (node, event) => _handleTerminalKey(node, event),
+      onKeyEvent: _handleTerminalKey,
       padding: const EdgeInsets.all(16),
     );
 
@@ -154,7 +181,7 @@ class _Quest2VrTerminalState extends State<Quest2VrTerminal> {
       right: 0,
       child: Container(
         height: 80,
-        color: Colors.black.withOpacity(0.9),
+        color: Colors.black.withValues(alpha: 0.9),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           children: [
@@ -163,25 +190,6 @@ class _Quest2VrTerminalState extends State<Quest2VrTerminal> {
               icon: Icons.exit_to_app,
               label: 'Exit VR',
               onPressed: () => widget.onExitVr?.call(),
-            ),
-            const SizedBox(width: 16),
-            // 3D toggle
-            _VrButton(
-              icon: Icons.view_in_ar,
-              label: '3D',
-              onPressed: () => setState(() {
-                _is3DEnabled = !_is3DEnabled;
-                VrEnhancements.set3DEnabled(_is3DEnabled);
-              }),
-            ),
-            const SizedBox(width: 16),
-            // Parallax toggle
-            _VrButton(
-              icon: Icons.panorama_horizontal,
-              label: 'Parallax',
-              onPressed: () => setState(() {
-                _isParallaxEnabled = !_isParallaxEnabled;
-              }),
             ),
             const SizedBox(width: 16),
 
@@ -204,6 +212,25 @@ class _Quest2VrTerminalState extends State<Quest2VrTerminal> {
               label: _showControls ? 'Hide' : 'Show',
               onPressed: () => setState(() => _showControls = !_showControls),
             ),
+            const SizedBox(width: 16),
+            // 3D toggle
+            _VrButton(
+              icon: Icons.view_in_ar,
+              label: '3D',
+              onPressed: () => setState(() {
+                _is3DEnabled = !_is3DEnabled;
+                VrEnhancements.set3DEnabled(_is3DEnabled);
+              }),
+            ),
+            const SizedBox(width: 16),
+            // Parallax toggle
+            _VrButton(
+              icon: Icons.panorama_horizontal,
+              label: 'Parallax',
+              onPressed: () => setState(() {
+                _isParallaxEnabled = !_isParallaxEnabled;
+              }),
+            ),
           ],
         ),
       ),
@@ -217,7 +244,7 @@ class _Quest2VrTerminalState extends State<Quest2VrTerminal> {
       right: 0,
       child: Container(
         height: 120,
-        color: Colors.black.withOpacity(0.9),
+        color: Colors.black.withValues(alpha: 0.9),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -247,7 +274,6 @@ class _Quest2VrTerminalState extends State<Quest2VrTerminal> {
               icon: Icons.copy,
               label: 'Copy',
               onPressed: () {
-                // Copy selection if any
                 final text = widget.session.terminal.buffer.getText();
                 Clipboard.setData(ClipboardData(text: text));
               },
@@ -348,6 +374,10 @@ class _VrButton extends StatelessWidget {
           width: 100,
           height: 90,
           padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+          ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

@@ -55,3 +55,4 @@ coverage/
 # Environment
 .env
 .env.local
+android/app/termisol-release-key.jks

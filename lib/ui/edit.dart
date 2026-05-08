@@ -2398,8 +2398,16 @@ Note: The above file and directory information is provided for context only and 
                     child: SingleChildScrollView(
                       controller: _scrollController,
                       padding: const EdgeInsets.all(12),
-                      child: RichText(
-                        text: TextSpan(children: _applyRainbowSyntax(_controller.text)),
+                      child: Stack(
+                        children: [
+                          // Main text content
+                          RichText(
+                            text: TextSpan(children: _applyRainbowSyntax(_controller.text)),
+                          ),
+                          // Multi-cursor indicators
+                          if (_multiCursorMode)
+                            ..._buildMultiCursorIndicators(),
+                        ],
                       ),
                     ),
                   ),
@@ -2432,6 +2440,55 @@ Note: The above file and directory information is provided for context only and 
         );
       },
     );
+  }
+
+  List<Widget> _buildMultiCursorIndicators() {
+    final indicators = <Widget>[];
+    final text = _controller.text;
+    final lines = text.split('\n');
+    final lineHeight = _fontSize * 1.2;
+    final charWidth = _fontSize * 0.6;
+    
+    for (int i = 0; i < _cursors.length; i++) {
+      final cursor = _cursors[i];
+      final offset = cursor.baseOffset;
+      
+      // Calculate line and column from offset
+      int currentOffset = 0;
+      int lineNumber = 0;
+      int columnNumber = 0;
+      
+      for (int lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+        final lineLength = lines[lineIdx].length;
+        if (currentOffset + lineLength >= offset) {
+          lineNumber = lineIdx;
+          columnNumber = offset - currentOffset;
+          break;
+        }
+        currentOffset += lineLength + 1; // +1 for newline
+      }
+      
+      // Calculate cursor position
+      final cursorY = lineNumber * lineHeight;
+      final cursorX = columnNumber * charWidth;
+      
+      indicators.add(
+        Positioned(
+          left: cursorX + (_showLineNumbers ? 50 : 0), // Account for line numbers
+          top: cursorY,
+          child: Container(
+            width: 2,
+            height: lineHeight,
+            decoration: BoxDecoration(
+              color: i == 0 ? Colors.blue : Colors.orange, // Main cursor blue, others orange
+              borderRadius: BorderRadius.circular(1),
+            ),
+          ),
+        ),
+      );
+    }
+    
+    return indicators;
   }
 
   void _handleMouseClick(TapDownDetails details) {

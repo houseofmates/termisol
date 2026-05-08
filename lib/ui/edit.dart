@@ -167,9 +167,6 @@ class _EditTerminalState extends State<EditTerminal> {
     
     // Check if AI is enabled via environment variable
     _isAIEnabled = Platform.environment['TERMISOL_AI_ENABLED'] == 'true';
-    
-    // Start auto-save
-    _autoSaveManager.startAutoSave(_saveEditorState);
   }
 
   @override
@@ -182,7 +179,7 @@ class _EditTerminalState extends State<EditTerminal> {
     _focusNode.dispose();
     _searchController.dispose();
     _aiChatController.dispose();
-    _collaborationManager.dispose();
+    // _collaborationManager.dispose();
     super.dispose();
   }
 

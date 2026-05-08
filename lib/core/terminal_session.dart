@@ -73,6 +73,9 @@ class TerminalSession extends ChangeNotifier {
   /// Called when terminal receives focus events (bracketed paste mode).
   void Function(bool)? onFocusEvent;
 
+  /// Focus manager for bracketed paste integration.
+  late final FocusManager focusManager;
+
   /// Called whenever data is received from the backend.
   /// Useful for monitoring output to detect errors or context changes.
   void Function(String output)? onOutputReceived;

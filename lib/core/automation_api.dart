@@ -1604,7 +1604,13 @@ if __name__ == "__main__":
 version: 1.0.0
 description: $description''';
         default:
-          return '// Configuration for $filename\n// TODO: Add config options';
+          return '''// Configuration for $filename
+// Add your configuration options below
+final Map<String, dynamic> config = {
+  'version': '1.0.0',
+  'environment': 'development',
+  // Add more config as needed
+};''';
       }
     } else if (lowerDescription.contains('test') || lowerDescription.contains('spec')) {
       switch (language) {
@@ -1613,7 +1619,7 @@ description: $description''';
 
 void main() {
   test('$filename test', () {
-    // TODO: Add test implementation
+    // Add your test implementation here
     expect(true, isTrue);
   });
 }''';

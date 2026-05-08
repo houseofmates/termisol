@@ -63,6 +63,17 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _showFps = !_showFps);
   }
 
+  void _showSettings() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: PkmTheme.popup,
+      builder: (context) => SettingsSheet(
+        performanceEnforcer: _perf,
+        registry: widget.registry,
+      ),
+    );
+  }
+
   void _addTab() {
     final newTab = TerminalSession(
       id: _tabs.length,

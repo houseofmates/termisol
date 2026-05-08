@@ -225,7 +225,7 @@ class SmartCommandChaining {
       if (statsData != null) {
         final data = json.decode(statsData) as Map<String, dynamic>;
         for (final entry in data.entries) {
-          _statistics[entry.key] = CommandStatistics.fromJson(entry.value as Map<String, dynamic>);
+          _statistics[entry.key] = CommandStatistics.fromJson(Map<String, dynamic>.from(entry.value as Map));
         }
       }
     } catch (e) {

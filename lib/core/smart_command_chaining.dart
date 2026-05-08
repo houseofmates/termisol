@@ -270,8 +270,8 @@ class CommandGraph {
   factory CommandGraph.fromJson(String command, Map<String, dynamic> json) {
     return CommandGraph(
       command: command,
-      transitions: Map<String, int>.from(json['transitions'] ?? {}),
-    )..lastUsed = DateTime.tryParse(json['lastUsed'] ?? '') ?? DateTime.now();
+      transitions: Map<String, int>.from((json['transitions'] as Map?) ?? {}),
+    )..lastUsed = DateTime.tryParse((json['lastUsed'] as String?) ?? '') ?? DateTime.now();
   }
 }
 

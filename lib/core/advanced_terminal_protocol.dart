@@ -35,6 +35,7 @@ class AdvancedTerminalProtocol {
   String _windowTitle = '';
 
   // Color management
+  final List<Color> _colorPalette = List.generate(256, (i) => Color.fromARGB(255, 0, 0, 0));
   bool _trueColorSupported = true;
 
   AdvancedTerminalProtocol(this._terminal, this._controller);

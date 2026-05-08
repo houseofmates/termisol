@@ -58,15 +58,22 @@ class ShortcutManager {
       final shortcutsMap = <String, dynamic>{};
       
       _shortcuts.forEach((key, config) {
-        shortcutsMap[key] = {
-          'description': config.description,
-          'shortcut': config.shortcut,
-        };
+        if (key.isNotEmpty && config.description.isNotEmpty && config.shortcut.isNotEmpty) {
+          shortcutsMap[key] = {
+            'description': config.description,
+            'shortcut': config.shortcut,
+          };
+        } else {
+          debugPrint('[SHORTCUTS] Skipping invalid shortcut: $key');
+        }
       });
       
-      await prefs.setString('user_shortcuts', jsonEncode(shortcutsMap));
+      final jsonString = jsonEncode(shortcutsMap);
+      await prefs.setString('user_shortcuts', jsonString);
+      debugPrint('[SHORTCUTS] Saved ${shortcutsMap.length} shortcuts to storage');
     } catch (e) {
-      // Silently fail for now - could add retry logic or user notification
+      debugPrint('[SHORTCUTS] Failed to save shortcuts: $e');
+      // Could add retry logic or user notification here
     }
   }
 

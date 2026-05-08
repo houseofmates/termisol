@@ -2053,16 +2053,37 @@ class _EditTerminalState extends State<EditTerminal> {
   }
 
   void _updateCompletions() {
-    final text = _controller.text;
-    final cursorPos = _controller.selection.baseOffset;
-    final currentLine = text.substring(0, cursorPos).split('\n').last;
-    
-    _completions = _generateCompletions(currentLine);
-    _selectedCompletion = 0;
-    
-    setState(() {
-      _showCompletion = _completions.isNotEmpty;
-    });
+    try {
+      if (_controller == null || !_controller.value.isComposing) {
+        debugPrint('[COMPLETION] Controller not ready or still composing');
+        return;
+      }
+      
+      final text = _controller.text;
+      final cursorPos = _controller.selection.baseOffset;
+      
+      // Validate cursor position
+      if (cursorPos < 0 || cursorPos > text.length) {
+        debugPrint('[COMPLETION] Invalid cursor position: $cursorPos');
+        _hideCompletion();
+        return;
+      }
+      
+      final currentLine = text.substring(0, cursorPos).split('\n').last;
+      
+      _completions = _generateCompletions(currentLine);
+      _selectedCompletion = 0;
+      
+      setState(() {
+        _showCompletion = _completions.isNotEmpty;
+      });
+      
+      debugPrint('[COMPLETION] Updated ${_completions.length} completions for: "$currentLine"');
+    } catch (e, stackTrace) {
+      debugPrint('[COMPLETION] Error updating completions: $e');
+      debugPrint('[COMPLETION] Stack trace: $stackTrace');
+      _hideCompletion();
+    }
   }
 
   List<String> _generateCompletions(String currentLine) {

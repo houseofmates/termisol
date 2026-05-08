@@ -247,11 +247,11 @@ class SessionRecovery {
         sessionId: data['sessionId'] as String,
         title: data['title'] as String? ?? '',
         createdAt: DateTime.parse(data['createdAt'] as String),
-        entries: (data['entries'] as List?)?.map((e) => RecoveryEntry.fromJson(e as Map<String, dynamic>)).toList() ?? [],
-        workingDirectory: data['workingDirectory'] as String? ?? '/',
-        lastActivity: DateTime.tryParse(data['lastActivity'] ?? '') ?? DateTime.now(),
-        lastCheckpoint: DateTime.tryParse(data['lastCheckpoint'] ?? ''),
-        metadata: Map<String, dynamic>.from(data['metadata'] ?? {}),
+        entries: ((data['entries'] as List?)?.map((e) => RecoveryEntry.fromJson(Map<String, dynamic>.from(e as Map))).toList() ?? []),
+        workingDirectory: (data['workingDirectory'] as String?) ?? '/',
+        lastActivity: DateTime.tryParse((data['lastActivity'] as String?) ?? '') ?? DateTime.now(),
+        lastCheckpoint: DateTime.tryParse((data['lastCheckpoint'] as String?) ?? ''),
+        metadata: Map<String, dynamic>.from((data['metadata'] as Map?) ?? {}),
       );
     } catch (e) {
       return null;

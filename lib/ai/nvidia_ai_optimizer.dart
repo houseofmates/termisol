@@ -349,12 +349,14 @@ Focus on:
       recommendations.add(OptimizationRecommendation(
         timestamp: DateTime.now(),
         overallScore: 0.7,
-        category: 'performance',
-        description: 'High CPU usage detected. Consider reducing terminal animations or background processes.',
-        impact: 'high',
-        difficulty: 'easy',
-        estimatedGain: 15.0,
-        actions: ['Reduce frame rate', 'Disable visual effects', 'Close unused terminals'],
+        suggestions: [OptimizationSuggestion(
+          action: 'Reduce terminal animations',
+          description: 'Disable visual effects to lower CPU usage',
+          priority: 'medium',
+        )],
+        predictedImprovement: '15-25% CPU reduction',
+        implementationTime: '5 minutes',
+        riskLevel: 'low',
       ));
     }
     

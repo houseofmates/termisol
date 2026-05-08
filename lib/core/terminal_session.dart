@@ -279,6 +279,28 @@ class TerminalSession extends ChangeNotifier {
     }
   }
 
+  /// Copy session data from another session
+  void copyFrom(TerminalSession other) {
+    // Copy terminal state
+    terminal.buffer.copyFrom(other.terminal.buffer);
+    terminal.resize(other.terminal.viewWidth, other.terminal.viewHeight);
+    
+    // Copy backend state if available
+    if (other._backend != null) {
+      _backend = other._backend;
+      _connected = other._connected;
+      _error = other._error;
+    }
+    
+    // Copy detected URLs
+    detectedUrls.clear();
+    detectedUrls.addAll(other.detectedUrls);
+    
+    // Copy handlers
+    onAiQuery = other.onAiQuery;
+    onEditCommand = other.onEditCommand;
+  }
+
   @override
   void dispose() {
     disposeSession();

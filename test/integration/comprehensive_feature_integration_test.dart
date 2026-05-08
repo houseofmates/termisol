@@ -8,7 +8,7 @@ import 'dart:math';
 // Import all the core components we need to test
 import 'package:termisol/core/advanced_terminal_protocol.dart';
 import 'package:termisol/core/quantum_terminal_engine.dart';
-import 'package:termisol/lib/app.dart';
+import 'package:termisol/app.dart';
 
 void main() {
   group('Comprehensive Feature Integration Tests', () {

@@ -231,10 +231,10 @@ class _SettingsPageState extends State<SettingsPage>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: PkmTheme.primary.withOpacity(0.1),
+              color: PkmTheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: PkmTheme.primary.withOpacity(0.3),
+                color: PkmTheme.primary.withValues(alpha: 0.3),
               ),
             ),
             child: Column(
@@ -261,8 +261,9 @@ class _SettingsPageState extends State<SettingsPage>
                 ),
                 const SizedBox(height: 8),
                 ...healthReport.entries.map((entry) {
-                  final status = entry.value['health'] as String?;
-                  final enabled = entry.value['enabled'] as bool?;
+                  final map = entry.value as Map<String, dynamic>;
+                  final status = map['health'] as String?;
+                  final enabled = map['enabled'] as bool?;
 
                   Color statusColor;
                   IconData statusIcon;

@@ -2180,6 +2180,101 @@ class _TextEditorState extends State<TextEditor> {
     _showStatus('Incremental search - type to search');
   }
   
+  // Marks System Functions
+  void _showSetMarkDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Set Mark'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: 'Mark name (a-z)',
+            labelText: 'Mark',
+          ),
+          maxLength: 1,
+          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z]'))],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              final markName = controller.text.toLowerCase();
+              if (markName.isNotEmpty && markName.length == 1) {
+                _setMark(markName);
+              }
+              Navigator.of(context).pop();
+            },
+            child: const Text('Set'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  void _setMark(String markName) {
+    final position = _controller.selection.baseOffset;
+    setState(() {
+      _marks[markName] = position;
+    });
+    _showStatus('Mark $markName set');
+  }
+  
+  void _showJumpToMarkDialog() {
+    if (_marks.isEmpty) {
+      _showStatus('No marks set');
+      return;
+    }
+    
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Jump to Mark (${_marks.keys.join(", ")})'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: 'Mark name (a-z)',
+            labelText: 'Mark',
+          ),
+          maxLength: 1,
+          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z]'))],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              final markName = controller.text.toLowerCase();
+              if (markName.isNotEmpty && markName.length == 1) {
+                _jumpToMark(markName);
+              }
+              Navigator.of(context).pop();
+            },
+            child: const Text('Jump'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  void _jumpToMark(String markName) {
+    final position = _marks[markName];
+    if (position != null) {
+      _controller.selection = TextSelection.collapsed(offset: position);
+      _scrollToPosition(position);
+      _showStatus('Jumped to mark $markName');
+    } else {
+      _showStatus('Mark $markName not found');
+    }
+  }
+  
   void _showHelpDialog() {
     showDialog(
       context: context,

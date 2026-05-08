@@ -14,6 +14,7 @@ class Sub16msLatencyOptimizer {
   final StreamController<LatencyMetrics> _metricsController = StreamController.broadcast();
   Timer? _optimizationTimer;
   bool _adaptivePacingEnabled = true;
+  bool _disposed = false;
   double _currentTargetFrameTime = targetFrameTimeMs;
   int _droppedFrames = 0;
   int _totalFrames = 0;
@@ -57,6 +58,7 @@ class Sub16msLatencyOptimizer {
   }
 
   void _onFrame(Duration timeStamp) {
+    if (_disposed) return;
     final now = DateTime.now();
     if (_lastFrameTime != null) {
       final frameTime = now.difference(_lastFrameTime!).inMicroseconds / 1000.0;
@@ -203,7 +205,7 @@ class Sub16msLatencyOptimizer {
   void dispose() {
     _optimizationTimer?.cancel();
     _metricsController.close();
-    SchedulerBinding.instance.removePersistentFrameCallback(_onFrame);
+    _disposed = true;
     debugPrint('Sub16msLatencyOptimizer disposed');
   }
 }

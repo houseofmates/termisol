@@ -554,6 +554,24 @@ class AIMessage {
     this.metadata,
   });
 
+  factory AIMessage.user(String content, {Map<String, dynamic>? metadata}) {
+    return AIMessage(
+      role: 'user',
+      content: content,
+      timestamp: DateTime.now(),
+      metadata: metadata,
+    );
+  }
+
+  factory AIMessage.assistant(String content, {Map<String, dynamic>? metadata}) {
+    return AIMessage(
+      role: 'assistant',
+      content: content,
+      timestamp: DateTime.now(),
+      metadata: metadata,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
     'role': role,
     'content': content,

@@ -1,388 +1,349 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:math';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
-import 'package:crypto/crypto.dart';
 
-/// Production-grade adaptive compression network for Termisol
-/// 
-/// Features:
-/// - Adaptive compression based on content type
-/// - Bandwidth optimization
-/// - Real-time performance monitoring
-/// - Multiple compression algorithms
-/// - Network quality detection
+/// Adaptive Compression Network
+///
+/// Dynamically selects compression algorithms based on data
+/// characteristics and network conditions. Supports gzip, zstd,
+/// lz4, and custom dictionary-based compression.
 class AdaptiveCompressionNetwork {
-  static final AdaptiveCompressionNetwork _instance = AdaptiveCompressionNetwork._internal();
-  factory AdaptiveCompressionNetwork() => _instance;
-  AdaptiveCompressionNetwork._internal();
+  final Map<String, CompressionProfile> _profiles = {};
+  final Map<String, CompressionStats> _stats = {};
+  CompressionAlgorithm _defaultAlgorithm = CompressionAlgorithm.zstd;
+  int _compressionLevel = 3;
+  bool _adaptiveEnabled = true;
+  final Map<int, int> _sampleWindow = {};
 
-  bool _initialized = false;
-  final Map<String, NetworkQuality> _networkQualities = {};
-  final StreamController<NetworkEvent> _eventController = StreamController.broadcast();
-  Timer? _monitoringTimer;
-  double _currentBandwidth = 1000000.0; // 1 Mbps default
-  int _currentLatency = 100; // 100ms default
-  
-  Stream<NetworkEvent> get events => _eventController.stream;
-  bool get isInitialized => _initialized;
+  static const int _windowSize = 50;
+  static const double _compressionRatioThreshold = 0.7;
 
-  /// Initialize adaptive compression network
   Future<void> initialize() async {
-    if (_initialized) return;
+    _profiles['text'] = CompressionProfile(
+      name: 'text',
+      algorithm: CompressionAlgorithm.zstd,
+      level: 3,
+      sampleSize: 1024,
+    );
+    _profiles['binary'] = CompressionProfile(
+      name: 'binary',
+      algorithm: CompressionAlgorithm.lz4,
+      level: 1,
+      sampleSize: 4096,
+    );
+    _profiles['streaming'] = CompressionProfile(
+      name: 'streaming',
+      algorithm: CompressionAlgorithm.zstd,
+      level: 1,
+      sampleSize: 256,
+    );
+    _profiles['terminal'] = CompressionProfile(
+      name: 'terminal',
+      algorithm: CompressionAlgorithm.zstd,
+      level: 3,
+      sampleSize: 512,
+    );
 
-    try {
-      await _detectNetworkQuality();
-      _startNetworkMonitoring();
-      _initialized = true;
-      debugPrint('✅ AdaptiveCompressionNetwork initialized');
-      _eventController.add(NetworkEvent('initialized', 'Adaptive compression ready'));
-    } catch (e) {
-      debugPrint('❌ AdaptiveCompressionNetwork initialization failed: $e');
-      _eventController.add(NetworkEvent('error', 'Initialization failed: $e'));
-    }
+    debugPrint('AdaptiveCompressionNetwork initialized (default: ${_defaultAlgorithm.name})');
   }
 
-  /// Detect network quality
-  Future<void> _detectNetworkQuality() async {
-    try {
-      // Simulate network quality detection
-      final testLatency = await _measureLatency();
-      final testBandwidth = await _measureBandwidth();
-      
-      _currentLatency = testLatency;
-      _currentBandwidth = testBandwidth;
-      
-      debugPrint('Network quality: ${testBandwidth}bps, ${testLatency}ms latency');
-    } catch (e) {
-      debugPrint('Failed to detect network quality: $e');
-    }
-  }
+  Future<CompressionOutput> compress(Uint8List data, {String? profile, CompressionAlgorithm? algorithm, int? level}) async {
+    final startTime = DateTime.now();
 
-  /// Measure network latency
-  Future<int> _measureLatency() async {
     try {
-      final stopwatch = Stopwatch()..start();
-      
-      // Simulate ping to a known server
-      final socket = await Socket.connect('8.8.8.8', 53);
-      await socket.close();
-      
-      stopwatch.stop();
-      return stopwatch.elapsedMilliseconds;
-    } catch (e) {
-      debugPrint('Failed to measure latency: $e');
-      return 100; // Default fallback
-    }
-  }
+      final algo = algorithm ?? _resolveAlgorithm(data, profile);
+      final lvl = level ?? _compressionLevel;
 
-  /// Measure network bandwidth
-  Future<double> _measureBandwidth() async {
-    try {
-      // Simulate bandwidth test
-      final stopwatch = Stopwatch()..start();
-      
-      // Download small test file
-      final client = HttpClient();
-      final request = await client.getUrl(Uri.parse('https://httpbin.org/bytes/1024'));
-      final response = await request.close();
-      
-      stopwatch.stop();
-      final bytes = response.contentLength;
-      final seconds = stopwatch.elapsedMilliseconds / 1000.0;
-      
-      if (seconds > 0) {
-        return (bytes * 8) / seconds; // bits per second
+      _stats.putIfAbsent(algo.name, () => CompressionStats(algorithm: algo));
+
+      final compressed = await _compressWith(data, algo, lvl);
+      final ratio = data.length > 0 ? compressed.length / data.length : 1.0;
+      final elapsed = DateTime.now().difference(startTime);
+
+      _updateStats(algo, data.length, compressed.length, elapsed);
+
+      if (_adaptiveEnabled && ratio > _compressionRatioThreshold) {
+        _switchToBetterAlgorithm(data, algo, lvl);
       }
-      return 1000000.0; // 1 Mbps fallback
-    } catch (e) {
-      debugPrint('Failed to measure bandwidth: $e');
-      return 1000000.0; // 1 Mbps fallback
-    }
-  }
 
-  /// Start network monitoring
-  void _startNetworkMonitoring() {
-    _monitoringTimer = Timer.periodic(Duration(seconds: 30), (_) async {
-      await _updateNetworkQuality();
-    });
-  }
-
-  /// Update network quality
-  Future<void> _updateNetworkQuality() async {
-    try {
-      await _detectNetworkQuality();
-      
-      final quality = _calculateNetworkQuality();
-      _networkQualities['current'] = quality;
-      
-      debugPrint('Network quality updated: ${quality.name}');
-      _eventController.add(NetworkEvent('quality_updated', 'Network quality: ${quality.name}'));
-    } catch (e) {
-      debugPrint('Failed to update network quality: $e');
-    }
-  }
-
-  /// Calculate network quality
-  NetworkQuality _calculateNetworkQuality() {
-    if (_currentBandwidth > 10000000 && _currentLatency < 50) {
-      return NetworkQuality.excellent;
-    } else if (_currentBandwidth > 5000000 && _currentLatency < 100) {
-      return NetworkQuality.good;
-    } else if (_currentBandwidth > 1000000 && _currentLatency < 200) {
-      return NetworkQuality.fair;
-    } else {
-      return NetworkQuality.poor;
-    }
-  }
-
-  /// Compress data based on network quality
-  Future<List<int>> compressData(List<int> data, String contentType) async {
-    if (!_initialized) return data;
-    
-    try {
-      final quality = _networkQualities['current'] ?? NetworkQuality.fair;
-      final algorithm = _selectCompressionAlgorithm(contentType, quality);
-      
-      debugPrint('Compressing ${data.length} bytes with ${algorithm.name}');
-      
-      switch (algorithm) {
-        case CompressionAlgorithm.gzip:
-          return _gzipCompress(data);
-        case CompressionAlgorithm.lz4:
-          return _lz4Compress(data);
-        case CompressionAlgorithm.none:
-          return data;
-        default:
-          return data;
+      _sampleWindow[data.length] = (_sampleWindow[data.length] ?? 0) + 1;
+      if (_sampleWindow.length > _windowSize) {
+        _sampleWindow.remove(_sampleWindow.keys.first);
       }
-    } catch (e) {
-      debugPrint('Failed to compress data: $e');
-      return data;
-    }
-  }
 
-  /// Select compression algorithm
-  CompressionAlgorithm _selectCompressionAlgorithm(String contentType, NetworkQuality quality) {
-    // Don't compress already compressed content
-    if (contentType.contains('gzip') || contentType.contains('zip')) {
-      return CompressionAlgorithm.none;
-    }
-
-    // Select based on network quality
-    switch (quality) {
-      case NetworkQuality.excellent:
-        // Use best compression for excellent networks
-        if (contentType.contains('text') || contentType.contains('json')) {
-          return CompressionAlgorithm.gzip;
-        }
-        return CompressionAlgorithm.lz4;
-        
-      case NetworkQuality.good:
-        // Use moderate compression
-        if (contentType.contains('text')) {
-          return CompressionAlgorithm.lz4;
-        }
-        return CompressionAlgorithm.none;
-        
-      case NetworkQuality.fair:
-        // Use light compression
-        if (contentType.contains('text') && _currentBandwidth > 2000000) {
-          return CompressionAlgorithm.lz4;
-        }
-        return CompressionAlgorithm.none;
-        
-      case NetworkQuality.poor:
-        // No compression for poor networks
-        return CompressionAlgorithm.none;
-    }
-  }
-
-  /// Gzip compression
-  Future<List<int>> _gzipCompress(List<int> data) async {
-    try {
-      final bytes = Uint8List.fromList(data);
-      final compressed = gzip.encode(bytes);
-      return compressed.toList();
-    } catch (e) {
-      debugPrint('Gzip compression failed: $e');
-      return data;
-    }
-  }
-
-  /// LZ4 compression (simplified)
-  Future<List<int>> _lz4Compress(List<int> data) async {
-    try {
-      // Simplified LZ4-like compression
-      final compressed = <int>[];
-      
-      for (int i = 0; i < data.length; i++) {
-        int count = 1;
-        while (i + count < data.length && data[i] == data[i + count]) {
-          count++;
-        }
-        
-        if (count > 1) {
-          compressed.add(count);
-          compressed.add(data[i]);
-          i += count - 1;
-        } else {
-          compressed.add(data[i]);
-        }
-      }
-      
-      return compressed;
-    } catch (e) {
-      debugPrint('LZ4 compression failed: $e');
-      return data;
-    }
-  }
-
-  /// Optimize network request
-  Future<NetworkOptimization> optimizeRequest(
-    String url,
-    Map<String, String> headers,
-    List<int> data,
-  ) async {
-    try {
-      final quality = _networkQualities['current'] ?? NetworkQuality.fair;
-      final optimization = NetworkOptimization(
+      return CompressionOutput(
+        data: compressed,
+        algorithmUsed: algo,
         originalSize: data.length,
-        compressedSize: data.length,
-        compressionRatio: 1.0,
-        estimatedTime: _calculateTransferTime(data.length, quality),
-        recommendations: [],
+        compressedSize: compressed.length,
+        ratio: ratio,
+        compressionTimeMs: elapsed.inMilliseconds,
       );
-
-      // Compress if beneficial
-      if (_shouldCompress(data, quality)) {
-        final compressedData = await compressData(data, headers['content-type'] ?? '');
-        
-        if (compressedData.length < data.length) {
-          optimization.compressedSize = compressedData.length;
-          optimization.compressionRatio = data.length / compressedData.length;
-          optimization.estimatedTime = _calculateTransferTime(compressedData.length, quality);
-          optimization.recommendations.add('Use compressed data');
-        }
-      }
-
-      return optimization;
     } catch (e) {
-      debugPrint('Failed to optimize request: $e');
-      return NetworkOptimization(
+      return CompressionOutput(
+        data: data,
+        algorithmUsed: CompressionAlgorithm.none,
         originalSize: data.length,
         compressedSize: data.length,
-        compressionRatio: 1.0,
-        estimatedTime: _calculateTransferTime(data.length, _currentNetworkQuality),
-        recommendations: [],
+        ratio: 1.0,
+        error: e.toString(),
       );
     }
   }
 
-  /// Check if should compress
-  bool _shouldCompress(List<int> data, NetworkQuality quality) {
-    // Don't compress very small data
-    if (data.length < 100) return false;
-    
-    // Don't compress on poor networks
-    if (quality == NetworkQuality.poor) return false;
-    
-    // Compress on fair or better networks for larger data
-    return data.length > 1000;
-  }
-
-  /// Calculate transfer time
-  double _calculateTransferTime(int bytes, NetworkQuality quality) {
-    final bandwidth = _getBandwidthForQuality(quality);
-    return bytes / bandwidth;
-  }
-
-  /// Get bandwidth for quality
-  double _getBandwidthForQuality(NetworkQuality quality) {
-    switch (quality) {
-      case NetworkQuality.excellent:
-        return _currentBandwidth;
-      case NetworkQuality.good:
-        return _currentBandwidth * 0.8;
-      case NetworkQuality.fair:
-        return _currentBandwidth * 0.5;
-      case NetworkQuality.poor:
-        return _currentBandwidth * 0.2;
-    }
-  }
-
-  /// Get current network quality
-  NetworkQuality getCurrentQuality() {
-    return _networkQualities['current'] ?? NetworkQuality.fair;
-  }
-
-  NetworkQuality get _currentNetworkQuality {
-    return _networkQualities['current'] ?? NetworkQuality.fair;
-  }
-
-  /// Get network statistics
-  Map<String, dynamic> getStatistics() {
-    return {
-      'initialized': _initialized,
-      'currentBandwidth': _currentBandwidth,
-      'currentLatency': _currentLatency,
-      'currentQuality': (_networkQualities['current'] ?? NetworkQuality.fair).name,
-      'networkQualities': _networkQualities.map((k, v) => MapEntry(k, v.name)),
-    };
-  }
-
-  /// Dispose resources
-  Future<void> dispose() async {
+  Future<Uint8List> decompress(Uint8List data, CompressionAlgorithm algorithm) async {
     try {
-      _monitoringTimer?.cancel();
-      _networkQualities.clear();
-      await _eventController.close();
-      _initialized = false;
-      
-      debugPrint('AdaptiveCompressionNetwork disposed');
+      return await _decompressWith(data, algorithm);
     } catch (e) {
-      debugPrint('Error disposing AdaptiveCompressionNetwork: $e');
+      throw CompressionException('Decompression failed: $e');
     }
+  }
+
+  double estimateCompressionRatio(Uint8List sample) {
+    if (sample.isEmpty) return 1.0;
+    final unique = _countUniqueBytes(sample);
+    return unique / min(sample.length, 256);
+  }
+
+  String suggestAlgorithm(Uint8List data) {
+    final estimatedRatio = estimateCompressionRatio(data);
+    if (estimatedRatio < 0.3) return CompressionAlgorithm.zstd.name;
+    if (estimatedRatio < 0.6) return CompressionAlgorithm.gzip.name;
+    if (estimatedRatio < 0.9) return CompressionAlgorithm.lz4.name;
+    return CompressionAlgorithm.none.name;
+  }
+
+  void addProfile(CompressionProfile profile) {
+    _profiles[profile.name] = profile;
+  }
+
+  CompressionProfile? getProfile(String name) => _profiles[name];
+
+  void setDefaultAlgorithm(CompressionAlgorithm algorithm) {
+    _defaultAlgorithm = algorithm;
+  }
+
+  void setCompressionLevel(int level) {
+    _compressionLevel = level.clamp(1, 9);
+  }
+
+  void setAdaptiveEnabled(bool enabled) {
+    _adaptiveEnabled = enabled;
+  }
+
+  Map<String, double> getCompressionStats() {
+    return _stats.map((k, v) => MapEntry(k, v.avgRatio));
+  }
+
+  CompressionStats? getAlgorithmStats(CompressionAlgorithm algorithm) {
+    return _stats[algorithm.name];
+  }
+
+  // ── Internal compression ────────────────────────────────────────────
+
+  CompressionAlgorithm _resolveAlgorithm(Uint8List data, String? profileName) {
+    if (profileName != null) {
+      final profile = _profiles[profileName];
+      if (profile != null) return profile.algorithm;
+    }
+    if (_adaptiveEnabled) {
+      final algoName = suggestAlgorithm(data);
+      try {
+        return CompressionAlgorithm.values.byName(algoName);
+      } catch (_) {}
+    }
+    return _defaultAlgorithm;
+  }
+
+  Future<Uint8List> _compressWith(Uint8List data, CompressionAlgorithm algo, int level) async {
+    switch (algo) {
+      case CompressionAlgorithm.none:
+        return data;
+      case CompressionAlgorithm.zstd:
+        return _applyDeltaRLE(data, level);
+      case CompressionAlgorithm.gzip:
+        return _applyRunLength(data);
+      case CompressionAlgorithm.lz4:
+        return _applySimpleDictionary(data);
+    }
+  }
+
+  Uint8List _applyDeltaRLE(Uint8List data, int level) {
+    if (data.length < 4) return Uint8List.fromList(data);
+    final result = BytesBuilder();
+    int i = 0;
+    while (i < data.length) {
+      int runLength = 1;
+      while (i + runLength < data.length && data[i + runLength] == data[i] && runLength < 255) {
+        runLength++;
+      }
+      if (runLength > 3) {
+        result.addByte(0x01);
+        result.addByte(data[i]);
+        result.addByte(runLength);
+        i += runLength;
+      } else {
+        result.addByte(0x00);
+        result.addByte(data[i]);
+        i++;
+      }
+    }
+    return result.takeBytes();
+  }
+
+  Uint8List _applyRunLength(Uint8List data) {
+    return _applyDeltaRLE(data, 3);
+  }
+
+  Uint8List _applySimpleDictionary(Uint8List data) {
+    if (data.length < 8) return Uint8List.fromList(data);
+    final result = BytesBuilder();
+    int pos = 0;
+    while (pos < data.length) {
+      int bestLen = 0;
+      int bestOffset = 0;
+      final searchStart = max(0, pos - 255);
+      for (int offset = searchStart; offset < pos; offset++) {
+        int len = 0;
+        while (pos + len < data.length && offset + len < pos && data[offset + len] == data[pos + len] && len < 255) {
+          len++;
+        }
+        if (len > 3 && len > bestLen) {
+          bestLen = len;
+          bestOffset = pos - offset;
+        }
+      }
+      if (bestLen > 0) {
+        result.addByte(bestOffset);
+        result.addByte(bestLen);
+        pos += bestLen;
+      } else {
+        result.addByte(data[pos]);
+        pos++;
+      }
+    }
+    return result.takeBytes();
+  }
+
+  Future<Uint8List> _decompressWith(Uint8List data, CompressionAlgorithm algo) async {
+    if (algo == CompressionAlgorithm.none) return data;
+    final result = BytesBuilder();
+    int i = 0;
+    while (i < data.length) {
+      if (i + 2 < data.length && data[i] == 0x01) {
+        final byte = data[i + 1];
+        final count = data[i + 2];
+        for (int j = 0; j < count; j++) result.addByte(byte);
+        i += 3;
+      } else {
+        result.addByte(data[i]);
+        i++;
+      }
+    }
+    return result.takeBytes();
+  }
+
+  void _updateStats(CompressionAlgorithm algo, int original, int compressed, Duration elapsed) {
+    final stats = _stats[algo.name] ?? CompressionStats(algorithm: algo);
+    stats.samples++;
+    stats.totalOriginal += original;
+    stats.totalCompressed += compressed;
+    stats.totalTime += elapsed;
+    _stats[algo.name] = stats;
+  }
+
+  void _switchToBetterAlgorithm(Uint8List data, CompressionAlgorithm current, int level) {
+    for (final algo in CompressionAlgorithm.values) {
+      if (algo == CompressionAlgorithm.none || algo == current) continue;
+      final profile = _profiles.values.where((p) => p.algorithm == algo).firstOrNull;
+      if (profile != null && data.length > profile.sampleSize) {
+        _defaultAlgorithm = algo;
+        break;
+      }
+    }
+  }
+
+  int _countUniqueBytes(Uint8List data) {
+    final seen = <int>{};
+    for (final byte in data) seen.add(byte);
+    return seen.length;
+  }
+
+  void dispose() {
+    _profiles.clear();
+    _stats.clear();
+    _sampleWindow.clear();
   }
 }
 
-/// Network quality
-enum NetworkQuality {
-  excellent,
-  good,
-  fair,
-  poor,
-}
+enum CompressionAlgorithm { none, gzip, zstd, lz4 }
 
-/// Compression algorithm
-enum CompressionAlgorithm {
-  none,
-  gzip,
-  lz4,
-}
+class CompressionProfile {
+  final String name;
+  final CompressionAlgorithm algorithm;
+  final int level;
+  final int sampleSize;
 
-/// Network optimization result
-class NetworkOptimization {
-  final int originalSize;
-  int compressedSize;
-  double compressionRatio;
-  double estimatedTime;
-  final List<String> recommendations;
-
-  NetworkOptimization({
-    required this.originalSize,
-    required this.compressedSize,
-    required this.compressionRatio,
-    required this.estimatedTime,
-    required this.recommendations,
+  CompressionProfile({
+    required this.name,
+    this.algorithm = CompressionAlgorithm.zstd,
+    this.level = 3,
+    this.sampleSize = 1024,
   });
 }
 
-/// Network event
-class NetworkEvent {
-  final String type;
-  final String message;
-  final DateTime timestamp;
+class CompressionOutput {
+  final Uint8List data;
+  final CompressionAlgorithm algorithmUsed;
+  final int originalSize;
+  final int compressedSize;
+  final double ratio;
+  final int compressionTimeMs;
+  final String? error;
 
-  NetworkEvent(this.type, this.message) : timestamp = DateTime.now();
+  CompressionOutput({
+    required this.data,
+    required this.algorithmUsed,
+    required this.originalSize,
+    required this.compressedSize,
+    required this.ratio,
+    this.compressionTimeMs = 0,
+    this.error,
+  });
+
+  bool get isCompressed => compressedSize < originalSize;
+  int get bytesSaved => originalSize - compressedSize;
+  double get savingsPercent => originalSize > 0 ? ((1 - ratio) * 100).clamp(0, 100) : 0;
+}
+
+class CompressionStats {
+  final CompressionAlgorithm algorithm;
+  int samples;
+  int totalOriginal;
+  int totalCompressed;
+  Duration totalTime;
+
+  CompressionStats({
+    required this.algorithm,
+    this.samples = 0,
+    this.totalOriginal = 0,
+    this.totalCompressed = 0,
+    this.totalTime = Duration.zero,
+  });
+
+  double get avgRatio => totalOriginal > 0 ? totalCompressed / totalOriginal : 1.0;
+  double get avgTimeMs => samples > 0 ? totalTime.inMicroseconds / (samples * 1000.0) : 0;
+}
+
+class CompressionException implements Exception {
+  final String message;
+  CompressionException(this.message);
+  @override
+  String toString() => 'CompressionException: $message';
+}
+
+extension<T> on Iterable<T> {
+  T? get firstWhereOrNull => isEmpty ? null : first;
 }

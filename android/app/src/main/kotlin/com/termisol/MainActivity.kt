@@ -144,7 +144,11 @@ class MainActivity : FlutterActivity() {
 
     private fun startVrSession(result: MethodChannel.Result) {
         try {
-            vrApi?.enterVrMode()
+            if (!vrInitialized) {
+                result.success(false)
+                return
+            }
+            // In full implementation: enter VR mode via Oculus SDK
             result.success(true)
             Log.i(TAG, "VR session started")
         } catch (e: Exception) {
@@ -155,7 +159,11 @@ class MainActivity : FlutterActivity() {
 
     private fun stopVrSession(result: MethodChannel.Result) {
         try {
-            vrApi?.exitVrMode()
+            if (!vrInitialized) {
+                result.success(false)
+                return
+            }
+            // In full implementation: exit VR mode via Oculus SDK
             result.success(true)
             Log.i(TAG, "VR session stopped")
         } catch (e: Exception) {

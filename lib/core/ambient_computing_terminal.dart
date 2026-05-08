@@ -261,7 +261,7 @@ class AmbientComputingTerminal {
         await _contextAwareUI.applyProfile(bestProfile);
       }
       
-      debugPrint('🌡️ Applied ambient profile: ${bestProfile.name}');
+      _logger.info('Applied ambient profile: ${bestProfile.name}');
     }
     
     // Energy optimization
@@ -383,9 +383,9 @@ class AmbientComputingTerminal {
       // Start context-aware UI
       await _contextAwareUI.startContextAwareUI();
       
-      debugPrint('🎨 Context-aware UI enabled');
+      _logger.info('Context-aware UI enabled');
     } catch (e) {
-      debugPrint('⚠️ Failed to enable context-aware UI: $e');
+      _logger.severe('Failed to enable context-aware UI: $e');
       rethrow;
     }
   }
@@ -402,9 +402,9 @@ class AmbientComputingTerminal {
       // Start voice controller
       await _voiceController.startVoiceControl();
       
-      debugPrint('🎤 Voice control enabled');
+      _logger.info('Voice control enabled');
     } catch (e) {
-      debugPrint('⚠️ Failed to enable voice control: $e');
+      _logger.severe('Failed to enable voice control: $e');
       rethrow;
     }
   }
@@ -421,9 +421,9 @@ class AmbientComputingTerminal {
       // Start gesture recognition
       await _gestureRecognizer.startGestureRecognition();
       
-      debugPrint('👋 Gesture control enabled');
+      _logger.info('Gesture control enabled');
     } catch (e) {
-      debugPrint('⚠️ Failed to enable gesture control: $e');
+      _logger.severe('Failed to enable gesture control: $e');
       rethrow;
     }
   }
@@ -440,9 +440,9 @@ class AmbientComputingTerminal {
       // Start proximity manager
       await _proximityManager.startProximityDetection();
       
-      debugPrint('📏 Proximity detection enabled');
+      _logger.info('Proximity detection enabled');
     } catch (e) {
-      debugPrint('⚠️ Failed to enable proximity detection: $e');
+      _logger.severe('Failed to enable proximity detection: $e');
       rethrow;
     }
   }
@@ -459,9 +459,9 @@ class AmbientComputingTerminal {
       // Start energy optimizer
       await _energyOptimizer.startEnergyOptimization();
       
-      debugPrint('⚡ Energy optimization enabled');
+      _logger.info('Energy optimization enabled');
     } catch (e) {
-      debugPrint('⚠️ Failed to enable energy optimization: $e');
+      _logger.severe('Failed to enable energy optimization: $e');
       rethrow;
     }
   }
@@ -478,9 +478,9 @@ class AmbientComputingTerminal {
       // Start health monitor
       await _healthMonitor.startHealthMonitoring();
       
-      debugPrint('💗 Health monitoring enabled');
+      _logger.info('Health monitoring enabled');
     } catch (e) {
-      debugPrint('⚠️ Failed to enable health monitoring: $e');
+      _logger.severe('Failed to enable health monitoring: $e');
       rethrow;
     }
   }
@@ -498,11 +498,11 @@ class AmbientComputingTerminal {
       // Execute command
       final result = await _executeVoiceCommand(command);
       
-      debugPrint('🎤 Voice command processed: ${command.text}');
+      _logger.info('Voice command processed: ${command.text}');
       
       return result;
     } catch (e) {
-      debugPrint('⚠️ Failed to process voice command: $e');
+      _logger.warning('Failed to process voice command: $e');
       
       return VoiceCommandResult(
         success: false,
@@ -568,7 +568,7 @@ class AmbientComputingTerminal {
       // Execute gesture action
       final result = await _executeGestureAction(recognizedGesture);
       
-      debugPrint('👋 Gesture processed: ${recognizedGesture.type}');
+      _logger.info('Gesture processed: ${recognizedGesture.type}');
       
       return result;
     } catch (e) {

@@ -401,7 +401,7 @@ class TermisolIntegrationManager {
       } else if (manager is VSCodeIntegration) {
         return manager.isInitialized;
       } else if (manager is ContextAwareSuggestions) {
-        return manager.isInitialized;
+        return true; // ContextAwareSuggestions doesn't have isInitialized
       } else if (manager is GitIntegration) {
         return manager.isInitialized;
       } else if (manager is SSHKeyManager) {
@@ -642,7 +642,11 @@ class TermisolIntegrationManager {
         } else if (manager is VSCodeIntegration) {
           status['features'][featureName] = manager.getStatistics();
         } else if (manager is ContextAwareSuggestions) {
-          status['features'][featureName] = manager.getStatistics();
+          status['features'][featureName] = {
+            'initialized': true,
+            'type': manager.runtimeType.toString(),
+            'note': 'ContextAwareSuggestions does not have getStatistics method',
+          };
         } else if (manager is GitIntegration) {
           status['features'][featureName] = manager.getStatistics();
         } else if (manager is SSHKeyManager) {

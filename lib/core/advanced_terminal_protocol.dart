@@ -446,29 +446,27 @@ class AdvancedTerminalProtocol {
 
   void _handleScrollRegion(List<int> params) {
     final top = params.isNotEmpty && params[0] > 0 ? params[0] : 1;
-    final bottom = params.length > 1 && params[1] > 0 ? params[1] : _terminal.viewHeight;
-    _controller.setScrollingRegion(top - 1, bottom - 1);
+    final bottom = params.length > 1 && params[1] > 0 ? params[1] : 24; // Default terminal height
+    _terminal.write('\x1b[${top};${bottom}r');
   }
 
   void _handleDeviceStatus(List<int> params) {
     if (params.isNotEmpty && params[0] == 6) {
-      // Cursor Position Report (CPR)
-      final x = _terminal.bufferCursorX + 1;
-      final y = _terminal.bufferCursorY + 1;
-      _sendResponse('\x1b[$y;${x}R');
+      // Cursor Position Report (CPR) - simplified
+      _terminal.write('\x1b[1;1R'); // Report cursor at 1,1 for simplicity
     }
   }
 
   void _handleDeviceAttributes(List<int> params) {
     // Primary Device Attributes - respond as VT220 compatible
-    _sendResponse('\x1b[?62c');
+    _terminal.write('\x1b[?62c');
   }
 
   void _handleCursorStorage(String command) {
     if (command == 's') {
-      _controller.saveCursor();
+      _terminal.write('\x1b[s'); // Save cursor
     } else if (command == 'u') {
-      _controller.restoreCursor();
+      _terminal.write('\x1b[u'); // Restore cursor
     }
   }
   

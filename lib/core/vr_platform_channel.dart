@@ -217,7 +217,7 @@ class FingerData {
 /// Finger types
 enum FingerType {
   thumb,
-  index,
+  pointer,  // renamed from index to avoid conflict
   middle,
   ring,
   pinky,

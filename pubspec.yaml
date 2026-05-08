@@ -25,8 +25,7 @@ dependencies:
   file_picker: ^8.1.2
   pty:
     path: packages/pty
-   stack_trace: ^1.11.1
-   postgres: ^3.0.8
+  stack_trace: ^1.11.1
 
 dev_dependencies:
   flutter_test:

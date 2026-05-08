@@ -425,6 +425,7 @@ class _EditTerminalState extends State<EditTerminal> {
   TextEditingController get aiChatController => _aiChatController;
   bool get showAIChat => _showAIChat;
   String get selectedModel => _selectedModel;
+  set selectedModel(String value) => _selectedModel = value;
   
   // Search
   bool _showSearch = false;
@@ -2936,6 +2937,9 @@ Note: The above file and directory information is provided for context only and 
       });
     }
   }
+
+  // Public method for testing
+  Future<void> sendAIMessage(String message) => _sendAIMessage(message);
 
   @override
   Widget build(BuildContext context) {

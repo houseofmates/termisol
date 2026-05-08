@@ -315,7 +315,7 @@ Focus on:
     }
     
     final response = await http.post(
-      Uri.parse(_nimEndpoint),
+      const Uri.parse(_nimEndpoint),
       headers: {
         'Authorization': 'Bearer $_apiKey',
         'Content-Type': 'application/json',

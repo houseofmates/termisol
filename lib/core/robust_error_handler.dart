@@ -293,7 +293,7 @@ class RobustErrorHandler {
       
       _logger.info('Connection retry completed');
     } catch (e) {
-      _logger.error('Connection retry failed: $e');
+      _logger.severe('Connection retry failed: $e');
     }
   }
   
@@ -330,7 +330,7 @@ class RobustErrorHandler {
             _logger.info('Created missing directory: ${dir.path}');
           }
         } catch (e) {
-          _logger.error('Failed to create directory ${dir.path}: $e');
+          _logger.severe('Failed to create directory ${dir.path}: $e');
         }
       }
       

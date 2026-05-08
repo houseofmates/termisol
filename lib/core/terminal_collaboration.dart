@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as p;
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:xterm/xterm.dart';
+import 'terminal_session.dart';
 
 /// House-wide Terminal Sharing and Collaboration
 /// 
@@ -455,7 +458,7 @@ class TerminalCollaboration {
   Future<void> _receiveFile(FileTransfer transfer) async {
     try {
       final file = File(transfer.filePath);
-      await file.writeAsBytes(transfer.data);
+      await file.writeAsBytes(transfer.data!);
       
       debugPrint('📁 Received file: ${transfer.fileName}');
     } catch (e) {
@@ -493,7 +496,7 @@ class TerminalCollaboration {
         throw Exception('File not found: $filePath');
       }
       
-      final fileName = path.basename(filePath);
+      final fileName = p.basename(filePath);
       final fileSize = await file.length();
       
       final transfer = FileTransfer(
@@ -604,7 +607,7 @@ class TerminalCollaboration {
     final activeCollaborators = _activeCollaborators.length;
     final totalEvents = _eventHistory.values
         .map((events) => events.length)
-        .reduce((a, b) => a + b, 0);
+        .fold(0, (a, b) => a + b);
     
     return {
       'user_id': _userId,
@@ -656,12 +659,12 @@ class TerminalCollaboration {
   }
   
   /// Remove collaborator joined listener
-  void removeCollaboratorJoinedListener(Function(Collaborator) listener {
+  void removeCollaboratorJoinedListener(Function(Collaborator) listener) {
     _onCollaboratorJoined.remove(listener);
   }
   
   /// Remove collaborator left listener
-  void removeCollaboratorLeftListener(Function(Collaborator) listener {
+  void removeCollaboratorLeftListener(Function(Collaborator) listener) {
     _onCollaboratorLeft.remove(listener);
   }
   
@@ -1040,7 +1043,7 @@ class FileTransfer {
   final String? receiverName;
   final TransferDirection direction;
   final DateTime timestamp;
-  final Uint8List? data;
+  Uint8List? data;
   final String? description;
   final double? progress;
   final FileTransferStatus status;

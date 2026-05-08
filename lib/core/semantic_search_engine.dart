@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:collection/collection.dart';
 
 /// Semantic Search Engine
 ///
@@ -310,9 +311,6 @@ class SemanticSearchEngine {
   }
 }
 
-extension<T> on Iterable<T> {
-  T? get firstWhereOrNull => isEmpty ? null : first;
-}
 
 class DocumentIndex {
   final String name;

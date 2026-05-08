@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
 
 /// Task Runner
 ///
@@ -276,7 +277,3 @@ class TaskEvent {
 }
 
 enum TaskEventType { started, completed, failed, cancelled, paused, resumed, retrying }
-
-extension<T> on Iterable<T> {
-  T? get firstWhereOrNull => isEmpty ? null : first;
-}

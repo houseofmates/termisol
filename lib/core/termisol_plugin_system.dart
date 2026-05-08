@@ -483,13 +483,13 @@ class PluginManifest {
 
   factory PluginManifest.fromJson(Map<String, dynamic> json) {
     return PluginManifest(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
-      version: json['version'] ?? '1.0.0',
-      description: json['description'] ?? '',
-      author: json['author'] ?? '',
-      dependencies: List<String>.from(json['dependencies'] ?? []),
-      capabilities: List<String>.from(json['capabilities'] ?? []),
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      version: json['version'] as String? ?? '1.0.0',
+      description: json['description'] as String? ?? '',
+      author: json['author'] as String? ?? '',
+      dependencies: List<String>.from(json['dependencies'] as List? ?? []),
+      capabilities: List<String>.from(json['capabilities'] as List? ?? []),
     );
   }
 

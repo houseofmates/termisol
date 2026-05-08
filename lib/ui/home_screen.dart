@@ -12,7 +12,7 @@ import 'terminal_view.dart';
 import 'command_palette.dart';
 import 'search_overlay.dart';
 import 'edit.dart';
-import '../vr/quest2_vr_terminal.dart';
+import '../vr/openxr_vr_terminal.dart';
 import 'command_history_search.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -641,7 +641,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           // VR Mode overlay
           if (_vrMode && _activeSession != null)
-            Quest2VrTerminal(
+            OpenXRVrTerminal(
               session: _activeSession!,
               onExitVr: () => setState(() => _vrMode = false),
             ),

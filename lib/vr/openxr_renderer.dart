@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:ffi/ffi.dart';
 import 'package:xterm/xterm.dart';
 import '../core/terminal_session.dart';
-import 'openxr_bindings.dart';
+import 'openxr_bindings_complete.dart';
 import 'openxr_session.dart';
 
 /// Complete stereoscopic 3D renderer for OpenXR terminal

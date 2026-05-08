@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:ffi/ffi.dart';
-import 'openxr_bindings.dart';
+import 'openxr_bindings_complete.dart';
 
 /// Complete OpenXR session management for Quest 2 VR
 /// Production-ready implementation with no stubs or placeholders

@@ -25,12 +25,6 @@ class _HomeScreenState extends State<HomeScreen> {
   String _activeTab = '0';
   bool _showFps = false;
 
-  /// Lazily get the AI assistant; returns null if disabled or failed.
-  dynamic get _ai => widget.registry.get(TermisolFeatures.aiAssistant);
-
-  /// Lazily get performance enforcer.
-  dynamic get _perf => widget.registry.get(TermisolFeatures.performanceMonitoring);
-
   @override
   void initState() {
     super.initState();

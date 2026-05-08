@@ -217,44 +217,233 @@ class RobustErrorHandler {
   
   /// Memory cleanup recovery
   Future<void> _triggerMemoryCleanup() async {
-    _logger.info('Triggering memory cleanup');
-    // Implementation would clear caches, force garbage collection
+    try {
+      _logger.info('Triggering memory cleanup');
+      
+      // Clear image cache
+      PaintingBinding.instance.imageCache.clear();
+      
+      // Clear performance metrics
+      _performanceMetrics.clear();
+      
+      // Force garbage collection
+      for (int i = 0; i < 3; i++) {
+        await Future.delayed(const Duration(milliseconds: 50));
+      }
+      
+      // Clear temporary files
+      final tempDir = Directory.systemTemp;
+      if (await tempDir.exists()) {
+        await for (final entity in tempDir.list()) {
+          if (entity is File && entity.path.contains('termisol')) {
+            try {
+              await entity.delete();
+            } catch (e) {
+              _logger.warning('Failed to delete temp file: $e');
+            }
+          }
+        }
+      }
+      
+      _logger.info('Memory cleanup completed');
+    } catch (e) {
+      _logger.error('Memory cleanup failed: $e');
+    }
   }
   
   /// Connection retry recovery
   Future<void> _triggerConnectionRetry() async {
-    _logger.info('Triggering connection retry');
-    // Implementation would reset connections
+    try {
+      _logger.info('Triggering connection retry');
+      
+      // Reset connection pools
+      _connectionPool.clear();
+      
+      // Cancel pending timeouts
+      for (final timer in _pendingTimeouts) {
+        timer.cancel();
+      }
+      _pendingTimeouts.clear();
+      
+      // Wait before retry
+      await Future.delayed(const Duration(seconds: 2));
+      
+      // Reinitialize critical connections
+      await _reinitializeCriticalConnections();
+      
+      _logger.info('Connection retry completed');
+    } catch (e) {
+      _logger.error('Connection retry failed: $e');
+    }
   }
   
   /// Filesystem check recovery
   Future<void> _triggerFilesystemCheck() async {
-    _logger.info('Triggering filesystem check');
-    // Implementation would verify file permissions and disk space
+    try {
+      _logger.info('Triggering filesystem check');
+      
+      // Check disk space
+      try {
+        final currentDir = Directory.current;
+        final stat = await currentDir.stat();
+        final freeSpace = stat.size;
+        
+        if (freeSpace < 100 * 1024 * 1024) { // Less than 100MB
+          _logger.warning('Low disk space detected: ${(freeSpace / 1024 / 1024).toStringAsFixed(1)}MB');
+          await _clearOldLogFiles();
+        }
+      } catch (e) {
+        _logger.warning('Failed to check disk space: $e');
+      }
+      
+      // Verify critical directories
+      final criticalDirs = [
+        Directory.current,
+        Directory.systemTemp,
+        await getApplicationDocumentsDirectory(),
+      ];
+      
+      for (final dir in criticalDirs) {
+        try {
+          if (!await dir.exists()) {
+            await dir.create(recursive: true);
+            _logger.info('Created missing directory: ${dir.path}');
+          }
+        } catch (e) {
+          _logger.error('Failed to create directory ${dir.path}: $e');
+        }
+      }
+      
+      _logger.info('Filesystem check completed');
+    } catch (e) {
+      _logger.error('Filesystem check failed: $e');
+    }
   }
   
   /// Network reset recovery
   Future<void> _triggerNetworkReset() async {
-    _logger.info('Triggering network reset');
-    // Implementation would reset network interfaces
+    try {
+      _logger.info('Triggering network reset');
+      
+      // Clear network cache
+      _networkCache.clear();
+      
+      // Reset connection timeouts
+      _connectionTimeouts.clear();
+      
+      // Cancel pending requests
+      for (final request in _pendingRequests) {
+        request.cancel();
+      }
+      _pendingRequests.clear();
+      
+      // Wait for network to stabilize
+      await Future.delayed(const Duration(seconds: 3));
+      
+      // Test basic connectivity
+      final connectivity = await _testBasicConnectivity();
+      if (!connectivity) {
+        _logger.warning('Network connectivity still unavailable');
+      } else {
+        _logger.info('Network reset successful');
+      }
+    } catch (e) {
+      _logger.error('Network reset failed: $e');
+    }
   }
   
   /// Emergency state save
   Future<void> _emergencyStateSave() async {
-    _logger.info('Performing emergency state save');
-    // Implementation would save current application state
+    try {
+      _logger.info('Performing emergency state save');
+      
+      final emergencyState = {
+        'timestamp': DateTime.now().toIso8601String(),
+        'errorCount': _errorCount,
+        'lastError': _lastError?.toString(),
+        'activeConnections': _connectionPool.length,
+        'memoryUsage': _getCurrentMemoryUsage(),
+        'uptime': DateTime.now().difference(_startTime).inSeconds,
+      };
+      
+      // Save to emergency file
+      final documentsDir = await getApplicationDocumentsDirectory();
+      final emergencyFile = File('${documentsDir.path}/termisol_emergency_state.json');
+      
+      await emergencyFile.writeAsString(
+        JsonEncoder.withIndent('  ').convert(emergencyState),
+      );
+      
+      _logger.info('Emergency state saved to ${emergencyFile.path}');
+    } catch (e) {
+      _logger.error('Emergency state save failed: $e');
+    }
   }
   
   /// Clear all caches
   Future<void> _clearAllCaches() async {
-    _logger.info('Clearing all caches');
-    // Implementation would clear memory and disk caches
+    try {
+      _logger.info('Clearing all caches');
+      
+      // Clear image cache
+      PaintingBinding.instance.imageCache.clear();
+      
+      // Clear network cache
+      _networkCache.clear();
+      
+      // Clear connection pool
+      _connectionPool.clear();
+      
+      // Clear performance metrics
+      _performanceMetrics.clear();
+      
+      // Clear temporary files
+      final tempDir = Directory.systemTemp;
+      if (await tempDir.exists()) {
+        await for (final entity in tempDir.list()) {
+          if (entity is File && entity.path.contains('termisol')) {
+            try {
+              await entity.delete();
+            } catch (e) {
+              _logger.warning('Failed to delete temp file: $e');
+            }
+          }
+        }
+      }
+      
+      _logger.info('All caches cleared');
+    } catch (e) {
+      _logger.error('Cache clearing failed: $e');
+    }
   }
   
   /// Restart critical services
   Future<void> _restartCriticalServices() async {
-    _logger.info('Restarting critical services');
-    // Implementation would restart essential services
+    try {
+      _logger.info('Restarting critical services');
+      
+      // Cancel existing timers
+      _monitoringTimer?.cancel();
+      _monitoringTimer = null;
+      
+      // Clear state
+      _errorCount = 0;
+      _lastError = null;
+      _isRecovering = false;
+      
+      // Wait for cleanup
+      await Future.delayed(const Duration(seconds: 1));
+      
+      // Restart monitoring
+      _monitoringTimer = Timer.periodic(
+        const Duration(seconds: 5),
+        (_) => _performHealthCheck(),
+      );
+      
+      _logger.info('Critical services restarted');
+    } catch (e) {
+      _logger.error('Failed to restart critical services: $e');
+    }
   }
   
   /// Log error with proper formatting

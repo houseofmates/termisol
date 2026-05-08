@@ -1,3 +1,5 @@
+import 'terminal_session.dart';
+
 /// Session persistence system
 class SessionPersistence {
   Future<void> initialize() async {

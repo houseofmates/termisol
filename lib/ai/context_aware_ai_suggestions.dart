@@ -32,10 +32,24 @@ class ContextAwareAISuggestions {
   static const Duration _cleanupInterval = Duration(minutes: 5);
   
   final _suggestionController = StreamController<AISuggestionEvent>.broadcast();
-  Stream<AISuggestionEvent> get events => _suggestionController.stream;
+  Stream<AISuggestionEvent> get suggestions => _suggestionController.stream;
   
-  bool get isInitialized => _isInitialized;
+  /// Initialize with API key
+  Future<void> initialize(String apiKey) async {
+    if (apiKey.isEmpty || !apiKey.startsWith('nvapi-')) {
+      throw AISuggestionException('Invalid NVIDIA API key format');
+    }
+    _apiKey = apiKey;
+    _isInitialized = true;
+    
+    // Start cleanup timer
+    _cleanupTimer?.cancel();
+    _cleanupTimer = Timer.periodic(_cleanupInterval, (_) => _cleanupCache());
+  }
 
+  /// Check if initialized
+  bool get isInitialized => _isInitialized;
+  
   Future<void> initialize() async {
     if (_isInitialized) return;
     

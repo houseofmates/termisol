@@ -309,7 +309,7 @@ class BackupSet {
       name: json['name'] as String,
       timestamp: DateTime.parse(json['timestamp'] as String),
       size: json['size'] as int? ?? 0,
-      files: List<String>.from(json['files'] ?? []),
+      files: List<String>.from((json['files'] as List?) ?? []),
       hasData: json['hasData'] as bool? ?? false,
     );
   }

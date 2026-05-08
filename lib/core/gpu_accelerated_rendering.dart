@@ -528,59 +528,95 @@ class GPUAcceleratedRendering {
   }
 
   Future<void> _compileVulkanShader(GPUShader shader) async {
-    // Simulate Vulkan shader compilation
     try {
-      // In practice, this would use Vulkan API
-      await Future.delayed(Duration(milliseconds: 50));
+      // Validate shader source before compilation
+      if (shader.source.isEmpty) {
+        throw ShaderCompilationException('Shader source is empty for ${shader.id}');
+      }
+
+      final startTime = DateTime.now();
+      
+      // Vulkan shader compilation with proper validation
+      await _validateShaderSyntax(shader.source, ShaderLanguage.vulkan);
+      
+      // Generate proper shader binary
+      final binary = await _generateShaderBinary(shader.source, ShaderLanguage.vulkan);
       
       shader.compiled = true;
-      shader.binary = Uint8List.fromList([0xDE, 0xAD, 0xBE, 0xEF]); // Placeholder
+      shader.binary = binary;
+      shader.compilationTime = DateTime.now().difference(startTime);
       
       _shaders[shader.id] = shader;
       
-      developer.log('🎮 Compiled Vulkan shader: ${shader.id}');
+      developer.log('🎮 Successfully compiled Vulkan shader: ${shader.id} in ${shader.compilationTime?.inMilliseconds}ms');
       
     } catch (e) {
       shader.compiled = false;
+      shader.error = e.toString();
       developer.log('🎮 Failed to compile Vulkan shader: $e');
+      throw ShaderCompilationException('Vulkan shader compilation failed: ${e.toString()}');
     }
   }
 
   Future<void> _compileMetalShader(GPUShader shader) async {
-    // Simulate Metal shader compilation
     try {
-      // In practice, this would use Metal API
-      await Future.delayed(Duration(milliseconds: 30));
+      // Validate shader source before compilation
+      if (shader.source.isEmpty) {
+        throw ShaderCompilationException('Shader source is empty for ${shader.id}');
+      }
+
+      final startTime = DateTime.now();
+      
+      // Metal shader compilation with proper validation
+      await _validateShaderSyntax(shader.source, ShaderLanguage.metal);
+      
+      // Generate proper shader binary
+      final binary = await _generateShaderBinary(shader.source, ShaderLanguage.metal);
       
       shader.compiled = true;
-      shader.binary = Uint8List.fromList([0xDE, 0xAD, 0xBE, 0xEF]); // Placeholder
+      shader.binary = binary;
+      shader.compilationTime = DateTime.now().difference(startTime);
       
       _shaders[shader.id] = shader;
       
-      developer.log('🎮 Compiled Metal shader: ${shader.id}');
+      developer.log('🎮 Successfully compiled Metal shader: ${shader.id} in ${shader.compilationTime?.inMilliseconds}ms');
       
     } catch (e) {
       shader.compiled = false;
+      shader.error = e.toString();
       developer.log('🎮 Failed to compile Metal shader: $e');
+      throw ShaderCompilationException('Metal shader compilation failed: ${e.toString()}');
     }
   }
 
   Future<void> _compileOpenGLShader(GPUShader shader) async {
-    // Simulate OpenGL shader compilation
     try {
-      // In practice, this would use OpenGL API
-      await Future.delayed(Duration(milliseconds: 40));
+      // Validate shader source before compilation
+      if (shader.source.isEmpty) {
+        throw ShaderCompilationException('Shader source is empty for ${shader.id}');
+      }
+
+      final startTime = DateTime.now();
+      
+      // OpenGL shader compilation with proper validation
+      await _validateShaderSyntax(shader.source, ShaderLanguage.opengl);
+      
+      // Generate proper shader binary
+      final binary = await _generateShaderBinary(shader.source, ShaderLanguage.opengl);
       
       shader.compiled = true;
-      shader.binary = Uint8List.fromList([0xDE, 0xAD, 0xBE, 0xEF]); // Placeholder
+      shader.binary = binary;
+      shader.compilationTime = DateTime.now().difference(startTime);
       
       _shaders[shader.id] = shader;
       
-      developer.log('🎮 Compiled OpenGL shader: ${shader.id}');
+      developer.log('🎮 Successfully compiled OpenGL shader: ${shader.id} in ${shader.compilationTime?.inMilliseconds}ms');
       
     } catch (e) {
       shader.compiled = false;
+      shader.error = e.toString();
       developer.log('🎮 Failed to compile OpenGL shader: $e');
+      throw ShaderCompilationException('OpenGL shader compilation failed: ${e.toString()}');
     }
   }
 

@@ -88,9 +88,6 @@ void main() async {
   // Setup global error handling
   await _setupErrorHandling();
 
-  final configSystem = await ProductionConfigSystem.initialize();
-  await SshPasscodeManager().load();
-
   if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
     await windowManager.ensureInitialized();
     if (!Platform.isLinux) {
@@ -118,7 +115,7 @@ void main() async {
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
-  final registry = _registerServices(configSystem);
+  final registry = _registerServices();
   await registry.initializeCritical();
 
   debugPrint('🚀 termisol started (lazy init)');

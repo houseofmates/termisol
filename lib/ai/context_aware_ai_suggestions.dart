@@ -34,17 +34,34 @@ class ContextAwareAISuggestions {
   final _suggestionController = StreamController<AISuggestionEvent>.broadcast();
   Stream<AISuggestionEvent> get suggestions => _suggestionController.stream;
   
-  /// Initialize with API key
+  /// Initialize with API key and validation
   Future<void> initialize(String apiKey) async {
-    if (apiKey.isEmpty || !apiKey.startsWith('nvapi-')) {
-      throw AISuggestionException('Invalid NVIDIA API key format');
+    try {
+      // Validate API key format
+      if (apiKey.isEmpty) {
+        throw AISuggestionException('API key cannot be empty');
+      }
+      
+      if (!apiKey.startsWith('nvapi-')) {
+        throw AISuggestionException('Invalid NVIDIA API key format. Must start with "nvapi-"');
+      }
+      
+      if (apiKey.length < 20) {
+        throw AISuggestionException('API key appears to be too short');
+      }
+      
+      _apiKey = apiKey;
+      _isInitialized = true;
+      
+      // Initialize cleanup timer
+      _cleanupTimer?.cancel();
+      _cleanupTimer = Timer.periodic(_cleanupInterval, (_) => _cleanupCache());
+      
+      debugPrint('🧠 AI Suggestions initialized successfully');
+    } catch (e) {
+      debugPrint('🧠 Failed to initialize AI Suggestions: $e');
+      rethrow;
     }
-    _apiKey = apiKey;
-    _isInitialized = true;
-    
-    // Start cleanup timer
-    _cleanupTimer?.cancel();
-    _cleanupTimer = Timer.periodic(_cleanupInterval, (_) => _cleanupCache());
   }
 
   /// Check if initialized

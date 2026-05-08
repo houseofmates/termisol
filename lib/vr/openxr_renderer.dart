@@ -1,7 +1,7 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'package:flutter/material.dart' hide Colors;
+import 'package:flutter/material.dart' as material;
 import 'package:flutter/services.dart';
 import 'package:ffi/ffi.dart';
 import 'package:xterm/xterm.dart';
@@ -113,8 +113,11 @@ class OpenXRRenderer {
     
     // Set rotation using quaternion conversion
     final quat = view.pose.orientation;
-    final quaternion = vm.Quaternion(quat.x, quat.y, quat.z, quat.w);
-    transform.rotate(quaternion);
+    // Convert quaternion to rotation matrix
+    final rotationMatrix = vm.Matrix4.rotation(
+      vm.Quaternion(quat.x, quat.y, quat.z, quat.w)
+    );
+    transform.multiply(rotationMatrix);
     
     return transform;
   }
@@ -145,7 +148,7 @@ class OpenXRRenderer {
     // Layer 1: Glowing edges
     _sceneBuilder.pushOpacity(100);
     final glowPaint = ui.Paint()
-      ..color = Colors.cyan.withValues(alpha: 0.3)
+      ..color = material.Colors.cyan.withValues(alpha: 0.3)
       ..style = ui.PaintingStyle.stroke
       ..strokeWidth = 4.0;
     _sceneBuilder.addPicture(ui.Offset.zero, _createGlowEffect());
@@ -172,7 +175,7 @@ class OpenXRRenderer {
     
     // Draw terminal background
     final paint = ui.Paint()
-      ..color = Colors.black
+      ..color = material.Colors.black
       ..style = ui.PaintingStyle.fill;
     canvas.drawRect(ui.Rect.fromLTRB(0, 0, 800, 600), paint);
     
@@ -186,7 +189,7 @@ class OpenXRRenderer {
   void _drawTerminalContent(ui.Canvas canvas, int rows, int cols) {
     // Draw terminal background
     final backgroundPaint = ui.Paint()
-      ..color = Colors.black
+      ..color = material.Colors.black
       ..style = ui.PaintingStyle.fill;
     canvas.drawRect(ui.Rect.fromLTRB(0, 0, cols * 12.0, rows * 24.0), backgroundPaint);
     
@@ -196,7 +199,7 @@ class OpenXRRenderer {
   
   /// Draw terminal text with VR optimizations
   void _drawTerminalText(ui.Canvas canvas) {
-    final textPainter = ui.TextPainter(
+    final textPainter = material.TextPainter(
       textDirection: ui.TextDirection.ltr,
     );
     
@@ -218,12 +221,12 @@ class OpenXRRenderer {
     ];
     
     for (int i = 0; i < lines.length; i++) {
-      textPainter.text = ui.TextSpan(
+      textPainter.text = material.TextSpan(
         text: lines[i],
-        style: ui.TextStyle(
+        style: material.TextStyle(
           fontFamily: 'DroidSansMono',
           fontSize: fontSize,
-          color: i == lines.length - 1 ? Colors.cyan : Colors.white,
+          color: i == lines.length - 1 ? material.Colors.cyan : material.Colors.white,
           height: 1.4,
         ),
       );

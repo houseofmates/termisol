@@ -255,7 +255,7 @@ class CommandGuard {
   /// Check system directory access
   DangerousCommandCheck _checkSystemDirectoryAccess(String command, String? workingDirectory) {
     // Extract file paths from command
-    final pathPattern = RegExp(r'(/[^\s\|"\'<>\)]+');
+    final pathPattern = RegExp(r'/[^\s]+');
     final matches = pathPattern.allMatches(command);
     
     for (final match in matches) {

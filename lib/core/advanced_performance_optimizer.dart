@@ -147,7 +147,7 @@ class AdvancedPerformanceOptimizer {
     
     metrics.add(PerformanceMetric(
       type: MetricType.availableMemory,
-      value: memoryInfo.available,
+      value: memoryInfo.available.toDouble(),
       timestamp: DateTime.now(),
       unit: 'MB',
     ));
@@ -251,8 +251,8 @@ class AdvancedPerformanceOptimizer {
         final used = total - free;
         
         return MemoryInfo(
-          total: total,
-          available: free,
+          total: total.round(),
+          available: free.round(),
           usage: used / total,
         );
       }
@@ -568,7 +568,7 @@ class AdvancedPerformanceOptimizer {
       
       _logger.info('Old caches cleared successfully');
     } catch (e) {
-      _logger.error('Failed to clear old caches: $e');
+      _logger.severe('Failed to clear old caches: $e');
     }
   }
   
@@ -596,7 +596,7 @@ class AdvancedPerformanceOptimizer {
       
       _logger.info('Temporary caches cleared');
     } catch (e) {
-      _logger.error('Failed to clear temporary caches: $e');
+      _logger.severe('Failed to clear temporary caches: $e');
     }
   }
   
@@ -610,11 +610,11 @@ class AdvancedPerformanceOptimizer {
       }
       
       // Clear any reference to large objects
-      _performanceMetrics.clear();
+      _metrics.clear();
       
       _logger.info('Garbage collection requested');
     } catch (e) {
-      _logger.error('Failed to force garbage collection: $e');
+      _logger.severe('Failed to force garbage collection: $e');
     }
   }
   
@@ -629,13 +629,13 @@ class AdvancedPerformanceOptimizer {
       _monitoringTimer = null;
       
       // Clear performance metrics history
-      if (_performanceMetrics.length > 100) {
-        _performanceMetrics.removeRange(0, _performanceMetrics.length - 100);
+      if (_metrics.length > 100) {
+        _metrics.removeRange(0, _metrics.length - 100);
       }
       
       _logger.info('Unused resources released');
     } catch (e) {
-      _logger.error('Failed to release unused resources: $e');
+      _logger.severe('Failed to release unused resources: $e');
     }
   }
   
@@ -656,7 +656,7 @@ class AdvancedPerformanceOptimizer {
       
       _logger.info('Memory compression completed');
     } catch (e) {
-      _logger.error('Failed to compress memory: $e');
+      _logger.severe('Failed to compress memory: $e');
     }
   }
   
@@ -669,7 +669,7 @@ class AdvancedPerformanceOptimizer {
       
       _logger.info('Image cache released and limited');
     } catch (e) {
-      _logger.error('Failed to release image cache: $e');
+      _logger.severe('Failed to release image cache: $e');
     }
   }
   
@@ -690,7 +690,7 @@ class AdvancedPerformanceOptimizer {
       
       _logger.info('Update frequencies reduced');
     } catch (e) {
-      _logger.error('Failed to reduce update frequencies: $e');
+      _logger.severe('Failed to reduce update frequencies: $e');
     }
   }
   
@@ -709,7 +709,7 @@ class AdvancedPerformanceOptimizer {
       
       _logger.info('Background tasks throttled');
     } catch (e) {
-      _logger.error('Failed to throttle background tasks: $e');
+      _logger.severe('Failed to throttle background tasks: $e');
     }
   }
   
@@ -726,7 +726,7 @@ class AdvancedPerformanceOptimizer {
       
       _logger.info('Rendering quality reduced');
     } catch (e) {
-      _logger.error('Failed to reduce rendering quality: $e');
+      _logger.severe('Failed to reduce rendering quality: $e');
     }
   }
   

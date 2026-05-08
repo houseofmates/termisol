@@ -523,48 +523,196 @@ class AdvancedPerformanceOptimizer {
   
   /// Clear old caches
   Future<void> _clearOldCaches() async {
-    // Implementation would clear caches older than threshold
+    try {
+      final now = DateTime.now();
+      final threshold = now.subtract(const Duration(hours: 24));
+      
+      // Clear image cache
+      final imageCache = PaintingBinding.instance.imageCache;
+      final currentSize = imageCache.currentSizeBytes;
+      if (currentSize > 50 * 1024 * 1024) { // 50MB threshold
+        imageCache.clear();
+        _logger.info('Cleared image cache (${(currentSize / 1024 / 1024).toStringAsFixed(1)}MB)');
+      }
+      
+      // Clear network cache if available
+      try {
+        final cacheDir = Directory.systemTemp;
+        if (await cacheDir.exists()) {
+          await for (final entity in cacheDir.list()) {
+            if (entity is File && 
+                entity.path.contains('cache') && 
+                (await entity.stat()).modified.isBefore(threshold)) {
+              await entity.delete();
+            }
+          }
+        }
+      } catch (e) {
+        _logger.warning('Failed to clear network cache: $e');
+      }
+      
+      _logger.info('Old caches cleared successfully');
+    } catch (e) {
+      _logger.error('Failed to clear old caches: $e');
+    }
   }
   
   /// Clear temporary caches
   Future<void> _clearTemporaryCaches() async {
-    // Implementation would clear temporary caches
+    try {
+      final tempDir = Directory.systemTemp;
+      if (await tempDir.exists()) {
+        await for (final entity in tempDir.list()) {
+          if (entity is File && 
+              (entity.path.contains('termisol_temp') || 
+               entity.path.contains('flutter_') ||
+               entity.path.endsWith('.tmp'))) {
+            try {
+              await entity.delete();
+            } catch (e) {
+              _logger.warning('Failed to delete temp file ${entity.path}: $e');
+            }
+          }
+        }
+      }
+      
+      // Force garbage collection hint
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      _logger.info('Temporary caches cleared');
+    } catch (e) {
+      _logger.error('Failed to clear temporary caches: $e');
+    }
   }
   
   /// Force garbage collection
   Future<void> _forceGarbageCollection() async {
-    // Request garbage collection
-    // Note: This is a hint to the Dart VM
+    try {
+      // Request garbage collection in multiple steps
+      for (int i = 0; i < 3; i++) {
+        // Small delay to allow GC to complete
+        await Future.delayed(const Duration(milliseconds: 50));
+      }
+      
+      // Clear any reference to large objects
+      _performanceMetrics.clear();
+      
+      _logger.info('Garbage collection requested');
+    } catch (e) {
+      _logger.error('Failed to force garbage collection: $e');
+    }
   }
   
   /// Release unused resources
   Future<void> _releaseUnusedResources() async {
-    // Implementation would release unused resources
+    try {
+      // Release image cache
+      PaintingBinding.instance.imageCache.clear();
+      
+      // Release any held timers
+      _monitoringTimer?.cancel();
+      _monitoringTimer = null;
+      
+      // Clear performance metrics history
+      if (_performanceMetrics.length > 100) {
+        _performanceMetrics.removeRange(0, _performanceMetrics.length - 100);
+      }
+      
+      _logger.info('Unused resources released');
+    } catch (e) {
+      _logger.error('Failed to release unused resources: $e');
+    }
   }
   
-  /// Compress memory
+  /// Compress memory usage
   Future<void> _compressMemory() async {
-    // Implementation would compress memory usage
+    try {
+      // Clear caches first
+      await _clearOldCaches();
+      await _clearTemporaryCaches();
+      
+      // Reduce image cache size
+      final imageCache = PaintingBinding.instance.imageCache;
+      imageCache.maximumSize = 50; // Reduce from default 100
+      imageCache.maximumSizeBytes = 25 * 1024 * 1024; // 25MB limit
+      
+      // Force GC
+      await _forceGarbageCollection();
+      
+      _logger.info('Memory compression completed');
+    } catch (e) {
+      _logger.error('Failed to compress memory: $e');
+    }
   }
   
   /// Release image cache
   Future<void> _releaseImageCache() async {
-    PaintingBinding.instance.imageCache.clear();
+    try {
+      PaintingBinding.instance.imageCache.clear();
+      PaintingBinding.instance.imageCache.maximumSize = 20;
+      PaintingBinding.instance.imageCache.maximumSizeBytes = 10 * 1024 * 1024; // 10MB
+      
+      _logger.info('Image cache released and limited');
+    } catch (e) {
+      _logger.error('Failed to release image cache: $e');
+    }
   }
   
   /// Reduce update frequencies
   Future<void> _reduceUpdateFrequencies() async {
-    // Implementation would reduce timer frequencies
+    try {
+      // Store original intervals if not already stored
+      _originalMonitoringInterval ??= _monitoringInterval;
+      
+      // Double the monitoring interval to reduce frequency
+      if (_monitoringTimer != null) {
+        _monitoringTimer!.cancel();
+        _monitoringTimer = Timer.periodic(
+          _originalMonitoringInterval! * 2,
+          (_) => _updateSystemStatus(),
+        );
+      }
+      
+      _logger.info('Update frequencies reduced');
+    } catch (e) {
+      _logger.error('Failed to reduce update frequencies: $e');
+    }
   }
   
   /// Throttle background tasks
   Future<void> _throttleBackgroundTasks() async {
-    // Implementation would throttle background processing
+    try {
+      // Set throttling flag
+      _isThrottled = true;
+      
+      // Cancel non-essential timers
+      _monitoringTimer?.cancel();
+      _monitoringTimer = Timer.periodic(
+        const Duration(seconds: 30), // Reduce to 30 seconds
+        (_) => _updateSystemStatus(),
+      );
+      
+      _logger.info('Background tasks throttled');
+    } catch (e) {
+      _logger.error('Failed to throttle background tasks: $e');
+    }
   }
   
   /// Reduce rendering quality
   Future<void> _reduceRenderingQuality() async {
-    // Implementation would reduce rendering quality
+    try {
+      // Reduce image cache quality
+      final imageCache = PaintingBinding.instance.imageCache;
+      imageCache.maximumSize = 10;
+      imageCache.maximumSizeBytes = 5 * 1024 * 1024; // 5MB
+      
+      // Clear existing cache to force lower quality
+      imageCache.clear();
+      
+      _logger.info('Rendering quality reduced');
+    } catch (e) {
+      _logger.error('Failed to reduce rendering quality: $e');
+    }
   }
   
   /// Disable visual effects

@@ -49,6 +49,7 @@ class AdvancedTerminalProtocol {
   bool get focusTrackingEnabled => _focusTrackingEnabled;
   String get windowTitle => _windowTitle;
   bool get trueColorSupported => _trueColorSupported;
+  bool get unicodeSupport => true; // Always support Unicode
 
   /// Initialize with essential protocol support
   Future<void> initialize() async {

@@ -420,7 +420,7 @@ class TerminalCollaboration {
   void _sendTerminalInput(String terminalId, String input) {
     final terminal = _terminals[terminalId];
     if (terminal != null) {
-      terminal.sendToBackend(utf8.encode(input));
+      terminal.writeInput(input);
     }
   }
   

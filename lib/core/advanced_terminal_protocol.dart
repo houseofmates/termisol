@@ -693,23 +693,6 @@ class AdvancedTerminalProtocol {
         // Delete characters
         break;
     }
-  }
-  
-
-        }
-      } else if (color.startsWith('#')) {
-        // Hex color format: #RRGGBB
-        final hex = color.substring(1);
-        if (hex.length == 6) {
-          final r = int.parse(hex.substring(0, 2), radix: 16);
-          final g = int.parse(hex.substring(2, 4), radix: 16);
-          final b = int.parse(hex.substring(4, 6), radix: 16);
-          
-          if (index < 256) {
-            _colorPalette[index] = Color.fromARGB(255, r, g, b);
-          }
-        }
-      }
     }
   }
   

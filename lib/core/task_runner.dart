@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -644,11 +645,13 @@ class TaskResult {
   TaskResult.success(this.data) : success = true, error = null;
   TaskResult.error(this.error) : success = false, data = null;
 
+  TaskResult({required this.success, this.data, this.error});
+
   factory TaskResult.fromJson(Map<String, dynamic> json) {
     return TaskResult(
-      json['success'] as bool,
-      json['data'],
-      json['error'] as String?,
+      success: json['success'] as bool,
+      data: json['data'],
+      error: json['error'] as String?,
     );
   }
 

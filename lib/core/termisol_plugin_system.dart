@@ -92,14 +92,14 @@ class TermisolPluginSystem {
   }
 
   /// Create plugin execute function
-  dynamic Function(Plugin) _createPluginExecute(Map<String, dynamic> config) {
+  Future<void> Function(Plugin, List<dynamic>) _createPluginExecute(Map<String, dynamic> config) {
     final executeMethod = config['execute'];
     if (executeMethod is String) {
       return (plugin, List<dynamic> args) async {
         await plugin.callMethod(executeMethod, args);
       };
     }
-    return (plugin) => () {};
+    return (plugin, args) async {};
   }
 
   /// Create plugin dispose function

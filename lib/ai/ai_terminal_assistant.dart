@@ -239,7 +239,7 @@ class NvidiaAITerminalAssistant {
     if (!_isInitialized) return [];
 
     try {
-      final context = _getOrCreateContext(contextId);
+      _getOrCreateContext(contextId); // Ensure context exists
       final prompt = 'Based on the current terminal session and input "$currentInput", '
                      'suggest $maxSuggestions relevant terminal commands. '
                      'Return only the commands, one per line, no explanations.';

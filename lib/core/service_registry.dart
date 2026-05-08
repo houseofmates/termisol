@@ -168,7 +168,11 @@ class ServiceRegistry {
       final name = _initQueue.removeFirst();
       final entry = _services[name];
       if (entry?._future != null) {
-        try { await entry!._future; } catch (_) {}
+        try { 
+          await entry!._future; 
+        } catch (e) {
+          debugPrint('Failed to complete async init for $name: $e');
+        }
       }
     }
   }

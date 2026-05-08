@@ -89,7 +89,9 @@ class TerminalClipboardManager {
   void selectAll() {
     try {
       controller.clearSelection();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Failed to select all: $e');
+    }
   }
 
   /// Send SIGINT (Ctrl+C) to the PTY.

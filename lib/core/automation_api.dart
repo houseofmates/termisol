@@ -1653,7 +1653,7 @@ void main() {
   $filename();
   
   void method() {
-    // TODO: Add method implementation
+    // Add your method implementation here
   }
 }''';
         case 'python':
@@ -1676,7 +1676,7 @@ void main() {
   }
   
   method() {
-    // TODO: Add method implementation
+    // Add your method implementation here
   }
 }''';
         default:

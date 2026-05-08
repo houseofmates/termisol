@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 
 /// Code Intelligence
@@ -172,12 +173,10 @@ class CodeIntelligence {
   List<String> _extractImports(String content, String ext) {
     final imports = <String>[];
     try {
-      final patterns = _importPatterns(ext);
-      for (final pattern in patterns) {
-        for (final match in pattern.allMatches(content)) {
-          if (match.group(1) != null) {
-            imports.add(match.group(1)!);
-          }
+      final pattern = _importPatterns(ext);
+      for (final match in pattern.allMatches(content)) {
+        if (match.group(1) != null) {
+          imports.add(match.group(1)!);
         }
       }
     } catch (_) {}

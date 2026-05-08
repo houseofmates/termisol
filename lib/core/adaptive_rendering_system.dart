@@ -195,7 +195,7 @@ class AdaptiveRenderingSystem {
       }
 
       // CPU architecture
-      capabilities.cpuArchitecture = SysInfo.kernelArchitecture;
+      capabilities.cpuArchitecture = SysInfo.kernelArchitecture.toString();
 
       // Detect GPU capabilities
       if (capabilities.hasNVIDIAGPU) {

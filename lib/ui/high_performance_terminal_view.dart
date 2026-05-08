@@ -361,10 +361,7 @@ class _HighPerformanceTerminalViewState extends State<HighPerformanceTerminalVie
                 details.globalPosition,
               ),
               child: CustomPaint(
-                painter: _TerminalPainter(
-                  renderer: _renderer,
-                  gpuRenderer: _gpuRenderer,
-                ),
+                painter: _renderer,
                 size: Size.infinite,
               ),
             ),
@@ -619,38 +616,5 @@ class _HighPerformanceTerminalViewState extends State<HighPerformanceTerminalVie
     _renderer.dispose();
     _focusNode.dispose();
     super.dispose();
-  }
-}
-
-/// Custom painter for high-performance terminal rendering
-class _TerminalPainter extends CustomPainter {
-  final HighPerformanceTerminalRenderer renderer;
-  final ProductionGpuRenderer gpuRenderer;
-  
-  _TerminalPainter({
-    required this.renderer,
-    required this.gpuRenderer,
-  }) : super(repaint: null);
-  
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Use GPU renderer if available, otherwise fallback to direct rendering
-    if (gpuRenderer.gpuAccelerationEnabled) {
-      // GPU-accelerated rendering
-      gpuRenderer.beginFrame(canvas, size);
-      try {
-        renderer.render(canvas, size);
-      } finally {
-        gpuRenderer.endFrame();
-      }
-    } else {
-      // Direct CPU rendering
-      renderer.render(canvas, size);
-    }
-  }
-  
-  @override
-  bool shouldRepaint(_TerminalPainter oldDelegate) {
-    return true; // Always repaint for now - could be optimized with dirty flags
   }
 }

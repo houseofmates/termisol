@@ -96,7 +96,7 @@ class SshBackend implements TermisolPtyBackend {
   void write(List<int> data) {
     if (_session != null && _isRunning) {
       try {
-        _session!.stdin.add(data);
+        _session!.stdin.add(Uint8List.fromList(data));
       } catch (e) {
         debugPrint('[ssh] write error: $e');
       }

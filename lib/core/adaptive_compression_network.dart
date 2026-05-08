@@ -316,6 +316,10 @@ class AdaptiveCompressionNetwork {
     return _networkQualities['current'] ?? NetworkQuality.fair;
   }
 
+  NetworkQuality get _currentNetworkQuality {
+    return _networkQualities['current'] ?? NetworkQuality.fair;
+  }
+
   /// Get network statistics
   Map<String, dynamic> getStatistics() {
     return {
@@ -360,9 +364,9 @@ enum CompressionAlgorithm {
 /// Network optimization result
 class NetworkOptimization {
   final int originalSize;
-  final int compressedSize;
-  final double compressionRatio;
-  final double estimatedTime;
+  int compressedSize;
+  double compressionRatio;
+  double estimatedTime;
   final List<String> recommendations;
 
   NetworkOptimization({

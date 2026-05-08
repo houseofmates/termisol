@@ -23,7 +23,6 @@ class ConversationalAI {
   
   static const Duration _sessionTimeout = Duration(minutes: 30);
   static const Duration _cleanupInterval = Duration(minutes: 10);
-  static const int _maxSessionHistory = 50;
   
   /// Initialize conversational AI system
   ConversationalAI({
@@ -372,8 +371,6 @@ class ConversationalAI {
         return context.data[condition.key]?.toString() == condition.value;
       case ConditionType.contextContains:
         return context.data[condition.key]?.toString().contains(condition.value ?? '') == true;
-      default:
-        return true;
     }
   }
   

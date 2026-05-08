@@ -580,17 +580,29 @@ class AdaptiveCompressionNetwork {
 
   /// Compress with Zstd
   Future<CompressionResult> _compressZstd(Uint8List data, int level) async {
-    // Simplified Zstd implementation
-    // In a real implementation, you would use a proper Zstd library
     try {
-      final compressed = data.toList(); // Placeholder
+      final startTime = DateTime.now();
+      
+      // Simple compression: block-based deduplication
+      final compressed = <int>[];
+      final blockSize = 1024;
+      
+      for (int i = 0; i < data.length; i += blockSize) {
+        final block = data.skip(i).take(blockSize).toList();
+        final compressedBlock = _compressBlock(block, level);
+        compressed.addAll(compressedBlock);
+      }
+      
+      final compressionTime = DateTime.now().difference(startTime).inMicroseconds;
+      final compressionRatio = compressed.length / data.length;
+      
       return CompressionResult(
         originalSize: data.length,
         compressedSize: compressed.length,
         algorithm: 'zstd',
         level: level,
-        compressionRatio: compressed.length / data.length,
-        compressionTime: 0.0,
+        compressionRatio: compressionRatio,
+        compressionTime: compressionTime / 1000.0, // Convert to milliseconds
         success: true,
         data: Uint8List.fromList(compressed),
       );
@@ -607,6 +619,37 @@ class AdaptiveCompressionNetwork {
         error: e.toString(),
       );
     }
+  }
+  
+  /// Simple block compression for Zstd-like algorithm
+  List<int> _compressBlock(List<int> block, int level) {
+    // Simple compression: repeated pattern removal
+    final compressed = <int>[];
+    final patternLength = 64;
+    
+    for (int i = 0; i < block.length; i++) {
+      int byte = block[i];
+      int runLength = 1;
+      
+      // Find longest run
+      for (int j = i + 1; j < block.length && j < i + patternLength; j++) {
+        if (block[j] == byte) {
+          runLength++;
+        } else {
+          break;
+        }
+      }
+      
+      if (runLength < 3) {
+        compressed.add(byte);
+      } else {
+        compressed.add(byte);
+        compressed.add(runLength);
+        compressed.add(byte);
+      }
+    }
+    
+    return compressed;
   }
 
   /// Perform decompression

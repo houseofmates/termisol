@@ -86,7 +86,7 @@ class _TermisolAppState extends State<TermisolApp> {
     // For VR, use a simplified interface
     return Container(
       color: PkmTheme.background,
-      child: Center(
+      child: const Center(
         child: Text(
           'VR Mode Not Fully Implemented',
           style: TextStyle(

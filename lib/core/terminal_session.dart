@@ -121,7 +121,6 @@ class TerminalSession extends ChangeNotifier {
     _crashRecovery = CrashRecovery();
     _commandNotifier = LongCommandNotifier();
     _pluginSystem = TermisolPluginSystem();
-    await _pluginSystem.initialize();
 
     bracketedPaste = BracketedPasteManager(terminal, controller);
     focusManager = FocusManager(terminal, controller, onFocusChanged, onFocusEvent);
@@ -139,7 +138,6 @@ class TerminalSession extends ChangeNotifier {
     kittyGraphics.enable();
     mouseProtocol.enable(TermisolMouseMode.any);
     ligatureFont.setFont('Fira Code', enableLigatures: true);
-    graphicsHandler.initialize();
 
     // Start health monitoring and auto-save
     _crashRecovery.startHealthMonitoring(id);

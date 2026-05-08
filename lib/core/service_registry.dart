@@ -159,6 +159,9 @@ class ServiceRegistry {
     debugPrint('🚀 ServiceRegistry: critical path empty (lazy by design)');
   }
 
+  /// Get AI Assistant service specifically
+  dynamic getAIAssistant() => get<dynamic>(TermisolFeatures.aiAssistant);
+
   /// Wait for any queued async initializations to complete.
   Future<void> flushAsyncQueue() async {
     while (_initQueue.isNotEmpty) {

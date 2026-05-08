@@ -183,7 +183,7 @@ class AutomatedWorkflowSystem {
             id: 'run-migrations',
             name: 'Run Migrations',
             command: 'npm run db:migrate',
-            description: 'Execute database migrations',
+            description: 'Execute database migrations with transaction safety',
             type: StepType.command,
             dependsOn: ['backup-db'],
             continueOnFailure: false,

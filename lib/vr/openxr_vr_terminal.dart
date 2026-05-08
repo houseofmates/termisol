@@ -55,7 +55,7 @@ class _OpenXRVrTerminalState extends State<OpenXRVrTerminal> {
       // Create OpenXR session
       _xrSession = await OpenXRSession.create();
       
-      // Set up callbacks
+      // Set up callbacks - these are public fields in OpenXRSession
       _xrSession!.onSessionReady = _onSessionReady;
       _xrSession!.onSessionLost = _onSessionLost;
       _xrSession!.onTriggerPressed = _onTriggerPressed;
@@ -331,7 +331,7 @@ class _OpenXRVrTerminalState extends State<OpenXRVrTerminal> {
             _VrButton(
               icon: Icons.exit_to_app,
               label: 'Exit',
-              onPressed: widget.onExitVr,
+              onPressed: widget.onExitVr ?? () {},
             ),
             const SizedBox(width: 16),
             

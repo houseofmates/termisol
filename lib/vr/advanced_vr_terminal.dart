@@ -240,7 +240,7 @@ class AdvancedVRTerminal {
       if (hitResult != null && hitResult.element is VrButton) {
         final button = hitResult.element as VrButton;
         button.onPressed();
-        _triggerHapticFeedback(HapticPattern.selection);
+        _triggerHapticFeedback(HapticPattern(name: 'selection', pattern: [0, 30, 15, 30], amplitude: 0.5));
       }
     }
   }

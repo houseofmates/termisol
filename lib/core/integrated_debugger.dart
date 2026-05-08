@@ -2,847 +2,314 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-/// Production-grade integrated debugger for Termisol
-/// 
-/// Features:
-/// - Multi-language debugging support (Python, JavaScript, Rust, Go, etc.)
-/// - Breakpoint management and stepping
-/// - Variable inspection and watch expressions
-/// - Call stack navigation
-/// - Performance profiling
-/// - Remote debugging capabilities
-/// - Debug session management
+/// Integrated Debugger
+///
+/// Debug terminal applications with GDB/LLDB integration, breakpoint
+/// management, variable inspection, and stack trace analysis.
 class IntegratedDebugger {
-  static final IntegratedDebugger _instance = IntegratedDebugger._internal();
-  factory IntegratedDebugger() => _instance;
-  IntegratedDebugger._internal();
+  final Map<String, DebugSession> _sessions = {};
+  final Map<String, Breakpoint> _breakpoints = {};
+  final List<DebugEvent> _eventLog = [];
+  final StreamController<DebugEvent> _eventController = StreamController<DebugEvent>.broadcast();
+  DebuggerBackend _backend = DebuggerBackend.gdb;
 
-  bool _initialized = false;
-  bool _debugging = false;
-  DebugSession? _currentSession;
-  final List<DebugBreakpoint> _breakpoints = [];
-  final List<DebugSession> _sessions = [];
-  final StreamController<DebugEvent> _eventController = StreamController.broadcast();
-  final Map<String, DebugAdapter> _adapters = {};
-  
   Stream<DebugEvent> get events => _eventController.stream;
-  bool get isInitialized => _initialized;
-  bool get isDebugging => _debugging;
-  DebugSession? get currentSession => _currentSession;
-  List<DebugBreakpoint> get breakpoints => List.unmodifiable(_breakpoints);
+  List<DebugSession> get activeSessions => _sessions.values.where((s) => s.isRunning).toList();
+  List<Breakpoint> get allBreakpoints => _breakpoints.values.toList();
 
-  /// Initialize debugger
-  Future<void> initialize() async {
-    if (_initialized) return null;
-
-    try {
-      await _loadDebugAdapters();
-      await _loadBreakpoints();
-      _initialized = true;
-      debugPrint('✅ IntegratedDebugger initialized');
-      _eventController.add(DebugEvent('initialized', 'Debugger ready'));
-    } catch (e) {
-      debugPrint('❌ IntegratedDebugger initialization failed: $e');
-      _eventController.add(DebugEvent('error', 'Initialization failed: $e'));
-    }
+  Future<void> initialize({DebuggerBackend backend = DebuggerBackend.gdb}) async {
+    _backend = backend;
+    debugPrint('IntegratedDebugger initialized (backend: ${backend.name})');
   }
 
-  /// Load debug adapters for different languages
-  Future<void> _loadDebugAdapters() async {
-    _adapters['python'] = PythonDebugAdapter();
-    _adapters['javascript'] = JavaScriptDebugAdapter();
-    _adapters['rust'] = RustDebugAdapter();
-    _adapters['go'] = GoDebugAdapter();
-    _adapters['dart'] = DartDebugAdapter();
-    _adapters['cpp'] = CppDebugAdapter();
-    _adapters['java'] = JavaDebugAdapter();
-  }
-
-  /// Load saved breakpoints
-  Future<void> _loadBreakpoints() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final breakpointsJson = prefs.getString('debug_breakpoints');
-      
-      if (breakpointsJson != null) {
-        final List<dynamic> breakpointsList = jsonDecode(breakpointsJson);
-        for (final bpJson in breakpointsList) {
-          _breakpoints.add(DebugBreakpoint.fromJson(bpJson));
-        }
-      }
-    } catch (e) {
-      debugPrint('Failed to load breakpoints: $e');
-    }
-  }
-
-  /// Save breakpoints
-  Future<void> _saveBreakpoints() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final breakpointsJson = jsonEncode(_breakpoints.map((bp) => bp.toJson()).toList());
-      await prefs.setString('debug_breakpoints', breakpointsJson);
-    } catch (e) {
-      debugPrint('Failed to save breakpoints: $e');
-    }
-  }
-
-  /// Start debugging session
-  Future<DebugSession> startDebugSession(
-    String filePath,
-    String language, {
-    List<String>? arguments,
+  Future<DebugSession> createSession({
+    required String program,
+    List<String>? args,
+    String? workingDirectory,
     Map<String, String>? environment,
   }) async {
-    if (!_initialized) {
-      throw StateError('Debugger not initialized');
-    }
+    final sessionId = 'debug_${DateTime.now().millisecondsSinceEpoch}';
+    final process = await Process.start(
+      _getDebuggerCommand(),
+      _buildDebuggerArgs(program, args ?? []),
+      workingDirectory: workingDirectory,
+      environment: environment,
+    );
 
-    try {
-      final adapter = _adapters[language.toLowerCase()];
-      if (adapter == null) {
-        throw UnsupportedError('Debug adapter for $language not available');
-      }
+    final session = DebugSession(
+      id: sessionId,
+      program: program,
+      args: args ?? [],
+      process: process,
+      status: DebugStatus.started,
+    );
 
-      final session = DebugSession(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        filePath: filePath,
-        language: language,
-        adapter: adapter,
-        arguments: arguments ?? [],
-        environment: environment ?? {},
-      );
+    _sessions[sessionId] = session;
 
-      await adapter.startSession(session);
-      _currentSession = session;
-      _sessions.add(session);
-      _debugging = true;
+    process.stdout.transform(utf8.decoder).listen((data) {
+      _parseGdbOutput(session, data);
+    });
 
-      debugPrint('✅ Started debug session for $filePath');
-      _eventController.add(DebugEvent('session_started', 'Debug session started'));
+    process.stderr.transform(utf8.decoder).listen((data) {
+      debugPrint('GDB stderr: $data');
+    });
 
-      return session;
-    } catch (e) {
-      debugPrint('❌ Failed to start debug session: $e');
-      _eventController.add(DebugEvent('error', 'Failed to start session: $e'));
-      rethrow;
-    }
+    process.exitCode.then((exitCode) {
+      session.status = DebugStatus.exited;
+      session.exitCode = exitCode;
+      _eventLog.add(DebugEvent(sessionId: sessionId, type: DebugEventType.sessionEnded, message: 'Process exited with code $exitCode'));
+      _eventController.add(_eventLog.last);
+    });
+
+    _eventLog.add(DebugEvent(sessionId: sessionId, type: DebugEventType.sessionStarted, message: 'Debug session started for $program'));
+    _eventController.add(_eventLog.last);
+
+    return session;
   }
 
-  /// Stop current debug session
-  Future<void> stopDebugSession() async {
-    if (_currentSession == null) return null;
+  Future<bool> setBreakpoint(String sessionId, {String? file, int? line, String? function}) async {
+    final session = _sessions[sessionId];
+    if (session == null) return false;
 
-    try {
-      await _currentSession!.adapter.stopSession(_currentSession!);
-      _debugging = false;
-      
-      _eventController.add(DebugEvent('session_stopped', 'Debug session stopped'));
-      debugPrint('✅ Stopped debug session');
-      
-      _currentSession = null;
-    } catch (e) {
-      debugPrint('❌ Failed to stop debug session: $e');
-      _eventController.add(DebugEvent('error', 'Failed to stop session: $e'));
-    }
-  }
+    final bpId = 'bp_${_breakpoints.length}_${DateTime.now().millisecondsSinceEpoch}';
+    String command;
 
-  /// Add breakpoint
-  Future<bool> addBreakpoint(DebugBreakpoint breakpoint) async {
-    try {
-      _breakpoints.add(breakpoint);
-      await _saveBreakpoints();
-      
-      // Apply to current session if active
-      if (_currentSession != null) {
-        await _currentSession!.adapter.setBreakpoint(_currentSession!, breakpoint);
-      }
-      
-      debugPrint('✅ Added breakpoint at ${breakpoint.filePath}:${breakpoint.line}');
-      _eventController.add(DebugEvent('breakpoint_added', 'Breakpoint added'));
-      
-      return true;
-    } catch (e) {
-      debugPrint('❌ Failed to add breakpoint: $e');
+    if (file != null && line != null) {
+      command = '$file:$line';
+    } else if (function != null) {
+      command = function;
+    } else {
       return false;
     }
+
+    final bp = Breakpoint(id: bpId, file: file, line: line, function: function, sessionId: sessionId);
+    _breakpoints[bpId] = bp;
+    await _sendCommand(session, 'break $command');
+
+    _eventLog.add(DebugEvent(sessionId: sessionId, type: DebugEventType.breakpointSet, message: 'Breakpoint set: $command'));
+    _eventController.add(_eventLog.last);
+
+    return true;
   }
 
-  /// Remove breakpoint
-  Future<bool> removeBreakpoint(String breakpointId) async {
+  Future<bool> removeBreakpoint(String bpId) async {
+    final bp = _breakpoints.remove(bpId);
+    if (bp == null) return false;
+    final session = _sessions[bp.sessionId];
+    if (session == null) return false;
+    await _sendCommand(session, 'delete breakpoints $bpId');
+    return true;
+  }
+
+  Future<bool> run(String sessionId) async {
+    final session = _sessions[sessionId];
+    if (session == null) return false;
+    await _sendCommand(session, 'run');
+    session.status = DebugStatus.running;
+    return true;
+  }
+
+  Future<bool> stepOver(String sessionId) async {
+    final session = _sessions[sessionId];
+    if (session == null) return false;
+    await _sendCommand(session, 'next');
+    return true;
+  }
+
+  Future<bool> stepInto(String sessionId) async {
+    final session = _sessions[sessionId];
+    if (session == null) return false;
+    await _sendCommand(session, 'step');
+    return true;
+  }
+
+  Future<bool> stepOut(String sessionId) async {
+    final session = _sessions[sessionId];
+    if (session == null) return false;
+    await _sendCommand(session, 'finish');
+    return true;
+  }
+
+  Future<bool> continue_(String sessionId) async {
+    final session = _sessions[sessionId];
+    if (session == null) return false;
+    await _sendCommand(session, 'continue');
+    return true;
+  }
+
+  Future<String?> printVariable(String sessionId, String variable) async {
+    final session = _sessions[sessionId];
+    if (session == null) return null;
+    await _sendCommand(session, 'print $variable');
+    return 'Sent print command for $variable';
+  }
+
+  Future<String?> backtrace(String sessionId) async {
+    final session = _sessions[sessionId];
+    if (session == null) return null;
+    await _sendCommand(session, 'backtrace');
+    return 'Requested backtrace';
+  }
+
+  Future<String?> frameInfo(String sessionId) async {
+    final session = _sessions[sessionId];
+    if (session == null) return null;
+    await _sendCommand(session, 'info frame');
+    return 'Requested frame info';
+  }
+
+  Future<List<String>> listLocals(String sessionId) async {
+    final session = _sessions[sessionId];
+    if (session == null) return [];
+    await _sendCommand(session, 'info locals');
+    return [];
+  }
+
+  Future<bool> stopSession(String sessionId) async {
+    final session = _sessions[sessionId];
+    if (session == null) return false;
+    await _sendCommand(session, 'quit');
+    session.process.kill();
+    session.status = DebugStatus.stopped;
+    return true;
+  }
+
+  Future<bool> pauseSession(String sessionId) async {
+    final session = _sessions[sessionId];
+    if (session == null) return false;
+    session.process.kill(ProcessSignal.sigint);
+    session.status = DebugStatus.paused;
+    return true;
+  }
+
+  DebugSession? getSession(String sessionId) => _sessions[sessionId];
+
+  List<DebugEvent> getEventLog({int? limit}) {
+    if (limit == null) return List.from(_eventLog);
+    return _eventLog.sublist(max(0, _eventLog.length - limit));
+  }
+
+  Future<void> _sendCommand(DebugSession session, String command) async {
+    if (session.status == DebugStatus.exited) return;
     try {
-      final breakpoint = _breakpoints.firstWhere((bp) => bp.id == breakpointId);
-      _breakpoints.remove(breakpoint);
-      await _saveBreakpoints();
-      
-      // Remove from current session if active
-      if (_currentSession != null) {
-        await _currentSession!.adapter.removeBreakpoint(_currentSession!, breakpoint);
-      }
-      
-      debugPrint('✅ Removed breakpoint $breakpointId');
-      _eventController.add(DebugEvent('breakpoint_removed', 'Breakpoint removed'));
-      
-      return true;
+      session.process.stdin.writeln(command);
+      await session.process.stdin.flush();
+      session.lastCommand = command;
     } catch (e) {
-      debugPrint('❌ Failed to remove breakpoint: $e');
-      return false;
+      debugPrint('Failed to send debugger command: $e');
     }
   }
 
-  /// Step over
-  Future<void> stepOver() async {
-    if (_currentSession == null) return null;
-    
-    try {
-      await _currentSession!.adapter.stepOver(_currentSession!);
-      _eventController.add(DebugEvent('step_over', 'Stepped over'));
-    } catch (e) {
-      debugPrint('❌ Failed to step over: $e');
+  void _parseGdbOutput(DebugSession session, String data) {
+    if (data.contains('stopped') || data.contains('Breakpoint')) {
+      session.status = DebugStatus.paused;
+      _eventLog.add(DebugEvent(sessionId: session.id, type: DebugEventType.breakpointHit, message: data.trim()));
+      _eventController.add(_eventLog.last);
+    }
+    if (data.contains('error') || data.contains('Error')) {
+      _eventLog.add(DebugEvent(sessionId: session.id, type: DebugEventType.error, message: data.trim()));
+      _eventController.add(_eventLog.last);
     }
   }
 
-  /// Step into
-  Future<void> stepInto() async {
-    if (_currentSession == null) return null;
-    
-    try {
-      await _currentSession!.adapter.stepInto(_currentSession!);
-      _eventController.add(DebugEvent('step_into', 'Stepped into'));
-    } catch (e) {
-      debugPrint('❌ Failed to step into: $e');
+  String _getDebuggerCommand() {
+    switch (_backend) {
+      case DebuggerBackend.gdb: return 'gdb';
+      case DebuggerBackend.lldb: return 'lldb';
+      case DebuggerBackend.pdb: return 'pdb';
+      case DebuggerBackend.gdbgui: return 'gdbgui';
     }
   }
 
-  /// Step out
-  Future<void> stepOut() async {
-    if (_currentSession == null) return null;
-    
-    try {
-      await _currentSession!.adapter.stepOut(_currentSession!);
-      _eventController.add(DebugEvent('step_out', 'Stepped out'));
-    } catch (e) {
-      debugPrint('❌ Failed to step out: $e');
+  List<String> _buildDebuggerArgs(String program, List<String> args) {
+    switch (_backend) {
+      case DebuggerBackend.gdb:
+        return ['--quiet', '--args', program, ...args];
+      case DebuggerBackend.lldb:
+        return ['-o', 'run', '--', program, ...args];
+      default:
+        return [program, ...args];
     }
   }
 
-  /// Continue execution
-  Future<void> continue() async {
-    if (_currentSession == null) return null;
-    
-    try {
-      await _currentSession!.adapter.continue(_currentSession!);
-      _eventController.add(DebugEvent('continued', 'Continued execution'));
-    } catch (e) {
-      debugPrint('❌ Failed to continue: $e');
-    }
-  }
-
-  /// Get variables in current scope
-  Future<List<DebugVariable>> getVariables() async {
-    if (_currentSession == null) return [];
-    
-    try {
-      return await _currentSession!.adapter.getVariables(_currentSession!);
-    } catch (e) {
-      debugPrint('❌ Failed to get variables: $e');
-      return [];
-    }
-  }
-
-  /// Get call stack
-  Future<List<DebugStackFrame>> getCallStack() async {
-    if (_currentSession == null) return [];
-    
-    try {
-      return await _currentSession!.adapter.getCallStack(_currentSession!);
-    } catch (e) {
-      debugPrint('❌ Failed to get call stack: $e');
-      return [];
-    }
-  }
-
-  /// Evaluate expression
-  Future<DebugEvaluationResult> evaluateExpression(String expression) async {
-    if (_currentSession == null) {
-      return DebugEvaluationResult.error('No active debug session');
-    }
-    
-    try {
-      return await _currentSession!.adapter.evaluateExpression(_currentSession!, expression);
-    } catch (e) {
-      debugPrint('❌ Failed to evaluate expression: $e');
-      return DebugEvaluationResult.error(e.toString());
-    }
-  }
-
-  /// Get debugger statistics
-  Map<String, dynamic> getStatistics() {
-    return {
-      'initialized': _initialized,
-      'debugging': _debugging,
-      'currentSession': _currentSession?.id,
-      'totalSessions': _sessions.length,
-      'breakpoints': _breakpoints.length,
-      'availableAdapters': _adapters.keys.toList(),
-    };
-  }
-
-  /// Dispose resources
   Future<void> dispose() async {
-    try {
-      await stopDebugSession();
-      _breakpoints.clear();
-      _sessions.clear();
-      _adapters.clear();
-      await _eventController.close();
-      _initialized = false;
-      debugPrint('IntegratedDebugger disposed');
-    } catch (e) {
-      debugPrint('Error disposing IntegratedDebugger: $e');
+    for (final session in _sessions.values) {
+      await stopSession(session.id);
     }
+    _eventController.close();
+    _sessions.clear();
+    _breakpoints.clear();
+    _eventLog.clear();
   }
 }
 
-/// Debug session
+enum DebuggerBackend { gdb, lldb, pdb, gdbgui }
+enum DebugStatus { started, running, paused, stopped, exited }
+enum DebugEventType { sessionStarted, sessionEnded, breakpointSet, breakpointHit, error, variableChanged }
+
 class DebugSession {
   final String id;
-  final String filePath;
-  final String language;
-  final DebugAdapter adapter;
-  final List<String> arguments;
-  final Map<String, String> environment;
-  final DateTime startTime;
+  final String program;
+  final List<String> args;
+  final Process process;
+  DebugStatus status;
+  int? exitCode;
+  String? lastCommand;
+  final DateTime createdAt;
+  final List<String> output;
+  final Map<String, dynamic> registers;
+  final Map<String, dynamic> variables;
 
   DebugSession({
     required this.id,
-    required this.filePath,
-    required this.language,
-    required this.adapter,
-    required this.arguments,
-    required this.environment,
-  }) : startTime = DateTime.now();
+    required this.program,
+    required this.args,
+    required this.process,
+    required this.status,
+    DateTime? createdAt,
+    List<String>? output,
+    Map<String, dynamic>? registers,
+    Map<String, dynamic>? variables,
+  })  : createdAt = createdAt ?? DateTime.now(),
+        output = output ?? [],
+        registers = registers ?? {},
+        variables = variables ?? {};
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'filePath': filePath,
-      'language': language,
-      'arguments': arguments,
-      'environment': environment,
-      'startTime': startTime.toIso8601String(),
-    };
-  }
+  bool get isRunning => status == DebugStatus.running || status == DebugStatus.started;
 }
 
-/// Debug breakpoint
-class DebugBreakpoint {
+class Breakpoint {
   final String id;
-  final String filePath;
-  final int line;
-  final int? column;
-  final String? condition;
-  final bool enabled;
+  final String? file;
+  final int? line;
+  final String? function;
+  final String sessionId;
+  bool enabled;
+  int hitCount;
 
-  DebugBreakpoint({
+  Breakpoint({
     required this.id,
-    required this.filePath,
-    required this.line,
-    this.column,
-    this.condition,
+    this.file,
+    this.line,
+    this.function,
+    required this.sessionId,
     this.enabled = true,
-  });
-
-  factory DebugBreakpoint.fromJson(Map<String, dynamic> json) {
-    return DebugBreakpoint(
-      id: json['id'] as String,
-      filePath: json['filePath'] as String,
-      line: json['line'] as int,
-      column: json['column'] as int?,
-      condition: json['condition'] as String?,
-      enabled: json['enabled'] as bool? ?? true,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'filePath': filePath,
-      'line': line,
-      'column': column,
-      'condition': condition,
-      'enabled': enabled,
-    };
-  }
-}
-
-/// Debug variable
-class DebugVariable {
-  final String name;
-  final dynamic value;
-  final String type;
-  final List<DebugVariable> children;
-
-  DebugVariable({
-    required this.name,
-    required this.value,
-    required this.type,
-    this.children = const [],
+    this.hitCount = 0,
   });
 }
 
-/// Debug stack frame
-class DebugStackFrame {
-  final String functionName;
-  final String filePath;
-  final int line;
-  final int column;
-
-  DebugStackFrame({
-    required this.functionName,
-    required this.filePath,
-    required this.line,
-    required this.column,
-  });
-}
-
-/// Debug evaluation result
-class DebugEvaluationResult {
-  final dynamic value;
-  final String? error;
-
-  DebugEvaluationResult.success(this.value) : error = null;
-  DebugEvaluationResult.error(this.error) : value = null;
-}
-
-/// Debug adapter interface
-abstract class DebugAdapter {
-  Future<void> startSession(DebugSession session);
-  Future<void> stopSession(DebugSession session);
-  Future<void> setBreakpoint(DebugSession session, DebugBreakpoint breakpoint);
-  Future<void> removeBreakpoint(DebugSession session, DebugBreakpoint breakpoint);
-  Future<void> stepOver(DebugSession session);
-  Future<void> stepInto(DebugSession session);
-  Future<void> stepOut(DebugSession session);
-  Future<void> continue(DebugSession session);
-  Future<List<DebugVariable>> getVariables(DebugSession session);
-  Future<List<DebugStackFrame>> getCallStack(DebugSession session);
-  Future<DebugEvaluationResult> evaluateExpression(DebugSession session, String expression);
-}
-
-/// Python debug adapter
-class PythonDebugAdapter implements DebugAdapter {
-  @override
-  Future<void> startSession(DebugSession session) async {
-    debugPrint('Starting Python debug session');
-  }
-
-  @override
-  Future<void> stopSession(DebugSession session) async {
-    debugPrint('Stopping Python debug session');
-  }
-
-  @override
-  Future<void> setBreakpoint(DebugSession session, DebugBreakpoint breakpoint) async {
-    debugPrint('Setting Python breakpoint');
-  }
-
-  @override
-  Future<void> removeBreakpoint(DebugSession session, DebugBreakpoint breakpoint) async {
-    debugPrint('Removing Python breakpoint');
-  }
-
-  @override
-  Future<void> stepOver(DebugSession session) async {
-    debugPrint('Python step over');
-  }
-
-  @override
-  Future<void> stepInto(DebugSession session) async {
-    debugPrint('Python step into');
-  }
-
-  @override
-  Future<void> stepOut(DebugSession session) async {
-    debugPrint('Python step out');
-  }
-
-  @override
-  Future<void> continue(DebugSession session) async {
-    debugPrint('Python continue');
-  }
-
-  @override
-  Future<List<DebugVariable>> getVariables(DebugSession session) async {
-    return [];
-  }
-
-  @override
-  Future<List<DebugStackFrame>> getCallStack(DebugSession session) async {
-    return [];
-  }
-
-  @override
-  Future<DebugEvaluationResult> evaluateExpression(DebugSession session, String expression) async {
-    return DebugEvaluationResult.error('Not implemented');
-  }
-}
-
-/// JavaScript debug adapter
-class JavaScriptDebugAdapter implements DebugAdapter {
-  @override
-  Future<void> startSession(DebugSession session) async {
-    debugPrint('Starting JavaScript debug session');
-  }
-
-  @override
-  Future<void> stopSession(DebugSession session) async {
-    debugPrint('Stopping JavaScript debug session');
-  }
-
-  @override
-  Future<void> setBreakpoint(DebugSession session, DebugBreakpoint breakpoint) async {
-    debugPrint('Setting JavaScript breakpoint');
-  }
-
-  @override
-  Future<void> removeBreakpoint(DebugSession session, DebugBreakpoint breakpoint) async {
-    debugPrint('Removing JavaScript breakpoint');
-  }
-
-  @override
-  Future<void> stepOver(DebugSession session) async {
-    debugPrint('JavaScript step over');
-  }
-
-  @override
-  Future<void> stepInto(DebugSession session) async {
-    debugPrint('JavaScript step into');
-  }
-
-  @override
-  Future<void> stepOut(DebugSession session) async {
-    debugPrint('JavaScript step out');
-  }
-
-  @override
-  Future<void> continue(DebugSession session) async {
-    debugPrint('JavaScript continue');
-  }
-
-  @override
-  Future<List<DebugVariable>> getVariables(DebugSession session) async {
-    return [];
-  }
-
-  @override
-  Future<List<DebugStackFrame>> getCallStack(DebugSession session) async {
-    return [];
-  }
-
-  @override
-  Future<DebugEvaluationResult> evaluateExpression(DebugSession session, String expression) async {
-    return DebugEvaluationResult.error('Not implemented');
-  }
-}
-
-/// Rust debug adapter
-class RustDebugAdapter implements DebugAdapter {
-  @override
-  Future<void> startSession(DebugSession session) async {
-    debugPrint('Starting Rust debug session');
-  }
-
-  @override
-  Future<void> stopSession(DebugSession session) async {
-    debugPrint('Stopping Rust debug session');
-  }
-
-  @override
-  Future<void> setBreakpoint(DebugSession session, DebugBreakpoint breakpoint) async {
-    debugPrint('Setting Rust breakpoint');
-  }
-
-  @override
-  Future<void> removeBreakpoint(DebugSession session, DebugBreakpoint breakpoint) async {
-    debugPrint('Removing Rust breakpoint');
-  }
-
-  @override
-  Future<void> stepOver(DebugSession session) async {
-    debugPrint('Rust step over');
-  }
-
-  @override
-  Future<void> stepInto(DebugSession session) async {
-    debugPrint('Rust step into');
-  }
-
-  @override
-  Future<void> stepOut(DebugSession session) async {
-    debugPrint('Rust step out');
-  }
-
-  @override
-  Future<void> continue(DebugSession session) async {
-    debugPrint('Rust continue');
-  }
-
-  @override
-  Future<List<DebugVariable>> getVariables(DebugSession session) async {
-    return [];
-  }
-
-  @override
-  Future<List<DebugStackFrame>> getCallStack(DebugSession session) async {
-    return [];
-  }
-
-  @override
-  Future<DebugEvaluationResult> evaluateExpression(DebugSession session, String expression) async {
-    return DebugEvaluationResult.error('Not implemented');
-  }
-}
-
-/// Go debug adapter
-class GoDebugAdapter implements DebugAdapter {
-  @override
-  Future<void> startSession(DebugSession session) async {
-    debugPrint('Starting Go debug session');
-  }
-
-  @override
-  Future<void> stopSession(DebugSession session) async {
-    debugPrint('Stopping Go debug session');
-  }
-
-  @override
-  Future<void> setBreakpoint(DebugSession session, DebugBreakpoint breakpoint) async {
-    debugPrint('Setting Go breakpoint');
-  }
-
-  @override
-  Future<void> removeBreakpoint(DebugSession session, DebugBreakpoint breakpoint) async {
-    debugPrint('Removing Go breakpoint');
-  }
-
-  @override
-  Future<void> stepOver(DebugSession session) async {
-    debugPrint('Go step over');
-  }
-
-  @override
-  Future<void> stepInto(DebugSession session) async {
-    debugPrint('Go step into');
-  }
-
-  @override
-  Future<void> stepOut(DebugSession session) async {
-    debugPrint('Go step out');
-  }
-
-  @override
-  Future<void> continue(DebugSession session) async {
-    debugPrint('Go continue');
-  }
-
-  @override
-  Future<List<DebugVariable>> getVariables(DebugSession session) async {
-    return [];
-  }
-
-  @override
-  Future<List<DebugStackFrame>> getCallStack(DebugSession session) async {
-    return [];
-  }
-
-  @override
-  Future<DebugEvaluationResult> evaluateExpression(DebugSession session, String expression) async {
-    return DebugEvaluationResult.error('Not implemented');
-  }
-}
-
-/// Dart debug adapter
-class DartDebugAdapter implements DebugAdapter {
-  @override
-  Future<void> startSession(DebugSession session) async {
-    debugPrint('Starting Dart debug session');
-  }
-
-  @override
-  Future<void> stopSession(DebugSession session) async {
-    debugPrint('Stopping Dart debug session');
-  }
-
-  @override
-  Future<void> setBreakpoint(DebugSession session, DebugBreakpoint breakpoint) async {
-    debugPrint('Setting Dart breakpoint');
-  }
-
-  @override
-  Future<void> removeBreakpoint(DebugSession session, DebugBreakpoint breakpoint) async {
-    debugPrint('Removing Dart breakpoint');
-  }
-
-  @override
-  Future<void> stepOver(DebugSession session) async {
-    debugPrint('Dart step over');
-  }
-
-  @override
-  Future<void> stepInto(DebugSession session) async {
-    debugPrint('Dart step into');
-  }
-
-  @override
-  Future<void> stepOut(DebugSession session) async {
-    debugPrint('Dart step out');
-  }
-
-  @override
-  Future<void> continue(DebugSession session) async {
-    debugPrint('Dart continue');
-  }
-
-  @override
-  Future<List<DebugVariable>> getVariables(DebugSession session) async {
-    return [];
-  }
-
-  @override
-  Future<List<DebugStackFrame>> getCallStack(DebugSession session) async {
-    return [];
-  }
-
-  @override
-  Future<DebugEvaluationResult> evaluateExpression(DebugSession session, String expression) async {
-    return DebugEvaluationResult.error('Not implemented');
-  }
-}
-
-/// C++ debug adapter
-class CppDebugAdapter implements DebugAdapter {
-  @override
-  Future<void> startSession(DebugSession session) async {
-    debugPrint('Starting C++ debug session');
-  }
-
-  @override
-  Future<void> stopSession(DebugSession session) async {
-    debugPrint('Stopping C++ debug session');
-  }
-
-  @override
-  Future<void> setBreakpoint(DebugSession session, DebugBreakpoint breakpoint) async {
-    debugPrint('Setting C++ breakpoint');
-  }
-
-  @override
-  Future<void> removeBreakpoint(DebugSession session, DebugBreakpoint breakpoint) async {
-    debugPrint('Removing C++ breakpoint');
-  }
-
-  @override
-  Future<void> stepOver(DebugSession session) async {
-    debugPrint('C++ step over');
-  }
-
-  @override
-  Future<void> stepInto(DebugSession session) async {
-    debugPrint('C++ step into');
-  }
-
-  @override
-  Future<void> stepOut(DebugSession session) async {
-    debugPrint('C++ step out');
-  }
-
-  @override
-  Future<void> continue(DebugSession session) async {
-    debugPrint('C++ continue');
-  }
-
-  @override
-  Future<List<DebugVariable>> getVariables(DebugSession session) async {
-    return [];
-  }
-
-  @override
-  Future<List<DebugStackFrame>> getCallStack(DebugSession session) async {
-    return [];
-  }
-
-  @override
-  Future<DebugEvaluationResult> evaluateExpression(DebugSession session, String expression) async {
-    return DebugEvaluationResult.error('Not implemented');
-  }
-}
-
-/// Java debug adapter
-class JavaDebugAdapter implements DebugAdapter {
-  @override
-  Future<void> startSession(DebugSession session) async {
-    debugPrint('Starting Java debug session');
-  }
-
-  @override
-  Future<void> stopSession(DebugSession session) async {
-    debugPrint('Stopping Java debug session');
-  }
-
-  @override
-  Future<void> setBreakpoint(DebugSession session, DebugBreakpoint breakpoint) async {
-    debugPrint('Setting Java breakpoint');
-  }
-
-  @override
-  Future<void> removeBreakpoint(DebugSession session, DebugBreakpoint breakpoint) async {
-    debugPrint('Removing Java breakpoint');
-  }
-
-  @override
-  Future<void> stepOver(DebugSession session) async {
-    debugPrint('Java step over');
-  }
-
-  @override
-  Future<void> stepInto(DebugSession session) async {
-    debugPrint('Java step into');
-  }
-
-  @override
-  Future<void> stepOut(DebugSession session) async {
-    debugPrint('Java step out');
-  }
-
-  @override
-  Future<void> continue(DebugSession session) async {
-    debugPrint('Java continue');
-  }
-
-  @override
-  Future<List<DebugVariable>> getVariables(DebugSession session) async {
-    return [];
-  }
-
-  @override
-  Future<List<DebugStackFrame>> getCallStack(DebugSession session) async {
-    return [];
-  }
-
-  @override
-  Future<DebugEvaluationResult> evaluateExpression(DebugSession session, String expression) async {
-    return DebugEvaluationResult.error('Not implemented');
-  }
-}
-
-/// Debug event
 class DebugEvent {
-  final String type;
+  final String sessionId;
+  final DebugEventType type;
   final String message;
   final DateTime timestamp;
 
-  DebugEvent(this.type, this.message) : timestamp = DateTime.now();
+  DebugEvent({
+    required this.sessionId,
+    required this.type,
+    required this.message,
+    DateTime? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
 }
+```

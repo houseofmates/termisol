@@ -373,10 +373,7 @@ Focus on:
         predictedImprovement: '10-20% memory reduction',
         implementationTime: '2 minutes',
         riskLevel: 'low',
-        difficulty: 'easy',
-        estimatedGain: 20.0,
-        actions: ['Clear scrollback', 'Reduce history size', 'Restart terminal sessions'],
-      ));
+        ));
     }
     
     // Terminal-specific recommendations
@@ -385,9 +382,14 @@ Focus on:
       recommendations.add(OptimizationRecommendation(
         timestamp: DateTime.now(),
         overallScore: 0.6,
-        category: 'rendering',
-        description: 'Low rendering performance detected. Enable hardware acceleration or reduce visual effects.',
-        impact: 'medium',
+        suggestions: [OptimizationSuggestion(
+          action: 'Enable hardware acceleration',
+          description: 'Use GPU rendering for better performance',
+          priority: 'high',
+        )],
+        predictedImprovement: '30-50% FPS improvement',
+        implementationTime: '10 minutes',
+        riskLevel: 'medium',
         difficulty: 'medium',
         estimatedGain: 25.0,
         actions: ['Enable GPU acceleration', 'Disable font ligatures', 'Reduce terminal size'],

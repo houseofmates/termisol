@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/foundation.dart';
 import 'core/service_registry.dart';
 import 'core/vr_platform_channel.dart';
 import 'ui/home_screen.dart';
@@ -29,23 +30,32 @@ class _TermisolAppState extends State<TermisolApp> {
     try {
       final vrEnabled = widget.registry.isEnabled(TermisolFeatures.vrSupport);
       if (!vrEnabled) {
-        setState(() {
-          _vrDetectionComplete = true;
-          _isVrMode = false;
-        });
+        if (mounted) {
+          setState(() {
+            _vrDetectionComplete = true;
+            _isVrMode = false;
+          });
+        }
         return;
       }
 
       final vrSupported = await VrPlatformChannel.isVrSupported();
-      setState(() {
-        _vrDetectionComplete = true;
-        _isVrMode = vrSupported;
-      });
-    } catch (_) {
-      setState(() {
-        _vrDetectionComplete = true;
-        _isVrMode = false;
-      });
+      if (mounted) {
+        setState(() {
+          _vrDetectionComplete = true;
+          _isVrMode = vrSupported;
+        });
+      }
+    } catch (e, stack) {
+      if (kDebugMode) {
+        debugPrint('VR detection failed: $e\n$stack');
+      }
+      if (mounted) {
+        setState(() {
+          _vrDetectionComplete = true;
+          _isVrMode = false;
+        });
+      }
     }
   }
 

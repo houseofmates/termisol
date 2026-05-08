@@ -57,7 +57,7 @@ class _TermisolAppEnhancedState extends State<TermisolAppEnhanced> {
         debugPrint('🔄 Restored session: ${sessionState.name}');
       }
       
-      setState(() {});
+      // UI update not needed - sessions are restored asynchronously
     } catch (e) {
       debugPrint('❌ Failed to restore sessions: $e');
     } finally {
@@ -116,11 +116,11 @@ class _TermisolAppEnhancedState extends State<TermisolAppEnhanced> {
               initialSessions: _restoredSessions,
               onSessionCreated: (session) {
                 _restoredSessions.add(session);
-                setState(() {});
+                // UI update handled by parent widget
               },
               onSessionDestroyed: (sessionId) {
                 _restoredSessions.removeWhere((s) => s.id == sessionId);
-                setState(() {});
+                // UI update handled by parent widget
               },
             ),
     );

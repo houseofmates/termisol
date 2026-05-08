@@ -283,43 +283,36 @@ class TerminalRecorder {
     } catch (e) {
       debugPrint('❌ Failed to export to MP4: $e');
       
-      // Fallback: create a simple MP4 placeholder
-      return await _createMP4Placeholder(recording);
+      // Fallback: export as asciinema format
+      return await _exportAsAsciinema(recording);
     }
   }
   
-  /// Create MP4 placeholder when server conversion fails
-  Future<String> _createMP4Placeholder(TerminalRecording recording) async {
+  /// Export recording as asciinema format when MP4 conversion fails
+  Future<String> _exportAsAsciinema(TerminalRecording recording) async {
     try {
-      // Create a simple text file as placeholder
-      final placeholderPath = '$_mp4ExportPath/${recording.id}_placeholder.txt';
-      final placeholderContent = '''
-Terminal Recording Placeholder
-============================
-Recording ID: ${recording.id}
-Name: ${recording.name}
-Duration: ${recording.duration.inSeconds} seconds
-Frames: ${recording.frames.length}
-Created: ${recording.createdAt}
-
-Note: MP4 conversion server was unavailable. 
-The original asciinema recording is saved at: ${recording.path}
-
-To convert manually:
-1. Install asciinema: pip install asciinema
-2. Convert: asciinema play ${recording.path} --record-output.mp4
-''';
+      final asciinemaPath = '${_recordingsPath}/${recording.id}.cast';
+      final asciinemaContent = jsonEncode({
+        'version': 2,
+        'width': recording.width,
+        'height': recording.height,
+        'timestamp': recording.startTime.millisecondsSinceEpoch,
+        'title': recording.name,
+        'env': {'TERM': 'xterm-256color', 'SHELL': '/bin/bash'},
+        'stdout': recording.frames.map((frame) => 
+          base64.encode(utf8.encode(frame.data))
+        ).toList(),
+      });
       
-      // Save placeholder locally (since remote server might be unavailable)
-      final localPlaceholder = File('${Platform.environment['HOME']}/.termisol/${recording.id}_placeholder.txt');
-      await localPlaceholder.parent.create(recursive: true);
-      await localPlaceholder.writeAsString(placeholderContent);
+      final file = File(asciinemaPath);
+      await file.parent.create(recursive: true);
+      await file.writeAsString(asciinemaContent);
       
-      debugPrint('📝 Created MP4 placeholder: ${localPlaceholder.path}');
-      return localPlaceholder.path;
+      debugPrint('� Exported as asciinema: ${file.path}');
+      return file.path;
     } catch (e) {
-      debugPrint('❌ Failed to create placeholder: $e');
-      return 'MP4 export failed - check server availability';
+      debugPrint('❌ Failed to export as asciinema: $e');
+      return 'Export failed - check file permissions';
     }
   }
   

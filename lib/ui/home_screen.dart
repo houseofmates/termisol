@@ -112,8 +112,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return success && output != null ? output : 'AI service unavailable';
       }
       return 'AI service not configured';
-    } catch (e) {
-      debugPrint('AI query failed: $e');
+    } catch (e, stack) {
+      debugPrint('AI query failed: $e\n$stack');
       return 'AI query failed: $e';
     }
   }

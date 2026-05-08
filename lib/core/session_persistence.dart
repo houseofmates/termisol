@@ -736,15 +736,15 @@ class TerminalSession {
   
   factory TerminalSession.fromJson(Map<String, dynamic> json) {
     return TerminalSession(
-      id: json['id'],
-      title: json['title'],
-      workingDirectory: json['working_directory'],
+      id: json['id'] as String,
+      title: json['title'] as String,
+      workingDirectory: json['working_directory'] as String,
       environment: Map<String, String>.from(json['environment'] ?? {}),
-      command: json['command'],
-      createdAt: DateTime.parse(json['created_at']),
-      lastActivity: json['last_activity'] != null ? DateTime.parse(json['last_activity']) : null,
-      isActive: json['is_active'] ?? true,
-      content: json['content'] ?? '',
+      command: json['command'] as String?,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      lastActivity: json['last_activity'] != null ? DateTime.parse(json['last_activity'] as String) : null,
+      isActive: json['is_active'] as bool? ?? true,
+      content: json['content'] as String? ?? '',
       history: List<String>.from(json['history'] ?? []),
       bookmarks: List<String>.from(json['bookmarks'] ?? []),
     );

@@ -115,6 +115,12 @@ class _PtyBackend implements TermisolPtyBackend {
   }
 
   @override
+  Future<void> stop() async {
+    _isRunning = false;
+    _pty?.kill();
+  }
+
+  @override
   Future<void> terminate() async {
     _isRunning = false;
     _pty?.kill();

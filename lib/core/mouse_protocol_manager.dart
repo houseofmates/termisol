@@ -29,6 +29,8 @@ class MouseProtocolManager {
       _currentMode = mode;
 
       switch (mode) {
+        case TermisolMouseMode.none:
+          break;
         case TermisolMouseMode.normal:
           terminal.write('\x1b[?9h'); // X10
           break;

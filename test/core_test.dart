@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:termisol/core/prompt_config.dart';
 import 'package:termisol/core/service_registry.dart';

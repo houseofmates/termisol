@@ -87,7 +87,8 @@ class _EditTerminalState extends State<EditTerminal> {
         _controller.text = content;
         setState(() => _dirty = false);
       }
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('failed to load file: $e\n$stack');
       setState(() => _error = 'failed to load file: $e');
     }
   }
@@ -104,7 +105,8 @@ class _EditTerminalState extends State<EditTerminal> {
           const SnackBar(content: Text('saved')),
         );
       }
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('failed to save: $e\n$stack');
       setState(() => _error = 'failed to save: $e');
     }
   }

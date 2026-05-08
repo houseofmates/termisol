@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_highlight/themes/monokai-sublime.dart';
@@ -168,8 +169,8 @@ class _EditTerminalState extends State<EditTerminal> {
       _undoStack.add(content);
       _currentUndoIndex = _undoStack.length - 1;
       
-      // Limit stack size
-      if (_undoStack.length > 200) {
+      // Limit stack size for performance
+      if (_undoStack.length > _maxUndoStackSize) {
         _undoStack.removeAt(0);
         _currentUndoIndex--;
       }

@@ -12,7 +12,7 @@ class CrashRecovery {
     // Stub implementation
   }
 
-  void _startHealthMonitoring() {
+  void startHealthMonitoring() {
     // Stub implementation
   }
 

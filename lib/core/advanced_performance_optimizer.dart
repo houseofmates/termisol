@@ -773,6 +773,12 @@ class AdvancedPerformanceOptimizer {
     await _optimizeForCurrentHardware();
   }
   
+  /// Update system status
+  void _updateSystemStatus() {
+    // Update performance metrics and status
+    _collectMetrics();
+  }
+  
   /// Optimize for current hardware
   Future<void> _optimizeForCurrentHardware() async {
     final memoryInfo = await _getMemoryInfo();

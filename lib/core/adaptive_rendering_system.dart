@@ -221,8 +221,7 @@ class AdaptiveRenderingSystem {
       capabilities.screenWidth = size.width / pixelRatio;
       capabilities.screenHeight = size.height / pixelRatio;
       capabilities.screenDensity = pixelRatio;
-      capabilities.refreshRate = window.displayFeatures.isNotEmpty ?
-        60.0 : 60.0; // Default assumption, could be improved
+      capabilities.refreshRate = 60.0; // Default assumption, could be improved
 
       // Classify display quality
       if (capabilities.screenDensity >= 3.0 && capabilities.screenWidth >= 1080) {

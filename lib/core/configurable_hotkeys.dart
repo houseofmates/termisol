@@ -265,13 +265,11 @@ class HotkeyBinding {
 
   bool matches(LogicalKeyboardKey key, {Set<LogicalKeyboardKey> pressed = const {}}) {
     if (key != this.key) return false;
-    return switch (ctrl == pressed.contains(LogicalKeyboardKey.controlLeft) || ctrl == pressed.contains(LogicalKeyboardKey.controlRight)) {
-      true when (alt == pressed.contains(LogicalKeyboardKey.altLeft) || alt == pressed.contains(LogicalKeyboardKey.altRight)) =>
-        true when (shift == pressed.contains(LogicalKeyboardKey.shiftLeft) || shift == pressed.contains(LogicalKeyboardKey.shiftRight)) =>
-          true when (meta == pressed.contains(LogicalKeyboardKey.metaLeft) || meta == pressed.contains(LogicalKeyboardKey.metaRight)) => true,
-      _ => false,
-    };
-    return true;
+    final ctrlMatch = ctrl == (pressed.contains(LogicalKeyboardKey.controlLeft) || pressed.contains(LogicalKeyboardKey.controlRight));
+    final altMatch = alt == (pressed.contains(LogicalKeyboardKey.altLeft) || pressed.contains(LogicalKeyboardKey.altRight));
+    final shiftMatch = shift == (pressed.contains(LogicalKeyboardKey.shiftLeft) || pressed.contains(LogicalKeyboardKey.shiftRight));
+    final metaMatch = meta == (pressed.contains(LogicalKeyboardKey.metaLeft) || pressed.contains(LogicalKeyboardKey.metaRight));
+    return ctrlMatch && altMatch && shiftMatch && metaMatch;
   }
 
   Map<String, dynamic> toJson() => {
@@ -285,7 +283,7 @@ class HotkeyBinding {
       id: json['id'] as String,
       description: json['description'] as String,
       action: json['action'] as String,
-      key: LogicalKeyboardKey.fromInt(json['key'] as int),
+      key: LogicalKeyboardKey(json['key'] as int),
       ctrl: json['ctrl'] as bool? ?? false,
       alt: json['alt'] as bool? ?? false,
       shift: json['shift'] as bool? ?? false,

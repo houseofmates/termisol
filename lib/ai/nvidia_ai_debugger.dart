@@ -3,6 +3,15 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+/// Custom exception for debugging failures
+class DebugException implements Exception {
+  final String message;
+  const DebugException(this.message);
+  
+  @override
+  String toString() => 'DebugException: $message';
+}
+
 /// NVIDIA NIM AI Debugger - Built-in formatting, debugging, and error solving
 class NVIDOTerminalDebugger {
   static final NVIDOTerminalDebugger _instance = NVIDOTerminalDebugger._internal();

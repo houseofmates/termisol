@@ -83,10 +83,8 @@ void main() {
     final enhancedAISuggestions = EnhancedAISuggestions(aiBaseAssistant);
     final conversationalAI = ConversationalAI(aiBaseAssistant, smartCommandChaining, semanticSearchEngine, enhancedAISuggestions);
     final automatedWorkflows = AutomatedWorkflowSystem(smartCommandChaining, conversationalAI);
-    final advancedVRTerminal = AdvancedVRTerminal(
-      conversationalAI: conversationalAI,
-      workflowSystem: automatedWorkflows,
-      aiSuggestions: enhancedAISuggestions,
+    final vrTerminal = VrTerminal(
+      registry: r,
       terminalWidget: const SizedBox(),
     );
     final gitIntegration = GitIntegration();

@@ -55,7 +55,7 @@ class GitHubIntegration {
     return false;
   }
 
-  Future<void> _parseRateLimits(dynamic response) async {
+  Future<void> _parseRateLimits(http.Response response) async {
     try {
       _rateLimitRemaining = int.tryParse(response.headers['x-ratelimit-remaining'] ?? '5000') ?? 5000;
       final resetEpoch = int.tryParse(response.headers['x-ratelimit-reset'] ?? '0') ?? 0;

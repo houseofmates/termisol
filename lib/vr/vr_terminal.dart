@@ -279,6 +279,7 @@ class _VrTerminalState extends State<VrTerminal> with TickerProviderStateMixin {
         child: Transform(
           transform: Matrix4.identity()
             ..setEntry(3, 2, 1 / _terminalDistance)
+// ignore: deprecated_member_use
             ..scale(_terminalScale, _terminalScale, _terminalScale)
             ..setEntry(0, 3, _terminalPosition.dx)
             ..setEntry(1, 3, _terminalPosition.dy),

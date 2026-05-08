@@ -40,8 +40,6 @@ linter:
     avoid_empty_else: true
     avoid_relative_lib_imports: true
     avoid_types_as_parameter_names: true
-    cancel_subscriptions: true
-    close_sinks: true
     collection_methods_unrelated_type: true
     control_flow_in_finally: true
     empty_statements: true

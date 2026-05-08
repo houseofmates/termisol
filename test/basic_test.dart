@@ -38,35 +38,64 @@ class _BasicTestDashboardState extends State<BasicTestDashboard> {
     _testResults.clear();
 
     // Test EditTerminal basic functionality
-    _addTestResult('Edit Terminal Basic Test', () async {
+    await _addTestResult('Edit Terminal Basic Test', () async {
       try {
+        // Validate test environment
+        final testDir = Directory('/tmp');
+        if (!await testDir.exists()) {
+          throw Exception('Test directory /tmp does not exist');
+        }
+
         // Create editor with test content
         final editor = EditTerminal(
           filePath: '/tmp/basic_test.txt',
           initialContent: 'Test content for basic edit terminal',
           onSave: (content) async {
+            if (content.isEmpty) {
+              throw Exception('Content cannot be empty');
+            }
             final file = File('/tmp/basic_test.txt');
             await file.writeAsString(content);
-            print('File saved: ${file.path}');
+            debugPrint('File saved: ${file.path}');
           },
         );
 
         // Test that editor widget is created successfully
-        assert(editor.filePath != null, 'Editor should have file path');
-        assert(editor._controller != null, 'Editor should have controller');
+        if (editor.filePath == null) {
+          throw Exception('Editor should have file path');
+        }
 
         // Test text editing
+        if (editor._controller == null) {
+          throw Exception('Editor should have controller');
+        }
+
         editor._controller.text = 'Basic test content';
         await Future.delayed(const Duration(milliseconds: 100));
-        assert(editor._controller.text == 'Basic test content', 'Text input should work');
+        
+        if (editor._controller.text != 'Basic test content') {
+          throw Exception('Text input failed: expected "Basic test content", got "${editor._controller.text}"');
+        }
 
         // Test save functionality
         await editor._saveContent();
-        print('Save functionality tested');
+        
+        // Verify file was saved
+        final savedFile = File('/tmp/basic_test.txt');
+        if (!await savedFile.exists()) {
+          throw Exception('File was not saved');
+        }
+        
+        final savedContent = await savedFile.readAsString();
+        if (savedContent != 'Basic test content') {
+          throw Exception('File content mismatch: expected "Basic test content", got "$savedContent"');
+        }
 
+        debugPrint('Save functionality tested and verified');
         return 'Basic test completed successfully';
       } catch (e) {
-        return 'Basic test failed: $e';
+        debugPrint('Basic test error: $e');
+        rethrow;
       }
     });
 

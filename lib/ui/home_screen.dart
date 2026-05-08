@@ -247,17 +247,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           width: double.infinity,
                           decoration: BoxDecoration(
                             color: Colors.black,
-                            border: Border.all(color: PkmTheme.primary.withOpacity(0.3)),
+                            border: Border.all(
+                              color: PkmTheme.primary.withValues(alpha: 0.3),
+                            ),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Center(
-                            child: Text(
-                              'Terminal Ready\nType commands to begin...',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 14,
-                              ),
-                              textAlign: TextAlign.center,
+                          child: TermisolTerminalView(
+                            session: tab,
+                            focusNode: _tabFocusNodes[tab.id],
+                            onNewTab: _addTab,
+                            onCloseTab: () => _closeTab(
+                              _tabs.indexWhere((t) => t.id == tab.id),
                             ),
                           ),
                         ),

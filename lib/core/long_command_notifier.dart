@@ -19,8 +19,15 @@ class LongCommandNotifier {
   bool _isInitialized = false;
 
   LongCommandNotifier() {
-    _audioPlayer.setPlayerMode(PlayerMode.lowLatency);
-    _isInitialized = true;
+    try {
+      _audioPlayer = AudioPlayer();
+      _audioPlayer!.setPlayerMode(PlayerMode.lowLatency);
+      _isInitialized = true;
+    } catch (e) {
+      // Audio not available in test environment
+      _audioPlayer = null;
+      _isInitialized = true;
+    }
   }
 
   /// Notify about long-running command

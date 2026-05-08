@@ -233,12 +233,12 @@ class PluginManifest {
       version: json['version'] as String,
       description: json['description'] as String,
       author: json['author'] as String?,
-      type: PluginType.values.byName(json['type'] ?? 'llm'),
-      authType: AuthType.values.byName(json['authType'] ?? 'apiKey'),
+      type: PluginType.values.byName((json['type'] as String?) ?? 'llm'),
+      authType: AuthType.values.byName((json['authType'] as String?) ?? 'apiKey'),
       providerUrl: json['providerUrl'] as String?,
       modelName: json['modelName'] as String?,
       autoLoad: json['autoLoad'] as bool? ?? false,
-      config: Map<String, dynamic>.from(json['config'] ?? {}),
+      config: Map<String, dynamic>.from((json['config'] as Map?) ?? {}),
     );
   }
 }

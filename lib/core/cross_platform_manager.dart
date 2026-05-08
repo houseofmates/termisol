@@ -152,7 +152,7 @@ class CrossPlatformManager {
   
   /// Get system architecture
   Architecture _getArchitecture() {
-    final arch = Platform.operatingSystemArchitecture.toLowerCase();
+    const arch = String.fromEnvironment('TARGET_ARCH', defaultValue: 'unknown');
     
     if (arch.contains('x64') || arch.contains('amd64')) {
       return Architecture.x64;
@@ -179,7 +179,7 @@ class CrossPlatformManager {
   
   /// Check if 64-bit architecture
   bool _is64Bit() {
-    final arch = Platform.operatingSystemArchitecture.toLowerCase();
+    const arch = String.fromEnvironment('TARGET_ARCH', defaultValue: 'unknown');
     return arch.contains('64');
   }
   

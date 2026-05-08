@@ -126,12 +126,7 @@ class OpenXRRenderer {
     // Render terminal background with depth
     _sceneBuilder.pushOpacity(200);
     
-    // Add a rectangle for terminal background
-    final backgroundPaint = ui.Paint()
-      ..color = MaterialColors.black
-      ..style = ui.PaintingStyle.fill;
-    _sceneBuilder.addPicture(ui.Offset.zero, _getTerminalPicture());
-    
+    // Add terminal picture
     _sceneBuilder.addPicture(ui.Offset.zero, _getTerminalPicture());
     _sceneBuilder.pop();
     

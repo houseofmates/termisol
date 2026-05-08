@@ -2512,12 +2512,6 @@ Current file: ${path.basename(widget.filePath)}
 File size: ${_controller.text.length} characters
 
 I can help you with:
-• Code explanation and analysis
-• Error debugging
-• Code refactoring suggestions
-• Documentation generation
-
-}
 
   @override
   Widget build(BuildContext context) {

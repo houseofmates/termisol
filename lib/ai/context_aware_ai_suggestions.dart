@@ -556,7 +556,7 @@ class AISuggestionEvent {
   
   AISuggestionEvent({
     required this.type,
-    this.data,
+    required this.data,
   });
 }
 

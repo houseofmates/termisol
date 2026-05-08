@@ -60,7 +60,6 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       backgroundColor: PkmTheme.popup,
       builder: (context) => SettingsSheet(
-        performanceEnforcer: _perf,
         registry: widget.registry,
       ),
     );

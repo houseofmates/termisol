@@ -75,15 +75,50 @@ class GlobalConfig extends ChangeNotifier {
     }
   }
 
-  /// Get a nested value using dot notation.
+  /// Get a nested value using dot notation with validation.
   T _get<T>(String path, T defaultValue) {
+    if (path.isEmpty) {
+      debugPrint('[CONFIG] Empty path provided, returning default value');
+      return defaultValue;
+    }
+    
     final parts = path.split('.');
     dynamic current = _data;
-    for (final part in parts) {
-      if (current is! Map || !current.containsKey(part)) return defaultValue;
-      current = current[part];
+    
+    try {
+      for (final part in parts) {
+        if (current is! Map || !current.containsKey(part)) {
+          debugPrint('[CONFIG] Path not found: $path, returning default');
+          return defaultValue;
+        }
+        current = current[part];
+      }
+      
+      // Type validation with conversion
+      if (current is T) {
+        return current;
+      }
+      
+      // Attempt type conversion for common cases
+      if (T == String && current != null) {
+        return current.toString() as T;
+      }
+      if (T == int && current is num) {
+        return current.toInt() as T;
+      }
+      if (T == double && current is num) {
+        return current.toDouble() as T;
+      }
+      if (T == bool && current is String) {
+        return (current.toLowerCase() == 'true') as T;
+      }
+      
+      debugPrint('[CONFIG] Type mismatch for $path: expected $T, got ${current.runtimeType}');
+      return defaultValue;
+    } catch (e) {
+      debugPrint('[CONFIG] Error accessing $path: $e, returning default');
+      return defaultValue;
     }
-    return current is T ? current : defaultValue;
   }
 
   /// Set a nested value using dot notation.

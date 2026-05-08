@@ -80,6 +80,7 @@ class _EditTerminalState extends State<EditTerminal> {
     'italic': 'Ctrl+I',
     'settings': 'Ctrl+P',
     'ai_chat': '/ai + Tab',
+    'collaboration': 'Ctrl+Shift+C',
   };
   
   final Map<String, String> _currentHotkeys = {};

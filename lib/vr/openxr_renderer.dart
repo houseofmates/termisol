@@ -114,10 +114,10 @@ class OpenXRRenderer {
     
     // Set rotation using quaternion conversion
     final quat = view.pose.orientation;
-    // Convert quaternion to rotation matrix
-    final rotationMatrix = vm.Matrix4.fromRotationX(quat.x);
-    rotationMatrix.multiply(vm.Matrix4.fromRotationY(quat.y));
-    rotationMatrix.multiply(vm.Matrix4.fromRotationZ(quat.z));
+    // Convert quaternion to rotation matrix using axis-angle
+    final rotationMatrix = vm.Matrix4.rotationX(quat.x);
+    rotationMatrix.multiply(vm.Matrix4.rotationY(quat.y));
+    rotationMatrix.multiply(vm.Matrix4.rotationZ(quat.z));
     transform.multiply(rotationMatrix);
     
     return transform;

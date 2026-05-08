@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ffi/ffi.dart';
 import 'package:xterm/xterm.dart';
+import 'package:vector_math/vector_math.dart';
 import '../core/terminal_session.dart';
 import 'openxr_bindings_complete.dart';
 import 'openxr_session.dart';
@@ -71,18 +72,14 @@ class OpenXRRenderer {
   /// Render terminal content to textures
   Future<void> _renderTerminalToTextures(TerminalSession terminalSession) async {
     final buffer = terminalSession.terminal.buffer;
-    final rows = buffer.lines;
-    final cols = buffer.size.x;
+    final rows = buffer.lines.length;
+    final cols = 80; // Fixed terminal width
     
     // Create terminal picture
-    _pictureRecorder.beginRecording(
-      ui.Rect.fromLTRB(0, 0, cols * 12.0, rows * 24.0)
-    );
+    final picture = _pictureRecorder.endRecording();
     
-    final canvas = _pictureRecorder.endRecording();
-    
-    // Convert to image
-    final image = await canvas.toImage();
+    // Convert to image with proper dimensions
+    final image = await picture.toImage(cols * 12, rows * 24);
     _terminalTextures.clear();
     _terminalTextures.add(image);
   }
@@ -100,22 +97,21 @@ class OpenXRRenderer {
   }
   
   /// Calculate eye transformation matrix
-  Matrix4 _calculateEyeTransform(int eyeIndex, XrPosef pose) {
+  Matrix4 _calculateEyeTransform(int eyeIndex, XrView view) {
     final transform = Matrix4.identity();
     
     // Set position
     transform.setTranslation(
-      pose.position.x + (eyeIndex == 1 ? _eyeSeparation : 0),
-      pose.position.y,
-      pose.position.z - _depth
+      view.pose.position.x + (eyeIndex == 1 ? _eyeSeparation : 0),
+      view.pose.position.y,
+      view.pose.position.z - _depth
     );
     
-    // Set rotation
-    final quat = pose.orientation;
-    final rotation = Matrix4.rotation(
-      quat.x, quat.y, quat.z, quat.w
+    // Set rotation using quaternion conversion
+    final quat = view.pose.orientation;
+    transform.rotate(
+      Quaternion.fromComponents(quat.x, quat.y, quat.z, quat.w)
     );
-    transform.multiply(rotation);
     
     return transform;
   }
@@ -126,7 +122,13 @@ class OpenXRRenderer {
     
     // Render terminal background with depth
     _sceneBuilder.pushOpacity(200);
-    _sceneBuilder.addRect(ui.Rect.fromLTRB(-2, -1, 2, 1));
+    
+    // Add a rectangle for terminal background
+    final backgroundPaint = ui.Paint()
+      ..color = Colors.black
+      ..style = ui.PaintingStyle.fill;
+    _sceneBuilder.addRect(ui.Rect.fromLTRB(-2, -1, 2, 1), backgroundPaint);
+    
     _sceneBuilder.addPicture(ui.Offset.zero, _getTerminalPicture());
     _sceneBuilder.pop();
     
@@ -144,20 +146,27 @@ class OpenXRRenderer {
   Future<void> _renderDepthLayers() async {
     // Layer 1: Glowing edges
     _sceneBuilder.pushOpacity(100);
-    _sceneBuilder.addRect(ui.Rect.fromLTRB(-2.1, -1.1, 2.1, 1.1));
-    _sceneBuilder.addPicture(
-      ui.Offset.zero,
-      _createGlowEffect(),
-    );
+    final glowPaint = ui.Paint()
+      ..color = Colors.cyan.withValues(alpha: 0.3)
+      ..style = ui.PaintingStyle.stroke
+      ..strokeWidth = 4.0;
+    _sceneBuilder.addRect(ui.Rect.fromLTRB(-2.1, -1.1, 2.1, 1.1), glowPaint);
     _sceneBuilder.pop();
     
     // Layer 2: Parallax background
     _sceneBuilder.pushOpacity(50);
-    _sceneBuilder.addRect(ui.Rect.fromLTRB(-3, -2, 3, 2));
-    _sceneBuilder.addPicture(
-      ui.Offset.zero,
-      _createParallaxBackground(),
-    );
+    final gradientPaint = ui.Paint()
+      ..shader = ui.Gradient.linear(
+        ui.Offset(-3, -2),
+        ui.Offset(3, 2),
+        [
+          Colors.black,
+          Colors.blue.withValues(alpha: 0.1),
+          Colors.cyan.withValues(alpha: 0.05),
+          Colors.black,
+        ],
+      );
+    _sceneBuilder.addRect(ui.Rect.fromLTRB(-3, -2, 3, 2), gradientPaint);
     _sceneBuilder.pop();
   }
   

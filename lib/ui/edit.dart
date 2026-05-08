@@ -69,6 +69,17 @@ class _EditTerminalState extends State<EditTerminal> {
   int _selectedCompletion = 0;
   Timer? _completionTimer;
   
+  // Performance monitoring
+  final Map<String, int> _completionStats = {
+    'total_requests': 0,
+    'successful_completions': 0,
+    'failed_completions': 0,
+    'average_response_time_ms': 0,
+    'cache_hits': 0,
+  };
+  final List<int> _completionTimes = [];
+  DateTime? _lastCompletionTime;
+  
   // Hotkey configuration
   final Map<String, String> _defaultHotkeys = {
     'save': 'Ctrl+Shift+S',
@@ -3082,101 +3093,148 @@ Once configured, I'll provide intelligent assistance based on your file context.
   }
 
   Widget _buildCompletionPopup() {
-    final text = _controller.text;
-    final cursorPos = _controller.selection.baseOffset;
-    final currentLine = text.substring(0, cursorPos).split('\n').last;
-    final words = currentLine.split(RegExp(r'\s+'));
-    final lastWord = words.last;
-    
-    // Calculate cursor position
-    final lines = text.substring(0, cursorPos).split('\n');
-    final lineNumber = lines.length - 1;
-    final columnNumber = lines.last.length;
-    final lineHeight = _fontSize * 1.2;
-    final charWidth = _fontSize * 0.6;
-    
-    final cursorY = (lineNumber + 1) * lineHeight + 12; // +12 for padding
-    final cursorX = columnNumber * charWidth + (_showLineNumbers ? 62 : 12); // Account for line numbers and padding
-    
-    return Positioned(
-      left: cursorX,
-      top: cursorY,
-      child: Material(
-        elevation: 8,
-        borderRadius: BorderRadius.circular(8),
-        color: const Color(0xFF2D2D2D),
-        child: Container(
-          constraints: const BoxConstraints(
-            maxHeight: 200,
-            minWidth: 200,
-            maxWidth: 400,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFF444444)),
-          ),
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: _completions.length,
-            itemBuilder: (context, index) {
-              final isSelected = index == _selectedCompletion;
-              final completion = _completions[index];
-              
-              return InkWell(
-                onTap: () {
-                  setState(() {
-                    _selectedCompletion = index;
-                  });
-                  _acceptCompletion();
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isSelected ? const Color(0xFF444444) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Row(
-                    children: [
-                      // Highlight the matching part
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: lastWord,
-                              style: TextStyle(
-                                color: const Color(0xFF8be9fd), // Cyan
-                                fontFamily: _fontFamily,
-                                fontSize: _fontSize - 2,
-                                fontWeight: FontWeight.bold,
+    try {
+      if (!_showCompletion || _completions.isEmpty) {
+        debugPrint('[COMPLETION] Not showing completion popup - no completions available');
+        return const SizedBox.shrink();
+      }
+      
+      final text = _controller.text;
+      final cursorPos = _controller.selection.baseOffset;
+      
+      // Validate text and cursor position
+      if (text.isEmpty || cursorPos < 0 || cursorPos > text.length) {
+        debugPrint('[COMPLETION] Invalid text or cursor position for popup');
+        return const SizedBox.shrink();
+      }
+      
+      final currentLine = text.substring(0, cursorPos).split('\n').last;
+      final words = currentLine.split(RegExp(r'\s+'));
+      
+      if (words.isEmpty) {
+        debugPrint('[COMPLETION] No words found for popup display');
+        return const SizedBox.shrink();
+      }
+      
+      final lastWord = words.last;
+      
+      // Calculate cursor position with bounds checking
+      final lines = text.substring(0, cursorPos).split('\n');
+      final lineNumber = lines.length - 1;
+      final columnNumber = lines.last.length;
+      final lineHeight = _fontSize * 1.2;
+      final charWidth = _fontSize * 0.6;
+      
+      // Ensure bounds are reasonable
+      final safeLineNumber = lineNumber.clamp(0, 10000);
+      final safeColumnNumber = columnNumber.clamp(0, 1000);
+      
+      final cursorY = (safeLineNumber + 1) * lineHeight + 12; // +12 for padding
+      final cursorX = safeColumnNumber * charWidth + (_showLineNumbers ? 62 : 12); // Account for line numbers and padding
+      
+      debugPrint('[COMPLETION] Showing popup with ${_completions.length} items at position ($cursorX, $cursorY)');
+      
+      return Positioned(
+        left: cursorX.clamp(0.0, 1000.0),
+        top: cursorY.clamp(0.0, 2000.0),
+        child: Material(
+          elevation: 8,
+          borderRadius: BorderRadius.circular(8),
+          color: const Color(0xFF2D2D2D),
+          child: Container(
+            constraints: const BoxConstraints(
+              maxHeight: 200,
+              minWidth: 200,
+              maxWidth: 400,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFF444444)),
+            ),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: _completions.length.clamp(0, 20), // Limit items for performance
+              itemBuilder: (context, index) {
+                if (index >= _completions.length) {
+                  debugPrint('[COMPLETION] Index out of bounds: $index');
+                  return const SizedBox.shrink();
+                }
+                
+                final isSelected = index == _selectedCompletion;
+                final completion = _completions[index];
+                
+                // Validate completion item
+                if (completion.isEmpty) {
+                  debugPrint('[COMPLETION] Empty completion item at index $index');
+                  return const SizedBox.shrink();
+                }
+                
+                return InkWell(
+                  onTap: () {
+                    try {
+                      setState(() {
+                        _selectedCompletion = index;
+                      });
+                      _acceptCompletion();
+                      debugPrint('[COMPLETION] Selected completion at index $index');
+                    } catch (e) {
+                      debugPrint('[COMPLETION] Error selecting completion: $e');
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected ? const Color(0xFF444444) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      children: [
+                        // Highlight matching part with validation
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: lastWord.length <= completion.length ? lastWord : completion.substring(0, lastWord.length),
+                                style: TextStyle(
+                                  color: const Color(0xFF8be9fd), // Cyan
+                                  fontFamily: _fontFamily,
+                                  fontSize: _fontSize - 2,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            TextSpan(
-                              text: completion.substring(lastWord.length),
-                              style: TextStyle(
-                                color: Colors.grey[300],
-                                fontFamily: _fontFamily,
-                                fontSize: _fontSize - 2,
-                              ),
-                            ),
-                          ],
+                              if (lastWord.length < completion.length)
+                                TextSpan(
+                                  text: completion.substring(lastWord.length),
+                                  style: TextStyle(
+                                    color: Colors.grey[300],
+                                    fontFamily: _fontFamily,
+                                    fontSize: _fontSize - 2,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const Spacer(),
-                      if (isSelected)
-                        Icon(
-                          Icons.arrow_right,
-                          color: const Color(0xFF50fa7b).withAlpha(255), // Green
-                          size: 16,
-                        ),
-                    ],
+                        const Spacer(),
+                        if (isSelected)
+                          Icon(
+                            Icons.arrow_right,
+                            color: const Color(0xFF50fa7b), // Green
+                            size: 16,
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
-      ),
-    );
+      );
+    } catch (e, stackTrace) {
+      debugPrint('[COMPLETION] Error building completion popup: $e');
+      debugPrint('[COMPLETION] Stack trace: $stackTrace');
+      return const SizedBox.shrink();
+    }
   }
 
   Widget _buildLineNumbers() {

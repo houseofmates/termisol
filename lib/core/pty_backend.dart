@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:pty/pty.dart';
 import '../backends/android_shell_backend.dart';
+import 'ffi_pty_backend.dart';
 
 /// Cross-platform PTY backend interface for termisol.
 abstract class TermisolPtyBackend {

@@ -202,6 +202,123 @@ class _EditTerminalState extends State<EditTerminal> {
       _selectedCompletion = 0;
     });
   }
+
+  String _detectLanguage() {
+    final text = _controller.text.toLowerCase();
+    final extension = path.extension(widget.filePath).toLowerCase();
+    
+    if (extension == '.dart') return 'dart';
+    if (extension == '.py') return 'python';
+    if (extension == '.js') return 'javascript';
+    if (extension == '.sh' || extension == '.bash') return 'shell';
+    if (extension == '.ts') return 'javascript';
+    
+    // Check content patterns
+    if (text.contains('import ') || text.contains('from ')) return 'python';
+    if (text.contains('function ') || text.contains('const ')) return 'javascript';
+    if (text.contains('def ') || text.contains('class ')) return 'python';
+    if (text.contains('Widget ') || text.contains('StatefulWidget')) return 'dart';
+    
+    return 'text';
+  }
+
+  Widget _buildCompletionPopup() {
+    final text = _controller.text;
+    final cursorPos = _controller.selection.baseOffset;
+    final currentLine = text.substring(0, cursorPos).split('\n').last;
+    final words = currentLine.split(RegExp(r'\s+'));
+    final lastWord = words.last;
+    
+    // Calculate cursor position
+    final lines = text.substring(0, cursorPos).split('\n');
+    final lineNumber = lines.length - 1;
+    final columnNumber = lines.last.length;
+    final lineHeight = _fontSize * 1.2;
+    final charWidth = _fontSize * 0.6;
+    
+    final cursorY = (lineNumber + 1) * lineHeight + 12; // +12 for padding
+    final cursorX = columnNumber * charWidth + (_showLineNumbers ? 62 : 12); // Account for line numbers and padding
+    
+    return Positioned(
+      left: cursorX,
+      top: cursorY,
+      child: Material(
+        elevation: 8,
+        borderRadius: BorderRadius.circular(8),
+        color: const Color(0xFF2D2D2D),
+        child: Container(
+          constraints: const BoxConstraints(
+            maxHeight: 200,
+            minWidth: 200,
+            maxWidth: 400,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFF444444)),
+          ),
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: _completions.length,
+            itemBuilder: (context, index) {
+              final isSelected = index == _selectedCompletion;
+              final completion = _completions[index];
+              
+              return InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedCompletion = index;
+                  });
+                  _acceptCompletion();
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? const Color(0xFF444444) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    children: [
+                      // Highlight the matching part
+                      RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: lastWord,
+                              style: TextStyle(
+                                color: const Color(0xFF8be9fd), // Cyan
+                                fontFamily: _fontFamily,
+                                fontSize: _fontSize - 2,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            TextSpan(
+                              text: completion.substring(lastWord.length),
+                              style: TextStyle(
+                                color: Colors.grey[300],
+                                fontFamily: _fontFamily,
+                                fontSize: _fontSize - 2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
+                      if (isSelected)
+                        Icon(
+                          Icons.arrow_right,
+                          color: const Color(0xFF50fa7b), // Green
+                          size: 16,
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
   
   // Performance monitoring
   final Map<String, int> _completionStats = {

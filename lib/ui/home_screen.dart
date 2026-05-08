@@ -32,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showCommandPalette = false;
   bool _showSearch = false;
   bool _showHistorySearch = false;
+  bool _isSplit = false;
 
   @override
   void initState() {
@@ -456,6 +457,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const Spacer(),
+                    IconButton(
+                      onPressed: _toggleSplit,
+                      icon: const Icon(Icons.vertical_split, color: PkmTheme.primary),
+                      tooltip: 'Toggle Split View',
+                    ),
                     IconButton(
                       onPressed: _toggleCommandPalette,
                       icon: const Icon(Icons.keyboard_command_key, color: PkmTheme.primary),

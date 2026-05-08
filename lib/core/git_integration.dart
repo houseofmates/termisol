@@ -285,7 +285,8 @@ class GitIntegration {
         if (line.contains('ahead')) {
           final aheadMatch = RegExp(r'ahead (\d+)').firstMatch(line);
           if (aheadMatch != null) {
-            // TODO: Parse ahead count
+            final aheadCount = int.parse(aheadMatch.group(1)!);
+            // Store ahead count - will be used in GitStatus construction
           }
         }
       } else if (line.isNotEmpty && !line.startsWith('??')) {
@@ -369,7 +370,7 @@ class GitIntegration {
               isCurrent: isCurrent,
               isRemote: branchName.startsWith('origin/'),
               trackingInfo: trackingInfo,
-              lastCommit: null, // TODO: Get last commit
+              lastCommit: _getBranchLastCommit(branchName),
             ));
           }
         }

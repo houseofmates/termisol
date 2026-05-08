@@ -722,3 +722,52 @@ class PendingImage {
     this.height,
   });
 }
+
+/// Graphics overlay for displaying images on top of terminal
+class GraphicsOverlay {
+  final String id;
+  final int x;
+  final int y;
+  final int width;
+  final int height;
+  final String imageData;
+
+  GraphicsOverlay({
+    required this.id,
+    required this.x,
+    required this.y,
+    required this.width,
+    required this.height,
+    required this.imageData,
+  });
+}
+
+/// Graphics animation frame
+class GraphicsAnimation {
+  final String id;
+  final List<String> frames;
+  final Duration frameDuration;
+  int currentFrame;
+
+  GraphicsAnimation({
+    required this.id,
+    required this.frames,
+    required this.frameDuration,
+    this.currentFrame = 0,
+  });
+}
+
+/// Graphics protocol state tracker
+class GraphicsProtocolState {
+  bool trueColorEnabled = true;
+  bool kittyProtocolEnabled = true;
+  bool sixelEnabled = true;
+  bool alphaChannelEnabled = true;
+
+  GraphicsProtocolState({
+    this.trueColorEnabled = true,
+    this.kittyProtocolEnabled = true,
+    this.sixelEnabled = true,
+    this.alphaChannelEnabled = true,
+  });
+}

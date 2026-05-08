@@ -2517,8 +2517,7 @@ I can help you with:
 • Code refactoring suggestions
 • Documentation generation
 
-Once configured, I'll provide intelligent assistance based on your file context.''';
-  }
+}
 
   @override
   Widget build(BuildContext context) {

@@ -32,7 +32,7 @@ class TermisolPluginSystem {
       }
       return false;
     } catch (e) {
-      print('Failed to load plugin: $e');
+      TermisolLogger().error('Failed to load plugin', error: e);
       return false;
     }
   }

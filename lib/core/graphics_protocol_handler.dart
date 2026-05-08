@@ -600,6 +600,48 @@ class GraphicsProtocolHandler {
   void setAlphaChannelEnabled(bool enabled) {
     _alphaChannelEnabled = enabled;
   }
+
+  /// Process terminal output for graphics protocol sequences
+  String processOutput(String output) {
+    if (!_isInitialized) return output;
+
+    String processed = output;
+
+    // Process Sixel sequences
+    processed = _processSixelSequences(processed);
+
+    // Process Kitty graphics sequences
+    processed = _processKittySequences(processed);
+
+    return processed;
+  }
+
+  /// Process Sixel graphics sequences in output
+  String _processSixelSequences(String output) {
+    if (!_sixelEnabled) return output;
+
+    // Look for Sixel DCS sequences: ESC P ... ESC \
+    final sixelRegex = RegExp(r'\x1bP([0-9;]*)(.*?)\x1b\\', dotAll: true);
+    return output.replaceAllMapped(sixelRegex, (match) {
+      final params = match.group(1) ?? '';
+      final data = match.group(2) ?? '';
+      final response = handleSixel('\x1bP$params$data\x1b\\');
+      return response.isNotEmpty ? response : '';
+    });
+  }
+
+  /// Process Kitty graphics sequences in output
+  String _processKittySequences(String output) {
+    if (!_kittyProtocolEnabled) return output;
+
+    // Look for Kitty sequences: ESC _ G ... ESC \
+    final kittyRegex = RegExp(r'\x1b_G([^\\]*)\x1b\\', dotAll: true);
+    return output.replaceAllMapped(kittyRegex, (match) {
+      final data = match.group(1) ?? '';
+      final response = handleKittyProtocol('\x1b_G$data\x1b\\');
+      return response.isNotEmpty ? response : '';
+    });
+  }
   
   bool isImageFormat(String extension) {
     return _supportedImageFormats.contains(extension.toLowerCase());

@@ -69,7 +69,10 @@ class TermisolTerminalView extends StatefulWidget {
 class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   late final TerminalClipboardManager _clipboard;
   final _deepL = DeepLTranslationService();
-  final _graphicsHandler = GraphicsProtocolHandler();
+  final     _graphicsHandler = GraphicsProtocolHandler(
+      widget.session.terminal,
+      widget.session.controller,
+    );
   bool _isSummarizing = false;
   bool _isTranslating = false;
   double _fontSize = _defaultTerminalFontSize;

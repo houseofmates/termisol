@@ -182,7 +182,10 @@ class TerminalSession extends ChangeNotifier {
           // Normalize line endings for display consistency
           final normalized = text.replaceAll('\r\n', '\n').replaceAll('\n', '\r\n');
 
-          throttledRenderer.write(normalized);
+          // Process graphics protocols before rendering
+          final processedText = graphicsHandler.processOutput(normalized);
+
+          throttledRenderer.write(processedText);
           _extractUrls(text);
           onOutputReceived?.call(text);
         },

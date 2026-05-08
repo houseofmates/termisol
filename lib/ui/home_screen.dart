@@ -598,6 +598,12 @@ class _HomeScreenState extends State<HomeScreen> {
               terminal: _activeSession!.terminal,
               onClose: () => setState(() => _showSearch = false),
             ),
+          // VR Mode overlay
+          if (_vrMode && _activeSession != null)
+            Quest2VrTerminal(
+              session: _activeSession!,
+              onExitVr: () => setState(() => _vrMode = false),
+            ),
         ],
       ),
     );

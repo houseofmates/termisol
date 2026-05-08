@@ -6,7 +6,7 @@ class LazyTerminalOutput {
   bool get isLoading => false;
   int get totalLineCount => 0;
 
-  void addContent(List<int> data) {
+  void addContent(dynamic data) {
     // Stub implementation
   }
 

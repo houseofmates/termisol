@@ -4,6 +4,10 @@ class SessionPersistence {
     // Stub implementation
   }
 
+  Future<void> saveSessions(List<TerminalSessionData> sessions) async {
+    // Stub implementation
+  }
+
   void stopAutoSave() {
     // Stub implementation
   }

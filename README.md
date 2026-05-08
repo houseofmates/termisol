@@ -43,12 +43,17 @@ termisol is a complete command-line workspace designed for modern developers, sy
 
 ## 🤖 AI integration
 
-Termisol can forward queries to external AI APIs (e.g., NVIDIA NIM). This requires an API key and network connectivity. There is no local AI fallback.
+Termisol forwards queries to NVIDIA NIM cloud APIs. This requires API keys and network connectivity. No local AI processing is included.
 
-- **/ai command**: type `/ai <question>` in the terminal to send a query to the configured cloud AI service
-- **AI response injection**: responses are written back into the terminal buffer
+- **/ai command**: type `/ai <question>` in the terminal to send queries to NVIDIA NIM
+- **Cloud models**: DeepSeek-V4-Pro, DeepSeek-V4-Flash, Kimi-K2.6 (multimodal), GLM-5.1, Minimax-M2.7
+- **API key rotation**: Supports up to 24 NVIDIA API keys with automatic failover
+- **Response injection**: AI responses are written directly into the terminal buffer
 
-**Note**: AI features are entirely dependent on third-party API availability and are disabled by default until configured.
+**Requirements**: 
+- NVIDIA API keys in `.env` file (NVIDIA_API_KEY_1 through NVIDIA_API_KEY_24)
+- Network connectivity to NVIDIA's API endpoints
+- AI features disabled until API keys are configured
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -247,10 +252,8 @@ shell:
 ai:
   enabled: true
   provider: "nvidia_nim"
-  api_key: "your-api-key"
-  endpoint: "https://api.nvidia.com/nim"
-  model: "llama3-70b-instruct"
-  local_fallback: true
+  endpoint: "https://integrate.api.nvidia.com/v1"
+  model: "deepseek-ai/deepseek-v4-pro"
 
 # Performance settings
 performance:

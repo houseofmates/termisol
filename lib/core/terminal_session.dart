@@ -118,13 +118,23 @@ class TerminalSession extends ChangeNotifier {
       _crashRecovery.startHealthMonitoring();
     _sessionPersistence.startAutoSave(() => _saveSessionState());
       
-      // Setup focus management
+      // Setup all advanced features
       focusManager = FocusManager(terminal, controller, onFocusChanged, onFocusEvent);
       focusManager.enableFocusEvents();
       
-      // Setup TrueColor support
       trueColor = TrueColorManager(terminal, controller);
       trueColor.enable();
+      
+      kittyGraphics = KittyGraphicsManager(terminal, controller);
+      kittyGraphics.enable();
+      
+      mouseProtocol = MouseProtocolManager(terminal, controller);
+      mouseProtocol.enable(MouseProtocolManager.MouseMode.any);
+      
+      ligatureFont = LigatureFontManager(terminal, controller);
+      ligatureFont.setFont('Fira Code', enableLigatures: true);
+      
+      throttledRenderer = ThrottledRenderer(terminal);
   }
 
   /// rename this session and notify listeners.

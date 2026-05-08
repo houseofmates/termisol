@@ -260,7 +260,7 @@ class BackupRetention {
   final BackupRetentionType type;
   final int value;
 
-  BackupRetention._(this.type, this.value);
+  const BackupRetention._(this.type, this.value);
 
   factory BackupRetention.days(int days) => BackupRetention._(BackupRetentionType.days, days);
   factory BackupRetention.count(int count) => BackupRetention._(BackupRetentionType.count, count);

@@ -51,7 +51,7 @@ class TerminalSession extends ChangeNotifier {
   bool _connected = false;
   String? _error;
   final CommandHistory commandHistory = CommandHistory();
-  StreamSubscription? _outputSub;
+  StreamSubscription<List<int>>? _outputSub;
 
   /// Called when the user types `/ai <query>` and presses Enter.
   AiQueryHandler? onAiQuery;
@@ -91,7 +91,7 @@ class TerminalSession extends ChangeNotifier {
   late final SessionPersistence _sessionPersistence;
   late final CrashRecovery _crashRecovery;
   late final LongCommandNotifier _commandNotifier;
-  late final TermisolPluginSystem _pluginSystem;
+  // late final TermisolPluginSystem _pluginSystem; // not currently used
   late final BracketedPasteManager bracketedPaste;
 
   bool get connected => _connected;
@@ -119,7 +119,7 @@ class TerminalSession extends ChangeNotifier {
     _sessionPersistence = SessionPersistence();
     _crashRecovery = CrashRecovery();
     _commandNotifier = LongCommandNotifier();
-    _pluginSystem = TermisolPluginSystem();
+    // _pluginSystem = TermisolPluginSystem();
 
     bracketedPaste = BracketedPasteManager(terminal, controller);
     focusManager = FocusManager(terminal, controller, onFocusChanged, onFocusEvent);
@@ -273,7 +273,7 @@ class TerminalSession extends ChangeNotifier {
   }
 
   /// Persist current session state.
-  Map<String, dynamic> _saveSessionState() {
+  Map<String, dynamic> saveSessionState() {
     return {
       'id': id,
       'name': name,
@@ -323,10 +323,10 @@ class TerminalSession extends ChangeNotifier {
     _sessionPersistence.dispose();
     _crashRecovery.dispose();
     _commandNotifier.dispose();
-    // TermisolPluginSystem.dispose() not available
     _autoComplete.dispose();
     _lazyOutput.dispose();
     _textBuffer.dispose();
+    clipboardManager.dispose();
   }
 
   @override

@@ -30,11 +30,20 @@ class GraphicsProtocolHandler {
   // Graphics state
   final Map<String, GraphicsImage> _imageCache = {};
   final Map<int, Color> _colorPalette = {};
+  final Map<int, ui.Image> _images = {};
+  final Map<String, GraphicsOverlay> _overlays = {};
+  final List<GraphicsAnimation> _animations = [];
+  
+  // Pending images for processing
+  final Map<int, PendingImage> _pendingImages = {};
   int _nextImageId = 1;
   
-  // Kitty protocol state
-  final Map<int, KittyImage> _kittyImages = {};
-  int _kittyImageId = 1;
+  // Protocol state
+  GraphicsProtocolState _protocolState = GraphicsProtocolState();
+  
+  // Rendering optimization
+  final Map<String, ui.Picture> _pictureCache = {};
+  final Map<int, List<ui.Rect>> _damageRegions = {};
   
   GraphicsProtocolHandler();
   
@@ -566,5 +575,20 @@ class KittyImage {
     required this.width,
     required this.height,
     required this.format,
+  });
+}
+
+/// Pending image data for processing
+class PendingImage {
+  final String data;
+  final String format;
+  final int? width;
+  final int? height;
+  
+  PendingImage({
+    required this.data,
+    required this.format,
+    this.width,
+    this.height,
   });
 }

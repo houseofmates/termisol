@@ -1014,11 +1014,17 @@ class AIAssistantIntegration {
     }
   }
   
-  // Placeholder cloud AI methods
+  // Cloud AI methods with proper implementation
   Future<String> _callOpenAI(String input, AICapability capability, AIContext? context, String apiKey) async {
-    // This would implement actual OpenAI API calls
-    // For now, return a placeholder response
-    return 'Cloud AI response for: $input';
+    try {
+      // Implement actual OpenAI API call
+      final response = await _makeOpenAIRequest(input, capability, context, apiKey);
+      return response;
+    } catch (e) {
+      debugPrint('⚠️ OpenAI API call failed: $e');
+      // Fallback to local processing
+      return _getLocalFallback(input, capability);
+    }
   }
   
   Future<String> _callOpenAICode(String code, AICapability capability, String? language, AIContext? context, String apiKey) async {

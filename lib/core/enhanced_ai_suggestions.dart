@@ -229,8 +229,8 @@ class EnhancedAISuggestions {
         final list = (json.decode(jsonStr) as List).cast<Map<String, dynamic>>();
         return list.map((m) {
           return Suggestion(
-            text: m['text'] ?? '',
-            description: m['description'] ?? '',
+            text: (m['text'] as String?) ?? '',
+            description: (m['description'] as String?) ?? '',
             type: SuggestionType.values.byName(m['type']?.toString() ?? 'command'),
             confidence: 0.5,
             sourceId: 'llm',

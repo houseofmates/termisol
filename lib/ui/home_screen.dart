@@ -111,41 +111,117 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
   
+  void _toggleCommandPalette() {
+    setState(() => _showCommandPalette = !_showCommandPalette);
+  }
+
+  void _toggleSearch() {
+    setState(() => _showSearch = !_showSearch);
+  }
+
+  List<PaletteAction> _buildPaletteActions() {
+    return [
+      PaletteAction(
+        id: 'new_tab',
+        title: 'new tab',
+        subtitle: 'create a new terminal tab',
+        icon: Icons.add,
+        keywords: ['tab', 'new', 'create'],
+        onExecute: _addTab,
+      ),
+      PaletteAction(
+        id: 'close_tab',
+        title: 'close current tab',
+        subtitle: 'close the active terminal tab',
+        icon: Icons.close,
+        keywords: ['tab', 'close', 'remove'],
+        onExecute: () {
+          final idx = _tabs.indexWhere((t) => t.id == _activeTab);
+          if (idx >= 0) _closeTab(idx);
+        },
+      ),
+      PaletteAction(
+        id: 'search',
+        title: 'search in terminal',
+        subtitle: 'find text in the current terminal buffer',
+        icon: Icons.search,
+        keywords: ['find', 'search', 'grep'],
+        onExecute: _toggleSearch,
+      ),
+      PaletteAction(
+        id: 'settings',
+        title: 'open settings',
+        subtitle: 'configure termisol',
+        icon: Icons.settings,
+        keywords: ['config', 'preferences', 'settings'],
+        onExecute: _showSettings,
+      ),
+      PaletteAction(
+        id: 'copy_url',
+        title: 'copy last detected url',
+        subtitle: 'copy the most recently detected link',
+        icon: Icons.link,
+        keywords: ['url', 'link', 'copy'],
+        onExecute: () {
+          final session = _activeSession;
+          if (session != null && session.detectedUrls.isNotEmpty) {
+            final url = session.detectedUrls.last.url;
+            // TODO: copy to clipboard
+            debugPrint('URL: $url');
+          }
+        },
+        enabled: _activeSession?.detectedUrls.isNotEmpty ?? false,
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: PkmTheme.background,
-      body: Column(
+      body: Stack(
         children: [
-          // Top toolbar
-          Container(
-            height: 50,
-            color: PkmTheme.terminalBg,
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: _addTab,
-                  icon: const Icon(Icons.add, color: PkmTheme.primary),
-                  tooltip: 'New Tab',
+          Column(
+            children: [
+              // Top toolbar
+              Container(
+                height: 50,
+                color: PkmTheme.terminalBg,
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: _addTab,
+                      icon: const Icon(Icons.add, color: PkmTheme.primary),
+                      tooltip: 'New Tab',
+                    ),
+                    IconButton(
+                      onPressed: _showSettings,
+                      icon: const Icon(Icons.settings, color: PkmTheme.primary),
+                      tooltip: 'Settings',
+                    ),
+                    IconButton(
+                      onPressed: _toggleSearch,
+                      icon: const Icon(Icons.search, color: PkmTheme.primary),
+                      tooltip: 'Search (Ctrl+Shift+F)',
+                    ),
+                    const Spacer(),
+                    Text(
+                      'Termisol Terminal',
+                      style: TextStyle(
+                        color: PkmTheme.primary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: _toggleCommandPalette,
+                      icon: const Icon(Icons.keyboard_command_key, color: PkmTheme.primary),
+                      tooltip: 'Command Palette (Ctrl+Shift+P)',
+                    ),
+                  ],
                 ),
-                IconButton(
-                  onPressed: _showSettings,
-                  icon: const Icon(Icons.settings, color: PkmTheme.primary),
-                  tooltip: 'Settings',
-                ),
-                const Spacer(),
-                Text(
-                  'Termisol Terminal',
-                  style: TextStyle(
-                    color: PkmTheme.primary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-              ],
-            ),
-          ),
+              ),
           
           // Tab bar
           Container(

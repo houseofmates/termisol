@@ -28,8 +28,6 @@ Future<void> _setupErrorHandling() async {
   };
 }
 
-import 'dart:convert';
-
 /// Enhanced error logging with structured data
 Future<void> _logError(String type, String error, StackTrace? stack) async {
   try {

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/service_registry.dart';
@@ -12,6 +13,7 @@ import 'command_palette.dart';
 import 'search_overlay.dart';
 import 'edit.dart';
 import 'command_history_search.dart';
+import 'split_pane.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Home screen with core terminal functionality.

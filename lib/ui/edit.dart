@@ -2087,16 +2087,31 @@ class _EditTerminalState extends State<EditTerminal> {
   }
 
   List<String> _generateCompletions(String currentLine) {
-    final words = currentLine.split(RegExp(r'\s+'));
-    final lastWord = words.last.toLowerCase();
-    
-    if (lastWord.isEmpty) return [];
-    
-    final language = _detectLanguage();
-    final completions = <String>[];
-    
-    // Language-specific completions
-    switch (language) {
+    try {
+      if (currentLine.isEmpty) {
+        debugPrint('[COMPLETION] Empty line, no completions');
+        return [];
+      }
+      
+      final words = currentLine.split(RegExp(r'\s+'));
+      if (words.isEmpty) {
+        debugPrint('[COMPLETION] No words found in line');
+        return [];
+      }
+      
+      final lastWord = words.last.toLowerCase();
+      if (lastWord.isEmpty) {
+        debugPrint('[COMPLETION] Empty last word, no completions');
+        return [];
+      }
+      
+      final language = _detectLanguage();
+      final completions = <String>[];
+      
+      debugPrint('[COMPLETION] Generating completions for word: "$lastWord" in language: $language');
+      
+      // Language-specific completions
+      switch (language) {
       case 'dart':
         completions.addAll([
           'abstract', 'as', 'assert', 'async', 'await', 'break', 'case', 'catch', 'class',

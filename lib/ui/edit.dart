@@ -129,6 +129,7 @@ class _EditTerminalState extends State<EditTerminal> {
     _scrollController.dispose();
     _focusNode.dispose();
     _searchController.dispose();
+    _aiChatController.dispose();
     super.dispose();
   }
 

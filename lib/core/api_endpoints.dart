@@ -14,7 +14,7 @@ class ApiEndpoints {
   // OpenAI Configuration
   String get openaiBaseUrl {
     return Platform.environment['OPENAI_BASE_URL'] ?? 
-           kDebugMode ? 'https://api.openai.com/v1' : 'https://api.openai.com/v1';
+           (kDebugMode ? 'https://api.openai.com/v1' : 'https://api.openai.com/v1');
   }
 
   String get openaiChatCompletions => '$openaiBaseUrl/chat/completions';
@@ -202,7 +202,7 @@ class ApiEndpoints {
 }
 
 /// Configuration exception for invalid settings
-classConfigurationException implements Exception {
+class ConfigurationException implements Exception {
   final String message;
   final String field;
   

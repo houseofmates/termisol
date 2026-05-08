@@ -8,9 +8,9 @@ import 'package:flutter_highlight/themes/vs2015.dart';
 import 'package:flutter_highlight/themes/atom-one-dark.dart';
 import 'package:flutter_highlight/themes/github.dart';
 import 'package:path/path.dart' as path;
-import 'editor_validator.dart';
-import 'edit_collaboration_manager.dart';
-import 'editor_crash_recovery.dart';
+// import 'editor_validator.dart';
+// import 'edit_collaboration_manager.dart';
+// import 'editor_crash_recovery.dart';
 
 /// Edit - A modern terminal text editor with WYSIWYG markdown, rainbow syntax highlighting,
 /// and Windows Notepad-style hotkeys
@@ -139,30 +139,18 @@ class _EditTerminalState extends State<EditTerminal> {
   void initState() {
     super.initState();
     
-    // Initialize crash recovery
-    ErrorMonitor.monitorError('Initialize crash recovery', () async {
-      await _crashRecovery.initialize();
-      _recoveryAvailable = await _crashRecovery.hasRecoveryData();
-      
-      // Try to recover previous state
-      final recoveredState = await _crashRecovery.loadEditorState();
-      if (recoveredState != null && recoveredState.filePath == widget.filePath) {
-        // Use recovered content if it matches current file
-        _controller = TextEditingController(text: recoveredState.content);
-        debugPrint('🔄 Editor state recovered from crash');
+    // Initialize with simplified error handling
+    try {
+      // Validate initial content
+      if (widget.initialContent.isNotEmpty) {
+        _controller = TextEditingController(text: widget.initialContent);
       } else {
-        // Validate initial content
-        final validation = EditorValidator.validateFileContent(widget.filePath, widget.initialContent);
-        if (!validation.isValid) {
-          debugPrint('⚠️ Initial content validation failed: ${validation.error}');
-          // Use sanitized content if available, otherwise use empty string
-          final safeContent = validation.sanitizedContent ?? '';
-          _controller = TextEditingController(text: safeContent);
-        } else {
-          _controller = TextEditingController(text: widget.initialContent);
-        }
+        _controller = TextEditingController(text: '');
       }
-    });
+    } catch (e) {
+      debugPrint('⚠️ Initialization error: $e');
+      _controller = TextEditingController(text: widget.initialContent);
+    }
     
     _scrollController = ScrollController();
     _focusNode = FocusNode();
@@ -2064,6 +2052,8 @@ class _EditTerminalState extends State<EditTerminal> {
   }
 
   void _updateCompletions() {
+    final startTime = DateTime.now();
+    
     try {
       if (_controller == null || !_controller.value.isComposing) {
         debugPrint('[COMPLETION] Controller not ready or still composing');
@@ -2089,10 +2079,29 @@ class _EditTerminalState extends State<EditTerminal> {
         _showCompletion = _completions.isNotEmpty;
       });
       
-      debugPrint('[COMPLETION] Updated ${_completions.length} completions for: "$currentLine"');
+      // Update performance stats
+      final responseTime = DateTime.now().difference(startTime).inMilliseconds;
+      _completionStats['total_requests'] = (_completionStats['total_requests'] ?? 0) + 1;
+      _completionStats['successful_completions'] = (_completionStats['successful_completions'] ?? 0) + 1;
+      _completionTimes.add(responseTime);
+      
+      // Update average response time
+      if (_completionTimes.isNotEmpty) {
+        final totalTime = _completionTimes.reduce((a, b) => a + b);
+        _completionStats['average_response_time_ms'] = (totalTime / _completionTimes.length).round();
+      }
+      
+      _lastCompletionTime = DateTime.now();
+      
+      debugPrint('[COMPLETION] Updated ${_completions.length} completions for: "$currentLine" (${responseTime}ms)');
+      debugPrint('[COMPLETION] Stats: ${_completionStats}');
     } catch (e, stackTrace) {
       debugPrint('[COMPLETION] Error updating completions: $e');
       debugPrint('[COMPLETION] Stack trace: $stackTrace');
+      
+      // Update error stats
+      _completionStats['failed_completions'] = (_completionStats['failed_completions'] ?? 0) + 1;
+      
       _hideCompletion();
     }
   }

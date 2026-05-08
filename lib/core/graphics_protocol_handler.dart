@@ -224,7 +224,7 @@ class GraphicsProtocolHandler {
   }
 
   /// Handle Kitty Graphics Protocol
-  String handleKittyProtocol(String sequence) {
+  String handleKittyProtocol(String sequence, int cursorX, int cursorY) {
     if (!_kittyProtocolEnabled) return '';
 
     try {
@@ -232,7 +232,7 @@ class GraphicsProtocolHandler {
       final match = RegExp(r'_G[^\\]*\\').firstMatch(sequence);
       if (match != null) {
         final params = match.group(0)!;
-        return _processKittyGraphics(params);
+        return _processKittyGraphics(params, cursorX, cursorY);
       }
     } catch (e) {
       debugPrint('Failed to handle Kitty protocol: $e');
@@ -440,7 +440,7 @@ class GraphicsProtocolHandler {
   }
 
   /// Process Sixel data
-  String _processSixel(String params, String data) {
+  String _processSixel(String params, String data, int cursorX, int cursorY) {
     try {
       // Parse Sixel parameters
       final paramMap = <String, String>{};
@@ -460,13 +460,17 @@ class GraphicsProtocolHandler {
 
       // Create image from Sixel data
       final imageId = _nextImageId++;
-      _imageCache[imageId.toString()] = GraphicsImage(
+      final idStr = imageId.toString();
+      _imageCache[idStr] = GraphicsImage(
         id: imageId,
         width: width,
         height: height,
         data: data,
         format: 'sixel',
       );
+
+      // Store position
+      _imagePositions[idStr] = Offset(cursorX.toDouble(), cursorY.toDouble());
 
       _totalImagesProcessed++;
       _eventController.add(GraphicsEvent(

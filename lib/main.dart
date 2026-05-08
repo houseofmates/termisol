@@ -4,6 +4,16 @@ import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 import 'app.dart';
 import 'core/service_registry.dart';
+import 'ai/nvidia_ai_terminal_assistant.dart';
+import 'ai/nvidia_ai_client.dart';
+import 'core/performance_enforcer.dart';
+import 'core/production_gpu_renderer.dart';
+import 'core/git_integration.dart';
+import 'core/docker_operations.dart';
+import 'core/database_client.dart';
+import 'core/session_sync_manager.dart';
+import 'core/ssh_connection_persistence.dart';
+import 'core/plugin_ecosystem.dart';
 import 'config/production_config_system.dart';
 import 'config/ssh_passcode_manager.dart';
 

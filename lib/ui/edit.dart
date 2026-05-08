@@ -1758,12 +1758,41 @@ class _EditTerminalState extends State<EditTerminal> {
     }
   }
 
-  void _openFile() {
-    // This would integrate with a file picker
-    // For now, just show a placeholder
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Open file dialog would appear here')),
-    );
+  Future<void> _openFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['txt', 'md', 'dart', 'py', 'js', 'html', 'css', 'json', 'yaml', 'yml', 'sh', 'bash', 'zsh', 'fish'],
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.single.path != null) {
+        final filePath = result.files.single.path!;
+        final file = File(filePath);
+        
+        if (await file.exists()) {
+          final content = await file.readAsString();
+          setState(() {
+            _controller.text = content;
+            _controller.selection = const TextSelection.collapsed(offset: 0);
+            _currentFilePath = filePath;
+          });
+          _onTextChanged();
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Opened: ${path.basename(filePath)}')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('File does not exist')),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error opening file: $e')),
+      );
+    }
   }
 
   void _replaceDialog() {

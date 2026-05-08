@@ -3641,23 +3641,7 @@ class _CustomScrollbarState extends State<_CustomScrollbar> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: _handleTapDown,
-      onVerticalDragUpdate: _handleDragUpdate,
-      onVerticalDragStart: _handleDragStart,
-      onVerticalDragEnd: _handleDragEnd,
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _isHovered = true),
-        onExit: (_) => setState(() => _isHovered = false),
-        child: Container(
-          width: widget.thickness + 2,
-          child: Stack(
-            children: [
-              // Track (transparent)
-              Container(
-                width: widget.thickness,
+                  width: widget.thickness,
                 decoration: BoxDecoration(
                   color: Colors.transparent,
                   borderRadius: BorderRadius.circular(widget.radius),

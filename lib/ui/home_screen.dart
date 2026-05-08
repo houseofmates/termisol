@@ -185,38 +185,39 @@ class _HomeScreenState extends State<HomeScreen> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: _tabs.asMap().entries.map((entry) {
+                        final tabId = entry.value.id;
                         return GestureDetector(
                           onTap: () => _switchTab(entry.key),
                           onSecondaryTap: () => _closeTab(entry.key),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
-                              color: _activeTab == entry.key 
-                                  ? PkmTheme.tabActiveBg 
+                              color: _activeTab == tabId
+                                  ? PkmTheme.tabActiveBg
                                   : PkmTheme.tabInactiveBg,
                               border: Border(
                                 top: BorderSide(
-                                  color: _activeTab == entry.key 
-                                      ? PkmTheme.primary 
+                                  color: _activeTab == tabId
+                                      ? PkmTheme.primary
                                       : Colors.transparent,
                                   width: 2,
                                 ),
                               ),
                             ),
                             child: Text(
-                              'Terminal ${entry.key + 1}',
+                              entry.value.name,
                               style: TextStyle(
-                                color: _activeTab == entry.key 
-                                    ? PkmTheme.primary 
+                                color: _activeTab == tabId
+                                    ? PkmTheme.primary
                                     : PkmTheme.text,
-                                fontWeight: _activeTab == entry.key 
-                                    ? FontWeight.bold 
+                                fontWeight: _activeTab == tabId
+                                    ? FontWeight.bold
                                     : FontWeight.normal,
                               ),
                             ),
                           ),
                         );
-                      }).values.toList(),
+                      }).toList(),
                     ),
                   ),
                 ),

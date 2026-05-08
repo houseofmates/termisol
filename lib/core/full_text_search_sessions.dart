@@ -622,8 +622,38 @@ class FullTextSearchSessions {
   Future<void> _performIncrementalIndexing() async {
     if (_isIndexing) return;
     
-    // This would check for updated sessions and reindex them
-    // For now, it's a placeholder
+    _isIndexing = true;
+    try {
+      debugPrint('🔍 Performing incremental indexing...');
+      
+      // Get list of all session files
+      final sessionDir = Directory('${Platform.environment['HOME'] ?? ''}/.termisol/sessions');
+      if (!await sessionDir.exists()) {
+        return;
+      }
+      
+      await for (final entity in sessionDir.list()) {
+        if (entity is File && entity.path.endsWith('.json')) {
+          try {
+            final lastModified = await entity.lastModified();
+            final sessionIndex = _sessionIndexes[entity.path];
+            
+            // Only reindex if file was modified since last indexing
+            if (sessionIndex == null || lastModified.isAfter(sessionIndex.lastIndexed)) {
+              await _indexSessionFile(entity.path);
+            }
+          } catch (e) {
+            debugPrint('⚠️ Error checking session file ${entity.path}: $e');
+          }
+        }
+      }
+      
+      debugPrint('✅ Incremental indexing completed');
+    } catch (e) {
+      debugPrint('❌ Error during incremental indexing: $e');
+    } finally {
+      _isIndexing = false;
+    }
   }
 
   /// Get search suggestions
@@ -706,13 +736,38 @@ class FullTextSearchSessions {
   Future<void> rebuildIndex() async {
     debugPrint('🔍 Rebuilding search index...');
     
-    // Clear current index
-    _sessionIndexes.clear();
-    _invertedIndex.clear();
-    _totalDocuments = 0;
-    
-    // Re-index all sessions (placeholder)
-    // In a real implementation, you would iterate through all sessions
+    _isIndexing = true;
+    try {
+      // Clear current index
+      _sessionIndexes.clear();
+      _invertedIndex.clear();
+      _totalDocuments = 0;
+      
+      // Get list of all session files
+      final sessionDir = Directory('${Platform.environment['HOME'] ?? ''}/.termisol/sessions');
+      if (!await sessionDir.exists()) {
+        debugPrint('⚠️ Session directory does not exist');
+        return;
+      }
+      
+      int indexedCount = 0;
+      await for (final entity in sessionDir.list()) {
+        if (entity is File && entity.path.endsWith('.json')) {
+          try {
+            await _indexSessionFile(entity.path);
+            indexedCount++;
+          } catch (e) {
+            debugPrint('⚠️ Error indexing session file ${entity.path}: $e');
+          }
+        }
+      }
+      
+      debugPrint('✅ Search index rebuilt with $indexedCount sessions');
+    } catch (e) {
+      debugPrint('❌ Error rebuilding search index: $e');
+    } finally {
+      _isIndexing = false;
+    }
   }
 
   /// Dispose search system

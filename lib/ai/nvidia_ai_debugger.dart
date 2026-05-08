@@ -29,15 +29,19 @@ class NVIDOTerminalDebugger {
   
   final _debugController = StreamController<DebugEvent>.broadcast();
   Stream<DebugEvent> get events => _debugController.stream;
-  
-  bool get isInitialized => _isInitialized;
 
-  Future<void> initialize() async {
-    if (_isInitialized) return;
-    
+  /// Initialize with API key
+  Future<void> initialize(String apiKey) async {
+    if (apiKey.isEmpty || !apiKey.startsWith('nvapi-')) {
+      throw DebugException('Invalid NVIDIA API key format');
+    }
+    _apiKey = apiKey;
     _isInitialized = true;
     debugPrint('🐛 NVIDIA AI Debugger initialized');
   }
+
+  /// Check if initialized
+  bool get isInitialized => _isInitialized;
 
   Future<DebugResult> debugError({
     required String error,

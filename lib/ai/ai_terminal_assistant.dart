@@ -144,10 +144,7 @@ class NvidiaAITerminalAssistant {
 
     final messages = [
       {'role': 'system', 'content': systemPrompt},
-      ...conversationHistory.map((msg) => {
-        'role': msg.isUser ? 'user' : 'assistant',
-        'content': msg.content,
-      }),
+      ...conversationHistory,
     ];
 
     return {
@@ -183,9 +180,7 @@ class NvidiaAITerminalAssistant {
         return 'You are a technical documentation specialist. Create clear, comprehensive '
                'documentation with examples and best practices.';
 
-      default:
-        return 'You are a helpful AI assistant for terminal and development tasks.';
-    }
+      }
   }
 
   Future<AIResponse> _makeAPIRequestWithRetry(Map<String, dynamic> request) async {

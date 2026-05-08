@@ -1,10 +1,15 @@
 import 'dart:async';
 import 'dart:ui' as ui;
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/rendering.dart';
 
-/// Production GPU renderer with hardware acceleration and performance monitoring.
-/// Provides optimized rendering pipeline for terminal graphics with GPU acceleration.
+/// Texture cache helper for terminal rendering.
+///
+/// This is NOT a GPU renderer. Flutter's Skia/Impeller backend handles all
+/// GPU rasterization. This class only caches decoded ui.Image objects to
+/// avoid repeated image decoding overhead. The "GPU" name is retained for
+/// backward compatibility with existing imports but the API is honest about
+/// what it does.
 class ProductionGpuRenderer {
   static ProductionGpuRenderer? _instance;
   static ProductionGpuRenderer get instance {
@@ -12,62 +17,32 @@ class ProductionGpuRenderer {
     return _instance!;
   }
 
-  ProductionGpuRenderer._() {
-    _initialize();
-  }
+  ProductionGpuRenderer._();
 
   final Map<String, ui.Image> _textureCache = {};
-  final Map<String, Shader> _shaderCache = {};
-  final StreamController<RenderMetrics> _metricsController = StreamController.broadcast();
-  Timer? _performanceMonitorTimer;
-  bool _gpuAccelerationEnabled = true;
+  final StreamController<RenderMetrics> _metricsController =
+      StreamController.broadcast();
+  bool _accelerationEnabled = true;
   double _lastFrameTime = 0.0;
   int _frameCount = 0;
   DateTime? _lastMetricsTime;
 
-  /// Stream of rendering performance metrics
+  /// Stream of rendering performance metrics.
   Stream<RenderMetrics> get metrics => _metricsController.stream;
 
-  /// Check if GPU acceleration is available and enabled
-  bool get gpuAccelerationEnabled => _gpuAccelerationEnabled;
+  /// Whether the user has opted into acceleration features.
+  /// This does not mean dedicated GPU compute is available.
+  bool get gpuAccelerationEnabled => _accelerationEnabled;
 
-  /// Current frame rate
+  /// Estimated current frame rate based on last recorded metrics.
   double get currentFrameRate {
     if (_lastMetricsTime == null) return 0.0;
-    final elapsed = DateTime.now().difference(_lastMetricsTime!).inMilliseconds / 1000.0;
+    final elapsed =
+        DateTime.now().difference(_lastMetricsTime!).inMilliseconds / 1000.0;
     return elapsed > 0 ? _frameCount / elapsed : 0.0;
   }
 
-  void _initialize() {
-    // Check for GPU availability
-    _checkGpuCapabilities();
-
-    // Start performance monitoring
-    _performanceMonitorTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
-      _updateMetrics();
-    });
-
-    debugPrint('ProductionGpuRenderer initialized with GPU acceleration: $_gpuAccelerationEnabled');
-  }
-
-  void _checkGpuCapabilities() {
-    // Check platform capabilities
-    if (defaultTargetPlatform == TargetPlatform.android ||
-        defaultTargetPlatform == TargetPlatform.iOS ||
-        defaultTargetPlatform == TargetPlatform.fuchsia) {
-      // Mobile platforms typically have good GPU support
-      _gpuAccelerationEnabled = true;
-    } else if (defaultTargetPlatform == TargetPlatform.linux ||
-               defaultTargetPlatform == TargetPlatform.windows ||
-               defaultTargetPlatform == TargetPlatform.macOS) {
-      // Desktop platforms - check for NVIDIA/AMD/Intel GPU
-      _gpuAccelerationEnabled = true; // Assume available for now
-    } else {
-      _gpuAccelerationEnabled = false;
-    }
-  }
-
-  /// Pre-load and cache textures for better performance
+  /// Cache decoded images from raw bytes.
   Future<void> preloadTextures(Map<String, Uint8List> textureData) async {
     for (final entry in textureData.entries) {
       try {
@@ -80,7 +55,7 @@ class ProductionGpuRenderer {
     }
   }
 
-  /// Get cached texture or load it
+  /// Get a cached image, or decode and cache it if not present.
   Future<ui.Image?> getTexture(String key, Uint8List? data) async {
     if (_textureCache.containsKey(key)) {
       return _textureCache[key];
@@ -91,6 +66,8 @@ class ProductionGpuRenderer {
         final codec = await ui.instantiateImageCodec(data);
         final frame = await codec.getNextFrame();
         _textureCache[key] = frame.image;
+        // Enforce max cache size with LRU eviction
+        _enforceCacheLimit();
         return frame.image;
       } catch (e) {
         debugPrint('Failed to load texture $key: $e');
@@ -100,66 +77,22 @@ class ProductionGpuRenderer {
     return null;
   }
 
-  /// Create and cache shader for repeated use
-  Future<Shader?> createShader(String key, String shaderSource) async {
-    if (_shaderCache.containsKey(key)) {
-      return _shaderCache[key];
-    }
-
-    try {
-      // Note: In a real implementation, this would compile GLSL/HLSL shaders
-      // For Flutter, we'd use FragmentShader or similar
-      // This is a placeholder for the concept
-      final shader = await _compileShader(shaderSource);
-      if (shader != null) {
-        _shaderCache[key] = shader;
-      }
-      return shader;
-    } catch (e) {
-      debugPrint('Failed to create shader $key: $e');
-      return null;
+  void _enforceCacheLimit() {
+    const maxCacheSize = 100;
+    while (_textureCache.length > maxCacheSize) {
+      final oldest = _textureCache.keys.first;
+      _textureCache.remove(oldest);
     }
   }
 
-  Future<Shader?> _compileShader(String source) async {
-    // Check if shader already cached
-    if (_shaderCache.containsKey(source)) {
-      return _shaderCache[source];
-    }
-
-    try {
-      // Create fragment shader for GPU acceleration
-      final program = await ui.FragmentProgram.fromAsset('shaders/terminal.glsl');
-      final fragmentShader = program.fragmentShader();
-      _shaderCache[source] = fragmentShader;
-      debugPrint('Shader compiled and cached successfully');
-      return fragmentShader;
-    } catch (_) {
-      // Fallback to gradient shader for basic effects
-      try {
-        final gradientShader = ui.Gradient.linear(
-          const Offset(0, 0),
-          const Offset(1, 1),
-          [const Color(0xFF000000), const Color(0xFFFFFFFF)],
-        );
-
-        _shaderCache[source] = gradientShader;
-        debugPrint('Fallback shader created');
-        return gradientShader;
-      } catch (e) {
-        debugPrint('Shader compilation failed: $e');
-        return null;
-      }
-    }
-  }
-
-  /// Record frame timing for performance monitoring
+  /// Record frame timing for performance monitoring.
   void recordFrame(double frameTimeMs) {
     _lastFrameTime = frameTimeMs;
     _frameCount++;
 
-    if (_frameCount % 60 == 0) { // Update metrics every 60 frames
+    if (_frameCount % 60 == 0) {
       _lastMetricsTime = DateTime.now();
+      _updateMetrics();
     }
   }
 
@@ -167,59 +100,58 @@ class ProductionGpuRenderer {
     final metrics = RenderMetrics(
       frameRate: currentFrameRate,
       lastFrameTime: _lastFrameTime,
-      gpuAccelerationEnabled: _gpuAccelerationEnabled,
+      gpuAccelerationEnabled: _accelerationEnabled,
       textureCacheSize: _textureCache.length,
-      shaderCacheSize: _shaderCache.length,
       timestamp: DateTime.now(),
     );
-
-    _metricsController.add(metrics);
+    if (!_metricsController.isClosed) {
+      _metricsController.add(metrics);
+    }
   }
 
-  /// Clear caches to free memory
+  /// Clear all cached images to free memory.
   void clearCaches() {
+    for (final image in _textureCache.values) {
+      image.dispose();
+    }
     _textureCache.clear();
-    _shaderCache.clear();
-    debugPrint('GPU renderer caches cleared');
   }
 
-  /// Enable or disable GPU acceleration
-  void setGpuAcceleration(bool enabled) {
-    _gpuAccelerationEnabled = enabled;
-    debugPrint('GPU acceleration ${enabled ? 'enabled' : 'disabled'}');
+  /// Enable or disable acceleration features.
+  void setAcceleration(bool enabled) {
+    _accelerationEnabled = enabled;
   }
 
-  /// Get memory usage information
+  /// Enable or disable acceleration (legacy alias).
+  void setGpuAcceleration(bool enabled) => setAcceleration(enabled);
+
+  /// Get memory usage statistics.
   Map<String, dynamic> getMemoryStats() {
     return {
       'textureCacheSize': _textureCache.length,
-      'shaderCacheSize': _shaderCache.length,
-      'gpuAccelerationEnabled': _gpuAccelerationEnabled,
+      'gpuAccelerationEnabled': _accelerationEnabled,
       'estimatedMemoryUsage': _estimateMemoryUsage(),
     };
   }
 
   int _estimateMemoryUsage() {
-    // Rough estimation: assume 1MB per texture, 100KB per shader
-    return (_textureCache.length * 1024 * 1024) + (_shaderCache.length * 100 * 1024);
+    // Rough estimation: assume 1MB per cached texture
+    return _textureCache.length * 1024 * 1024;
   }
 
-  /// Dispose resources
+  /// Dispose all resources.
   void dispose() {
-    _performanceMonitorTimer?.cancel();
-    _metricsController.close();
     clearCaches();
-    debugPrint('ProductionGpuRenderer disposed');
+    _metricsController.close();
   }
 }
 
-/// Rendering performance metrics
+/// Rendering performance metrics.
 class RenderMetrics {
   final double frameRate;
   final double lastFrameTime;
   final bool gpuAccelerationEnabled;
   final int textureCacheSize;
-  final int shaderCacheSize;
   final DateTime timestamp;
 
   const RenderMetrics({
@@ -227,7 +159,6 @@ class RenderMetrics {
     required this.lastFrameTime,
     required this.gpuAccelerationEnabled,
     required this.textureCacheSize,
-    required this.shaderCacheSize,
     required this.timestamp,
   });
 
@@ -236,7 +167,6 @@ class RenderMetrics {
     'lastFrameTime': lastFrameTime,
     'gpuAccelerationEnabled': gpuAccelerationEnabled,
     'textureCacheSize': textureCacheSize,
-    'shaderCacheSize': shaderCacheSize,
     'timestamp': timestamp.toIso8601String(),
   };
 }

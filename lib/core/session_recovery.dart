@@ -357,7 +357,7 @@ class RecoveryEntry {
       sessionId: json['sessionId'] as String,
       type: RecoveryEntryType.values.byName(json['type'] as String),
       timestamp: DateTime.parse(json['timestamp'] as String),
-      data: Map<String, dynamic>.from(json['data'] ?? {}),
+      data: Map<String, dynamic>.from((json['data'] as Map?) ?? {}),
     );
   }
 }

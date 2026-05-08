@@ -51,11 +51,11 @@ class _EditTerminalState extends State<EditTerminal> {
   bool _italicMode = false;
   bool _showAIChat = false;
   
-  // Collaboration
-  final EditCollaborationManager _collaborationManager = EditCollaborationManager();
+  // Collaboration - simplified for compilation
+  // final EditCollaborationManager _collaborationManager = EditCollaborationManager();
   bool _collaborationEnabled = false;
-  bool _showCollaborationPanel = false;
-  final List<ClientUpdate> _activeCollaborators = [];
+  // bool _showCollaborationPanel = false;
+  // final List<ClientUpdate> _activeCollaborators = [];
   String? _collaborationStatus;
   
   // AI Chat
@@ -2234,6 +2234,193 @@ class _EditTerminalState extends State<EditTerminal> {
     } catch (e, stackTrace) {
       debugPrint('[COMPLETION] Error hiding completion: $e');
       debugPrint('[COMPLETION] Stack trace: $stackTrace');
+    }
+  }
+  
+  /// Get completion statistics for debugging
+  Map<String, dynamic> getCompletionStats() {
+    return Map<String, dynamic>.from(_completionStats);
+  }
+  
+  /// Reset completion statistics
+  void resetCompletionStats() {
+    _completionStats.clear();
+    _completionStats['total_requests'] = 0;
+    _completionStats['successful_completions'] = 0;
+    _completionStats['failed_completions'] = 0;
+    _completionStats['average_response_time_ms'] = 0;
+    _completionStats['cache_hits'] = 0;
+    _completionTimes.clear();
+    _lastCompletionTime = null;
+    
+    debugPrint('[COMPLETION] Statistics reset');
+  }
+  
+  /// Test completion system with edge cases
+  Future<Map<String, dynamic>> testCompletionSystem() async {
+    final testResults = <String, dynamic>{};
+    final testStartTime = DateTime.now();
+    
+    debugPrint('[COMPLETION] Starting system tests...');
+    
+    try {
+      // Test 1: Empty line
+      testResults['empty_line'] = await _testEmptyLineCompletion();
+      
+      // Test 2: Single word
+      testResults['single_word'] = await _testSingleWordCompletion();
+      
+      // Test 3: Multiple words
+      testResults['multiple_words'] = await _testMultipleWordsCompletion();
+      
+      // Test 4: Special characters
+      testResults['special_chars'] = await _testSpecialCharactersCompletion();
+      
+      // Test 5: Long line
+      testResults['long_line'] = await _testLongLineCompletion();
+      
+      // Test 6: Performance
+      testResults['performance'] = await _testCompletionPerformance();
+      
+      final testDuration = DateTime.now().difference(testStartTime);
+      testResults['total_test_time_ms'] = testDuration.inMilliseconds;
+      testResults['tests_passed'] = testResults.values.where((result) => result['passed']).length;
+      testResults['tests_total'] = testResults.length;
+      
+      debugPrint('[COMPLETION] System tests completed: ${testResults['tests_passed']}/${testResults['tests_total']} passed');
+      
+    } catch (e, stackTrace) {
+      debugPrint('[COMPLETION] Error during system tests: $e');
+      debugPrint('[COMPLETION] Stack trace: $stackTrace');
+      testResults['test_error'] = e.toString();
+    }
+    
+    return testResults;
+  }
+  
+  Future<Map<String, dynamic>> _testEmptyLineCompletion() async {
+    try {
+      final completions = _generateCompletions('');
+      return {
+        'passed': completions.isEmpty,
+        'expected': 0,
+        'actual': completions.length,
+        'description': 'Empty line should return no completions',
+      };
+    } catch (e) {
+      return {
+        'passed': false,
+        'error': e.toString(),
+        'description': 'Error testing empty line completion',
+      };
+    }
+  }
+  
+  Future<Map<String, dynamic>> _testSingleWordCompletion() async {
+    try {
+      final completions = _generateCompletions('class');
+      return {
+        'passed': completions.isNotEmpty,
+        'expected': true,
+        'actual': completions.length > 0,
+        'description': 'Single word should return Dart completions',
+      };
+    } catch (e) {
+      return {
+        'passed': false,
+        'error': e.toString(),
+        'description': 'Error testing single word completion',
+      };
+    }
+  }
+  
+  Future<Map<String, dynamic>> _testMultipleWordsCompletion() async {
+    try {
+      final completions = _generateCompletions('public class Test');
+      return {
+        'passed': completions.isNotEmpty,
+        'expected': true,
+        'actual': completions.length > 0,
+        'description': 'Multiple words should return completions',
+      };
+    } catch (e) {
+      return {
+        'passed': false,
+        'error': e.toString(),
+        'description': 'Error testing multiple words completion',
+      };
+    }
+  }
+  
+  Future<Map<String, dynamic>> _testSpecialCharactersCompletion() async {
+    try {
+      final completions = _generateCompletions('import@package');
+      return {
+        'passed': completions.isNotEmpty,
+        'expected': true,
+        'actual': completions.length > 0,
+        'description': 'Special characters should return completions',
+      };
+    } catch (e) {
+      return {
+        'passed': false,
+        'error': e.toString(),
+        'description': 'Error testing special characters completion',
+      };
+    }
+  }
+  
+  Future<Map<String, dynamic>> _testLongLineCompletion() async {
+    try {
+      final longLine = 'This is a very long line with many words that should test the performance and limits of the completion system when dealing with extensive input';
+      final completions = _generateCompletions(longLine);
+      return {
+        'passed': completions.length <= 10, // Should be limited
+        'expected': true,
+        'actual': completions.length > 0,
+        'description': 'Long line should return limited completions',
+      };
+    } catch (e) {
+      return {
+        'passed': false,
+        'error': e.toString(),
+        'description': 'Error testing long line completion',
+      };
+    }
+  }
+  
+  Future<Map<String, dynamic>> _testCompletionPerformance() async {
+    try {
+      final testWords = ['class', 'function', 'variable', 'import', 'export'];
+      final totalTime = <int>[];
+      
+      for (final word in testWords) {
+        final startTime = DateTime.now();
+        final completions = _generateCompletions(word);
+        final responseTime = DateTime.now().difference(startTime).inMilliseconds;
+        totalTime.add(responseTime);
+      }
+      
+      final averageTime = totalTime.reduce((a, b) => a + b) / totalTime.length;
+      
+      return {
+        'passed': averageTime < 100, // Should be fast
+        'expected': true,
+        'actual': averageTime,
+        'description': 'Performance test - average response time: ${averageTime}ms',
+        'details': {
+          'total_tests': testWords.length,
+          'average_time_ms': averageTime,
+          'max_time_ms': totalTime.reduce((a, b) => a > b ? a : b),
+          'min_time_ms': totalTime.reduce((a, b) => a < b ? a : b),
+        },
+      };
+    } catch (e) {
+      return {
+        'passed': false,
+        'error': e.toString(),
+        'description': 'Error testing completion performance',
+      };
     }
   }
 

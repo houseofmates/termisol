@@ -227,7 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       tooltip: 'Search (Ctrl+Shift+F)',
                     ),
                     const Spacer(),
-                    Text(
+                    const Text(
                       'Termisol Terminal',
                       style: TextStyle(
                         color: PkmTheme.primary,
@@ -244,146 +244,143 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-          
-          // Tab bar
-          Container(
-            height: 40,
-            color: PkmTheme.tabActiveBg,
-            child: Row(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: _tabs.asMap().entries.map((entry) {
-                        final tabId = entry.value.id;
-                        return GestureDetector(
-                          onTap: () => _switchTab(entry.key),
-                          onSecondaryTap: () => _closeTab(entry.key),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: _activeTab == tabId
-                                  ? PkmTheme.tabActiveBg
-                                  : PkmTheme.tabInactiveBg,
-                              border: Border(
-                                top: BorderSide(
-                                  color: _activeTab == tabId
-                                      ? PkmTheme.primary
-                                      : Colors.transparent,
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                            child: Text(
-                              entry.value.name,
-                              style: TextStyle(
-                                color: _activeTab == tabId
-                                    ? PkmTheme.primary
-                                    : PkmTheme.text,
-                                fontWeight: _activeTab == tabId
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: _addTab,
-                  icon: const Icon(Icons.add, color: PkmTheme.primary),
-                  tooltip: 'New Tab',
-                ),
-              ],
-            ),
-          ),
-          
-          // Terminal area
-          Expanded(
-            child: IndexedStack(
-              index: _tabs.indexWhere((tab) => tab.id == _activeTab),
-              children: _tabs.map((tab) {
-                return Container(
-                  key: ValueKey(tab.id),
-                  color: PkmTheme.terminalBg,
-                  child: Column(
-                    children: [
-                      // Terminal header
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        color: PkmTheme.tabActiveBg,
+              // Tab bar
+              Container(
+                height: 40,
+                color: PkmTheme.tabActiveBg,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
                         child: Row(
-                          children: [
-                            Icon(
-                              Icons.terminal,
-                              color: PkmTheme.primary,
-                              size: 16,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${tab.name} - Ready',
-                              style: TextStyle(
-                                color: PkmTheme.primary,
-                                fontSize: 14,
+                          children: _tabs.asMap().entries.map((entry) {
+                            final tabId = entry.value.id;
+                            return GestureDetector(
+                              onTap: () => _switchTab(entry.key),
+                              onSecondaryTap: () => _closeTab(entry.key),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: _activeTab == tabId
+                                      ? PkmTheme.tabActiveBg
+                                      : PkmTheme.tabInactiveBg,
+                                  border: Border(
+                                    top: BorderSide(
+                                      color: _activeTab == tabId
+                                          ? PkmTheme.primary
+                                          : Colors.transparent,
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  entry.value.name,
+                                  style: TextStyle(
+                                    color: _activeTab == tabId
+                                        ? PkmTheme.primary
+                                        : PkmTheme.text,
+                                    fontWeight: _activeTab == tabId
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
+                                ),
                               ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: _addTab,
+                      icon: const Icon(Icons.add, color: PkmTheme.primary),
+                      tooltip: 'New Tab',
+                    ),
+                  ],
+                ),
+              ),
+              // Terminal area
+              Expanded(
+                child: IndexedStack(
+                  index: _tabs.indexWhere((tab) => tab.id == _activeTab),
+                  children: _tabs.map((tab) {
+                    return Container(
+                      key: ValueKey(tab.id),
+                      color: PkmTheme.terminalBg,
+                      child: Column(
+                        children: [
+                          // Terminal header
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            color: PkmTheme.tabActiveBg,
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.terminal,
+                                  color: PkmTheme.primary,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '${tab.name} - Ready',
+                                  style: const TextStyle(
+                                    color: PkmTheme.primary,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: PkmTheme.statusConnected,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Text(
+                                    'Connected',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          ),
+                          // Terminal content
+                          Expanded(
+                            child: Container(
+                              width: double.infinity,
                               decoration: BoxDecoration(
-                                color: PkmTheme.statusConnected,
-                                borderRadius: BorderRadius.circular(12),
+                                color: Colors.black,
+                                border: Border.all(
+                                  color: PkmTheme.primary.withOpacity(0.3),
+                                ),
+                                borderRadius: BorderRadius.circular(4),
                               ),
-                              child: Text(
-                                'Connected',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
+                              child: TermisolTerminalView(
+                                session: tab,
+                                focusNode: _tabFocusNodes[tab.id],
+                                onNewTab: _addTab,
+                                onCloseTab: () => _closeTab(
+                                  _tabs.indexWhere((t) => t.id == tab.id),
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-
-                      // Terminal content
-                      Expanded(
-                        child: Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            border: Border.all(
-                              color: PkmTheme.primary.withOpacity(0.3),
-                            ),
-                            borderRadius: BorderRadius.circular(4),
                           ),
-                          child: TermisolTerminalView(
-                            session: tab,
-                            focusNode: _tabFocusNodes[tab.id],
-                            onNewTab: _addTab,
-                            onCloseTab: () => _closeTab(
-                              _tabs.indexWhere((t) => t.id == tab.id),
-                            ),
-                          ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
           ),
-
           // Command palette overlay
           if (_showCommandPalette)
             CommandPalette(
               actions: _buildPaletteActions(),
               onClose: () => setState(() => _showCommandPalette = false),
             ),
-
           // Search overlay
           if (_showSearch && _activeSession != null)
             TerminalSearchOverlay(

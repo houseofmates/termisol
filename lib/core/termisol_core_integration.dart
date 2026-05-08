@@ -3,7 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'production_gpu_renderer.dart';
-import '../ai/nvidia_ai_client.dart';
+import 'nvidia_ai_client.dart';
 import 'terminal_session.dart';
 
 /// Real-time performance metrics collected from Flutter's frame timing.

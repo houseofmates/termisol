@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
 import 'package:path/path.dart' as path;
+import 'package:http/http.dart' as http;
 
 /// Terminal Recording and Replay System
 /// 
@@ -27,6 +28,15 @@ class TerminalRecorder {
   int _currentFrame = 0;
   Timer? _recordingTimer;
   Timer? _playbackTimer;
+  
+  // Ctrl+P recording state
+  bool _ctrlPRecording = false;
+  DateTime? _ctrlPStartTime;
+  String? _ctrlPRecordingId;
+  
+  // MP4 export configuration
+  static const String _mp4ExportServer = '192.168.4.250';
+  static const String _mp4ExportPath = '/home/house/Videos';
   
   // Playback state
   TerminalPlayback? _currentPlayback;

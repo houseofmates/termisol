@@ -151,24 +151,7 @@ Future<void> _pluginWorker(SendPort sendPort) async {
   // Stub implementation for testing
 }
 
-/// Handle plugin commands
-Future<void> _handlePluginCommand(PluginCommand command, ReceivePort receivePort) async {
-  switch (command.action) {
-    case 'load':
-      final plugin = await _loadPluginFromFile(command.path);
-      if (plugin != null) {
-        receivePort.send(PluginResponse(
-          action: 'loaded',
-          success: true,
-          data: plugin.toJson(),
-        ));
-      } else {
-        receivePort.send(PluginResponse(
-          action: 'loaded',
-          success: false,
-          error: 'Plugin not found',
-        ));
-      }
+// Plugin command handling removed for simplicity
       break;
       
     case 'execute':

@@ -12,7 +12,7 @@ import 'clipboard_manager.dart';
 /// the default greenish-yellow (#e5e510).
 const termisolTerminalTheme = TerminalTheme(
   cursor: Color(0xAAAEAFAD),
-  selection: Color(0xAAAEAFAD),
+  selection: Color(0xFF000713),
   foreground: Color(0xFFf7da88),
   background: Color(0xFF000000),
   black: Color(0xFF000000),

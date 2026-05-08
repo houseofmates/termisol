@@ -38,7 +38,7 @@ class NVIDIAAIOptimizer {
 
   Future<void> initialize(String apiKey) async {
     if (apiKey.isEmpty || !apiKey.startsWith('nvapi-')) {
-      throw OptimizationException('Invalid NVIDIA API key format');
+      throw const OptimizationException('Invalid NVIDIA API key format');
     }
     _apiKey = apiKey;
     _isInitialized = true;
@@ -449,7 +449,7 @@ MONITORING_PLAN: [How to monitor for predicted issues]
 
   Future<String> _callNVIDIA(String prompt) async {
     if (_apiKey == null) {
-      throw OptimizationException('NVIDIA API key not initialized');
+      throw const OptimizationException('NVIDIA API key not initialized');
     }
     
     final response = await http.post(

@@ -266,8 +266,9 @@ class _Quest2VrTerminalState extends State<Quest2VrTerminal> {
     }
   }
 
-  void _handleTerminalKey(KeyEvent event) {
+  KeyEventResult _handleTerminalKey(FocusNode node, KeyEvent event) {
     // Let xterm.dart handle terminal keys
+    return KeyEventResult.ignored;
   }
 
   /// High-contrast VR terminal theme optimized for OLED headsets.

@@ -68,6 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
       id: newTabId,
       name: 'Terminal ${_tabs.length + 1}',
     );
+    newTab.onAiQuery = _handleAiQuery;
 
     setState(() {
       _tabs.add(newTab);

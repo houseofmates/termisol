@@ -184,7 +184,7 @@ class HandData {
       ),
       confidence: (json['confidence'] as num?)?.toDouble() ?? 0.0,
       gesture: HandGesture.values[json['gesture'] ?? 0],
-      fingers: (json['fingers'] as List?)?.map((f) => FingerData.fromJson(f)).toList() ?? [],
+        fingers: (json['fingers'] as List?)?.map((f) => FingerData.fromJson(f)).toList() ?? [];
       isTracked: json['isTracked'] ?? false,
     );
   }

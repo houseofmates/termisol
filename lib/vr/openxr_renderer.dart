@@ -199,6 +199,18 @@ class OpenXRRenderer {
     return recorder.endRecording();
   }
   
+  /// Draw terminal content
+  void _drawTerminalContent(ui.Canvas canvas, int rows, int cols) {
+    // Draw terminal background
+    final backgroundPaint = ui.Paint()
+      ..color = Colors.black
+      ..style = ui.PaintingStyle.fill;
+    canvas.drawRect(ui.Rect.fromLTRB(0, 0, cols * 12.0, rows * 24.0), backgroundPaint);
+    
+    // Draw terminal text
+    _drawTerminalText(canvas);
+  }
+  
   /// Draw terminal text with VR optimizations
   void _drawTerminalText(ui.Canvas canvas) {
     final textPainter = ui.TextPainter(

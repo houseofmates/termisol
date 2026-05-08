@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:termisol/core/logging_system.dart';
 
 class CommandGuard {
   static const String _rulesFile = '/home/house/.termisol_command_guard.json';

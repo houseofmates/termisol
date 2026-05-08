@@ -613,7 +613,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: _isSplit && _tabs.length >= 2
                     ? SplitPane(
-                        sessions: [activeSession, lastSession].whereType<TerminalSession>().toList(),
+                        sessions: [_activeSession, _tabs.isNotEmpty ? _tabs.last : null].whereType<TerminalSession>().toList(),
                         onNewTab: _addTab,
                         onCloseTab: () {
                           final idx = _tabs.indexWhere((t) => t.id == _activeTab);

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'core/service_registry.dart';
 import 'ui/home_screen.dart';
 import 'config/pkm_theme.dart';
+import 'main.dart' as main;
 import 'vr/vr_terminal.dart';
 
 /// root application widget for termisol.

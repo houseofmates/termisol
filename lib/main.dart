@@ -59,11 +59,25 @@ ${stack ?? 'No stack trace available'}
   }
 }
 
+/// Global error state
+class ErrorReporter {
+  static String? currentError;
+  static VoidCallback? onErrorChanged;
+
+  static void reportError(String error) {
+    currentError = error;
+    onErrorChanged?.call();
+  }
+
+  static void clearError() {
+    currentError = null;
+    onErrorChanged?.call();
+  }
+}
+
 /// Show user-friendly error dialog
 void _showErrorDialog(String error) {
-  // This will be shown when the app is running
-  // For now, we'll just ensure the error is logged
-  debugPrint('Error occurred: $error');
+  ErrorReporter.reportError(error);
 }
 
 /// entry point for termisol with lazy-loading service registry.
@@ -111,7 +125,7 @@ void main() async {
   runZonedGuarded(() {
     runApp(TermisolApp(registry: registry));
   }, (error, stackTrace) async {
-    await _logError('App Error', error.toString(), stackTrace);
+    await _logError('Uncaught Error', error.toString(), stackTrace);
     _showErrorDialog(error.toString());
   });
 }

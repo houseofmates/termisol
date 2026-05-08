@@ -20,6 +20,7 @@ import 'long_command_notifier.dart';
 import 'termisol_plugin_system.dart';
 import 'ring_buffer_scrollback.dart';
 import 'command_history.dart';
+import 'graphics_protocol_handler.dart';
 import '../ui/clipboard_manager.dart';
 
 /// Called when the user types `/ai <query>` and presses Enter.

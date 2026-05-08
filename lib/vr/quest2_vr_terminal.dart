@@ -76,7 +76,7 @@ class _Quest2VrTerminalState extends State<Quest2VrTerminal> {
         backgroundColor: Colors.black,
         body: RawKeyboardListener(
           focusNode: _focusNode,
-          onKeyEvent: _handleKeyEvent,
+          onKey: _handleKeyEvent,
           child: Stack(
             children: [
               // Main terminal view with enhancements

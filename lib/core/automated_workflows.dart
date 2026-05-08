@@ -168,7 +168,7 @@ class AutomatedWorkflowSystem {
       WorkflowTemplate(
         id: 'database-migration', // Automated database migration workflow
         name: 'Database Migration Workflow',
-        description: 'Safe database migration with backup and rollback',
+        description: 'Safe database migration with backup and rollback capabilities',
         category: 'database',
         variables: [],
         steps: [

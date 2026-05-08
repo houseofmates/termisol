@@ -390,10 +390,7 @@ Focus on:
         predictedImprovement: '30-50% FPS improvement',
         implementationTime: '10 minutes',
         riskLevel: 'medium',
-        difficulty: 'medium',
-        estimatedGain: 25.0,
-        actions: ['Enable GPU acceleration', 'Disable font ligatures', 'Reduce terminal size'],
-      ));
+        ));
     }
     
     return recommendations;

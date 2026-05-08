@@ -47,15 +47,7 @@ class NVIDIAAIOptimizer {
     _analysisTimer = Timer.periodic(_analysisInterval, (_) => _analyzePerformance());
   }
 
-  Future<void> initialize() async {
-    if (_isInitialized) return;
-    
-    _loadDefaultProfiles();
-    _startAnalysisTimer();
-    _isInitialized = true;
-    debugPrint('🤖 NVIDIA AI Optimizer initialized');
-  }
-
+  
   Future<OptimizationResult> getOptimizationRecommendations({
     required Map<String, dynamic> performanceMetrics,
     required String systemType,

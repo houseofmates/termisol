@@ -1,37 +1,61 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'core/service_registry.dart';
 import 'ui/home_screen.dart';
 import 'config/pkm_theme.dart';
 import 'core/production_config_system.dart';
 
-class TermisolApp extends StatelessWidget {
+class TermisolApp extends StatefulWidget {
   final ServiceRegistry registry;
 
   const TermisolApp({super.key, required this.registry});
 
   @override
+  State<TermisolApp> createState() => _TermisolAppState();
+}
+
+class _TermisolAppState extends State<TermisolApp> {
+  @override
+  void initState() {
+    super.initState();
+    PkmTheme.themeMode.addListener(_onThemeChanged);
+    _loadSavedTheme();
+  }
+
+  @override
+  void dispose() {
+    PkmTheme.themeMode.removeListener(_onThemeChanged);
+    super.dispose();
+  }
+
+  void _onThemeChanged() {
+    setState(() {});
+  }
+
+  Future<void> _loadSavedTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('termisol_theme_mode');
+    if (saved != null) {
+      try {
+        PkmTheme.themeMode.value = TermisolThemeMode.values.byName(saved);
+      } catch (_) {
+        // Invalid saved theme, ignore
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final baseTextTheme = GoogleFonts.varelaRoundTextTheme(
-      ThemeData.dark().textTheme,
+      PkmTheme.themeMode.value == TermisolThemeMode.light
+          ? ThemeData.light().textTheme
+          : ThemeData.dark().textTheme,
     );
 
-    final theme = ThemeData.dark().copyWith(
-      colorScheme: const ColorScheme.dark(
-        primary: PkmTheme.primary,
-        secondary: PkmTheme.secondary,
-        surface: PkmTheme.popup,
-        surfaceContainerHighest: PkmTheme.tabActiveBg,
-      ),
-      scaffoldBackgroundColor: PkmTheme.background,
+    final theme = PkmTheme.activeMaterialTheme.copyWith(
       textTheme: baseTextTheme,
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: PkmTheme.popup,
-      ),
-      dialogTheme: const DialogThemeData(
-        backgroundColor: PkmTheme.popup,
-      ),
     );
 
     // Check if running on VR device
@@ -41,7 +65,7 @@ class TermisolApp extends StatelessWidget {
       title: 'termisol',
       debugShowCheckedModeBanner: false,
       theme: theme,
-      home: isVr ? _buildVrHome(registry) : HomeScreen(registry: registry),
+      home: isVr ? _buildVrHome(widget.registry) : HomeScreen(registry: widget.registry),
     );
   }
 

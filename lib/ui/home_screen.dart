@@ -421,8 +421,8 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {});
       }
       _saveSessions();
-    } catch (e, stack) {
-      debugPrint('Failed to restore sessions: \$e\n\$stack');
+    } catch (e) {
+      debugPrint('Failed to restore sessions: \$e');
     }
   }
 
@@ -431,8 +431,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _saveDebounceTimer = Timer(const Duration(seconds: 2), () async {
       try {
         await SessionPersistence().saveSessions(_tabs);
-      } catch (e, stack) {
-        debugPrint('Failed to save sessions: \$e\n\$stack');
+      } catch (e) {
+        debugPrint('Failed to save sessions: \$e');
       }
     });
   }

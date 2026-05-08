@@ -136,28 +136,6 @@ Future<bool> _disposePlugin(String pluginId) async {
   // Stub implementation
   return true;
 }
-
-// Plugin command handling removed for simplicity
-      break;
-      
-    case 'execute':
-      final success = await _executePluginMethod(command.plugin, command.method, command.args);
-      receivePort.send(PluginResponse(
-        action: 'executed',
-        success: success,
-        data: success ? 'Method executed successfully' : 'Method execution failed',
-      ));
-      break;
-      
-    case 'dispose':
-      final success = await _disposePlugin(command.plugin);
-      receivePort.send(PluginResponse(
-        action: 'disposed',
-        success: success,
-        data: success ? 'Plugin disposed successfully' : 'Plugin disposal failed',
-      ));
-      break;
-  }
 }
 
 /// Plugin interface

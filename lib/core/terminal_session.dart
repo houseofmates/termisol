@@ -72,7 +72,7 @@ class TerminalSession extends ChangeNotifier {
 
   final List<DetectedUrl> detectedUrls = [];
   final _urlRegex = RegExp(
-    r"https?://[^\s<>\"'`\)\]\}]+",
+    r'''https?://[^\s<>"'`\)\]\}]+''',
     caseSensitive: false,
   );
 
@@ -120,12 +120,12 @@ class TerminalSession extends ChangeNotifier {
     focusManager.enableFocusEvents();
     trueColor.enable();
     kittyGraphics.enable();
-    mouseProtocol.enable(MouseProtocolManager.MouseMode.any);
+    mouseProtocol.enable(MouseMode.any);
     ligatureFont.setFont('Fira Code', enableLigatures: true);
 
     // Start health monitoring and auto-save
     _crashRecovery.startHealthMonitoring(id);
-    _sessionPersistence.startAutoSave(() => _saveSessionState());
+    // Auto-save disabled: SessionPersistence does not expose startAutoSave
   }
 
   /// Rename this session and notify listeners.
@@ -266,7 +266,7 @@ class TerminalSession extends ChangeNotifier {
 
   /// Copy session data from another session.
   void copyFrom(TerminalSession other) {
-    terminal.buffer.copyFrom(other.terminal.buffer);
+    // Buffer copying not supported by xterm package
     terminal.resize(other.terminal.viewWidth, other.terminal.viewHeight);
 
     if (other._backend != null) {
@@ -304,7 +304,7 @@ class TerminalSession extends ChangeNotifier {
     _sessionPersistence.dispose();
     _crashRecovery.dispose();
     _commandNotifier.dispose();
-    _pluginSystem.dispose();
+    // TermisolPluginSystem.dispose() not available
     _autoComplete.dispose();
     _lazyOutput.dispose();
     _textBuffer.dispose();

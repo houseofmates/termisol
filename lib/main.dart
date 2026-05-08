@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'app.dart';
 import 'core/service_registry.dart';
@@ -27,7 +28,7 @@ Future<void> _setupErrorHandling() async {
       context: 'Flutter Error',
       severity: ErrorSeverity.error,
     );
-    _reportErrorToUser(details.exceptionAsString());
+    _showErrorDialog(details.exceptionAsString());
   };
 
   // Handle platform errors
@@ -38,7 +39,7 @@ Future<void> _setupErrorHandling() async {
       context: 'Platform Error',
       severity: ErrorSeverity.error,
     );
-    _reportErrorToUser(error.toString());
+    _showErrorDialog(error.toString());
     return true;
   };
 }
@@ -88,7 +89,7 @@ void _showErrorDialog(String error) {
 
 /// Initialize all robust systems
 Future<void> _initializeRobustSystems() async {
-  await AdaptiveRenderingSystem().initialize();
+  await AdaptiveRenderingSystem.instance.initialize();
   await AdvancedPerformanceOptimizer().initialize();
   await CrossPlatformManager().initialize();
 }

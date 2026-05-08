@@ -221,6 +221,35 @@ class TermisolFeatures {
   static const String sshConnectionPersistence = 'ssh_connection_persistence';
   static const String collaboration = 'collaboration';
   static const String plugins = 'plugins';
+  static const String sub16msLatencyOptimizer = 'sub16ms_latency_optimizer';
+  static const String adaptiveFramePacer = 'adaptive_frame_pacer';
+  static const String productionConfigSystem = 'production_config_system';
+  static const String backgroundProcessor = 'background_processor';
+  static const String memoryOptimizer = 'memory_optimizer';
+  static const String networkResilience = 'network_resilience';
+  static const String llmPluginSystem = 'llm_plugin_system';
+  static const String gnomeIntegration = 'gnome_integration';
+  static const String smartCommandChaining = 'smart_command_chaining';
+  static const String semanticSearchEngine = 'semantic_search_engine';
+  static const String enhancedAISuggestions = 'enhanced_ai_suggestions';
+  static const String conversationalAI = 'conversational_ai';
+  static const String automatedWorkflows = 'automated_workflows';
+  static const String neuralProcessing = 'neural_processing';
+  static const String terminalPaneManager = 'terminal_pane_manager';
+  static const String audioAlertService = 'audio_alert_service';
+  static const String keyboardMacroReader = 'keyboard_macro_reader';
+  static const String syncServices = 'sync_services';
+  static const String integratedDebugger = 'integrated_debugger';
+  static const String taskRunner = 'task_runner';
+  static const String configurableHotkeys = 'configurable_hotkeys';
+  static const String smoothAnimations = 'smooth_animations';
+  static const String autoBackupSystem = 'auto_backup_system';
+  static const String codeIntelligence = 'code_intelligence';
+  static const String sessionRecovery = 'session_recovery';
+  static const String commandGuard = 'command_guard';
+  static const String asciicastRecorder = 'asciicast_recorder';
+  static const String advancedTerminalProtocol = 'advanced_terminal_protocol';
+  static const String adaptiveCompressionNetwork = 'adaptive_compression_network';
 
   static List<String> get all => [
     terminalCore, aiAssistant, performanceMonitoring, gpuRenderer,

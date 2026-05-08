@@ -21,7 +21,7 @@ class LigatureFontManager {
       _ligaturesEnabled = enableLigatures;
       
       // Update terminal font
-      terminal.fontFamily = fontFamily;
+      // terminal.fontFamily = fontFamily; // Not available in xterm 4.0.0
       
       // Configure ligatures for supported fonts
       if (_isLigatureFont(fontFamily) && enableLigatures) {

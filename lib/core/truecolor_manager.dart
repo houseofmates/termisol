@@ -46,7 +46,7 @@ class TrueColorManager {
         final g = int.tryParse(match.group(2)!, radix: 16) ?? 0;
         final b = int.tryParse(match.group(3)!, radix: 16) ?? 0;
         final color = Color.fromARGB(0xff, r, g, b);
-        controller.setForegroundColor(color);
+        // controller.setForegroundColor(color); // Not available in xterm 4.0.0
         debugPrint('🎨 TrueColor foreground: #$color');
       }
     } else if (sequence.startsWith('\x1b]12;')) {
@@ -57,7 +57,7 @@ class TrueColorManager {
         final g = int.tryParse(match.group(2)!, radix: 16) ?? 0;
         final b = int.tryParse(match.group(3)!, radix: 16) ?? 0;
         final color = Color.fromARGB(0xff, r, g, b);
-        controller.setBackgroundColor(color);
+        // controller.setBackgroundColor(color); // Not available in xterm 4.0.0
         debugPrint('🎨 TrueColor background: #$color');
       }
     }
@@ -65,7 +65,7 @@ class TrueColorManager {
 
   /// Start listening for OSC sequences.
   void startListening() {
-    _oscSubscription = terminal.onOsc?.listen(_handleOscSequence);
+    // _oscSubscription = terminal.onOsc?.listen(_handleOscSequence); // Not available in xterm 4.0.0
   }
 
   /// Stop listening for OSC sequences.

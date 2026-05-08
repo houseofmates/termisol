@@ -1,8 +1,4 @@
-import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
-import 'dart:ui' as ui;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:xterm/xterm.dart';
 
@@ -864,73 +860,16 @@ class AdvancedTerminalProtocol {
   /// Handle focus events
   void handleFocusEvent(bool gained) {
     if (!_focusTrackingEnabled) return;
-    
     _hasFocus = gained;
     _sendResponse(gained ? '\x1b[I' : '\x1b[O');
   }
-  
-  /// Handle keyboard events
-  String handleKeyEvent(String key, Set<LogicalKeyboardKey> modifiers) {
-    if (_keyboardProtocol == KeyboardProtocol.none) {
-      return _keyMappings[key] ?? key;
-    }
-    
-    // Enhanced keyboard protocol handling
-    final modifierMask = _getModifierMask(modifiers);
-    final keyCode = _getKeyCode(key);
-    
-    if (_keyboardProtocol == KeyboardProtocol.esc) {
-      return '\x1b[${modifierMask};${keyCode}u';
-    } else if (_keyboardProtocol == KeyboardProtocol.ssh) {
-      return '\x1b[27;${modifierMask};${keyCode}~';
-    }
-    
-    return key;
-  }
-  
-  int _getModifierMask(Set<LogicalKeyboardKey> modifiers) {
-    int mask = 0;
-    
-    if (modifiers.contains(LogicalKeyboardKey.shift)) mask |= 1;
-    if (modifiers.contains(LogicalKeyboardKey.alt)) mask |= 2;
-    if (modifiers.contains(LogicalKeyboardKey.control)) mask |= 4;
-    if (modifiers.contains(LogicalKeyboardKey.meta)) mask |= 8;
-    
-    return mask;
-  }
-  
-  int _getKeyCode(String key) {
-    // Map key names to key codes
-    final keyMap = {
-      'SPACE': 32,
-      'ENTER': 13,
-      'TAB': 9,
-      'BACKSPACE': 127,
-      'DELETE': 127,
-      'ESCAPE': 27,
-      'UP': 1,
-      'DOWN': 2,
-      'RIGHT': 3,
-      'LEFT': 4,
-      'HOME': 5,
-      'END': 6,
-      'PAGE_UP': 7,
-      'PAGE_DOWN': 8,
-      'F1': 11, 'F2': 12, 'F3': 13, 'F4': 14, 'F5': 15,
-      'F6': 17, 'F7': 18, 'F8': 19, 'F9': 20, 'F10': 21,
-      'F11': 23, 'F12': 24,
-    };
-    
-    return keyMap[key.toUpperCase()] ?? key.codeUnitAt(0);
-  }
-  
+
   /// Handle paste events
   void handlePasteEvent(String text) {
     if (!_bracketedPasteMode) {
       _terminal.write(text);
       return;
     }
-    
     _sendResponse('\x1b[200~');
     _terminal.write(text);
     _sendResponse('\x1b[201~');

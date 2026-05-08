@@ -944,7 +944,7 @@ class IOSPerformanceManager implements PlatformPerformanceManager {
   PerformanceProfile getRecommendedProfile() => PerformanceProfile.low;
   
   @override
-  List<String> getOptOptimizations() => ['battery-optimization', 'memory-conservation', 'touch-optimization'];
+  List<String> getOptimizations() => ['battery-optimization', 'memory-conservation', 'touch-optimization'];
 }
 
 /// Generic performance manager

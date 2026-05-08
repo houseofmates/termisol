@@ -328,9 +328,12 @@ class LLMProvider {
       ).timeout(const Duration(seconds: 30));
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
-        final text = data['choices']?[0]?['text'] ?? data['response'] ?? '';
-        final tokens = data['usage']?['total_tokens'] ?? text.length ~/ 4;
-        return CompletionResult(text: text as String, tokens: tokens as int);
+        final text = (data['choices'] as List?)?.isNotEmpty == true
+            ? (((data['choices'] as List).first as Map<String, dynamic>)['text'] ?? '') as String
+            : '';
+        final usage = data['usage'] as Map<String, dynamic>?;
+        final tokens = (usage?['total_tokens'] as int?) ?? text.length ~/ 4;
+        return CompletionResult(text: text, tokens: tokens);
       }
       return CompletionResult(text: '', tokens: 0);
     } catch (e) {

@@ -4,6 +4,10 @@ import 'package:termisol/core/service_registry.dart';
 import 'package:termisol/core/headerbar_actions.dart';
 
 void main() {
+  setUpAll(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+  });
+
   group('PromptConfig', () {
     test('bashPs1 contains escape sequences', () {
       final ps1 = PromptConfig.bashPs1;

@@ -549,7 +549,7 @@ class OpenXRSession {
   int get currentSwapchainImage => _swapchainImages[_swapchainImageIndex].ref.image;
   
   /// Get swapchain dimensions
-  XrExtent2Di get swapchainExtent => _swapchainExtent;
+  XrExtent2Di get swapchainExtent => _swapchainExtent.ref;
   
   /// Check if session is running
   bool get isSessionRunning => _sessionRunning;
@@ -627,15 +627,4 @@ typedef XrPath = int;
 
 // All structures are defined in openxr_bindings_complete.dart
 
-// Extend OpenXRLibrary with additional functions
-extension OpenXRLibraryExtension on OpenXRLibrary {
-  late XrCreateReferenceSpace xrCreateReferenceSpace;
-  late XrDestroySpace xrDestroySpace;
-  late XrAttachSessionActionSets xrAttachSessionActionSets;
-  
-  void _loadExtendedFunctions() {
-    xrCreateReferenceSpace = _lib.lookupFunction<XrCreateReferenceSpaceNative, XrCreateReferenceSpace>('xrCreateReferenceSpace');
-    xrDestroySpace = _lib.lookupFunction<XrDestroySpaceNative, XrDestroySpace>('xrDestroySpace');
-    xrAttachSessionActionSets = _lib.lookupFunction<XrAttachSessionActionSetsNative, XrAttachSessionActionSets>('xrAttachSessionActionSets');
-  }
-}
+// All additional functions are already loaded in the main library class

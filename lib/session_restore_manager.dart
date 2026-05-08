@@ -1,23 +1,28 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:xterm/xterm.dart';
 import 'core/terminal_session.dart';
 
 /// Manages session restoration across app crashes and restarts.
 /// Saves tab state, working directories, and command history.
 class SessionRestoreManager {
   static const String _sessionsFile = 'termisol_sessions.json';
-  static const String _maxSessions = 10;
-  
+  static const int _maxSessions = 10;
+
   final Map<String, SessionState> _sessions = {};
   Timer? _autoSaveTimer;
-  
+  bool _loaded = false;
+  final _loadCompleter = Completer<void>();
+
   SessionRestoreManager() {
     _loadSessions();
     _startAutoSave();
   }
+
+  /// Ensure sessions are loaded before accessing them.
+  Future<void> load() => _loadCompleter.future;
 
   /// Represents a saved terminal session state.
   class SessionState {
@@ -57,7 +62,7 @@ class SessionRestoreManager {
         name: json['name'] as String,
         workingDirectory: json['workingDirectory'] as String,
         shell: json['shell'] as String?,
-        commandHistory: List<String>.from(json['commandHistory'] as List),
+        commandHistory: List<String>.from(json['commandHistory'] as List? ?? []),
         lastSaved: DateTime.parse(json['lastSaved'] as String),
         metadata: json['metadata'] as Map<String, dynamic>?,
       );
@@ -71,8 +76,14 @@ class SessionRestoreManager {
         id: session.id,
         name: session.name,
         workingDirectory: Directory.current.path,
-        shell: Platform.isLinux ? 'bash' : Platform.isMacOS ? 'zsh' : 'cmd.exe',
-        commandHistory: _getCommandHistory(session),
+        shell: Platform.isLinux
+            ? 'bash'
+            : Platform.isMacOS
+                ? 'zsh'
+                : Platform.isWindows
+                    ? 'cmd.exe'
+                    : 'sh',
+        commandHistory: const [],
         lastSaved: DateTime.now(),
         metadata: {
           'connected': session.connected,
@@ -82,24 +93,26 @@ class SessionRestoreManager {
 
       _sessions[session.id] = sessionState;
       await _persistSessions();
-      
-      debugPrint('💾 Saved session: ${session.name} (${session.id})');
-    } catch (e) {
-      debugPrint('❌ Failed to save session: $e');
+      await _cleanupOldSessions();
+
+      if (kDebugMode) debugPrint('Saved session: ${session.name} (${session.id})');
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('Failed to save session: $e\n$stack');
     }
   }
 
   /// Restore a session by ID.
   Future<SessionState?> restoreSession(String sessionId) async {
+    await _loadCompleter.future;
     try {
       final session = _sessions[sessionId];
       if (session != null) {
-        debugPrint('🔄 Restoring session: ${session.name} ($sessionId)');
+        if (kDebugMode) debugPrint('Restoring session: ${session.name} ($sessionId)');
         return session;
       }
       return null;
-    } catch (e) {
-      debugPrint('❌ Failed to restore session: $e');
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('Failed to restore session: $e\n$stack');
       return null;
     }
   }
@@ -107,7 +120,6 @@ class SessionRestoreManager {
   /// Get all saved sessions.
   List<SessionState> getSavedSessions() {
     final sessions = _sessions.values.toList();
-    // Sort by last saved time
     sessions.sort((a, b) => b.lastSaved.compareTo(a.lastSaved));
     return sessions;
   }
@@ -116,7 +128,7 @@ class SessionRestoreManager {
   Future<void> deleteSession(String sessionId) async {
     _sessions.remove(sessionId);
     await _persistSessions();
-    debugPrint('🗑️ Deleted session: $sessionId');
+    if (kDebugMode) debugPrint('Deleted session: $sessionId');
   }
 
   /// Auto-save all active sessions periodically.
@@ -131,16 +143,16 @@ class SessionRestoreManager {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/$_sessionsFile');
-      
+
       final json = {
         'sessions': _sessions.map((key, value) => MapEntry(key, value.toJson())),
         'version': '1.0',
         'lastSaved': DateTime.now().toIso8601String(),
       };
-      
+
       await file.writeAsString(jsonEncode(json));
-    } catch (e) {
-      debugPrint('❌ Failed to persist sessions: $e');
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('Failed to persist sessions: $e\n$stack');
     }
   }
 
@@ -149,42 +161,38 @@ class SessionRestoreManager {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/$_sessionsFile');
-      
+
       if (await file.exists()) {
         final content = await file.readAsString();
         final json = jsonDecode(content) as Map<String, dynamic>;
-        
+
         if (json['sessions'] is Map) {
           final sessionsMap = json['sessions'] as Map<String, dynamic>;
           for (final entry in sessionsMap.entries) {
-            _sessions[entry.key] = SessionState.fromJson(entry.value);
+            try {
+              _sessions[entry.key] = SessionState.fromJson(entry.value);
+            } catch (e) {
+              if (kDebugMode) debugPrint('Skipping corrupt session ${entry.key}: $e');
+            }
           }
-          debugPrint('📂 Loaded ${_sessions.length} sessions');
+          if (kDebugMode) debugPrint('Loaded ${_sessions.length} sessions');
         }
       }
-    } catch (e) {
-      debugPrint('❌ Failed to load sessions: $e');
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('Failed to load sessions: $e\n$stack');
+    } finally {
+      if (!_loadCompleter.isCompleted) _loadCompleter.complete();
+      _loaded = true;
     }
-  }
-
-  /// Extract command history from terminal session.
-  List<String> _getCommandHistory(TerminalSession session) {
-    // This is a simplified implementation
-    // In a real implementation, you'd track all commands entered
-    return [
-      'ls -la',
-      'pwd',
-      'whoami',
-    ];
   }
 
   /// Clean up old sessions (keep only recent N).
   Future<void> _cleanupOldSessions() async {
     if (_sessions.length <= _maxSessions) return;
-    
+
     final sessions = getSavedSessions();
     final toDelete = sessions.skip(_maxSessions);
-    
+
     for (final session in toDelete) {
       await deleteSession(session.id);
     }

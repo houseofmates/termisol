@@ -63,6 +63,18 @@ class TerminalSession extends ChangeNotifier {
   /// TrueColor manager for 24-bit color support.
   late final TrueColorManager trueColor;
 
+  /// Kitty graphics manager for inline images.
+  late final KittyGraphicsManager kittyGraphics;
+
+  /// Mouse protocol manager for interactive apps.
+  late final MouseProtocolManager mouseProtocol;
+
+  /// Ligature font manager for better code readability.
+  late final LigatureFontManager ligatureFont;
+
+  /// Throttled renderer for performance.
+  late final ThrottledRenderer throttledRenderer;
+
   /// Called whenever data is received from the backend.
   /// Useful for monitoring output to detect errors or context changes.
   void Function(String output)? onOutputReceived;
@@ -249,24 +261,6 @@ class TerminalSession extends ChangeNotifier {
   }
 
   /// Resize the terminal.
-  void resize(int width, int height) {
-    _backend?.resize(width, height);
-    terminal.resize(width, height);
-  }
-
-  /// Stop the session and clean up resources.
-  Future<void> disposeSession() async {
-    _sessionPersistence.stopAutoSave();
-    _crashRecovery.dispose();
-    _commandNotifier.dispose();
-    await _pluginSystem.disposeAll();
-    
-    _outputSub?.cancel();
-    await _backend?.stop();
-    _backend = null;
-  }
-
-  /// Scan text for URLs and add them to detectedUrls with deduplication.
   void _extractUrls(String text) {
     final matches = _urlRegex.allMatches(text);
     for (final match in matches) {

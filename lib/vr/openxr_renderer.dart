@@ -115,9 +115,8 @@ class OpenXRRenderer {
     // Set rotation using quaternion conversion
     final quat = view.pose.orientation;
     // Convert quaternion to rotation matrix
-    final rotationMatrix = vm.Matrix4.fromRotation(
-      vm.Quaternion(quat.x, quat.y, quat.z, quat.w)
-    );
+    final rotationMatrix = vm.Matrix4.identity()
+      ..rotate(vm.Quaternion(quat.x, quat.y, quat.z, quat.w));
     transform.multiply(rotationMatrix);
     
     return transform;
@@ -319,25 +318,4 @@ class OpenXRRenderer {
   }
 }
 
-/// Extension for Matrix4 rotation
-extension Matrix4Rotation on Matrix4 {
-  Matrix4 rotation(double x, double y, double z, double w) {
-    // Convert quaternion to rotation matrix
-    final xx = x * x;
-    final xy = x * y;
-    final xz = x * z;
-    final xw = x * w;
-    final yy = y * y;
-    final yz = y * z;
-    final yw = y * w;
-    final zz = z * z;
-    final zw = z * w;
-    
-    setRow(0, [1 - 2 * (yy + zz), 2 * (xy - zw), 2 * (xz + yw), 0]);
-    setRow(1, [2 * (xy + zw), 1 - 2 * (xx + zz), 2 * (yz - xw), 0]);
-    setRow(2, [2 * (xz - yw), 2 * (yz + xw), 1 - 2 * (xx + yy), 0]);
-    setRow(3, [0, 0, 0, 1]);
-    
-    return this;
-  }
-}
+// Matrix4 rotation methods are provided by vector_math package

@@ -73,24 +73,26 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _addTab() {
+    final newTabId = _tabs.length.toString();
     final newTab = TerminalSession(
-      id: _tabs.length.toString(),
+      id: newTabId,
       name: 'Terminal ${_tabs.length + 1}',
     );
 
     setState(() {
       _tabs.add(newTab);
-      _tabFocusNodes[int.parse(newTab.id)] = FocusNode();
-      _activeTab = int.parse(newTab.id);
+      _tabFocusNodes[newTabId] = FocusNode();
+      _activeTab = newTabId;
     });
 
-    _tabFocusNodes[int.parse(newTab.id)]?.requestFocus();
+    _tabFocusNodes[newTabId]?.requestFocus();
   }
 
   void _switchTab(int index) {
     if (index >= 0 && index < _tabs.length) {
-      setState(() => _activeTab = index);
-      _tabFocusNodes[index]?.requestFocus();
+      final tabId = _tabs[index].id;
+      setState(() => _activeTab = tabId);
+      _tabFocusNodes[tabId]?.requestFocus();
     }
   }
   

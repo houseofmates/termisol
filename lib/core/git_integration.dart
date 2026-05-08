@@ -437,10 +437,11 @@ class GitIntegration {
             final index = int.parse(match.group(1)!);
             final message = match.group(2)!;
             
+            final createdAt = await _getStashDate(index);
             _stashes.add(GitStash(
               index: index,
               message: message,
-              createdAt: _getStashDate(index),
+              createdAt: createdAt,
             ));
           }
         }

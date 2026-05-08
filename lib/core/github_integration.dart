@@ -293,26 +293,26 @@ class GitHubIntegration {
     } catch (_) {}
   }
 
-  Future<dynamic> _apiGet(String path, {Map<String, String>? queryParams}) async {
+  Future<http.Response> _apiGet(String path, {Map<String, String>? queryParams}) async {
     final uri = Uri.parse('$_apiBase$path').replace(queryParameters: queryParams);
-    final req = await _createClient().get(uri, headers: _defaultHeaders());
-    _parseRateLimits(req);
-    return req;
+    final response = await http.get(uri, headers: _defaultHeaders());
+    _parseRateLimits(response);
+    return response;
   }
 
-  Future<dynamic> _apiPost(String path, {String? body}) async {
+  Future<http.Response> _apiPost(String path, {String? body}) async {
     final uri = Uri.parse('$_apiBase$path');
-    return _createClient().post(uri, headers: _defaultHeaders(), body: body);
+    return http.post(uri, headers: _defaultHeaders(), body: body);
   }
 
-  Future<dynamic> _apiPut(String path) async {
+  Future<http.Response> _apiPut(String path) async {
     final uri = Uri.parse('$_apiBase$path');
-    return _createClient().put(uri, headers: _defaultHeaders());
+    return http.put(uri, headers: _defaultHeaders());
   }
 
-  Future<dynamic> _apiDelete(String path) async {
+  Future<http.Response> _apiDelete(String path) async {
     final uri = Uri.parse('$_apiBase$path');
-    return _createClient().delete(uri, headers: _defaultHeaders());
+    return http.delete(uri, headers: _defaultHeaders());
   }
 
   dynamic _createClient() {

@@ -383,7 +383,7 @@ class RobustErrorHandler {
         'lastError': _lastError?.toString(),
         'activeConnections': _connectionPool.length,
         'memoryUsage': _getCurrentMemoryUsage(),
-        'uptime': DateTime.now().difference(_startTime).inSeconds,
+        'uptime': _startTime != null ? DateTime.now().difference(_startTime!).inSeconds : 0,
       };
       
       // Save to emergency file

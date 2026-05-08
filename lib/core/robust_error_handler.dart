@@ -38,6 +38,12 @@ class RobustErrorHandler {
   String? _lastError;
   bool _isRecovering = false;
   
+  // Additional state variables
+  DateTime? _startTime;
+  final List<dynamic> _pendingRequests = [];
+  final Map<String, dynamic> _networkCache = {};
+  final List<dynamic> _performanceMetrics = [];
+  
   Stream<ErrorReport> get errorStream => _errorController.stream;
   
   // Configuration
@@ -360,7 +366,7 @@ class RobustErrorHandler {
         _logger.info('Network reset successful');
       }
     } catch (e) {
-      _logger.error('Network reset failed: $e');
+      _logger.severe('Network reset failed: $e');
     }
   }
   
@@ -388,7 +394,7 @@ class RobustErrorHandler {
       
       _logger.info('Emergency state saved to ${emergencyFile.path}');
     } catch (e) {
-      _logger.error('Emergency state save failed: $e');
+      _logger.severe('Emergency state save failed: $e');
     }
   }
   

@@ -25,6 +25,9 @@ import 'config/ssh_passcode_manager.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Setup global error handling
+  await _setupErrorHandling();
+
   final configSystem = await ProductionConfigSystem.initialize();
   await SshPasscodeManager().load();
 

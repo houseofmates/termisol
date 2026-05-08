@@ -337,19 +337,25 @@ class PersonalIntegrationManager {
   Future<void> _syncWithHermes(String command, String? project, String? workingDirectory) async {
     try {
       final hermesConfig = _toolIntegrations['hermes']!.config;
-      final endpoint = Uri.parse('${hermesConfig['api_endpoint']}/command');
-      
+      final apiEndpoint = hermesConfig['api_endpoint'] as String? ?? '';
+      if (apiEndpoint.isEmpty) {
+        debugPrint('⚠️ Hermes API endpoint not configured');
+        return;
+      }
+      final endpoint = Uri.parse('$apiEndpoint/command');
+
       // Send command to Hermes
-      final response = await HttpClient().postUrl(endpoint, headers: {
-        'Content-Type': 'application/json',
-      }, body: jsonEncode({
+      final request = await HttpClient().postUrl(endpoint);
+      request.headers.set('Content-Type', 'application/json');
+      request.write(jsonEncode({
         'command': command,
         'project': project,
         'working_directory': workingDirectory,
         'timestamp': DateTime.now().toIso8601String(),
         'user_context': _personalData,
       }));
-      
+      final response = await request.close();
+
       _eventController.add(IntegrationEvent(
         type: IntegrationEventType.hermes_sync,
         message: 'Synced with Hermes Agent',
@@ -370,25 +376,28 @@ class PersonalIntegrationManager {
   Future<void> _syncWithN8N(String command, String? project, String? workingDirectory) async {
     try {
       final n8nConfig = _toolIntegrations['n8n']!.config;
-      final endpoint = Uri.parse('${n8nConfig['base_url']}/api/v1/workflows');
-      
+      final baseUrl = n8nConfig['base_url'] as String? ?? '';
+      if (baseUrl.isEmpty) {
+        debugPrint('⚠️ N8N base URL not configured');
+        return;
+      }
+
       // Trigger N8N workflow based on command
       final workflowId = _getN8NWorkflowId(command);
       if (workflowId != null) {
-        final response = await HttpClient().postUrl(
-          Uri.parse('${n8nConfig['base_url']}/api/v1/workflows/$workflowId/execute'),
-          headers: {
-            'Content-Type': 'application/json',
-            'X-N8N-API-KEY': n8nConfig['api_key'],
-          },
-          body: jsonEncode({
-            'command': command,
-            'project': project,
-            'working_directory': workingDirectory,
-            'user_context': _personalData,
-          }),
+        final request = await HttpClient().postUrl(
+          Uri.parse('$baseUrl/api/v1/workflows/$workflowId/execute'),
         );
-        
+        request.headers.set('Content-Type', 'application/json');
+        request.headers.set('X-N8N-API-KEY', n8nConfig['api_key']?.toString() ?? '');
+        request.write(jsonEncode({
+          'command': command,
+          'project': project,
+          'working_directory': workingDirectory,
+          'user_context': _personalData,
+        }));
+        final response = await request.close();
+
         _eventController.add(IntegrationEvent(
           type: IntegrationEventType.n8n_sync,
           message: 'Triggered N8N workflow',
@@ -431,7 +440,12 @@ class PersonalIntegrationManager {
   Future<void> _syncWithNextcloud(String command, String? project, String? workingDirectory) async {
     try {
       final nextcloudConfig = _toolIntegrations['nextcloud']!.config;
-      
+      final baseUrl = nextcloudConfig['base_url'] as String? ?? '';
+      if (baseUrl.isEmpty) {
+        debugPrint('⚠️ Nextcloud base URL not configured');
+        return;
+      }
+
       // Sync command history to Nextcloud
       final commandHistory = _personalData['command_history'] as List? ?? [];
       commandHistory.insert(0, {
@@ -440,24 +454,23 @@ class PersonalIntegrationManager {
         'working_directory': workingDirectory,
         'timestamp': DateTime.now().toIso8601String(),
       });
-      
+
       // Keep only last 1000 commands
       if (commandHistory.length > 1000) {
         commandHistory.removeRange(1000, commandHistory.length);
       }
-      
+
       _personalData['command_history'] = commandHistory;
-      
+
       // Upload to Nextcloud using API key authentication
-      final response = await HttpClient().putUrl(
-        Uri.parse('${nextcloudConfig['base_url']}/remote.php/dav/files/termisol/command_history.json'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${nextcloudConfig['api_key']}',
-        },
-        body: jsonEncode(commandHistory),
+      final request = await HttpClient().putUrl(
+        Uri.parse('$baseUrl/remote.php/dav/files/termisol/command_history.json'),
       );
-      
+      request.headers.set('Content-Type', 'application/json');
+      request.headers.set('Authorization', 'Bearer ${nextcloudConfig['api_key']?.toString() ?? ''}');
+      request.write(jsonEncode(commandHistory));
+      final response = await request.close();
+
       _eventController.add(IntegrationEvent(
         type: IntegrationEventType.nextcloud_sync,
         message: 'Synced with Nextcloud',

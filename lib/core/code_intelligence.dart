@@ -663,17 +663,17 @@ class CodeAnalysisResult {
   final int lineCount;
   final int charCount;
   final int sizeBytes;
-  final List<CodeSymbol> functions;
-  final List<CodeSymbol> classes;
-  final List<CodeSymbol> variables;
-  final List<String> imports;
-  final List<String> exports;
-  final List<LintResult> lints;
-  final double complexity;
-  final double maintainabilityIndex;
-  final HalsteadMetrics halsteadMetrics;
-  final double qualityScore;
-  final List<String> suggestions;
+  List<CodeSymbol> functions;
+  List<CodeSymbol> classes;
+  List<CodeSymbol> variables;
+  List<String> imports;
+  List<String> exports;
+  List<LintResult> lints;
+  double complexity;
+  double maintainabilityIndex;
+  HalsteadMetrics halsteadMetrics;
+  double qualityScore;
+  List<String> suggestions;
 
   int blankLines = 0;
   int commentLines = 0;

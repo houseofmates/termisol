@@ -293,6 +293,47 @@ class _EditTerminalState extends State<EditTerminal> {
     _onTextChanged();
   }
 
+  void _handleMultiCursorSelection(TextSelection selection) {
+    if (!_multiCursorMode || _cursors.isEmpty) return;
+    
+    // Apply selection to all cursors
+    final text = _controller.text;
+    final selectedText = selection.textInside(text);
+    
+    if (selectedText.isNotEmpty) {
+      final allCursors = List<TextSelection>.from(_cursors);
+      allCursors.add(_controller.selection);
+      
+      // Sort cursors by position (reverse for deletion)
+      allCursors.sort((a, b) => b.baseOffset.compareTo(a.baseOffset));
+      
+      String newText = text;
+      
+      for (final cursor in allCursors) {
+        if (cursor.baseOffset >= 0 && cursor.baseOffset <= newText.length) {
+          newText = newText.substring(0, cursor.baseOffset) + selectedText + newText.substring(cursor.baseOffset);
+        }
+      }
+      
+      _controller.text = newText;
+      
+      // Update all cursor positions
+      setState(() {
+        _cursors.clear();
+        for (final cursor in allCursors) {
+          final newOffset = cursor.baseOffset + selectedText.length;
+          _cursors.add(TextSelection.fromPosition(TextPosition(offset: newOffset)));
+        }
+        
+        // Update main cursor
+        final mainCursorOffset = _controller.selection.baseOffset + selectedText.length;
+        _controller.selection = TextSelection.fromPosition(TextPosition(offset: mainCursorOffset));
+      });
+      
+      _onTextChanged();
+    }
+  }
+
   void _handleMultiCursorDeletion() {
     if (!_multiCursorMode || _cursors.isEmpty) return;
     
@@ -989,7 +1030,7 @@ class _EditTerminalState extends State<EditTerminal> {
         return;
       }
       
-      if (isCtrlPressed && isShiftPressed && event.logicalKey ==.keyL) {
+      if (isCtrlPressed && isShiftPressed && event.logicalKey == LogicalKeyboardKey.keyL) {
         _selectAllOccurrences();
         return;
       }
@@ -1927,6 +1968,30 @@ Note: The above file and directory information is provided for context only and 
                         icon: Icon(Icons.format_paint, size: 16, color: Colors.grey[400]),
                         tooltip: 'Pretty Print',
                       ),
+                      // Multi-cursor status indicator
+                      if (_multiCursorMode)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.call_split, size: 14, color: Colors.orange[300]),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${_cursors.length + 1} cursors',
+                                style: TextStyle(
+                                  color: Colors.orange[300],
+                                  fontSize: 10,
+                                  fontFamily: _fontFamily,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       IconButton(
                         onPressed: () => setState(() => _showSettings = !_showSettings),
                         icon: Icon(Icons.settings, size: 16, color: Colors.grey[400]),

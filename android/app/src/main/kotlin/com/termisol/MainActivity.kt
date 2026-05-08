@@ -268,15 +268,23 @@ class MainActivity : FlutterActivity() {
         // Eye tracking stops when sink is null
     }
 
-    private fun mapHandData(hand: Any?): Map<String, Any> {
-        // This would map the actual Oculus hand data structure
-        // For now, return mock data structure that matches Flutter expectations
+    private fun mapMockHandData(isLeft: Boolean, x: Double, y: Double): Map<String, Any> {
+        // Mock hand data that matches Flutter expectations
+        // In full implementation, this would map real Oculus SDK hand data
+        val fingers = (0..4).map { fingerIndex ->
+            mapOf(
+                "type" to fingerIndex,
+                "tipPosition" to mapOf("x" to x + fingerIndex * 20.0, "y" to y),
+                "confidence" to 0.9
+            )
+        }
+
         return mapOf(
-            "position" to mapOf("x" to 0.0, "y" to 0.0),
-            "confidence" to 0.0,
-            "gesture" to 0, // HandGesture.unknown
-            "fingers" to emptyList<Map<String, Any>>(),
-            "isTracked" to false
+            "position" to mapOf("x" to x, "y" to y),
+            "confidence" to 0.95,
+            "gesture" to 1, // HandGesture.open
+            "fingers" to fingers,
+            "isTracked" to true
         )
     }
 

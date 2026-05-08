@@ -8,6 +8,7 @@ import 'package:flutter_highlight/themes/vs2015.dart';
 import 'package:flutter_highlight/themes/atom-one-dark.dart';
 import 'package:flutter_highlight/themes/github.dart';
 import 'package:path/path.dart' as path;
+import 'editor_validator.dart';
 
 /// Edit - A modern terminal text editor with WYSIWYG markdown, rainbow syntax highlighting,
 /// and Windows Notepad-style hotkeys
@@ -104,7 +105,18 @@ class _EditTerminalState extends State<EditTerminal> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.initialContent);
+    
+    // Validate initial content
+    final validation = EditorValidator.validateFileContent(widget.filePath, widget.initialContent);
+    if (!validation.isValid) {
+      debugPrint('⚠️ Initial content validation failed: ${validation.error}');
+      // Use sanitized content if available, otherwise use empty string
+      final safeContent = validation.sanitizedContent ?? '';
+      _controller = TextEditingController(text: safeContent);
+    } else {
+      _controller = TextEditingController(text: widget.initialContent);
+    }
+    
     _scrollController = ScrollController();
     _focusNode = FocusNode();
     
@@ -112,7 +124,7 @@ class _EditTerminalState extends State<EditTerminal> {
     _focusNode.addListener(_onFocusChanged);
     
     // Initialize undo stack
-    _undoStack.add(widget.initialContent);
+    _undoStack.add(_controller.text);
     _currentUndoIndex = 0;
     
     // Initialize hotkeys
@@ -136,6 +148,17 @@ class _EditTerminalState extends State<EditTerminal> {
 
   void _onTextChanged() {
     if (!widget.readOnly) {
+      // Validate text changes
+      final validation = EditorValidator.validateFileContent(widget.filePath, _controller.text);
+      if (!validation.isValid) {
+        debugPrint('⚠️ Text validation failed: ${validation.error}');
+        // Revert to last valid state if available
+        if (_currentUndoIndex >= 0 && _currentUndoIndex < _undoStack.length) {
+          _controller.text = _undoStack[_currentUndoIndex];
+          return;
+        }
+      }
+      
       setState(() {
         _hasUnsavedChanges = true;
       });

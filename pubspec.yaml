@@ -31,7 +31,7 @@ dependencies:
   process_run: ^0.14.2
   speech_to_text: ^6.3.0
   audioplayers: ^5.2.1
-  # file_picker: ^5.0.1
+   file_picker: ^5.0.1
   web_socket_channel: ^2.4.0
   pty:
     path: packages/pty

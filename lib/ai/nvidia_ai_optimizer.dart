@@ -210,9 +210,162 @@ Focus on:
   }
 
   void _analyzePerformance() {
-    // This would typically monitor system performance
-    // For now, it's a placeholder for periodic analysis
-    debugPrint('🔍 Performance analysis triggered');
+    try {
+      debugPrint('🔍 Starting performance analysis...');
+      
+      // Monitor CPU usage
+      final cpuUsage = _getCpuUsage();
+      
+      // Monitor memory usage
+      final memoryUsage = _getMemoryUsage();
+      
+      // Monitor GPU usage if available
+      final gpuUsage = _getGpuUsage();
+      
+      // Analyze terminal performance metrics
+      final terminalMetrics = _getTerminalMetrics();
+      
+      // Generate optimization recommendations based on analysis
+      final recommendations = _generateRecommendations(
+        cpuUsage: cpuUsage,
+        memoryUsage: memoryUsage,
+        gpuUsage: gpuUsage,
+        terminalMetrics: terminalMetrics,
+      );
+      
+      // Add new recommendations to the list
+      for (final recommendation in recommendations) {
+        if (!_recommendations.any((r) => r.description == recommendation.description)) {
+          _recommendations.add(recommendation);
+          _optimizerController.add(recommendation);
+        }
+      }
+      
+      // Keep recommendations list bounded
+      if (_recommendations.length > 50) {
+        _recommendations.removeRange(0, _recommendations.length - 50);
+      }
+      
+      debugPrint('✅ Performance analysis completed - ${recommendations.length} recommendations generated');
+    } catch (e) {
+      debugPrint('❌ Error during performance analysis: $e');
+    }
+  }
+
+  double _getCpuUsage() {
+    try {
+      // Simple CPU usage calculation using /proc/stat on Linux
+      final statFile = File('/proc/stat');
+      if (await statFile.exists()) {
+        final lines = await statFile.readAsLines();
+        if (lines.isNotEmpty) {
+          final cpuLine = lines.first;
+          final parts = cpuLine.split(RegExp(r'\s+'));
+          if (parts.length > 4) {
+            final idle = int.parse(parts[4]);
+            final total = parts.skip(1).take(7).map(int.parse).reduce((a, b) => a + b);
+            return total > 0 ? (total - idle) / total : 0.0;
+          }
+        }
+      }
+    } catch (e) {
+      // Fallback for non-Linux systems or errors
+    }
+    return 0.0; // Default fallback
+  }
+
+  double _getMemoryUsage() {
+    try {
+      final meminfoFile = File('/proc/meminfo');
+      if (await meminfoFile.exists()) {
+        final lines = await meminfoFile.readAsLines();
+        int totalMem = 0;
+        int availableMem = 0;
+        
+        for (final line in lines) {
+          if (line.startsWith('MemTotal:')) {
+            totalMem = int.parse(line.split(RegExp(r'\s+'))[1]);
+          } else if (line.startsWith('MemAvailable:')) {
+            availableMem = int.parse(line.split(RegExp(r'\s+'))[1]);
+          }
+        }
+        
+        if (totalMem > 0) {
+          return (totalMem - availableMem) / totalMem;
+        }
+      }
+    } catch (e) {
+      // Fallback for non-Linux systems or errors
+    }
+    return 0.0; // Default fallback
+  }
+
+  double _getGpuUsage() {
+    // Placeholder for GPU usage monitoring
+    // In a real implementation, this would use NVIDIA ML libraries or system APIs
+    return 0.0;
+  }
+
+  Map<String, dynamic> _getTerminalMetrics() {
+    return {
+      'active_sessions': 1, // Would be dynamically determined
+      'rendering_fps': 60.0, // Would be measured
+      'memory_per_session': 50.0, // MB, would be measured
+    };
+  }
+
+  List<OptimizationRecommendation> _generateRecommendations({
+    required double cpuUsage,
+    required double memoryUsage,
+    required double gpuUsage,
+    required Map<String, dynamic> terminalMetrics,
+  }) {
+    final recommendations = <OptimizationRecommendation>[];
+    
+    // CPU-based recommendations
+    if (cpuUsage > 0.8) {
+      recommendations.add(OptimizationRecommendation(
+        timestamp: DateTime.now(),
+        overallScore: 0.7,
+        category: 'performance',
+        description: 'High CPU usage detected. Consider reducing terminal animations or background processes.',
+        impact: 'high',
+        difficulty: 'easy',
+        estimatedGain: 15.0,
+        actions: ['Reduce frame rate', 'Disable visual effects', 'Close unused terminals'],
+      ));
+    }
+    
+    // Memory-based recommendations
+    if (memoryUsage > 0.85) {
+      recommendations.add(OptimizationRecommendation(
+        timestamp: DateTime.now(),
+        overallScore: 0.8,
+        category: 'memory',
+        description: 'High memory usage. Clear terminal history or reduce scrollback buffer size.',
+        impact: 'medium',
+        difficulty: 'easy',
+        estimatedGain: 20.0,
+        actions: ['Clear scrollback', 'Reduce history size', 'Restart terminal sessions'],
+      ));
+    }
+    
+    // Terminal-specific recommendations
+    final fps = terminalMetrics['rendering_fps'] as double? ?? 60.0;
+    if (fps < 30.0) {
+      recommendations.add(OptimizationRecommendation(
+        timestamp: DateTime.now(),
+        overallScore: 0.6,
+        category: 'rendering',
+        description: 'Low rendering performance detected. Enable hardware acceleration or reduce visual effects.',
+        impact: 'medium',
+        difficulty: 'medium',
+        estimatedGain: 25.0,
+        actions: ['Enable GPU acceleration', 'Disable font ligatures', 'Reduce terminal size'],
+      ));
+    }
+    
+    return recommendations;
   }
 
   Map<String, dynamic> getStatistics() {

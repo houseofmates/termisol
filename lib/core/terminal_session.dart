@@ -269,7 +269,7 @@ class TerminalSession extends ChangeNotifier {
         state: {
           'terminal_content': _textBuffer.getVisibleText(1000),
           'cursor_position': _textBuffer._cursorPosition,
-          'history': _autoComplete._recentCommands,
+            'history': _autoComplete.recentCommands,
           'timestamp': DateTime.now().toIso8601String(),
         },
         timestamp: DateTime.now(),

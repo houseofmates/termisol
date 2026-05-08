@@ -1911,7 +1911,8 @@ ${context != null ? '- Context: ${context.description}' : ''}
   }
 
   Future<String> _makeOpenAIHttpCall(Map<String, dynamic> payload, String apiKey) async {
-    final uri = Uri.parse('https://api.openai.com/v1/chat/completions');
+    final endpoints = ApiEndpoints();
+    final uri = Uri.parse(endpoints.openaiChatCompletions);
     
     final headers = {
       'Content-Type': 'application/json',

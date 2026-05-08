@@ -91,7 +91,7 @@ class TerminalSession extends ChangeNotifier {
   late final SessionPersistence _sessionPersistence;
   late final CrashRecovery _crashRecovery;
   late final LongCommandNotifier _commandNotifier;
-  // late final TermisolPluginSystem _pluginSystem; // not currently used
+  late final TermisolPluginSystem _pluginSystem;
   late final BracketedPasteManager bracketedPaste;
 
   bool get connected => _connected;
@@ -119,7 +119,8 @@ class TerminalSession extends ChangeNotifier {
     _sessionPersistence = SessionPersistence();
     _crashRecovery = CrashRecovery();
     _commandNotifier = LongCommandNotifier();
-    // _pluginSystem = TermisolPluginSystem();
+    _pluginSystem = TermisolPluginSystem();
+    await _pluginSystem.initialize();
 
     bracketedPaste = BracketedPasteManager(terminal, controller);
     focusManager = FocusManager(terminal, controller, onFocusChanged, onFocusEvent);
@@ -327,6 +328,7 @@ class TerminalSession extends ChangeNotifier {
     _lazyOutput.dispose();
     _textBuffer.dispose();
     clipboardManager.dispose();
+    await _pluginSystem.disposeAll();
   }
 
   @override

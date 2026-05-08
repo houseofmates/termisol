@@ -6,6 +6,7 @@ import 'package:xterm/xterm.dart';
 import '../core/terminal_session.dart';
 import '../core/gpu_renderer.dart';
 import '../core/deep_l_service.dart';
+import '../core/graphics_protocol_handler.dart';
 import '../config/pkm_theme.dart';
 import 'clipboard_manager.dart';
 
@@ -68,6 +69,7 @@ class TermisolTerminalView extends StatefulWidget {
 class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   late final TerminalClipboardManager _clipboard;
   final _deepL = DeepLTranslationService();
+  final _graphicsHandler = GraphicsProtocolHandler();
   bool _isSummarizing = false;
   bool _isTranslating = false;
   double _fontSize = _defaultTerminalFontSize;
@@ -76,6 +78,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   void initState() {
     super.initState();
     _deepL.initialize();
+    _graphicsHandler.initialize();
     _clipboard = TerminalClipboardManager(
       widget.session.terminal,
       widget.session.controller,

@@ -403,8 +403,8 @@ class GitIntegration {
               hash: hash,
               shortHash: hash.substring(0, 7),
               message: message,
-              author: '', // TODO: Get author
-              date: DateTime.now(), // TODO: Get date
+              author: _getCommitAuthor(hash),
+              date: _getCommitDate(hash),
             ));
           }
         }

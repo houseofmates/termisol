@@ -7,18 +7,6 @@ import 'package:window_manager/window_manager.dart';
 import 'package:path_provider/path_provider.dart';
 import 'app.dart';
 import 'core/service_registry.dart';
-import 'ai/nvidia_ai_terminal_assistant.dart';
-import 'ai/nvidia_ai_client.dart';
-import 'core/performance_enforcer.dart';
-import 'core/production_gpu_renderer.dart';
-import 'core/git_integration.dart';
-import 'core/docker_operations.dart';
-import 'core/database_client.dart';
-import 'core/session_sync_manager.dart';
-import 'core/ssh_connection_persistence.dart';
-import 'core/plugin_ecosystem.dart';
-import 'config/production_config_system.dart';
-import 'config/ssh_passcode_manager.dart';
 
 /// Setup global error handling and crash reporting
 Future<void> _setupErrorHandling() async {
@@ -125,6 +113,7 @@ void main() async {
     await _logError('Uncaught Error', error.toString(), stackTrace);
     _showErrorDialog(error.toString());
   });
+}
 }
 
 /// Register all services with lazy-loading factories.

@@ -73,6 +73,24 @@ class ContextAwareAISuggestions {
     required List<String> commandHistory,
     required Map<String, dynamic> environment,
   }) async {
+    // Validate inputs
+    if (!_isInitialized) {
+      throw AISuggestionException('AI Suggestions not initialized. Call initialize() first.');
+    }
+    
+    if (currentCommand.isEmpty) {
+      return [];
+    }
+    
+    if (currentDirectory.isEmpty) {
+      throw AISuggestionException('Current directory cannot be empty');
+    }
+    
+    if (commandHistory.length > 1000) {
+      debugPrint('⚠️ Command history too large, truncating to last 1000 entries');
+      commandHistory = commandHistory.sublist(commandHistory.length - 1000);
+    }
+
     final cacheKey = _generateCacheKey(currentCommand, currentDirectory);
     
     // Check cache first

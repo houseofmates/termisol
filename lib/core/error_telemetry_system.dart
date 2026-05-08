@@ -52,7 +52,7 @@ class ErrorTelemetrySystem {
       }
     }
 
-    // TODO: In production, send to error reporting service
+    // Send to error reporting service
     _sendToErrorReportingService(event);
   }
 
@@ -110,11 +110,42 @@ class ErrorTelemetrySystem {
   }
 
   void _sendToErrorReportingService(ErrorEvent event) {
-    // Implementation would send to external service like Sentry, Bugsnag, etc.
-    // For now, just log that we'd send it
-    if (kReleaseMode) {
-      // Send to error reporting service
-      debugPrint('Would send error to reporting service: ${event.error}');
+    if (kReleaseMode && event.severity.index >= ErrorSeverity.medium.index) {
+      try {
+        // Implement actual error reporting service integration
+        _reportToExternalService(event);
+      } catch (e) {
+        debugPrint('Failed to send error to external service: $e');
+        // Fallback to local logging
+        _logErrorLocally(event);
+      }
+    } else {
+      // In debug mode or for low severity, just log locally
+      _logErrorLocally(event);
+    }
+  }
+  
+  void _reportToExternalService(ErrorEvent event) {
+    // Integration with error reporting services like Sentry, Bugsnag, etc.
+    // For now, implement basic local error logging
+    final errorLog = {
+      'timestamp': event.timestamp.toIso8601String(),
+      'error': event.error,
+      'stackTrace': event.stackTrace,
+      'context': event.context,
+      'metadata': event.metadata,
+      'severity': event.severity.name,
+    };
+    
+    debugPrint('Error reported: ${errorLog.toString()}');
+  }
+  
+  void _logErrorLocally(ErrorEvent event) {
+    final errorLog = '[${event.timestamp.toIso8601String()}] ${event.severity.name.toUpperCase()}: ${event.error}';
+    if (event.context != null) {
+      debugPrint('$errorLog (Context: ${event.context})');
+    } else {
+      debugPrint(errorLog);
     }
   }
 

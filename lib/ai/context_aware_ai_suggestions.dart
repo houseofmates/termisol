@@ -41,11 +41,11 @@ class ContextAwareAISuggestions {
       }
       
       if (!apiKey.startsWith('nvapi-')) {
-        throw AISuggestionException('Invalid NVIDIA API key format. Must start with "nvapi-"');
+        throw const AISuggestionException('Invalid NVIDIA API key format. Must start with "nvapi-"');
       }
       
       if (apiKey.length < 20) {
-        throw AISuggestionException('API key appears to be too short');
+        throw const AISuggestionException('API key appears to be too short');
       }
       
       _apiKey = apiKey;

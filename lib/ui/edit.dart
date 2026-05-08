@@ -3523,14 +3523,9 @@ Once configured, I'll provide intelligent assistance based on your file context.
 
   // Collaboration methods
   void _toggleCollaboration() async {
-    if (_collaborationEnabled) {
-      await _collaborationManager.disconnect();
-      setState(() {
-        _showCollaborationPanel = false;
-      });
-    } else {
-      final success = await _collaborationManager.connect(widget.filePath);
-      if (success) {
+    setState(() {
+      _showCollaborationPanel = false;
+    });
         setState(() {
           _showCollaborationPanel = true;
         });

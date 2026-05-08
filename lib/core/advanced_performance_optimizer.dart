@@ -416,11 +416,26 @@ class AdvancedPerformanceOptimizer {
       case MetricType.memoryUsage:
         await _handleMemoryPressure(metric.value);
         break;
+      case MetricType.availableMemory:
+        _logger.info('Available memory: ${metric.value}${metric.unit}');
+        break;
       case MetricType.cpuUsage:
         await _handleHighCPU(metric.value);
         break;
+      case MetricType.gpuUsage:
+        _logger.warning('GPU usage high: ${metric.value}${metric.unit}');
+        break;
       case MetricType.frameRate:
         await _handleLowFPS(metric.value);
+        break;
+      case MetricType.batteryLevel:
+        _logger.info('Battery level: ${metric.value}${metric.unit}');
+        break;
+      case MetricType.networkLatency:
+        _logger.warning('Network latency: ${metric.value}${metric.unit}');
+        break;
+      case MetricType.diskIO:
+        _logger.info('Disk I/O: ${metric.value}${metric.unit}');
         break;
     }
   }

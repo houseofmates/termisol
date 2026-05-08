@@ -96,7 +96,7 @@ class LocalBackend implements TermisolPtyBackend {
   }
 
   @override
-  void write(List<int> data) {
+  Future<void> write(List<int> data) async {
     if (_process == null || !_isRunning) {
       debugPrint('[LOCAL] Cannot write: process not running');
       return;

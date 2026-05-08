@@ -1088,8 +1088,22 @@ class AIAssistantIntegration {
   }
   
   Future<String> _makeOpenAICommandRequest(String command, AICapability capability, AIContext? context, String apiKey) async {
-    // Implement actual OpenAI API call for commands
-    return _getEnhancedCommandResponse(command, capability);
+    try {
+      // Prepare command-specific request payload
+      final payload = _buildOpenAICommandPayload(command, capability, context);
+      
+      // Make HTTP request to OpenAI API
+      final response = await _makeOpenAIHttpCall(payload, apiKey);
+      
+      // Parse and validate response
+      final result = _parseOpenAIResponse(response);
+      
+      debugPrint('🤖 OpenAI Command API request successful for capability: ${capability.name}');
+      return result;
+    } catch (e) {
+      debugPrint('⚠️ OpenAI Command API request failed: $e');
+      return _getEnhancedCommandResponse(command, capability);
+    }
   }
   
   // Fallback methods
@@ -1689,6 +1703,284 @@ ${context != null ? '- Context: ${context.description}' : ''}
     _eventController.close();
     debugPrint('🤖 AI Assistant Integration disposed');
   }
+
+  // OpenAI API helper methods implementation
+  Map<String, dynamic> _buildOpenAIPayload(String input, AICapability capability, AIContext? context) {
+    final prompt = _buildPrompt(input, capability, context);
+    
+    return {
+      'model': 'gpt-3.5-turbo',
+      'messages': [
+        {
+          'role': 'system',
+          'content': _getSystemPrompt(capability),
+        },
+        {
+          'role': 'user',
+          'content': prompt,
+        },
+      ],
+      'max_tokens': _getMaxTokens(capability),
+      'temperature': _getTemperature(capability),
+      'top_p': 0.9,
+      'frequency_penalty': 0.0,
+      'presence_penalty': 0.0,
+    };
+  }
+
+  Map<String, dynamic> _buildOpenAICodePayload(String code, AICapability capability, String? language, AIContext? context) {
+    final prompt = _buildCodePrompt(code, capability, language, context);
+    
+    return {
+      'model': 'gpt-4',
+      'messages': [
+        {
+          'role': 'system',
+          'content': _getCodeSystemPrompt(capability, language),
+        },
+        {
+          'role': 'user',
+          'content': prompt,
+        },
+      ],
+      'max_tokens': _getMaxTokens(capability),
+      'temperature': _getTemperature(capability),
+      'top_p': 0.9,
+      'frequency_penalty': 0.0,
+      'presence_penalty': 0.0,
+    };
+  }
+
+  Map<String, dynamic> _buildOpenAICommandPayload(String command, AICapability capability, AIContext? context) {
+    final prompt = _buildCommandPrompt(command, capability, context);
+    
+    return {
+      'model': 'gpt-3.5-turbo',
+      'messages': [
+        {
+          'role': 'system',
+          'content': _getCommandSystemPrompt(capability),
+        },
+        {
+          'role': 'user',
+          'content': prompt,
+        },
+      ],
+      'max_tokens': _getMaxTokens(capability),
+      'temperature': _getTemperature(capability),
+      'top_p': 0.9,
+      'frequency_penalty': 0.0,
+      'presence_penalty': 0.0,
+    };
+  }
+
+  String _buildPrompt(String input, AICapability capability, AIContext? context) {
+    String prompt = input;
+    
+    if (context != null && context.recentInteractions.isNotEmpty) {
+      final recentInteractions = context.recentInteractions.take(3).join('\n');
+      prompt = 'Recent context:\n$recentInteractions\n\nCurrent request:\n$input';
+    }
+    
+    return prompt;
+  }
+
+  String _buildCodePrompt(String code, AICapability capability, String? language, AIContext? context) {
+    String prompt = 'Language: ${language ?? "unknown"}\n\nCode:\n```\n$code\n```\n\n';
+    
+    switch (capability) {
+      case AICapability.code_analysis:
+        prompt += 'Please analyze this code and provide insights about its structure, quality, and potential issues.';
+        break;
+      case AICapability.code_generation:
+        prompt += 'Please generate code based on this input.';
+        break;
+      case AICapability.code_completion:
+        prompt += 'Please complete this code.';
+        break;
+      case AICapability.bug_detection:
+        prompt += 'Please identify any bugs or issues in this code.';
+        break;
+      default:
+        prompt += 'Please assist with this code.';
+    }
+    
+    return prompt;
+  }
+
+  String _buildCommandPrompt(String command, AICapability capability, AIContext? context) {
+    String prompt = 'Command: $command\n\n';
+    
+    switch (capability) {
+      case AICapability.command_suggestion:
+        prompt += 'Please suggest improvements or alternatives for this command.';
+        break;
+      case AICapability.command_explanation:
+        prompt += 'Please explain what this command does and how it works.';
+        break;
+      case AICapability.command_optimization:
+        prompt += 'Please suggest optimizations for this command.';
+        break;
+      default:
+        prompt += 'Please assist with this command.';
+    }
+    
+    return prompt;
+  }
+
+  String _getSystemPrompt(AICapability capability) {
+    switch (capability) {
+      case AICapability.text_generation:
+        return 'You are a helpful AI assistant that generates high-quality text content.';
+      case AICapability.text_analysis:
+        return 'You are a helpful AI assistant that analyzes text and provides insights.';
+      case AICapability.text_summarization:
+        return 'You are a helpful AI assistant that summarizes text effectively.';
+      case AICapability.text_translation:
+        return 'You are a helpful AI assistant that translates text accurately.';
+      case AICapability.creative_writing:
+        return 'You are a creative AI assistant that helps with writing tasks.';
+      default:
+        return 'You are a helpful AI assistant.';
+    }
+  }
+
+  String _getCodeSystemPrompt(AICapability capability, String? language) {
+    final basePrompt = 'You are an expert software developer and code analyst.';
+    final languagePrompt = language != null ? ' You specialize in $language.' : '';
+    
+    switch (capability) {
+      case AICapability.code_analysis:
+        return '$basePrompt$languagePrompt Analyze code thoroughly and provide detailed insights.';
+      case AICapability.code_generation:
+        return '$basePrompt$languagePrompt Generate clean, efficient, and well-documented code.';
+      case AICapability.code_completion:
+        return '$basePrompt$languagePrompt Complete code with appropriate syntax and best practices.';
+      case AICapability.bug_detection:
+        return '$basePrompt$languagePrompt Identify bugs, security issues, and code smells.';
+      default:
+        return '$basePrompt$languagePrompt Help with coding tasks.';
+    }
+  }
+
+  String _getCommandSystemPrompt(AICapability capability) {
+    switch (capability) {
+      case AICapability.command_suggestion:
+        return 'You are an expert system administrator and command-line specialist. Suggest helpful command alternatives and improvements.';
+      case AICapability.command_explanation:
+        return 'You are an expert system administrator. Explain commands clearly and concisely with examples.';
+      case AICapability.command_optimization:
+        return 'You are an expert system administrator. Suggest optimized command alternatives with performance considerations.';
+      default:
+        return 'You are a helpful command-line assistant.';
+    }
+  }
+
+  int _getMaxTokens(AICapability capability) {
+    switch (capability) {
+      case AICapability.text_generation:
+      case AICapability.creative_writing:
+        return 1000;
+      case AICapability.text_summarization:
+        return 500;
+      case AICapability.code_generation:
+      case AICapability.code_analysis:
+        return 1500;
+      case AICapability.command_explanation:
+        return 300;
+      default:
+        return 500;
+    }
+  }
+
+  double _getTemperature(AICapability capability) {
+    switch (capability) {
+      case AICapability.text_generation:
+      case AICapability.creative_writing:
+        return 0.8;
+      case AICapability.code_generation:
+      case AICapability.code_analysis:
+        return 0.3;
+      case AICapability.command_suggestion:
+        return 0.6;
+      default:
+        return 0.7;
+    }
+  }
+
+  Future<String> _makeOpenAIHttpCall(Map<String, dynamic> payload, String apiKey) async {
+    final uri = Uri.parse('https://api.openai.com/v1/chat/completions');
+    
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $apiKey',
+    };
+
+    try {
+      final request = await HttpClient()
+          .post(uri, headers: headers, body: jsonEncode(payload))
+          .timeout(Duration(seconds: 30));
+
+      if (request.statusCode != 200) {
+        throw OpenAIException(
+          'HTTP ${request.statusCode}: ${request.body}',
+          request.statusCode,
+        );
+      }
+
+      return request.body;
+    } on SocketException catch (e) {
+      throw OpenAIException('Network error: ${e.message}', 0);
+    } on TimeoutException catch (e) {
+      throw OpenAIException('Request timeout: ${e.message}', 0);
+    } catch (e) {
+      throw OpenAIException('Unexpected error: ${e.toString()}', 0);
+    }
+  }
+
+  String _parseOpenAIResponse(String responseBody) {
+    try {
+      final jsonResponse = jsonDecode(responseBody);
+      
+      if (jsonResponse['error'] != null) {
+        throw OpenAIException(
+          jsonResponse['error']['message'] ?? 'Unknown API error',
+          jsonResponse['error']['code'] ?? 'unknown',
+        );
+      }
+
+      final choices = jsonResponse['choices'] as List?;
+      if (choices == null || choices.isEmpty) {
+        throw OpenAIException('No response choices returned', 'no_choices');
+      }
+
+      final message = choices[0]['message'] as Map<String, dynamic>?;
+      if (message == null) {
+        throw OpenAIException('Invalid message format', 'invalid_format');
+      }
+
+      final content = message['content'] as String?;
+      if (content == null) {
+        throw OpenAIException('No content in response', 'no_content');
+      }
+
+      return content;
+    } on FormatException catch (e) {
+      throw OpenAIException('Invalid JSON response: ${e.message}', 'invalid_json');
+    } catch (e) {
+      throw OpenAIException('Failed to parse response: ${e.toString()}', 'parse_error');
+    }
+  }
+}
+
+class OpenAIException implements Exception {
+  final String message;
+  final String code;
+  
+  OpenAIException(this.message, [this.code = 'unknown']);
+  
+  @override
+  String toString() => 'OpenAIException: $message (code: $code)';
 }
 
 // Data models

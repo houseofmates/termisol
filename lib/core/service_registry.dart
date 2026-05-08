@@ -250,11 +250,10 @@ class TermisolFeatures {
   static List<String> get all => [
     terminalCore, aiAssistant, performanceMonitoring, gpuRenderer,
     gitIntegration, dockerIntegration, databaseClient, fileManager,
-    vrSupport, videoPlayback, audioVisualization, model3d,
     sessionSync, sshExtras, autoSshKeyManagement, multihopSsh,
     tunnelManagement, sshConnectionPersistence, collaboration, plugins,
   ];
 
   static List<String> get critical => [terminalCore, performanceMonitoring];
-  static List<String> get heavy => [vrSupport, videoPlayback, audioVisualization, model3d, collaboration];
+  static List<String> get heavy => [collaboration, plugins];
 }

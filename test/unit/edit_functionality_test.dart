@@ -5,11 +5,11 @@ import 'dart:async';
 import 'dart:math';
 
 // Import the edit functionality components
-import 'package:termisol/lib/core/advanced_terminal_protocol.dart';
-import 'package:termisol/lib/core/quantum_terminal_engine.dart';
-import 'package:termisol/lib/core/error_handling_wrapper.dart';
-import 'package:termisol/lib/core/logging_system.dart';
-import 'package:termisol/lib/core/debug_tools.dart';
+import 'package:termisol/core/advanced_terminal_protocol.dart';
+import 'package:termisol/core/quantum_terminal_engine.dart';
+import 'package:termisol/core/error_handling_wrapper.dart';
+import 'package:termisol/core/logging_system.dart';
+import 'package:termisol/core/debug_tools.dart';
 
 void main() {
   group('Edit Functionality Tests', () {

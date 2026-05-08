@@ -18,8 +18,15 @@ import 'package:termisol/core/logging_system.dart';
 class TermisolPluginSystem {
   final Map<String, Plugin> _plugins = {};
   final Map<String, dynamic> _pluginConfigs = {};
+  bool _initialized = false;
 
   TermisolPluginSystem();
+
+  Future<void> initialize() async {
+    if (_initialized) return;
+    _initialized = true;
+    debugPrint('TermisolPluginSystem initialized');
+  }
 
   /// Load a plugin
   Future<bool> loadPlugin(String pluginPath) async {

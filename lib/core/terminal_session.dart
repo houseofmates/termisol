@@ -257,7 +257,8 @@ class TerminalSession extends ChangeNotifier {
       }
     }
 
-    _backend!.writeInput(utf8.encode(input));
+    // Use throttled renderer for better performance
+    throttledRenderer.write(input);
   }
 
   /// Resize the terminal.

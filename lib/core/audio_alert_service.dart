@@ -1,166 +1,187 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:path_provider/path_provider.dart';
 
-/// Production-grade audio alert service for Termisol
-/// 
-/// Features:
-/// - Cross-platform audio playback with fallbacks
-/// - Configurable alert sounds and volumes
-/// - Memory-efficient audio caching
-/// - Error handling and graceful degradation
-/// - System notification integration
+/// Audio Alert Service
+///
+/// Plays configurable audio alerts for terminal events: command completion,
+/// long-running task finish, errors, and custom notifications.
 class AudioAlertService {
-  static final AudioAlertService _instance = AudioAlertService._internal();
-  factory AudioAlertService() => _instance;
-  AudioAlertService._internal();
+  final AudioPlayer _player = AudioPlayer();
+  final Map<String, AlertProfile> _profiles = {};
+  final Map<String, AlertEvent> _events = {};
+  AlertProfile? _activeProfile;
+  bool _muted = false;
+  double _volume = 0.7;
+  final StreamController<AlertEvent> _eventController = StreamController<AlertEvent>.broadcast();
 
-  final AudioPlayer _audioPlayer = AudioPlayer();
-  final Map<String, String> _soundCache = {};
-  bool _initialized = false;
-  double _volume = 0.5;
-  bool _enabled = true;
-  
-  // Default sound paths
-  static const Map<String, String> _defaultSounds = {
-    'notification': 'assets/notif.mp3',
-    'error': 'assets/error.mp3',
-    'success': 'assets/success.mp3',
-    'warning': 'assets/warning.mp3',
-  };
+  Stream<AlertEvent> get alerts => _eventController.stream;
+  bool get isMuted => _muted;
 
-  /// Initialize() audio service
   Future<void> initialize() async {
-    if (_initialized) return;
-    
-    try {
-      await _audioPlayer.setPlayerMode(PlayerMode.lowLatency);
-      await _loadDefaultSounds();
-      _initialized = true;
-      debugPrint('✅ AudioAlertService initialized');
-    } catch (e) {
-      debugPrint('❌ AudioAlertService initialization failed: $e');
-      // Continue without audio rather than crash
+    _loadDefaultProfiles();
+    _activeProfile = _profiles['default'];
+    debugPrint('AudioAlertService initialized');
+  }
+
+  void addProfile(AlertProfile profile) {
+    _profiles[profile.name] = profile;
+  }
+
+  void setActiveProfile(String name) {
+    _activeProfile = _profiles[name] ?? _activeProfile;
+  }
+
+  void setMuted(bool muted) {
+    _muted = muted;
+    if (muted) {
+      _player.stop();
     }
   }
 
-  /// Load default sound files
-  Future<void> _loadDefaultSounds() async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final assetsDir = Directory('${directory.path}/assets');
-      
-      if (!await assetsDir.exists()) {
-        await assetsDir.create(recursive: true);
-      }
-
-      for (final entry in _defaultSounds.entries) {
-        final soundFile = File('${assetsDir.path}/${entry.key}.mp3');
-        if (await soundFile.exists()) {
-          _soundCache[entry.key] = soundFile.path;
-        } else {
-          // Try to load from bundled assets
-          _soundCache[entry.key] = entry.value;
-        }
-      }
-    } catch (e) {
-      debugPrint('Failed to load default sounds: $e');
-    }
-  }
-
-  /// Play an audio alert
-  Future<void> playAlert(String alertType, {double? volume}) async {
-    if (!_enabled || !_initialized) return;
-
-    try {
-      final soundPath = _soundCache[alertType] ?? _soundCache['notification'];
-      if (soundPath == null) return;
-
-      final playVolume = volume ?? _volume;
-      await _audioPlayer.setVolume(playVolume);
-      
-      if (await File(soundPath).exists()) {
-        await _audioPlayer.play(DeviceFileSource(soundPath));
-      } else {
-        // Try bundled asset
-        await _audioPlayer.play(AssetSource(soundPath));
-      }
-      
-      debugPrint('🔊 Played audio alert: $alertType');
-    } catch (e) {
-      debugPrint('Failed to play audio alert $alertType: $e');
-      // Silent fail - don't disrupt user experience
-    }
-  }
-
-  /// Play notification sound
-  Future<void> playNotification() => playAlert('notification');
-
-  /// Play error sound
-  Future<void> playError() => playAlert('error');
-
-  /// Play success sound
-  Future<void> playSuccess() => playAlert('success');
-
-  /// Play warning sound
-  Future<void> playWarning() => playAlert('warning');
-
-  /// Set master volume (0.0 to 1.0)
-  Future<void> setVolume(double volume) async {
+  void setVolume(double volume) {
     _volume = volume.clamp(0.0, 1.0);
-    await _audioPlayer.setVolume(_volume);
+    _player.setVolume(_volume);
   }
 
-  /// Enable or disable audio alerts
-  void setEnabled(bool enabled) {
-    _enabled = enabled;
-  }
+  Future<void> playAlert(AlertType type, {String? customSound, double? volume}) async {
+    if (_muted) return;
 
-  /// Add custom sound
-  Future<void> addCustomSound(String name, String filePath) async {
+    final profile = _activeProfile;
+    if (profile == null) return;
+
+    String? soundAsset;
+
+    switch (type) {
+      case AlertType.commandComplete:
+        soundAsset = profile.commandCompleteSound;
+        break;
+      case AlertType.taskComplete:
+        soundAsset = profile.taskCompleteSound;
+        break;
+      case AlertType.error:
+        soundAsset = profile.errorSound;
+        break;
+      case AlertType.notification:
+        soundAsset = profile.notificationSound;
+        break;
+      case AlertType.bell:
+        soundAsset = profile.bellSound;
+        break;
+      case AlertType.warning:
+        soundAsset = profile.warningSound;
+        break;
+      case AlertType.success:
+        soundAsset = profile.successSound;
+        break;
+    }
+
+    soundAsset ??= customSound;
+
+    if (soundAsset == null) return;
+
     try {
-      final file = File(filePath);
-      if (await file.exists()) {
-        _soundCache[name] = filePath;
-        debugPrint('✅ Added custom sound: $name');
+      await _player.setVolume(volume ?? _volume);
+      if (soundAsset.startsWith('assets/')) {
+        await _player.play(AssetSource(soundAsset));
+      } else {
+        await _player.play(UrlSource(soundAsset));
       }
+
+      final event = AlertEvent(type: type, soundAsset: soundAsset);
+      _events[type.name] = event;
+      _eventController.add(event);
     } catch (e) {
-      debugPrint('Failed to add custom sound $name: $e');
+      debugPrint('Failed to play alert sound: $e');
     }
   }
 
-  /// Test audio system
-  Future<bool> testAudio() async {
-    try {
-      await playAlert('notification');
-      return true;
-    } catch (e) {
-      debugPrint('Audio test failed: $e');
-      return false;
-    }
+  Future<void> playCommandComplete() => playAlert(AlertType.commandComplete);
+  Future<void> playTaskComplete() => playAlert(AlertType.taskComplete);
+  Future<void> playError() => playAlert(AlertType.error);
+  Future<void> playNotification() => playAlert(AlertType.notification);
+  Future<void> playBell() => playAlert(AlertType.bell);
+  Future<void> playWarning() => playAlert(AlertType.warning);
+  Future<void> playSuccess() => playAlert(AlertType.success);
+
+  Future<void> playTerminalBell() async {
+    await _player.setVolume(_volume);
+    await _player.play(AssetSource('assets/sounds/bell.wav'));
   }
 
-  /// Get current configuration
-  Map<String, dynamic> getConfig() {
-    return {
-      'initialized': _initialized,
-      'enabled': _enabled,
-      'volume': _volume,
-      'availableSounds': _soundCache.keys.toList(),
-    };
+  Future<void> stop() async {
+    await _player.stop();
   }
 
-  /// Dispose resources
   Future<void> dispose() async {
-    try {
-      await _audioPlayer.dispose();
-      _soundCache.clear();
-      _initialized = false;
-    } catch (e) {
-      debugPrint('Error disposing AudioAlertService: $e');
-    }
+    await _player.dispose();
+    await _eventController.close();
   }
+
+  void _loadDefaultProfiles() {
+    _profiles['default'] = AlertProfile(
+      name: 'default',
+      commandCompleteSound: 'assets/sounds/complete.wav',
+      taskCompleteSound: 'assets/sounds/complete.wav',
+      errorSound: 'assets/sounds/error.wav',
+      notificationSound: 'assets/sounds/notification.wav',
+      bellSound: 'assets/sounds/bell.wav',
+      warningSound: 'assets/sounds/warning.wav',
+      successSound: 'assets/sounds/success.wav',
+    );
+
+    _profiles['minimal'] = AlertProfile(
+      name: 'minimal',
+      commandCompleteSound: null,
+      taskCompleteSound: 'assets/sounds/complete.wav',
+      errorSound: null,
+      notificationSound: null,
+      bellSound: 'assets/sounds/bell.wav',
+    );
+
+    _profiles['intrusive'] = AlertProfile(
+      name: 'intrusive',
+      commandCompleteSound: 'assets/sounds/complete.wav',
+      taskCompleteSound: 'assets/sounds/complete.wav',
+      errorSound: 'assets/sounds/error.wav',
+      notificationSound: 'assets/sounds/notification.wav',
+      bellSound: 'assets/sounds/bell.wav',
+      warningSound: 'assets/sounds/warning.wav',
+      successSound: 'assets/sounds/success.wav',
+    );
+  }
+}
+
+enum AlertType { commandComplete, taskComplete, error, notification, bell, warning, success }
+
+class AlertProfile {
+  final String name;
+  final String? commandCompleteSound;
+  final String? taskCompleteSound;
+  final String? errorSound;
+  final String? notificationSound;
+  final String? bellSound;
+  final String? warningSound;
+  final String? successSound;
+
+  AlertProfile({
+    required this.name,
+    this.commandCompleteSound,
+    this.taskCompleteSound,
+    this.errorSound,
+    this.notificationSound,
+    this.bellSound,
+    this.warningSound,
+    this.successSound,
+  });
+}
+
+class AlertEvent {
+  final AlertType type;
+  final String soundAsset;
+  final DateTime timestamp;
+
+  AlertEvent({required this.type, required this.soundAsset})
+      : timestamp = DateTime.now();
 }

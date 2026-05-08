@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 
 /// Production-grade database client for Termisol
-/// 
+///
 /// Features:
 /// - PostgreSQL connection with connection pooling
 /// - SQLite fallback for local development
@@ -22,19 +22,19 @@ class DatabaseClient {
   factory DatabaseClient() => _instance;
   DatabaseClient._internal();
 
-  PostgreSQLConnection? _postgresConnection;
-  ConnectionPool? _connectionPool;
+  Connection? _postgresConnection;
+  Pool? _connectionPool;
   bool _initialized = false;
   bool _usePostgres = true;
   String? _lastError;
-  final Map<String, dynamic> _config = {};
+  Map<String, dynamic> _config = {};
   final Map<String, CachedQuery> _queryCache = {};
   final StreamController<DatabaseEvent> _eventController = StreamController.broadcast();
   Timer? _healthCheckTimer;
 
   Stream<DatabaseEvent> get events => _eventController.stream;
   bool get isInitialized => _initialized;
-  bool get isConnected => _postgresConnection?.isConnected ?? false;
+  bool get isConnected => _postgresConnection?.isOpen ?? false;
   String? get lastError => _lastError;
 
   /// Initialize database client
@@ -52,7 +52,7 @@ class DatabaseClient {
       _lastError = e.toString();
       debugPrint('❌ DatabaseClient initialization failed: $e');
       _eventController.add(DatabaseEvent('error', 'Initialization failed: $e'));
-      
+
       // Try fallback to SQLite
       await _initializeFallback();
     }
@@ -101,27 +101,37 @@ class DatabaseClient {
     if (!_usePostgres) return;
 
     try {
-      _postgresConnection = PostgreSQLConnection(
-        _config['postgres_host'] as String,
-        _config['postgres_port'] as int,
-        _config['postgres_database'] as String,
+      final endpoint = Endpoint(
+        host: _config['postgres_host'] as String,
+        port: _config['postgres_port'] as int,
+        database: _config['postgres_database'] as String,
         username: _config['postgres_username'] as String,
         password: _config['postgres_password'] as String,
-        useSSL: _config['use_ssl'] as bool,
-        timeoutInSeconds: (_config['connection_timeout'] as Duration).inSeconds,
       );
 
-      await _postgresConnection!.open();
-      
-      // Create connection pool
-      _connectionPool = ConnectionPool(
-        _postgresConnection!,
-        maxConnections: _config['max_connections'] as int,
+      _postgresConnection = await Connection.open(
+        endpoint,
+        settings: ConnectionSettings(
+          sslMode: (_config['use_ssl'] as bool) ? SslMode.require : SslMode.disable,
+          connectTimeout: _config['connection_timeout'] as Duration,
+          queryTimeout: _config['query_timeout'] as Duration,
+        ),
+      );
+
+      // Create connection pool (postgres v3 API)
+      _connectionPool = Pool.withEndpoints(
+        [endpoint],
+        settings: PoolSettings(
+          maxConnectionCount: _config['max_connections'] as int,
+          sslMode: (_config['use_ssl'] as bool) ? SslMode.require : SslMode.disable,
+          connectTimeout: _config['connection_timeout'] as Duration,
+          queryTimeout: _config['query_timeout'] as Duration,
+        ),
       );
 
       // Test connection
       await _testConnection();
-      
+
       debugPrint('✅ Connected to PostgreSQL database');
     } catch (e) {
       _lastError = e.toString();
@@ -135,7 +145,7 @@ class DatabaseClient {
     if (_postgresConnection == null) return;
 
     try {
-      final result = await _postgresConnection!.query('SELECT version()');
+      final result = await _postgresConnection!.execute('SELECT version()');
       if (result.isNotEmpty) {
         debugPrint('Database connection test successful');
       }
@@ -151,13 +161,13 @@ class DatabaseClient {
       // Initialize SQLite for local development
       final directory = await getApplicationDocumentsDirectory();
       final dbPath = '${directory.path}/termisol_local.db';
-      
+
       // Create SQLite database file
       final dbFile = File(dbPath);
       if (!await dbFile.exists()) {
         await dbFile.create(recursive: true);
       }
-      
+
       debugPrint('✅ Initialized SQLite fallback database');
       _eventController.add(DatabaseEvent('fallback', 'Using SQLite fallback'));
     } catch (e) {
@@ -182,7 +192,7 @@ class DatabaseClient {
     } catch (e) {
       _lastError = e.toString();
       _eventController.add(DatabaseEvent('health_check_failed', e.toString()));
-      
+
       // Try to reconnect
       await _attemptReconnection();
     }
@@ -194,7 +204,7 @@ class DatabaseClient {
       if (_postgresConnection != null) {
         await _postgresConnection!.close();
       }
-      
+
       await _connectToDatabase();
       debugPrint('✅ Database reconnection successful');
       _eventController.add(DatabaseEvent('reconnected', 'Database reconnection successful'));
@@ -216,11 +226,11 @@ class DatabaseClient {
     }
 
     final cacheKey = _generateCacheKey(query, parameters);
-    
+
     // Check cache first
     if (useCache && _queryCache.containsKey(cacheKey)) {
       final cached = _queryCache[cacheKey]!;
-      if (!cached.isExpired) {
+      if (!cached.isExpired()) {
         return cached.result;
       } else {
         _queryCache.remove(cacheKey);
@@ -229,7 +239,7 @@ class DatabaseClient {
 
     try {
       List<Map<String, dynamic>> result;
-      
+
       if (_usePostgres && _postgresConnection != null) {
         result = await _executePostgresQuery(query, parameters);
       } else {
@@ -259,13 +269,13 @@ class DatabaseClient {
       throw StateError('PostgreSQL connection not available');
     }
 
-    final result = await _postgresConnection!.mappedResultsQuery(
-      query,
-      substitutionValues: parameters ?? {},
-      timeoutInSeconds: (_config['query_timeout'] as Duration).inSeconds,
+    final result = await _postgresConnection!.execute(
+      parameters != null && parameters.isNotEmpty ? Sql.named(query) : query,
+      parameters: parameters,
+      timeout: _config['query_timeout'] as Duration,
     );
 
-    return result;
+    return result.map((row) => row.toColumnMap()).toList();
   }
 
   /// Execute SQLite query
@@ -291,22 +301,22 @@ class DatabaseClient {
   void _cleanupCache() {
     final now = DateTime.now();
     final expiredKeys = <String>[];
-    
+
     for (final entry in _queryCache.entries) {
       if (entry.value.isExpired(now)) {
         expiredKeys.add(entry.key);
       }
     }
-    
+
     for (final key in expiredKeys) {
       _queryCache.remove(key);
     }
-    
+
     // Limit cache size
     if (_queryCache.length > (_config['cache_size'] as int)) {
       final entries = _queryCache.entries.toList()
         ..sort((a, b) => a.value.timestamp.compareTo(b.value.timestamp));
-      
+
       final toRemove = entries.take(_queryCache.length - (_config['cache_size'] as int));
       for (final entry in toRemove) {
         _queryCache.remove(entry.key);
@@ -328,11 +338,12 @@ class DatabaseClient {
     }
 
     try {
-      await _postgresConnection!.transaction((conn) async {
+      await _postgresConnection!.runTx((session) async {
         for (int i = 0; i < queries.length; i++) {
-          await conn.mappedResultsQuery(
-            queries[i],
-            substitutionValues: parametersList?[i] ?? {},
+          final params = parametersList?[i];
+          await session.execute(
+            params != null && params.isNotEmpty ? Sql.named(queries[i]) : queries[i],
+            parameters: params,
           );
         }
       });
@@ -367,10 +378,10 @@ class DatabaseClient {
   Future<void> updateConfiguration(Map<String, dynamic> newConfig) async {
     try {
       _config.addAll(newConfig);
-      
+
       // Save to preferences
       final prefs = await SharedPreferences.getInstance();
-      
+
       for (final entry in newConfig.entries) {
         switch (entry.key) {
           case 'postgres_host':
@@ -421,6 +432,7 @@ class DatabaseClient {
     try {
       _healthCheckTimer?.cancel();
       await _postgresConnection?.close();
+      await _connectionPool?.close();
       _queryCache.clear();
       await _eventController.close();
       _initialized = false;
@@ -428,42 +440,6 @@ class DatabaseClient {
     } catch (e) {
       debugPrint('Error disposing DatabaseClient: $e');
     }
-  }
-}
-
-/// Connection pool for PostgreSQL
-class ConnectionPool {
-  final PostgreSQLConnection _connection;
-  final int maxConnections;
-  final List<PostgreSQLConnection> _availableConnections = [];
-  final List<PostgreSQLConnection> _usedConnections = [];
-
-  ConnectionPool(this._connection, {required this.maxConnections});
-
-  Future<PostgreSQLConnection> getConnection() async {
-    if (_availableConnections.isNotEmpty) {
-      final conn = _availableConnections.removeLast();
-      _usedConnections.add(conn);
-      return conn;
-    }
-
-    if (_usedConnections.length < maxConnections) {
-      final conn = _createConnection();
-      _usedConnections.add(conn);
-      return conn;
-    }
-
-    throw Exception('Connection pool exhausted');
-  }
-
-  void releaseConnection(PostgreSQLConnection connection) {
-    _usedConnections.remove(connection);
-    _availableConnections.add(connection);
-  }
-
-  PostgreSQLConnection _createConnection() {
-    // Create new connection with same parameters
-    return _connection;
   }
 }
 
@@ -475,12 +451,9 @@ class CachedQuery {
 
   CachedQuery(this.result, this.timestamp);
 
-  bool get isExpired {
-    return DateTime.now().difference(timestamp) > cacheDuration;
-  }
-
-  bool isExpired(DateTime now) {
-    return now.difference(timestamp) > cacheDuration;
+  bool isExpired([DateTime? now]) {
+    final checkTime = now ?? DateTime.now();
+    return checkTime.difference(timestamp) > cacheDuration;
   }
 }
 

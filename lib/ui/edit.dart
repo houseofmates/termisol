@@ -1325,6 +1325,12 @@ class _EditTerminalState extends State<EditTerminal> {
         }
       }
       
+      // Handle collaboration shortcuts
+      if (isCtrlPressed && isShiftPressed && event.logicalKey == LogicalKeyboardKey.keyC) {
+        _toggleCollaboration();
+        return;
+      }
+      
       // Handle multi-cursor typing
       if (event.character != null && event.character!.isNotEmpty && !isCtrlPressed && !event.isMetaPressed) {
         if (_multiCursorMode) {

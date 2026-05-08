@@ -129,6 +129,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: const Icon(Icons.add, color: PkmTheme.primary),
                   tooltip: 'New Tab',
                 ),
+                IconButton(
+                  onPressed: _showSettings,
+                  icon: const Icon(Icons.settings, color: PkmTheme.primary),
+                  tooltip: 'Settings',
+                ),
                 const Spacer(),
                 Text(
                   'Termisol Terminal',

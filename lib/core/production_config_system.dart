@@ -248,8 +248,109 @@ class ProductionConfigSystem {
   }
 
   bool _isVrPlatform() {
-    // Simple VR detection - in real implementation, this would check for VR headset
-    return false; // Placeholder
+    try {
+      // Check for VR runtime and device detection
+      if (Platform.isAndroid) {
+        // Check for Oculus/Quest devices
+        final isOculus = Platform.environment['OCULUS_VR']?.isNotEmpty ?? false;
+        final isQuest = Platform.environment['QUEST_VR']?.isNotEmpty ?? false;
+        
+        // Check for VR-specific system properties
+        final hasVrFeature = _checkAndroidVRFeatures();
+        
+        return isOculus || isQuest || hasVrFeature;
+      } else if (Platform.isWindows) {
+        // Check for Windows Mixed Reality or SteamVR
+        return _checkWindowsVRSupport();
+      } else if (Platform.isLinux) {
+        // Check for Linux VR support (OpenXR, etc.)
+        return _checkLinuxVRSupport();
+      }
+      
+      return false;
+    } catch (e) {
+      debugPrint('VR platform detection failed: $e');
+      return false;
+    }
+  }
+  
+  /// Check Android VR features
+  bool _checkAndroidVRFeatures() {
+    try {
+      // Check for VR-related system properties
+      final vrFeatures = [
+        'ro.hardware.vr',
+        'ro.product.model',
+        'ro.build.product',
+      ];
+      
+      for (final feature in vrFeatures) {
+        final value = Platform.environment[feature];
+        if (value != null && 
+            (value.toLowerCase().contains('quest') ||
+             value.toLowerCase().contains('oculus') ||
+             value.toLowerCase().contains('vr'))) {
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (e) {
+      debugPrint('Android VR feature check failed: $e');
+      return false;
+    }
+  }
+  
+  /// Check Windows VR support
+  bool _checkWindowsVRSupport() {
+    try {
+      // Check for Windows Mixed Reality runtime
+      final wmrPath = r'C:\Program Files\Windows Mixed Reality';
+      final wmrDir = Directory(wmrPath);
+      
+      if (wmrDir.existsSync()) {
+        return true;
+      }
+      
+      // Check for SteamVR installation
+      final steamvrPath = r'C:\Program Files (x86)\Steam\steamapps\common\SteamVR';
+      final steamvrDir = Directory(steamvrPath);
+      
+      return steamvrDir.existsSync();
+    } catch (e) {
+      debugPrint('Windows VR support check failed: $e');
+      return false;
+    }
+  }
+  
+  /// Check Linux VR support
+  bool _checkLinuxVRSupport() {
+    try {
+      // Check for OpenXR runtime
+      final openxrPaths = [
+        '/usr/lib/x86_64-linux-gnu/libopenxr_loader.so',
+        '/usr/local/lib/libopenxr_loader.so',
+        '/usr/lib/libopenxr_loader.so.1',
+      ];
+      
+      for (final path in openxrPaths) {
+        final file = File(path);
+        if (file.existsSync()) {
+          return true;
+        }
+      }
+      
+      // Check for Monado runtime
+      final monadoFile = File('/usr/lib/libmonado.so');
+      if (monadoFile.existsSync()) {
+        return true;
+      }
+      
+      return false;
+    } catch (e) {
+      debugPrint('Linux VR support check failed: $e');
+      return false;
+    }
   }
 
   void _deepMerge(Map<String, dynamic> target, Map<String, dynamic> source) {

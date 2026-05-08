@@ -268,12 +268,12 @@ class GraphicsProtocolHandler {
   }
 
   /// Handle Kitty graphics actions
-  String _handleKittyAction(Map<String, String> params) {
+  String _handleKittyAction(Map<String, String> params, int cursorX, int cursorY) {
     final action = params['a'];
 
     switch (action) {
       case 'p': // Put image
-        return _putKittyImage(params);
+        return _putKittyImage(params, cursorX, cursorY);
       case 'd': // Delete image
         return _deleteKittyImage(params);
       case 'q': // Query

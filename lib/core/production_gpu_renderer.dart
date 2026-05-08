@@ -122,32 +122,34 @@ class ProductionGpuRenderer {
   }
 
   Future<Shader?> _compileShader(String source) async {
+    // Check if shader already cached
+    if (_shaderCache.containsKey(source)) {
+      return _shaderCache[source];
+    }
+
     try {
-      // Check if shader already cached
-      if (_shaderCache.containsKey(source)) {
-        return _shaderCache[source];
-      }
-      
       // Create fragment shader for GPU acceleration
       final program = await ui.FragmentProgram.fromAsset('shaders/terminal.glsl');
       final fragmentShader = program.fragmentShader();
       _shaderCache[source] = fragmentShader;
       debugPrint('Shader compiled and cached successfully');
       return fragmentShader;
-    } on Exception catch (_) {
+    } catch (_) {
       // Fallback to gradient shader for basic effects
-      final gradientShader = ui.Gradient.linear(
-        const Offset(0, 0),
-        const Offset(1, 1),
-        [const Color(0xFF000000), const Color(0xFFFFFFFF)],
-      );
-      
-      _shaderCache[source] = gradientShader;
-      debugPrint('Fallback shader created');
-      return gradientShader;
-    } catch (e) {
-      debugPrint('Shader compilation failed: $e');
-      return null;
+      try {
+        final gradientShader = ui.Gradient.linear(
+          const Offset(0, 0),
+          const Offset(1, 1),
+          [const Color(0xFF000000), const Color(0xFFFFFFFF)],
+        );
+
+        _shaderCache[source] = gradientShader;
+        debugPrint('Fallback shader created');
+        return gradientShader;
+      } catch (e) {
+        debugPrint('Shader compilation failed: $e');
+        return null;
+      }
     }
   }
 

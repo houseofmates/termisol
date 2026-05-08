@@ -85,6 +85,8 @@ class SpeechService {
   void dispose() {
     try {
       _speech.cancel();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Failed to cancel speech: $e');
+    }
   }
 }

@@ -460,7 +460,9 @@ class SSHKeyManager {
         final connection = _connections.firstWhere((c) => c.id == connectionId);
         connection.status = SSHConnectionStatus.failed;
         connection.lastActivity = DateTime.now();
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('Failed to update connection status: $e');
+      }
       
       return false;
     }

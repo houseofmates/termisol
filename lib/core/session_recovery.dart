@@ -163,7 +163,9 @@ class SessionRecovery {
           await lockFile.delete();
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Failed to release session lock: $e');
+    }
   }
 
   bool _isProcessAlive(int checkPid) {
@@ -188,7 +190,9 @@ class SessionRecovery {
     try {
       final line = '${jsonEncode(entry.toJson())}\n';
       await File(_crashLogFile).writeAsString(line, mode: FileMode.append);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Failed to write crash log: $e');
+    }
   }
 
   Future<void> _loadCrashLog() async {
@@ -200,9 +204,13 @@ class SessionRecovery {
         if (line.trim().isEmpty) continue;
         try {
           _crashLog.add(CrashLogEntry.fromJson(jsonDecode(line)));
-        } catch (_) {}
+        } catch (e) {
+          debugPrint('Failed to parse crash log entry: $e');
+        }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Failed to load crash log: $e');
+    }
   }
 
   SessionTab createTab({

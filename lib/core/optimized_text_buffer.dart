@@ -7,6 +7,10 @@ class OptimizedTextBuffer {
 
   String getVisibleText(int maxLines) => '';
 
+  void append(String data) {
+    // Stub implementation
+  }
+
   void clear() {
     // Stub implementation
   }

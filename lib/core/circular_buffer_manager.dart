@@ -571,7 +571,4 @@ class BufferStatistics {
   double get readThroughput => totalReads > 0 ? totalBytesRead / totalReads : 0.0;
 }
 
-/// Helper function to fire and forget futures
-void unawaited(Future<void> future) {
-  // Intentionally empty - just prevents "unawaited_future" lint
-}
+

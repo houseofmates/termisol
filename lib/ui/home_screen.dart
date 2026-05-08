@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/service_registry.dart';
@@ -128,9 +127,9 @@ class _HomeScreenState extends State<HomeScreen> {
           capability: AICapability.text_generation,
           contextId: 'terminal_${_activeTab}',
         );
-        final success = response.success as bool? ?? false;
-        final output = response.output as String?;
-        return success && output != null ? output : 'AI service unavailable';
+        return response.success && response.output.isNotEmpty
+            ? response.output
+            : 'AI service unavailable';
       }
       return 'AI service not configured';
     } catch (e, stack) {

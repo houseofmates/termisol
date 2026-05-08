@@ -998,6 +998,20 @@ class _TextEditorState extends State<TextEditor> {
                     tooltip: 'Search',
                   ),
                   IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _showSearchHighlights = !_showSearchHighlights;
+                      });
+                      _showStatus('Search highlights ${_showSearchHighlights ? 'enabled' : 'disabled'}');
+                    },
+                    icon: Icon(
+                      _showSearchHighlights ? Icons.highlight : Icons.highlight_outlined,
+                      size: 16,
+                      color: _showSearchHighlights ? Colors.yellow[400] : Colors.grey[400],
+                    ),
+                    tooltip: 'Toggle Search Highlights',
+                  ),
+                  IconButton(
                     onPressed: _saveContent,
                     icon: const Icon(Icons.save, size: 16),
                     color: _hasUnsavedChanges ? Colors.green[400] : Colors.grey[400],

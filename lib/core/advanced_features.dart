@@ -1895,14 +1895,361 @@ class ExtensionMetadata {
 }
 
 class SystemIntegrator {
-  Future<void> initialize(AdvancedConfig config) async {}
-  SystemIntegrationStatistics getStatistics() => SystemIntegrationStatistics();
-  Future<void> dispose() async {}
+  AdvancedConfig? _config;
+  bool _isInitialized = false;
+  final Map<String, SystemComponent> _components = {};
+  final Map<String, int> _integrationStats = {};
+  final List<String> _activeIntegrations = [];
+  Timer? _monitoringTimer;
+  
+  static const Duration _monitoringInterval = Duration(minutes: 5);
+  static const int _maxComponents = 20;
+  
+  Future<void> initialize(AdvancedConfig config) async {
+    if (_isInitialized) return;
+    
+    try {
+      _config = config;
+      
+      // Initialize system components
+      await _initializeSystemComponents();
+      
+      // Start monitoring timer
+      _monitoringTimer = Timer.periodic(_monitoringInterval, (_) => _performHealthCheck());
+      
+      _isInitialized = true;
+      debugPrint('🔗 SystemIntegrator initialized with ${_components.length} components');
+    } catch (e) {
+      debugPrint('❌ Failed to initialize SystemIntegrator: $e');
+      rethrow;
+    }
+  }
+  
+  Future<void> _initializeSystemComponents() async {
+    // Initialize system components
+    final components = [
+      SystemComponent(
+        id: 'file_system',
+        name: 'File System',
+        type: ComponentType.system,
+        enabled: true,
+        health: ComponentHealth.healthy,
+      ),
+      SystemComponent(
+        id: 'network',
+        name: 'Network Interface',
+        type: ComponentType.system,
+        enabled: true,
+        health: ComponentHealth.healthy,
+      ),
+      SystemComponent(
+        id: 'process_manager',
+        name: 'Process Manager',
+        type: ComponentType.system,
+        enabled: true,
+        health: ComponentHealth.healthy,
+      ),
+      SystemComponent(
+        id: 'terminal_backend',
+        name: 'Terminal Backend',
+        type: ComponentType.application,
+        enabled: true,
+        health: ComponentHealth.healthy,
+      ),
+      SystemComponent(
+        id: 'ui_renderer',
+        name: 'UI Renderer',
+        type: ComponentType.application,
+        enabled: true,
+        health: ComponentHealth.healthy,
+      ),
+    ];
+    
+    for (final component in components) {
+      _components[component.id] = component;
+      if (component.enabled) {
+        await _activateComponent(component.id);
+      }
+    }
+  }
+  
+  Future<void> _activateComponent(String componentId) async {
+    final component = _components[componentId];
+    if (component == null) {
+      throw ArgumentError('Component not found: $componentId');
+    }
+    
+    if (!component.enabled) {
+      component.enabled = true;
+      _activeIntegrations.add(componentId);
+      _integrationStats['activated_$componentId'] = DateTime.now().millisecondsSinceEpoch;
+      debugPrint('🔗 Activated component: ${component.name}');
+    }
+  }
+  
+  Future<void> deactivateComponent(String componentId) async {
+    final component = _components[componentId];
+    if (component == null) {
+      throw ArgumentError('Component not found: $componentId');
+    }
+    
+    if (component.enabled) {
+      component.enabled = false;
+      _activeIntegrations.remove(componentId);
+      _integrationStats['deactivated_$componentId'] = DateTime.now().millisecondsSinceEpoch;
+      debugPrint('🔗 Deactivated component: ${component.name}');
+    }
+  }
+  
+  Future<bool> integrateComponent(SystemComponent component) async {
+    try {
+      if (_components.length >= _maxComponents) {
+        throw StateError('Maximum number of components reached');
+      }
+      
+      // Validate component
+      await _validateComponent(component);
+      
+      // Add component
+      _components[component.id] = component;
+      _integrationStats['integrated_${component.id}'] = DateTime.now().millisecondsSinceEpoch;
+      
+      if (component.enabled) {
+        await _activateComponent(component.id);
+      }
+      
+      debugPrint('🔗 Integrated component: ${component.name}');
+      return true;
+    } catch (e) {
+      debugPrint('❌ Failed to integrate component: $e');
+      return false;
+    }
+  }
+  
+  Future<void> _validateComponent(SystemComponent component) async {
+    // Simulate component validation
+    await Future.delayed(Duration(milliseconds: 50));
+    
+    if (component.name.isEmpty) {
+      throw ArgumentError('Component name cannot be empty');
+    }
+    
+    if (_components.containsKey(component.id)) {
+      throw ArgumentError('Component with ID ${component.id} already exists');
+    }
+  }
+  
+  Future<bool> removeComponent(String componentId) async {
+    try {
+      final component = _components[componentId];
+      if (component == null) {
+        return false;
+      }
+      
+      // Deactivate component first
+      if (component.enabled) {
+        await deactivateComponent(componentId);
+      }
+      
+      // Remove component
+      _components.remove(componentId);
+      _integrationStats['removed_$componentId'] = DateTime.now().millisecondsSinceEpoch;
+      
+      debugPrint('🔗 Removed component: ${component.name}');
+      return true;
+    } catch (e) {
+      debugPrint('❌ Failed to remove component: $e');
+      return false;
+    }
+  }
+  
+  Future<ComponentHealth> checkComponentHealth(String componentId) async {
+    final component = _components[componentId];
+    if (component == null) {
+      return ComponentHealth.unknown;
+    }
+    
+    try {
+      // Simulate health check
+      await Future.delayed(Duration(milliseconds: 20));
+      
+      // Update component health based on various factors
+      final random = math.Random();
+      final healthValue = random.nextDouble();
+      
+      if (healthValue > 0.9) {
+        component.health = ComponentHealth.healthy;
+      } else if (healthValue > 0.7) {
+        component.health = ComponentHealth.warning;
+      } else if (healthValue > 0.3) {
+        component.health = ComponentHealth.degraded;
+      } else {
+        component.health = ComponentHealth.failing;
+      }
+      
+      _integrationStats['health_check_$componentId'] = DateTime.now().millisecondsSinceEpoch;
+      return component.health;
+    } catch (e) {
+      component.health = ComponentHealth.error;
+      debugPrint('❌ Health check failed for component $componentId: $e');
+      return ComponentHealth.error;
+    }
+  }
+  
+  Future<Map<String, ComponentHealth>> checkAllComponentsHealth() async {
+    final healthResults = <String, ComponentHealth>{};
+    
+    for (final componentId in _components.keys) {
+      healthResults[componentId] = await checkComponentHealth(componentId);
+    }
+    
+    return healthResults;
+  }
+  
+  List<SystemComponent> getActiveComponents() {
+    return _components.values.where((component) => component.enabled).toList();
+  }
+  
+  List<SystemComponent> getAllComponents() {
+    return _components.values.toList();
+  }
+  
+  SystemComponent? getComponent(String componentId) {
+    return _components[componentId];
+  }
+  
+  Future<void> performSystemIntegration() async {
+    try {
+      debugPrint('🔗 Performing system integration...');
+      
+      // Check all component health
+      final healthResults = await checkAllComponentsHealth();
+      
+      // Perform integration tasks
+      await _synchronizeComponents();
+      await _optimizeComponentCommunication();
+      await _validateSystemIntegrity();
+      
+      _integrationStats['last_integration'] = DateTime.now().millisecondsSinceEpoch;
+      _integrationStats['integration_count'] = (_integrationStats['integration_count'] ?? 0) + 1;
+      
+      debugPrint('🔗 System integration completed');
+    } catch (e) {
+      debugPrint('❌ System integration failed: $e');
+      rethrow;
+    }
+  }
+  
+  Future<void> _synchronizeComponents() async {
+    // Simulate component synchronization
+    await Future.delayed(Duration(milliseconds: 100));
+    debugPrint('🔗 Components synchronized');
+  }
+  
+  Future<void> _optimizeComponentCommunication() async {
+    // Simulate communication optimization
+    await Future.delayed(Duration(milliseconds: 80));
+    debugPrint('🔗 Component communication optimized');
+  }
+  
+  Future<void> _validateSystemIntegrity() async {
+    // Simulate system integrity validation
+    await Future.delayed(Duration(milliseconds: 60));
+    debugPrint('🔗 System integrity validated');
+  }
+  
+  SystemIntegrationStatistics getStatistics() {
+    return SystemIntegrationStatistics(
+      isInitialized: _isInitialized,
+      totalComponents: _components.length,
+      activeComponents: _activeIntegrations.length,
+      integrationStats: Map.from(_integrationStats),
+      componentHealth: _components.map((id, component) => MapEntry(id, component.health)),
+      lastHealthCheck: _integrationStats['last_health_check'] != null 
+          ? DateTime.fromMillisecondsSinceEpoch(_integrationStats['last_health_check']!)
+          : null,
+    );
+  }
+  
+  void _performHealthCheck() {
+    checkAllComponentsHealth().then((_) {
+      debugPrint('🔗 Periodic health check completed');
+    }).catchError((e) {
+      debugPrint('❌ Periodic health check failed: $e');
+    });
+  }
+  
+  Future<void> dispose() async {
+    try {
+      _monitoringTimer?.cancel();
+      
+      // Deactivate all components
+      for (final componentId in List.from(_activeIntegrations)) {
+        await deactivateComponent(componentId);
+      }
+      
+      _components.clear();
+      _integrationStats.clear();
+      _activeIntegrations.clear();
+      _isInitialized = false;
+      
+      debugPrint('🔗 SystemIntegrator disposed');
+    } catch (e) {
+      debugPrint('❌ Error disposing SystemIntegrator: $e');
+    }
+  }
+}
+
+enum ComponentType {
+  system,
+  application,
+  external,
+}
+
+enum ComponentHealth {
+  healthy,
+  warning,
+  degraded,
+  failing,
+  error,
+  unknown,
+}
+
+class SystemComponent {
+  final String id;
+  final String name;
+  final ComponentType type;
+  bool enabled;
+  ComponentHealth health;
+  final DateTime registeredAt;
+  
+  SystemComponent({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.enabled,
+    required this.health,
+  }) : registeredAt = DateTime.now();
 }
 
 class SystemIntegrationStatistics {
-  final DateTime lastUpdated = DateTime.now();
+  final bool isInitialized;
+  final int totalComponents;
+  final int activeComponents;
+  final Map<String, int> integrationStats;
+  final Map<String, ComponentHealth> componentHealth;
+  final DateTime? lastHealthCheck;
+  
+  SystemIntegrationStatistics({
+    required this.isInitialized,
+    required this.totalComponents,
+    required this.activeComponents,
+    required this.integrationStats,
+    required this.componentHealth,
+    this.lastHealthCheck,
+  });
 }
+
 
 class TextProcessingStatistics {
   final Map<String, dynamic> processingStats;

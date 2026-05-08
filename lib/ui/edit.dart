@@ -2399,7 +2399,7 @@ class _EditTerminalState extends State<EditTerminal> {
     setState(() {
       _aiChatMessages.add({
         'role': 'assistant',
-        'content': 'I\'m ready to help you with your file! I have access to:\n\n• File: ${path.basename(widget.filePath)}\n• Directory: ${path.dirname(widget.filePath)}\n• File contents (${_controller.text.length} characters)\n\nWhat would you like me to help you with?',
+        'content': 'I\'m ready to help you with your file! What would you like me to help you with?',
       });
     });
   }

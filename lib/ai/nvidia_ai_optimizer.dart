@@ -224,8 +224,8 @@ class NVIDIAAIOptimizer {
         suggestion.appliedAt = DateTime.now();
         
         // Update history
-        final historyEntry = _history.last;
-        if (historyEntry != null) {
+        if (_history.isNotEmpty) {
+          final historyEntry = _history.last;
           historyEntry.applied = true;
           historyEntry.appliedAt = DateTime.now();
         }
@@ -843,35 +843,7 @@ MONITORING_PLAN: [How to monitor for predicted issues]
     return '${systemType}_$metricsHash';
   }
 
-  void _loadDefaultProfiles() {
-    _profiles['default'] = PerformanceProfile(
-      name: 'default',
-      description: 'Default performance profile',
-      parameters: {
-        'cpu_threshold': 0.8,
-        'memory_threshold': 0.85,
-        'disk_threshold': 0.9,
-        'network_threshold': 0.8,
-      },
-      createdAt: DateTime.now(),
-    );
-    
-    _profiles['high_performance'] = PerformanceProfile(
-      name: 'high_performance',
-      description: 'High performance profile',
-      parameters: {
-        'cpu_threshold': 0.6,
-        'memory_threshold': 0.7,
-        'disk_threshold': 0.8,
-        'network_threshold': 0.7,
-      },
-      createdAt: DateTime.now(),
-    );
-  }
 
-  void _startAnalysisTimer() {
-    _analysisTimer = Timer.periodic(_analysisInterval, (_) => _analyzePerformance());
-  }
 
   /// Analyze current performance metrics
   void _analyzePerformance() {

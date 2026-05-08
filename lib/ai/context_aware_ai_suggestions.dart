@@ -49,14 +49,6 @@ class ContextAwareAISuggestions {
 
   /// Check if initialized
   bool get isInitialized => _isInitialized;
-  
-  Future<void> initialize() async {
-    if (_isInitialized) return;
-    
-    _startCleanupTimer();
-    _isInitialized = true;
-    debugPrint('🧠 Context-Aware AI Suggestions initialized');
-  }
 
   Future<List<AISuggestion>> getSuggestions({
     required String currentCommand,

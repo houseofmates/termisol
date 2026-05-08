@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../core/production_config_system.dart';
 
-/// NVIDIA AI-powered terminal assistant with context awareness and intelligent suggestions.
-/// Integrates with NVIDIA AI services for code generation, terminal command assistance, and system optimization.
+/// cloud-only AI terminal assistant.
+/// on android, detects a local gemma 4:4b model via common endpoints and falls back to it when the cloud API is unreachable.
 class NvidiaAITerminalAssistant {
   static const String nvidiaApiBaseUrl = 'https://api.nvidia.com/v1';
   static const Duration requestTimeout = Duration(seconds: 30);
@@ -16,6 +17,7 @@ class NvidiaAITerminalAssistant {
   final StreamController<AIEvent> _eventController = StreamController.broadcast();
   final List<AIConversation> _conversations = [];
   final Map<String, AIContext> _activeContexts = {};
+  final http.Client _httpClient = http.Client();
 
   String? _apiKey;
   bool _isInitialized = false;
@@ -23,18 +25,21 @@ class NvidiaAITerminalAssistant {
   int _successfulRequests = 0;
   DateTime? _lastRequestTime;
 
-  /// Stream of AI events
+  /// cached local gemma endpoint detected on this device, if any.
+  String? _localGemmaEndpoint;
+
+  /// stream of AI events
   Stream<AIEvent> get events => _eventController.stream;
 
-  /// Whether the AI assistant is initialized and ready
+  /// whether the AI assistant is initialized and ready
   bool get isInitialized => _isInitialized;
 
-  /// Success rate of AI requests
+  /// success rate of AI requests
   double get successRate {
     return _totalRequests > 0 ? _successfulRequests / _totalRequests : 0.0;
   }
 
-  /// Number of active conversations
+  /// number of active conversations
   int get activeConversationCount => _conversations.length;
 
   NvidiaAITerminalAssistant() {
@@ -44,35 +49,64 @@ class NvidiaAITerminalAssistant {
   Future<void> _initialize() async {
     final config = ProductionConfigSystem();
 
-    // Wait for config to initialize
     if (!config.initialized) {
       await config.initialize();
     }
 
-    // Get API key from config (would be set securely)
     _apiKey = config.get<String>('ai.api_key');
 
-    // Enable AI features based on config
     final aiEnabled = config.get<bool>('ai.enabled', true);
     if (aiEnabled == true && (_apiKey?.isNotEmpty ?? false)) {
       _isInitialized = true;
-      debugPrint('NVIDIA AI Terminal Assistant initialized');
+      debugPrint('AI assistant initialized (cloud)');
     } else {
-      debugPrint('NVIDIA AI Terminal Assistant disabled - no API key or disabled in config');
+      debugPrint('AI assistant disabled: no API key');
+    }
+
+    if (Platform.isAndroid) {
+      await _detectLocalGemma();
     }
   }
 
-  /// Process text input and return AI response
+  /// probe common local LLM endpoints to find gemma 4:4b on android.
+  Future<void> _detectLocalGemma() async {
+    const candidates = [
+      'http://localhost:11434/api/tags',
+      'http://127.0.0.1:11434/api/tags',
+      'http://localhost:8080/v1/models',
+      'http://127.0.0.1:8080/v1/models',
+    ];
+
+    for (final endpoint in candidates) {
+      try {
+        final response = await _httpClient
+            .get(Uri.parse(endpoint))
+            .timeout(const Duration(seconds: 2));
+        if (response.statusCode == 200) {
+          final body = response.body.toLowerCase();
+          if (body.contains('gemma')) {
+            _localGemmaEndpoint = endpoint.replaceAll('/api/tags', '/api/generate').replaceAll('/v1/models', '/v1/chat/completions');
+            debugPrint('detected local gemma at $_localGemmaEndpoint');
+            return;
+          }
+        }
+      } catch (_) {
+        // endpoint not reachable, continue probing
+      }
+    }
+  }
+
+  /// process text input and return AI response.
+  /// on android with a local model, falls back to the local endpoint if the cloud API fails.
   Future<AIResponse> processText({
     required String input,
     required AICapability capability,
     required String contextId,
-    bool preferLocal = false,
     Map<String, dynamic>? metadata,
   }) async {
-    if (!_isInitialized) {
+    if (!_isInitialized && _localGemmaEndpoint == null) {
       return AIResponse.failure(
-        'AI assistant not initialized',
+        'AI assistant not initialized and no local model detected',
         contextId: contextId,
       );
     }
@@ -81,45 +115,41 @@ class NvidiaAITerminalAssistant {
     _lastRequestTime = DateTime.now();
 
     try {
-      // Get or create context
       final context = _getOrCreateContext(contextId);
-
-      // Update context with new input
       context.addMessage(AIMessage.user(input, metadata: metadata));
+      final request = _prepareAIRequest(input, capability, context);
 
-      // Prepare request based on capability
-      final request = _prepareAIRequest(input, capability, context, preferLocal);
-
-      // Make API call with retries
-      AIResponse response = await _makeAPIRequestWithRetry(request);
+      AIResponse response;
+      if (_isInitialized) {
+        response = await _makeAPIRequestWithRetry(request);
+        if (!response.success && _localGemmaEndpoint != null) {
+          debugPrint('cloud AI failed, trying local gemma');
+          response = await _makeLocalGemmaRequest(request);
+        }
+      } else if (_localGemmaEndpoint != null) {
+        response = await _makeLocalGemmaRequest(request);
+      } else {
+        response = AIResponse.failure('no AI backend available');
+      }
 
       if (response.success) {
         _successfulRequests++;
-
-        // Update context with response
         context.addMessage(AIMessage.assistant(response.output));
-
-        // Emit success event
         _eventController.add(AIEvent.responseGenerated(
           contextId,
           capability,
           response.output.length,
         ));
       } else {
-        // Emit failure event
         _eventController.add(AIEvent.requestFailed(contextId, capability, response.error!));
       }
 
       return response;
-
-    } catch (e) {
+    } catch (e, stack) {
       final error = 'AI processing failed: $e';
+      debugPrint('$error\n$stack');
       _eventController.add(AIEvent.requestFailed(contextId, capability, error));
-
-      return AIResponse.failure(
-        error,
-        contextId: contextId,
-      );
+      return AIResponse.failure(error, contextId: contextId);
     }
   }
 
@@ -131,14 +161,12 @@ class NvidiaAITerminalAssistant {
     String input,
     AICapability capability,
     AIContext context,
-    bool preferLocal,
   ) {
     final config = ProductionConfigSystem();
     final model = config.get<String>('ai.model', 'nvidia-llama-3.1-8b-instruct');
     final maxTokens = config.get<int>('ai.max_tokens', 4096);
     final temperature = config.get<double>('ai.temperature', 0.7);
 
-    // Build prompt based on capability
     final systemPrompt = _getSystemPrompt(capability);
     final conversationHistory = context.getRecentMessages(maxContextLength);
 
@@ -154,33 +182,22 @@ class NvidiaAITerminalAssistant {
       'temperature': temperature,
       'stream': false,
       'capability': capability.name,
-      'prefer_local': preferLocal,
     };
   }
 
   String _getSystemPrompt(AICapability capability) {
     switch (capability) {
       case AICapability.text_generation:
-        return 'You are an intelligent terminal assistant. Help users with terminal commands, '
-               'explain concepts, and provide helpful suggestions. Be concise but informative.';
-
+        return 'you are an intelligent terminal assistant. help users with terminal commands, explain concepts, and provide helpful suggestions. be concise but informative.';
       case AICapability.code_generation:
-        return 'You are a programming assistant. Generate high-quality, well-documented code. '
-               'Follow best practices and include error handling.';
-
+        return 'you are a programming assistant. generate high-quality, well-documented code. follow best practices and include error handling.';
       case AICapability.command_suggestion:
-        return 'You are a terminal command expert. Suggest safe, efficient commands. '
-               'Explain what each command does and warn about potentially dangerous operations.';
-
+        return 'you are a terminal command expert. suggest safe, efficient commands. explain what each command does and warn about potentially dangerous operations.';
       case AICapability.system_analysis:
-        return 'You are a system analysis expert. Help diagnose issues, optimize performance, '
-               'and explain system behavior. Provide actionable recommendations.';
-
+        return 'you are a system analysis expert. help diagnose issues, optimize performance, and explain system behavior. provide actionable recommendations.';
       case AICapability.documentation:
-        return 'You are a technical documentation specialist. Create clear, comprehensive '
-               'documentation with examples and best practices.';
-
-      }
+        return 'you are a technical documentation specialist. create clear, comprehensive documentation with examples and best practices.';
+    }
   }
 
   Future<AIResponse> _makeAPIRequestWithRetry(Map<String, dynamic> request) async {
@@ -190,17 +207,13 @@ class NvidiaAITerminalAssistant {
         return response;
       } catch (e) {
         if (attempt == maxRetries) {
-          return AIResponse.failure('All retry attempts failed: $e');
+          return AIResponse.failure('all retry attempts failed: $e');
         }
-
-        // Exponential backoff
         await Future.delayed(Duration(seconds: pow(2, attempt).toInt()));
         debugPrint('AI request retry $attempt: $e');
       }
     }
-
-    // This should never be reached
-    return AIResponse.failure('Unexpected error in retry logic');
+    return AIResponse.failure('unexpected error in retry logic');
   }
 
   Future<AIResponse> _makeAPIRequest(Map<String, dynamic> request) async {
@@ -214,7 +227,7 @@ class NvidiaAITerminalAssistant {
       'Content-Type': 'application/json',
     };
 
-    final response = await http.post(
+    final response = await _httpClient.post(
       url,
       headers: headers,
       body: jsonEncode(request),
@@ -223,32 +236,54 @@ class NvidiaAITerminalAssistant {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final content = data['choices']?[0]?['message']?['content'] ?? '';
-
       return AIResponse.success(content.toString());
     } else {
       throw Exception('API request failed: ${response.statusCode} ${response.body}');
     }
   }
 
-  /// Get intelligent command suggestions based on current context
+  /// send request to local gemma endpoint on android.
+  Future<AIResponse> _makeLocalGemmaRequest(Map<String, dynamic> request) async {
+    if (_localGemmaEndpoint == null) {
+      return AIResponse.failure('no local gemma endpoint available');
+    }
+
+    final url = Uri.parse(_localGemmaEndpoint!);
+    final body = {
+      'model': 'gemma:4b',
+      'messages': request['messages'],
+      'stream': false,
+    };
+
+    final response = await _httpClient
+        .post(url, headers: {'Content-Type': 'application/json'}, body: jsonEncode(body))
+        .timeout(requestTimeout);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final content = data['message']?['content'] ?? data['response'] ?? '';
+      return AIResponse.success(content.toString());
+    } else {
+      return AIResponse.failure('local gemma request failed: ${response.statusCode}');
+    }
+  }
+
+  /// get intelligent command suggestions based on current context
   Future<List<String>> getCommandSuggestions({
     required String currentInput,
     required String contextId,
     int maxSuggestions = 5,
   }) async {
-    if (!_isInitialized) return [];
+    if (!_isInitialized && _localGemmaEndpoint == null) return [];
 
     try {
-      _getOrCreateContext(contextId); // Ensure context exists
-      final prompt = 'Based on the current terminal session and input "$currentInput", '
-                     'suggest $maxSuggestions relevant terminal commands. '
-                     'Return only the commands, one per line, no explanations.';
+      _getOrCreateContext(contextId);
+      final prompt = 'based on the current terminal session and input "$currentInput", suggest $maxSuggestions relevant terminal commands. return only the commands, one per line, no explanations.';
 
       final response = await processText(
         input: prompt,
         capability: AICapability.command_suggestion,
         contextId: '${contextId}_suggestions',
-        preferLocal: true,
       );
 
       if (response.success) {
@@ -262,32 +297,29 @@ class NvidiaAITerminalAssistant {
         _eventController.add(AIEvent.suggestionsGenerated(contextId, suggestions.length));
         return suggestions;
       }
-
       return [];
-    } catch (e) {
-      debugPrint('Command suggestion failed: $e');
+    } catch (e, stack) {
+      debugPrint('command suggestion failed: $e\n$stack');
       return [];
     }
   }
 
-  /// Analyze terminal output for issues and suggestions
+  /// analyze terminal output for issues and suggestions
   Future<AnalysisResult> analyzeTerminalOutput({
     required String output,
     required String contextId,
   }) async {
-    if (!_isInitialized) {
+    if (!_isInitialized && _localGemmaEndpoint == null) {
       return AnalysisResult.empty();
     }
 
     try {
-      final prompt = 'Analyze this terminal output for errors, warnings, or opportunities for improvement:\n\n$output\n\n'
-                     'Provide a JSON response with: {"errors": [], "warnings": [], "suggestions": [], "summary": ""}';
+      final prompt = 'analyze this terminal output for errors, warnings, or opportunities for improvement:\n\n$output\n\nprovide a JSON response with: {"errors": [], "warnings": [], "suggestions": [], "summary": ""}';
 
       final response = await processText(
         input: prompt,
         capability: AICapability.system_analysis,
         contextId: '${contextId}_analysis',
-        preferLocal: true,
       );
 
       if (response.success) {
@@ -300,50 +332,47 @@ class NvidiaAITerminalAssistant {
             summary: (data['summary'] as String?) ?? '',
           );
         } catch (e) {
-          debugPrint('Failed to parse analysis response: $e');
+          debugPrint('failed to parse analysis response: $e');
         }
       }
-
       return AnalysisResult.empty();
-    } catch (e) {
-      debugPrint('Terminal analysis failed: $e');
+    } catch (e, stack) {
+      debugPrint('terminal analysis failed: $e\n$stack');
       return AnalysisResult.empty();
     }
   }
 
-  /// Generate code based on description
+  /// generate code based on description
   Future<String?> generateCode({
     required String description,
     required String language,
     required String contextId,
   }) async {
-    if (!_isInitialized) return null;
+    if (!_isInitialized && _localGemmaEndpoint == null) return null;
 
     try {
-      final prompt = 'Generate $language code for: $description\n\n'
-                     'Include proper error handling, comments, and follow best practices.';
+      final prompt = 'generate $language code for: $description\n\ninclude proper error handling, comments, and follow best practices.';
 
       final response = await processText(
         input: prompt,
         capability: AICapability.code_generation,
         contextId: '${contextId}_code',
-        preferLocal: false,
       );
 
       return response.success ? response.output : null;
-    } catch (e) {
-      debugPrint('Code generation failed: $e');
+    } catch (e, stack) {
+      debugPrint('code generation failed: $e\n$stack');
       return null;
     }
   }
 
-  /// Clear conversation context
+  /// clear conversation context
   void clearContext(String contextId) {
     _activeContexts.remove(contextId);
     _eventController.add(AIEvent.contextCleared(contextId));
   }
 
-  /// Get AI assistant statistics
+  /// get AI assistant statistics
   Map<String, dynamic> getStatistics() {
     return {
       'initialized': _isInitialized,
@@ -352,15 +381,17 @@ class NvidiaAITerminalAssistant {
       'successRate': successRate,
       'activeContexts': _activeContexts.length,
       'lastRequestTime': _lastRequestTime?.toIso8601String(),
+      'localGemmaEndpoint': _localGemmaEndpoint,
     };
   }
 
-  /// Dispose resources
+  /// dispose resources
   void dispose() {
     _eventController.close();
     _activeContexts.clear();
     _conversations.clear();
-    debugPrint('NVIDIA AI Terminal Assistant disposed');
+    _httpClient.close();
+    debugPrint('AI assistant disposed');
   }
 }
 

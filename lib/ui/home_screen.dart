@@ -71,8 +71,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _handleEditCommand(String filePath) {
-    Navigator.of(context).push(
+  Future<void> _handleEditCommand(String filePath) async {
+    if (!mounted) return;
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => EditTerminal(
           filePath: filePath,
@@ -105,7 +106,6 @@ class _HomeScreenState extends State<HomeScreen> {
           input: query,
           capability: AICapability.text_generation,
           contextId: 'terminal_${_activeTab}',
-          preferLocal: true,
         );
         final success = response.success as bool? ?? false;
         final output = response.output as String?;

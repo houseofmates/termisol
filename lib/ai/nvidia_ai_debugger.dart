@@ -241,7 +241,7 @@ ERROR: $error
 COMMAND: $command
 OUTPUT: $output
 CURRENT DIRECTORY: $currentDirectory
-RECENT COMMANDS: ${commandHistory.takeLast(5).join(', ')}
+RECENT COMMANDS: ${commandHistory.length >= 5 ? commandHistory.sublist(commandHistory.length - 5).join(', ') : commandHistory.join(', ')}
 
 Provide a comprehensive analysis in this format:
 
@@ -371,6 +371,10 @@ CONFIDENCE: [0.1-1.0 confidence level]
   }
 
   Future<String> _callNVIDIA(String prompt) async {
+    if (_apiKey == null) {
+      throw DebugException('NVIDIA API key not initialized');
+    }
+    
     final response = await http.post(
       Uri.parse(_nimEndpoint),
       headers: {

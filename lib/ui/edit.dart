@@ -2510,8 +2510,8 @@ To enable AI features, you need to:
 
 Current file: ${path.basename(widget.filePath)}
 File size: ${_controller.text.length} characters
-
-I can help you with:
+''';
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -8,9 +8,9 @@ import 'package:flutter_highlight/themes/vs2015.dart';
 import 'package:flutter_highlight/themes/atom-one-dark.dart';
 import 'package:flutter_highlight/themes/github.dart';
 import 'package:path/path.dart' as path;
-// import 'editor_validator.dart';
-// import 'edit_collaboration_manager.dart';
-// import 'editor_crash_recovery.dart';
+import 'editor_validator.dart';
+import 'edit_collaboration_manager.dart';
+import 'editor_crash_recovery.dart';
 
 /// Edit - A modern terminal text editor with WYSIWYG markdown, rainbow syntax highlighting,
 /// and Windows Notepad-style hotkeys
@@ -51,11 +51,10 @@ class _EditTerminalState extends State<EditTerminal> {
   bool _italicMode = false;
   bool _showAIChat = false;
   
-  // Collaboration - simplified for compilation
-  // final EditCollaborationManager _collaborationManager = EditCollaborationManager();
+  final EditCollaborationManager _collaborationManager = EditCollaborationManager();
   bool _collaborationEnabled = false;
-  // bool _showCollaborationPanel = false;
-  // final List<ClientUpdate> _activeCollaborators = [];
+  bool _showCollaborationPanel = false;
+  final List<ClientUpdate> _activeCollaborators = [];
   String? _collaborationStatus;
   
   // AI Chat

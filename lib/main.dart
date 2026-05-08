@@ -174,7 +174,6 @@ ServiceRegistry _registerServices() {
   r.register(TermisolFeatures.enhancedAISuggestions, () => ServiceFactories.createEnhancedAISuggestions());
   r.register(TermisolFeatures.conversationalAI, () => ServiceFactories.createConversationalAI());
   r.register(TermisolFeatures.automatedWorkflows, () => ServiceFactories.createAutomatedWorkflowSystem());
-  r.register(TermisolFeatures.vrSupport, () => ServiceFactories.createAdvancedVRTerminal());
 
   // Integration features
   r.register(TermisolFeatures.gitIntegration, () => ServiceFactories.createGitHubIntegration());
@@ -202,11 +201,8 @@ ServiceRegistry _registerServices() {
   r.register(TermisolFeatures.commandGuard, () => ServiceFactories.createCommandGuard());
   r.register(TermisolFeatures.asciicastRecorder, () => ServiceFactories.createAsciicastRecorder());
 
-  // Content and media features
+  // Content features
   r.register(TermisolFeatures.fileManager, () => true);
-  r.register(TermisolFeatures.videoPlayback, () => true);
-  r.register(TermisolFeatures.audioVisualization, () => true);
-  r.register(TermisolFeatures.model3d, () => true);
 
   // Protocol and rendering features
   r.register(TermisolFeatures.advancedTerminalProtocol, () => ServiceFactories.createAdvancedTerminalProtocol());

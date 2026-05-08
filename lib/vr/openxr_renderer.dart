@@ -94,7 +94,7 @@ class OpenXRRenderer {
     final imageIndex = _session.currentSwapchainImage;
     
     // Create eye-specific transformation
-    final eyeTransform = _calculateEyeTransform(eyeIndex, view.pose);
+    final eyeTransform = _calculateEyeTransform(eyeIndex, view);
     
     // Render terminal with depth
     await _renderTerminalWithDepth(eyeTransform, view);
@@ -105,7 +105,7 @@ class OpenXRRenderer {
     final transform = vm.Matrix4.identity();
     
     // Set position
-    transform.setTranslation(
+    transform.setTranslationRaw(
       view.pose.position.x + (eyeIndex == 1 ? _eyeSeparation : 0),
       view.pose.position.y,
       view.pose.position.z - _depth
@@ -113,7 +113,7 @@ class OpenXRRenderer {
     
     // Set rotation using quaternion conversion
     final quat = view.pose.orientation;
-    final quaternion = Quaternion(quat.x, quat.y, quat.z, quat.w);
+    final quaternion = vm.Quaternion(quat.x, quat.y, quat.z, quat.w);
     transform.rotate(quaternion);
     
     return transform;
@@ -145,7 +145,7 @@ class OpenXRRenderer {
     // Layer 1: Glowing edges
     _sceneBuilder.pushOpacity(100);
     final glowPaint = ui.Paint()
-      ..color = MaterialColors.cyan.withValues(alpha: 0.3)
+      ..color = Colors.cyan.withValues(alpha: 0.3)
       ..style = ui.PaintingStyle.stroke
       ..strokeWidth = 4.0;
     _sceneBuilder.addPicture(ui.Offset.zero, _createGlowEffect());
@@ -172,7 +172,7 @@ class OpenXRRenderer {
     
     // Draw terminal background
     final paint = ui.Paint()
-      ..color = MaterialColors.black
+      ..color = Colors.black
       ..style = ui.PaintingStyle.fill;
     canvas.drawRect(ui.Rect.fromLTRB(0, 0, 800, 600), paint);
     
@@ -186,7 +186,7 @@ class OpenXRRenderer {
   void _drawTerminalContent(ui.Canvas canvas, int rows, int cols) {
     // Draw terminal background
     final backgroundPaint = ui.Paint()
-      ..color = MaterialColors.black
+      ..color = Colors.black
       ..style = ui.PaintingStyle.fill;
     canvas.drawRect(ui.Rect.fromLTRB(0, 0, cols * 12.0, rows * 24.0), backgroundPaint);
     
@@ -223,7 +223,7 @@ class OpenXRRenderer {
         style: ui.TextStyle(
           fontFamily: 'DroidSansMono',
           fontSize: fontSize,
-          color: i == lines.length - 1 ? MaterialColors.cyan : MaterialColors.white,
+          color: i == lines.length - 1 ? Colors.cyan : Colors.white,
           height: 1.4,
         ),
       );

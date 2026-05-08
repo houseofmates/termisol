@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../config/pkm_theme.dart';
 import '../core/service_registry.dart';
+import '../core/session_persistence.dart';
 import 'settings_items.dart';
 
 /// full-screen settings page with tabs and a back button.
@@ -319,6 +320,37 @@ class _SettingsPageState extends State<SettingsPage>
                   );
                 }),
               ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          _sectionTitle('session history'),
+          const SizedBox(height: 8),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: PkmTheme.primary,
+              foregroundColor: PkmTheme.background,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () async {
+              await SessionPersistence.clear();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'session history cleared',
+                      style: TextStyle(fontFamily: PkmTheme.fontUi),
+                    ),
+                    backgroundColor: PkmTheme.tabActiveBg,
+                  ),
+                );
+              }
+            },
+            child: const Text(
+              'clear session history',
+              style: TextStyle(fontFamily: PkmTheme.fontUi),
             ),
           ),
           const SizedBox(height: 24),

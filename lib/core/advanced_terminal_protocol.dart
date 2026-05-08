@@ -313,13 +313,13 @@ class AdvancedTerminalProtocol {
 
     switch (command) {
       case '7': // Save cursor position
-        _controller.saveCursor();
+        _terminal.write('\x1b7');
         break;
       case '8': // Restore cursor position
-        _controller.restoreCursor();
+        _terminal.write('\x1b8');
         break;
       case 'c': // Reset to initial state
-        _controller.reset();
+        _terminal.write('\x1bc');
         break;
       // Other escape sequences are handled by xterm library
     }
@@ -535,7 +535,7 @@ class AdvancedTerminalProtocol {
         break;
       case 6:
         // Cursor position report
-        _sendResponse('\x1b[${_terminal.bufferCursorY};${_terminal.bufferCursorX}R');
+        _sendResponse('\x1b[${_terminal.buffer.cursorY};${_terminal.buffer.cursorX}R');
         break;
       default:
         debugPrint('🔍 Unknown device status: ${params[0]}');
@@ -577,22 +577,6 @@ class AdvancedTerminalProtocol {
         debugPrint('🔍 Unknown cursor style: ${params[0]}');
     }
   }
-  
-   void _handleCursorStorage(String command) {
-     if (command == 's') {
-       _controller.saveCursor();
-     } else if (command == 'u') {
-       _controller.restoreCursor();
-     }
-   }
-
-   void _saveCursor() {
-     _controller.saveCursor();
-   }
-
-   void _restoreCursor() {
-     _controller.restoreCursor();
-   }
   
   void _handleHyperlink(String data) {
     final parts = data.split(';');
@@ -662,19 +646,6 @@ class AdvancedTerminalProtocol {
       
       // Show system notification
       debugPrint('🔔 Notification: $title - $body');
-    }
-  }
-  
-  void _handleEscapeSequence(String sequence) {
-    if (sequence.length < 2) return;
-
-    final command = sequence[1];
-
-    switch (command) {
-      case 'c': // Reset to initial state
-        _controller.reset();
-        break;
-      // Other escape sequences are handled by xterm library
     }
   }
   

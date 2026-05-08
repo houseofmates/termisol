@@ -213,13 +213,13 @@ class SessionSyncManager {
       final data = prefs.getString('${_prefsKeyPrefix}state');
       if (data == null) return;
       final decoded = json.decode(data) as Map<String, dynamic>;
-      _syncVersion = decoded['syncVersion'] ?? 0;
+      _syncVersion = (decoded['syncVersion'] as int?) ?? 0;
       if (decoded['lastSyncTime'] != null) {
-        _lastSyncTime = DateTime.tryParse(decoded['lastSyncTime']);
+        _lastSyncTime = DateTime.tryParse(decoded['lastSyncTime'] as String);
       }
-      final sessions = decoded['sessions'] as Map<String, dynamic>? ?? {};
+      final sessions = (decoded['sessions'] as Map<String, dynamic>?) ?? {};
       for (final entry in sessions.entries) {
-        _sessions[entry.key] = SyncedSession.fromJson(entry.value as Map<String, dynamic>);
+        _sessions[entry.key] = SyncedSession.fromJson((entry.value as Map).cast<String, dynamic>());
       }
     } catch (e) {
       debugPrint('Failed to load persisted sync state: $e');

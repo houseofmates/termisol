@@ -30,11 +30,9 @@ class AdvancedTerminalProtocol {
 
   // Focus tracking
   bool _focusTrackingEnabled = false;
-  bool _hasFocus = true;
 
   // Window management
   String _windowTitle = '';
-  String _iconName = '';
 
   // Color management
   final List<Color> _colorPalette = List.generate(256, (i) => Color.fromARGB(255, 0, 0, 0));

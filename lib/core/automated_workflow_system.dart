@@ -905,7 +905,7 @@ class WorkflowTemplate {
     required this.description,
     required this.tasks,
     this.trigger,
-    required this.conditions,
+    this.conditions = const [],
   });
 }
 

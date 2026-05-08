@@ -185,6 +185,7 @@ class _EditTerminalState extends State<EditTerminal> {
     _focusNode.dispose();
     _searchController.dispose();
     _aiChatController.dispose();
+    _collaborationManager.dispose();
     super.dispose();
   }
 
@@ -216,6 +217,11 @@ class _EditTerminalState extends State<EditTerminal> {
       _saveTimer = Timer(const Duration(seconds: 2), () {
         _saveContent();
       });
+      
+      // Broadcast collaboration operation if enabled
+      if (_collaborationEnabled && !_isApplyingRemoteOperation) {
+        _broadcastTextChange();
+      }
     }
   }
 

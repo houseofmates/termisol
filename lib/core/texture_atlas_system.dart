@@ -310,7 +310,11 @@ class AtlasPage {
     
     // Create initial atlas image
     final picture = recorder.endRecording();
-    _atlasImage = await picture.toImage(width, height);
+    try {
+      _atlasImage = await picture.toImage(width, height);
+    } finally {
+      picture.dispose();
+    }
   }
 
   /// Add texture to this atlas page

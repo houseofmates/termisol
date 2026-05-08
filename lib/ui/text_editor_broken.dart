@@ -113,6 +113,9 @@ class _TextEditorState extends State<TextEditor> {
   final List<TextSelection> _cursors = [];
   bool _multiCursorMode = false;
   int _activeCursorIndex = 0;
+  bool _isAltPressed = false;
+  int _dragStartOffset = -1;
+  bool _isDragging = false;
   
   // Smart Indentation
   bool _autoIndent = true;
@@ -135,6 +138,9 @@ class _TextEditorState extends State<TextEditor> {
     
     // Initialize with single cursor
     _cursors.add(TextSelection.collapsed(offset: 0));
+    
+    // Listen for Alt key changes
+    HardwareKeyboard.instance.addHandler(_handleAltKeyChange);
   }
 
   @override
@@ -144,7 +150,31 @@ class _TextEditorState extends State<TextEditor> {
     _scrollController.dispose();
     _focusNode.dispose();
     _searchController.dispose();
+    _replaceController.dispose();
+    HardwareKeyboard.instance.removeHandler(_handleAltKeyChange);
     super.dispose();
+  }
+  
+  bool _handleAltKeyChange(KeyEvent event) {
+    final wasAltPressed = _isAltPressed;
+    _isAltPressed = HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.altLeft) ||
+                   HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.altRight);
+    
+    // If Alt was released and we're not in multi-cursor mode, clear extra cursors
+    if (wasAltPressed && !_isAltPressed && !_multiCursorMode) {
+      _clearExtraCursors();
+    }
+    
+    return false; // Don't consume the event
+  }
+  
+  void _clearExtraCursors() {
+    if (_cursors.length > 1) {
+      setState(() {
+        _cursors.removeRange(1, _cursors.length);
+        _activeCursorIndex = 0;
+      });
+    }
   }
 
   void _onTextChanged() {

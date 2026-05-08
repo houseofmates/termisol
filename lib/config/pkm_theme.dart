@@ -147,7 +147,6 @@ class PkmTheme {
       colorScheme: const ColorScheme.light(
         primary: Color(0xFF333333),
         secondary: Color(0xFF3c9fdd),
-        surface: Colors.white,
       ),
       scaffoldBackgroundColor: const Color(0xFFF5F5F5),
       bottomSheetTheme: const BottomSheetThemeData(

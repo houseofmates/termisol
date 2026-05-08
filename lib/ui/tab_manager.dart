@@ -106,9 +106,23 @@ class TabManager extends ChangeNotifier {
   /// Update the name of the tab at [index].
   void renameTab(int index, String name) {
     if (index < 0 || index >= _tabs.length) return;
-    // TerminalSession.name is final, so we can't rename directly.
-    // In a full implementation we would wrap the name in a mutable model.
-    // For now this is a no-op placeholder.
+    if (name.trim().isEmpty) return;
+    
+    // Create a new session with the updated name since TerminalSession.name is final
+    final oldSession = _tabs[index];
+    final newSession = TerminalSession(
+      id: oldSession.id,
+      name: name.trim(),
+    );
+    
+    // Copy session data from old session
+    newSession.copyFrom(oldSession);
+    
+    // Replace the old session
+    _tabs[index] = newSession;
+    oldSession.disposeSession();
+    
+    notifyListeners();
   }
 
   @override

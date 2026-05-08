@@ -26,11 +26,17 @@ class _HomeScreenState extends State<HomeScreen> {
     _createInitialTab();
   }
 
+  void _handleAiQuery(String query) {
+    // Placeholder for AI query handling
+    debugPrint('AI query: $query');
+  }
+
   void _createInitialTab() {
     final session = TerminalSession(
       id: '0',
       name: 'Terminal',
     );
+    session.onAiQuery = _handleAiQuery;
 
     _tabs.add(session);
     _tabFocusNodes['0'] = FocusNode();
@@ -265,6 +271,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               }).toList(),
             ),
+          ),
         ],
       ),
     );

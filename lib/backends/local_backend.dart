@@ -76,9 +76,22 @@ class LocalBackend implements TermisolPtyBackend {
 
       debugPrint('[LOCAL] Started shell: $_shellPath in $workingDirectory');
     } catch (e) {
-      _outputController.add(utf8.encode('\r\n[local error: $e]\r\n'));
+      final errorMessage = e is ProcessException 
+          ? 'Failed to start shell "${e.executable}": ${e.message}'
+          : 'Failed to start local backend: $e';
+      
+      _outputController.add(utf8.encode('\r\n[local error: $errorMessage]\r\n'));
       _isRunning = false;
-      rethrow;
+      
+      // Attempt recovery with fallback shell
+      if (_shellPath != fallbackShell) {
+        debugPrint('[LOCAL] Attempting fallback to $fallbackShell');
+        _shellPath = fallbackShell;
+        await start(); // Retry with fallback
+      } else {
+        debugPrint('[LOCAL] All shell startup attempts failed');
+        rethrow;
+      }
     }
   }
 
@@ -93,6 +106,22 @@ class LocalBackend implements TermisolPtyBackend {
       _process!.stdin.add(data);
     } catch (e) {
       debugPrint('[LOCAL] Write error: $e');
+      
+      // Check if process died and attempt recovery
+      if (_process != null && await _process!.exitCode != null) {
+        debugPrint('[LOCAL] Process died, attempting restart...');
+        _isRunning = false;
+        await start();
+        
+        // Retry the write if restart succeeded
+        if (_isRunning && _process != null) {
+          try {
+            _process!.stdin.add(data);
+          } catch (retryError) {
+            debugPrint('[LOCAL] Retry write failed: $retryError');
+          }
+        }
+      }
     }
   }
 

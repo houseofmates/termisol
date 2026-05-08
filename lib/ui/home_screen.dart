@@ -269,24 +269,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               }).toList(),
             ),
-          ),
-          
-          // FPS overlay
-          if (_showFps)
-            Positioned(
-              top: 10,
-              right: 10,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: ProductionFpsOverlay(
-                  enforcer: widget.performanceEnforcer,
-                ),
-              ),
-            ),
         ],
       ),
     );

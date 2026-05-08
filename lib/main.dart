@@ -185,7 +185,6 @@ ServiceRegistry _registerServices() {
   // Integration features
   r.register(TermisolFeatures.gitIntegration, () => ServiceFactories.createGitHubIntegration());
   r.register(TermisolFeatures.neuralProcessing, () => ServiceFactories.createNeuralProcessingSystem());
-  r.register(TermisolFeatures.terminalPaneManager, () => ServiceFactories.createPaneManager());
   r.register(TermisolFeatures.plugins, () => ServiceFactories.createPluginManager());
   r.register(TermisolFeatures.audioAlertService, () => ServiceFactories.createAudioAlertService());
   r.register(TermisolFeatures.keyboardMacroReader, () => ServiceFactories.createKeyboardMacroReader());

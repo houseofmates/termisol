@@ -60,7 +60,7 @@ class ServiceFactories {
 
   /// Create production GPU renderer.
   static ProductionGpuRenderer createGpuRenderer() {
-    return ProductionGpuRenderer();
+    return ProductionGpuRenderer.instance;
   }
 
   /// Create sub-16ms latency optimizer.
@@ -250,7 +250,7 @@ class ServiceFactories {
 
   /// Create advanced terminal protocol.
   static AdvancedTerminalProtocol createAdvancedTerminalProtocol() {
-    return AdvancedTerminalProtocol();
+    return AdvancedTerminalProtocol(Terminal(), TerminalController());
   }
 
   /// Create adaptive compression network.

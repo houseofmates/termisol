@@ -1407,7 +1407,25 @@ class _EditTerminalState extends State<EditTerminal> {
         }
       }
       
-      // Handle tab completion for /ai
+      // Handle auto-completion navigation
+      if (_showCompletion) {
+        switch (event.logicalKey) {
+          case LogicalKeyboardKey.arrowUp:
+            _previousCompletion();
+            return;
+          case LogicalKeyboardKey.arrowDown:
+            _nextCompletion();
+            return;
+          case LogicalKeyboardKey.escape:
+            _hideCompletion();
+            return;
+          case LogicalKeyboardKey.tab:
+            _acceptCompletion();
+            return;
+        }
+      }
+      
+      // Handle tab completion for /ai and general completion
       if (event.logicalKey == LogicalKeyboardKey.tab) {
         _handleTabCompletion();
       }
@@ -2003,6 +2021,7 @@ class _EditTerminalState extends State<EditTerminal> {
     final cursorPos = _controller.selection.baseOffset;
     final currentLine = text.substring(0, cursorPos).split('\n').last;
     
+    // Check for AI command first
     if (currentLine.trim() == '/ai') {
       // Replace /ai with empty and open AI chat
       final lineStart = cursorPos - currentLine.length;
@@ -2014,7 +2033,151 @@ class _EditTerminalState extends State<EditTerminal> {
       _onTextChanged();
       
       _openAIChat();
+      return;
     }
+    
+    // Handle general auto-completion
+    if (_showCompletion && _completions.isNotEmpty) {
+      _acceptCompletion();
+    } else {
+      // Trigger completion if not showing
+      _updateCompletions();
+    }
+  }
+
+  void _updateCompletionsDebounced() {
+    _completionTimer?.cancel();
+    _completionTimer = Timer(const Duration(milliseconds: 300), () {
+      _updateCompletions();
+    });
+  }
+
+  void _updateCompletions() {
+    final text = _controller.text;
+    final cursorPos = _controller.selection.baseOffset;
+    final currentLine = text.substring(0, cursorPos).split('\n').last;
+    
+    _completions = _generateCompletions(currentLine);
+    _selectedCompletion = 0;
+    
+    setState(() {
+      _showCompletion = _completions.isNotEmpty;
+    });
+  }
+
+  List<String> _generateCompletions(String currentLine) {
+    final words = currentLine.split(RegExp(r'\s+'));
+    final lastWord = words.last.toLowerCase();
+    
+    if (lastWord.isEmpty) return [];
+    
+    final language = _detectLanguage();
+    final completions = <String>[];
+    
+    // Language-specific completions
+    switch (language) {
+      case 'dart':
+        completions.addAll([
+          'abstract', 'as', 'assert', 'async', 'await', 'break', 'case', 'catch', 'class',
+          'const', 'continue', 'default', 'deferred', 'do', 'dynamic', 'else', 'enum',
+          'export', 'extends', 'external', 'factory', 'false', 'final', 'finally', 'for',
+          'get', 'if', 'implements', 'import', 'in', 'interface', 'is', 'library', 'mixin',
+          'new', 'null', 'operator', 'part', 'rethrow', 'return', 'set', 'static', 'super',
+          'switch', 'sync', 'this', 'throw', 'true', 'try', 'typedef', 'var', 'void', 'while',
+          'with', 'yield', 'Widget', 'State', 'BuildContext', 'Key', 'StatefulWidget', 'StatelessWidget',
+          'MaterialApp', 'Scaffold', 'Column', 'Row', 'Container', 'Text', 'ElevatedButton', 'Icon',
+        ]);
+        break;
+      case 'python':
+        completions.addAll([
+          'and', 'as', 'assert', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else',
+          'except', 'exec', 'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is',
+          'lambda', 'not', 'or', 'pass', 'print', 'raise', 'return', 'try', 'while', 'with',
+          'yield', 'True', 'False', 'None', 'self', 'cls', 'str', 'int', 'float', 'bool',
+          'list', 'dict', 'tuple', 'set', 'len', 'range', 'enumerate', 'zip', 'map', 'filter',
+        ]);
+        break;
+      case 'javascript':
+        completions.addAll([
+          'break', 'case', 'catch', 'class', 'const', 'continue', 'debugger', 'default',
+          'delete', 'do', 'else', 'export', 'extends', 'finally', 'for', 'function', 'if',
+          'import', 'in', 'instanceof', 'let', 'new', 'return', 'super', 'switch', 'this',
+          'throw', 'try', 'typeof', 'var', 'void', 'while', 'with', 'yield', 'async', 'await',
+          'Array', 'Object', 'String', 'Number', 'Boolean', 'Date', 'RegExp', 'Math',
+          'console.log', 'document.getElementById', 'document.querySelector', 'addEventListener',
+        ]);
+        break;
+      case 'shell':
+      case 'bash':
+        completions.addAll([
+          'if', 'then', 'else', 'elif', 'fi', 'case', 'esac', 'for', 'select', 'while',
+          'until', 'do', 'done', 'function', 'time', 'export', 'local', 'readonly', 'declare',
+          'typeset', 'unset', 'alias', 'unalias', 'bg', 'fg', 'jobs', 'kill', 'wait',
+          'cd', 'pwd', 'echo', 'printf', 'read', 'shift', 'test', 'true', 'false',
+          'grep', 'sed', 'awk', 'sort', 'uniq', 'wc', 'head', 'tail', 'cat', 'find', 'locate',
+        ]);
+        break;
+    }
+    
+    // Add common programming constructs
+    completions.addAll([
+      'for', 'while', 'if', 'else', 'return', 'break', 'continue', 'function', 'class', 'import',
+    ]);
+    
+    // Filter by current word and limit results
+    return completions
+        .where((completion) => completion.toLowerCase().startsWith(lastWord))
+        .take(10)
+        .toList();
+  }
+
+  void _acceptCompletion() {
+    if (_selectedCompletion < _completions.length) {
+      final completion = _completions[_selectedCompletion];
+      final text = _controller.text;
+      final cursorPos = _controller.selection.baseOffset;
+      final currentLine = text.substring(0, cursorPos).split('\n').last;
+      final words = currentLine.split(RegExp(r'\s+'));
+      
+      final newText = text.substring(0, cursorPos - words.last.length) + completion + text.substring(cursorPos);
+      final newCursorPos = cursorPos - words.last.length + completion.length;
+      
+      _controller.value = TextEditingValue(
+        text: newText,
+        selection: TextSelection.collapsed(offset: newCursorPos),
+      );
+      
+      setState(() {
+        _showCompletion = false;
+        _completions.clear();
+      });
+      
+      _onTextChanged();
+    }
+  }
+
+  void _nextCompletion() {
+    if (_completions.isNotEmpty) {
+      setState(() {
+        _selectedCompletion = (_selectedCompletion + 1) % _completions.length;
+      });
+    }
+  }
+
+  void _previousCompletion() {
+    if (_completions.isNotEmpty) {
+      setState(() {
+        _selectedCompletion = (_selectedCompletion - 1 + _completions.length) % _completions.length;
+      });
+    }
+  }
+
+  void _hideCompletion() {
+    setState(() {
+      _showCompletion = false;
+      _completions.clear();
+      _selectedCompletion = 0;
+    });
   }
 
   void _openAIChat() {

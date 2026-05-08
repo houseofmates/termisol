@@ -2219,27 +2219,56 @@ class _EditTerminalState extends State<EditTerminal> {
   }
 
   void _nextCompletion() {
-    if (_completions.isNotEmpty) {
+    try {
+      if (_completions.isEmpty) {
+        debugPrint('[COMPLETION] No completions available for navigation');
+        return;
+      }
+      
+      final oldSelection = _selectedCompletion;
       setState(() {
         _selectedCompletion = (_selectedCompletion + 1) % _completions.length;
       });
+      
+      debugPrint('[COMPLETION] Navigated from completion $oldSelection to $_selectedCompletion');
+    } catch (e, stackTrace) {
+      debugPrint('[COMPLETION] Error navigating to next completion: $e');
+      debugPrint('[COMPLETION] Stack trace: $stackTrace');
     }
   }
 
   void _previousCompletion() {
-    if (_completions.isNotEmpty) {
+    try {
+      if (_completions.isEmpty) {
+        debugPrint('[COMPLETION] No completions available for navigation');
+        return;
+      }
+      
+      final oldSelection = _selectedCompletion;
       setState(() {
         _selectedCompletion = (_selectedCompletion - 1 + _completions.length) % _completions.length;
       });
+      
+      debugPrint('[COMPLETION] Navigated from completion $oldSelection to $_selectedCompletion');
+    } catch (e, stackTrace) {
+      debugPrint('[COMPLETION] Error navigating to previous completion: $e');
+      debugPrint('[COMPLETION] Stack trace: $stackTrace');
     }
   }
 
   void _hideCompletion() {
-    setState(() {
-      _showCompletion = false;
-      _completions.clear();
-      _selectedCompletion = 0;
-    });
+    try {
+      setState(() {
+        _showCompletion = false;
+        _completions.clear();
+        _selectedCompletion = 0;
+      });
+      
+      debugPrint('[COMPLETION] Hidden completion popup');
+    } catch (e, stackTrace) {
+      debugPrint('[COMPLETION] Error hiding completion: $e');
+      debugPrint('[COMPLETION] Stack trace: $stackTrace');
+    }
   }
 
   void _openAIChat() {

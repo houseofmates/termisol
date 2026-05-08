@@ -751,6 +751,26 @@ class AdvancedTerminalProtocol {
     _terminal.write(text);
     _sendResponse('\x1b[201~');
   }
+
+  /// Handle key events
+  void handleKeyEvent(String key, {bool ctrl = false, bool alt = false, bool shift = false}) {
+    // Process key events according to keyboard protocol
+    String sequence = '';
+
+    if (_keyMappings.containsKey(key)) {
+      sequence = _keyMappings[key]!;
+    } else {
+      // Handle basic key mappings
+      sequence = key;
+    }
+
+    // Apply modifiers
+    if (ctrl) sequence = '\x1b[1;5$sequence';
+    if (alt) sequence = '\x1b[1;3$sequence';
+    if (shift) sequence = '\x1b[1;2$sequence';
+
+    _terminal.write(sequence);
+  }
   
   /// Get supported protocols
   List<String> getSupportedProtocols() => List.unmodifiable(_supportedProtocols);
@@ -794,6 +814,7 @@ enum MouseButtons {
 enum MouseActions {
   press,
   release,
+  click,
   drag,
   doubleClick,
   tripleClick,

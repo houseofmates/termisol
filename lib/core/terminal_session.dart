@@ -78,6 +78,11 @@ class TerminalSession extends ChangeNotifier {
   /// Called whenever data is received from the backend.
   void Function(String output)? onOutputReceived;
 
+  /// Get command suggestions based on current input
+  Future<List<String>> getCommandSuggestions(String currentInput, {int maxSuggestions = 5}) async {
+    return _commandChaining.getCommandSuggestions(id, currentInput, maxSuggestions: maxSuggestions);
+  }
+
   final List<DetectedUrl> detectedUrls = [];
   final _urlRegex = RegExp(
     r'''https?://[^\s<>"'`\)\]\}]+''',

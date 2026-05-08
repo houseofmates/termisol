@@ -209,10 +209,6 @@ class TermisolFeatures {
   static const String dockerIntegration = 'docker_integration';
   static const String databaseClient = 'database_client';
   static const String fileManager = 'file_manager';
-  static const String vrSupport = 'vr_support';
-  static const String videoPlayback = 'video_playback';
-  static const String audioVisualization = 'audio_visualization';
-  static const String model3d = '3d_modeling';
   static const String sessionSync = 'session_sync';
   static const String sshExtras = 'ssh_extras';
   static const String autoSshKeyManagement = 'auto_ssh_key_management';

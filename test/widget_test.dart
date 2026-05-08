@@ -49,75 +49,11 @@ import 'package:termisol/core/asciicast_recorder.dart';
 import 'package:termisol/core/terminal_pane_manager.dart';
 
 void main() {
-  test('App widget can be instantiated', () async {
-    final aiClient = NvidiaAIClient();
-    final aiAssistant = NvidiaAITerminalAssistant(aiClient);
-    final perf = PerformanceEnforcer();
-    final gpuRenderer = ProductionGpuRenderer();
-    final latencyOptimizer = Sub16msLatencyOptimizer();
-    final framePacer = AdaptiveFramePacer();
-    final configSystem = await ProductionConfigSystem.initialize();
+  testWidgets('App widget can be instantiated', (WidgetTester tester) async {
+    // Create a basic service registry for testing
+    final registry = ServiceRegistry.instance;
 
-    // Initialize core systems
-    final backgroundProcessor = BackgroundProcessor();
-    final memoryOptimizer = MemoryOptimizer();
-    final networkResilience = NetworkResilience();
-    final sessionSyncManager = SessionSyncManager();
-    final llmPluginSystem = LLMPluginSystem();
-    final gnomeIntegration = GnomeIntegration();
-
-    await backgroundProcessor.initialize();
-    await memoryOptimizer.initialize();
-    await networkResilience.initialize();
-    await sessionSyncManager.initialize();
-    await llmPluginSystem.initialize();
-    await gnomeIntegration.initialize();
-
-    // Initialize enhanced systems
-    final aiBaseAssistant = AITerminalAssistant();
-    await aiBaseAssistant.initialize();
-
-    final smartCommandChaining = SmartCommandChaining();
-    final enhancedSearchEngine = EnhancedSearchEngine();
-    final semanticSearchEngine = SemanticSearchEngine(enhancedSearchEngine, aiBaseAssistant);
-    final enhancedAISuggestions = EnhancedAISuggestions(aiBaseAssistant);
-    final conversationalAI = ConversationalAI(aiBaseAssistant, smartCommandChaining, semanticSearchEngine, enhancedAISuggestions);
-    final automatedWorkflows = AutomatedWorkflowSystem(smartCommandChaining, conversationalAI);
-    final vrTerminal = VrTerminal(
-      registry: r,
-      terminalWidget: const SizedBox(),
-    );
-    final gitIntegration = GitIntegration();
-    final githubIntegration = GitHubIntegration(gitIntegration, conversationalAI, semanticSearchEngine);
-    final neuralProcessing = NeuralProcessingSystem(aiBaseAssistant);
-    final paneManager = TerminalPaneManager();
-    final pluginManager = PluginManager();
-
-    await smartCommandChaining.initialize();
-    await semanticSearchEngine.initialize();
-    await enhancedAISuggestions.initialize();
-    await conversationalAI.initialize();
-      await automatedWorkflows.initialize();
-      await githubIntegration.initialize();
-      await neuralProcessing.initialize();
-      await paneManager.initialize();
-      await pluginManager.initialize();
-
-    final app = TermisolApp(
-      aiAssistant: aiAssistant,
-      performanceEnforcer: perf,
-      gpuRenderer: gpuRenderer,
-      latencyOptimizer: latencyOptimizer,
-      framePacer: framePacer,
-      configSystem: configSystem,
-      backgroundProcessor: backgroundProcessor,
-      memoryOptimizer: memoryOptimizer,
-      networkResilience: networkResilience,
-      sessionSyncManager: sessionSyncManager,
-      llmPluginSystem: llmPluginSystem,
-      gnomeIntegration: gnomeIntegration,
-      smartCommandChaining: smartCommandChaining,
-      semanticSearchEngine: semanticSearchEngine,
+    final app = TermisolApp(registry: registry);
       enhancedAISuggestions: enhancedAISuggestions,
       conversationalAI: conversationalAI,
       automatedWorkflows: automatedWorkflows,

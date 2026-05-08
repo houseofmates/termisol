@@ -35,6 +35,18 @@ class NVIDIAAIOptimizer {
   
   bool get isInitialized => _isInitialized;
 
+  Future<void> initialize(String apiKey) async {
+    if (apiKey.isEmpty || !apiKey.startsWith('nvapi-')) {
+      throw OptimizationException('Invalid NVIDIA API key format');
+    }
+    _apiKey = apiKey;
+    _isInitialized = true;
+    
+    // Start analysis timer
+    _analysisTimer?.cancel();
+    _analysisTimer = Timer.periodic(_analysisInterval, (_) => _analyzePerformance());
+  }
+
   Future<void> initialize() async {
     if (_isInitialized) return;
     

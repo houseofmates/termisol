@@ -377,7 +377,7 @@ class GitHubRepo {
       language: json['language'] as String?,
       cloneUrl: json['clone_url'] as String?,
       htmlUrl: json['html_url'] as String?,
-      updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse((json['updated_at'] as String?) ?? '') ?? DateTime.now(),
     );
   }
 }

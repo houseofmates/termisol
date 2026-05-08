@@ -1035,6 +1035,56 @@ class _TextEditorState extends State<TextEditor> {
                     onChanged: (_) => _onTextChanged(),
                     onKey: (event) {
                       if (event is RawKeyDownEvent) {
+                        // Vim-style command mode
+                        if (event.logicalKey == LogicalKeyboardKey.colon && !_commandMode) {
+                          _enterCommandMode();
+                          return KeyEventResult.handled;
+                        }
+                        
+                        // Handle command mode input
+                        if (_commandMode) {
+                          if (event.logicalKey == LogicalKeyboardKey.escape) {
+                            _exitCommandMode();
+                            return KeyEventResult.handled;
+                          } else if (event.logicalKey == LogicalKeyboardKey.enter) {
+                            _executeCommand(_commandController.text);
+                            return KeyEventResult.handled;
+                          }
+                          return KeyEventResult.ignored; // Let text field handle input
+                        }
+                        
+                        // Visual mode shortcuts
+                        if (event.logicalKey == LogicalKeyboardKey.keyV && !_visualMode) {
+                          _enterVisualMode();
+                          return KeyEventResult.handled;
+                        }
+                        
+                        if (_visualMode) {
+                          if (event.logicalKey == LogicalKeyboardKey.escape) {
+                            _exitVisualMode();
+                            return KeyEventResult.handled;
+                          }
+                          // Handle visual mode movements...
+                        }
+                        
+                        // Bracket matching
+                        if (event.logicalKey == LogicalKeyboardKey.percent && HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlLeft)) {
+                          _jumpToMatchingBracket();
+                          return KeyEventResult.handled;
+                        }
+                        
+                        // Go to line
+                        if (event.logicalKey == LogicalKeyboardKey.keyG && HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlLeft)) {
+                          _showGoToLineDialog();
+                          return KeyEventResult.handled;
+                        }
+                        
+                        // Incremental search
+                        if (event.logicalKey == LogicalKeyboardKey.slash && HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlLeft)) {
+                          _startIncrementalSearch();
+                          return KeyEventResult.handled;
+                        }
+                        
                         // Clear all cursors with Escape
                         if (event.logicalKey == LogicalKeyboardKey.escape && _multiCursorMode) {
                           _removeAllCursors();

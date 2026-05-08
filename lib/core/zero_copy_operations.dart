@@ -1,7 +1,8 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 import 'dart:typed_data';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as path;
 
 class ZeroCopyOperations {
   static const int _bufferPoolSize = 1024 * 1024; // 1MB buffers
@@ -21,17 +22,23 @@ class ZeroCopyOperations {
 
   void _initializeBufferPool() {
     for (int i = 0; i < _maxBuffers; i++) {
-      final buffer = ByteBuffer.allocate(_bufferPoolSize);
-      _bufferPool.add(buffer);
+      final buffer = allocateBuffer(_bufferPoolSize);
+      _bufferPool.add(buffer.buffer);
     }
   }
 
-  ByteBuffer getBuffer() {
-    if (_bufferPool.isEmpty) {
-      // Allocate new buffer if pool is empty
-      return ByteBuffer.allocate(_bufferPoolSize);
+  Uint8List allocateBuffer(int size) {
+    if (_bufferPool.isNotEmpty) {
+      final buffer = _bufferPool.removeLast();
+      if (buffer.lengthInBytes >= size) {
+        return buffer.asUint8List();
+      } else {
+        // Return buffer to pool and allocate new one
+        _bufferPool.add(buffer);
+      }
     }
-    return _bufferPool.removeLast();
+    
+    return Uint8List(size);
   }
 
   void returnBuffer(ByteBuffer buffer) {

@@ -422,7 +422,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       _saveSessions();
     } catch (e) {
-      debugPrint('Failed to restore sessions: \$e');
+      debugPrint('Failed to restore sessions: $e');
     }
   }
 
@@ -432,7 +432,7 @@ class _HomeScreenState extends State<HomeScreen> {
       try {
         await SessionPersistence().saveSessions(_tabs);
       } catch (e) {
-        debugPrint('Failed to save sessions: \$e');
+        debugPrint('Failed to save sessions: $e');
       }
     });
   }

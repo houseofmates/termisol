@@ -14,7 +14,8 @@ class FocusManager {
 
   /// Initialize focus management.
   void initialize() {
-    terminal.onFocus = _handleTerminalFocus;
+    // xterm 4.0.0: Terminal does not have an onFocus setter.
+    // terminal.onFocus = _handleTerminalFocus;
   }
 
   /// Handle focus events from the terminal widget.
@@ -25,10 +26,10 @@ class FocusManager {
     // Send bracketed paste sequences when focus changes
     if (hasFocus) {
       // Terminal gained focus - enable bracketed paste
-      controller.paste('\x1b[?2004h');
+      terminal.write('\x1b[?2004h');
     } else {
       // Terminal lost focus - disable bracketed paste
-      controller.paste('\x1b[?2004l');
+      terminal.write('\x1b[?2004l');
     }
     
     // Notify focus event listeners (for vim/emacs integration)
@@ -37,11 +38,13 @@ class FocusManager {
 
   /// Enable focus events from terminal.
   void enableFocusEvents() {
-    terminal.onFocus = _handleTerminalFocus;
+    // xterm 4.0.0: Terminal does not have an onFocus setter.
+    // terminal.onFocus = _handleTerminalFocus;
   }
 
   /// Disable focus events from terminal.
   void disableFocusEvents() {
-    terminal.onFocus = null;
+    // xterm 4.0.0: Terminal does not have an onFocus setter.
+    // terminal.onFocus = null;
   }
 }

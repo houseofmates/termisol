@@ -32,9 +32,10 @@ class BracketedPasteManager {
 
     try {
       final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
-      if (clipboardData?.text != null) {
+      final pastedText = clipboardData?.text;
+      if (pastedText != null) {
         // Apply bracketed paste escape sequences
-        final escaped = clipboardData.text!
+        final escaped = pastedText
             .replaceAll('\\', '\\\\')
             .replaceAll('\x1b', '\x1b\x1b')
             .replaceAll('\x07', '\x1b\x07')
@@ -50,7 +51,7 @@ class BracketedPasteManager {
       }
     } catch (e) {
       // Fallback to unbracketed paste if bracketed mode fails
-      terminal.paste(clipboardData?.text ?? '');
+      terminal.paste(text);
     }
   }
 }

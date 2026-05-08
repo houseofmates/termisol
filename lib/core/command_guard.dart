@@ -126,7 +126,7 @@ class CommandGuard {
       SafetyRule(name: 'wget_pipe_exec', description: 'Piping wget/curl download to shell',
           pattern: RegExp(r'\b(?:wget|curl).*\|.*\b(?:sh|bash)', caseSensitive: false), severity: GuardSeverity.high),
       SafetyRule(name: 'eval_exec', description: 'Evaluating dynamic content in shell',
-          pattern: RegExp(r'\beval\s+["\']\$', caseSensitive: false), severity: GuardSeverity.high),
+          pattern: RegExp(r'''\beval\s+["\']\$''', caseSensitive: false), severity: GuardSeverity.high),
       SafetyRule(name: 'force_push', description: 'Force push to protected branch',
           pattern: RegExp(r'git\s+push\s+.*(?:--force|-f).*\b(?:main|master|production)\b', caseSensitive: false), severity: GuardSeverity.medium),
       SafetyRule(name: 'drop_table', description: 'Dropping database table',

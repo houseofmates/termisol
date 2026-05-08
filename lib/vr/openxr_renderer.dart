@@ -37,7 +37,6 @@ class OpenXRRenderer {
   /// Initialize the renderer
   Future<void> initialize() async {
     _sceneBuilder = ui.SceneBuilder();
-    _pictureRecorder = ui.PictureRecorder();
     
     // Set up callbacks for head tracking
     _session.onHeadPose = _onHeadPoseUpdated;

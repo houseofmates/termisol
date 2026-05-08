@@ -2346,6 +2346,9 @@ Once configured, I'll provide intelligent assistance based on your file context.
                 ),
               ),
             
+            // Collaboration Panel
+            _buildCollaborationPanel(),
+            
             // Editor area
             Expanded(
               child: Container(

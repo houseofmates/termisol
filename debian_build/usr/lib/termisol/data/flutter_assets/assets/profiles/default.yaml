@@ -1,0 +1,42 @@
+# Termisol Default Configuration
+# Place this file in your application documents directory as termisol_config.yaml
+# or edit settings via the in-app settings sheet (Ctrl+,).
+
+performance:
+  gpu_acceleration: true
+  target_fps: 60
+
+terminal:
+  scrollback_lines: 100000
+
+font:
+  family: "JetBrains Mono"
+  size: 14
+
+theme: dark
+
+cursor:
+  blink: true
+  blink_rate: 500
+  style: block
+
+clipboard:
+  bracketed_paste: true
+  copy_on_select: false
+  trim_trailing_whitespace: true
+  history_size: 50
+
+shell:
+  path: auto
+  arguments:
+    - -l
+
+behavior:
+  close_on_exit: true
+  confirm_before_close: true
+  notify_on_bell: false
+  scroll_on_input: true
+
+tabs:
+  position: top
+  show_close_button: true

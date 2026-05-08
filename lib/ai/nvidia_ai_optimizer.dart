@@ -365,9 +365,14 @@ Focus on:
       recommendations.add(OptimizationRecommendation(
         timestamp: DateTime.now(),
         overallScore: 0.8,
-        category: 'memory',
-        description: 'High memory usage. Clear terminal history or reduce scrollback buffer size.',
-        impact: 'medium',
+        suggestions: [OptimizationSuggestion(
+          action: 'Clear terminal history',
+          description: 'Reduce scrollback buffer size to free memory',
+          priority: 'medium',
+        )],
+        predictedImprovement: '10-20% memory reduction',
+        implementationTime: '2 minutes',
+        riskLevel: 'low',
         difficulty: 'easy',
         estimatedGain: 20.0,
         actions: ['Clear scrollback', 'Reduce history size', 'Restart terminal sessions'],

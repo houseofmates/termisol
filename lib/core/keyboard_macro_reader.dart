@@ -112,14 +112,18 @@ class KeyboardMacroReader {
         if (!_isPlaying) break;
 
         final mods = _buildModifiers(event);
-        if (mods > 0) {
-          await SystemChannels.keyEvent.invokeMethod('keyboardEvent', {
-            'type': 'keydown',
-            'keymap': 'android',
-            'keyCode': event.key.codeUnitAt(0),
-            'modifiers': mods,
-          });
-        }
+        // Keyboard event injection via SystemChannels.keyEvent is not supported:
+        // SystemChannels.keyEvent is a BasicMessageChannel, not a MethodChannel,
+        // so invokeMethod is unavailable and the platform side does not expose
+        // a public API for synthesizing key events.
+        // if (mods > 0) {
+        //   await SystemChannels.keyEvent.send({
+        //     'type': 'keydown',
+        //     'keymap': 'android',
+        //     'keyCode': event.key.codeUnitAt(0),
+        //     'modifiers': mods,
+        //   });
+        // }
         // Keyboard event replay not available in Flutter's public API
         // await ServicesBinding.instance.keyEventManager.handleKeyEvent(...);
       }

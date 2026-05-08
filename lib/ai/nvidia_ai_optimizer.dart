@@ -453,6 +453,7 @@ class OptimizationRecommendation {
   });
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'timestamp': timestamp.toIso8601String(),
     'overallScore': overallScore,
     'suggestions': suggestions.map((s) => s.toJson()).toList(),

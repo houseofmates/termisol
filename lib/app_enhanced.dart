@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'core/service_registry.dart';
 import 'core/terminal_session.dart';
 import 'session_restore_manager.dart';
 import 'ui/home_screen.dart';
-import 'ui/terminal_view_enhanced.dart';
 import 'config/pkm_theme.dart';
 
 /// Enhanced app with session restore and crash recovery.
@@ -28,54 +26,47 @@ class _TermisolAppEnhancedState extends State<TermisolAppEnhanced> {
   @override
   void initState() {
     super.initState();
-    
-    // Initialize session restore manager
     _sessionRestore = SessionRestoreManager();
-    
-    // Restore previous sessions on app start
     _restoreSessions();
   }
 
   /// Restore previous sessions.
   Future<void> _restoreSessions() async {
     if (_isRestoring) return;
-    _isRestoring = true;
-    
+    setState(() => _isRestoring = true);
+
     try {
+      await _sessionRestore.load();
       final savedSessions = _sessionRestore.getSavedSessions();
-      
+
       for (final sessionState in savedSessions) {
         final session = TerminalSession(
           id: sessionState.id,
           name: sessionState.name,
         );
-        
-        // Restore working directory
+
         await session.start(workingDirectory: sessionState.workingDirectory);
-        
         _restoredSessions.add(session);
-        debugPrint('🔄 Restored session: ${sessionState.name}');
       }
-      
-      // UI update not needed - sessions are restored asynchronously
-    } catch (e) {
-      debugPrint('❌ Failed to restore sessions: $e');
+    } catch (e, stack) {
+      if (mounted) {
+        debugPrint('Failed to restore sessions: $e\n$stack');
+      }
     } finally {
-      _isRestoring = false;
+      if (mounted) {
+        setState(() => _isRestoring = false);
+      }
     }
   }
 
   /// Save current sessions before app exit.
   Future<void> _saveSessions() async {
     try {
-      // Save all active sessions (would come from HomeScreen)
       for (final session in _restoredSessions) {
         await _sessionRestore.saveSession(session);
       }
-      
-      debugPrint('💾 Saved ${_restoredSessions.length} sessions');
-    } catch (e) {
-      debugPrint('❌ Failed to save sessions: $e');
+    } catch (e, stack) {
+      debugPrint('Failed to save sessions: $e\n$stack');
     }
   }
 
@@ -85,21 +76,21 @@ class _TermisolAppEnhancedState extends State<TermisolAppEnhanced> {
       title: 'Termisol Enhanced',
       theme: ThemeData(
         brightness: Brightness.dark,
-        primarySwatch: PkmTheme.primary,
+        primarySwatch: _createMaterialColor(PkmTheme.primary),
         scaffoldBackgroundColor: PkmTheme.background,
       ),
       home: _isRestoring
-          ? const Scaffold(
+          ? Scaffold(
               backgroundColor: PkmTheme.background,
-              body: Center(
+              body: const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const CircularProgressIndicator(
-                      valueColor: PkmTheme.primary,
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(PkmTheme.primary),
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
+                    SizedBox(height: 16),
+                    Text(
                       'Restoring sessions...',
                       style: TextStyle(
                         color: PkmTheme.text,
@@ -111,17 +102,8 @@ class _TermisolAppEnhancedState extends State<TermisolAppEnhanced> {
                 ),
               ),
             )
-          : HomeScreenEnhanced(
+          : HomeScreen(
               registry: widget.registry,
-              initialSessions: _restoredSessions,
-              onSessionCreated: (session) {
-                _restoredSessions.add(session);
-                // UI update handled by parent widget
-              },
-              onSessionDestroyed: (sessionId) {
-                _restoredSessions.removeWhere((s) => s.id == sessionId);
-                // UI update handled by parent widget
-              },
             ),
     );
   }
@@ -131,5 +113,21 @@ class _TermisolAppEnhancedState extends State<TermisolAppEnhanced> {
     _saveSessions();
     _sessionRestore.dispose();
     super.dispose();
+  }
+
+  MaterialColor _createMaterialColor(Color color) {
+    final strengths = <double>[0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
+    final swatch = <int, Color>{};
+    final r = color.r, g = color.g, b = color.b;
+    for (final strength in strengths) {
+      final ds = 0.5 - strength;
+      swatch[(strength * 1000).round()] = Color.fromARGB(
+        255,
+        (r + (ds < 0 ? (255 - r) * -ds * 10 : r * ds * 10)).clamp(0, 255).round(),
+        (g + (ds < 0 ? (255 - g) * -ds * 10 : g * ds * 10)).clamp(0, 255).round(),
+        (b + (ds < 0 ? (255 - b) * -ds * 10 : b * ds * 10)).clamp(0, 255).round(),
+      );
+    }
+    return MaterialColor(color.value, swatch);
   }
 }

@@ -215,6 +215,10 @@ class TermisolFeatures {
   static const String model3d = '3d_modeling';
   static const String sessionSync = 'session_sync';
   static const String sshExtras = 'ssh_extras';
+  static const String autoSshKeyManagement = 'auto_ssh_key_management';
+  static const String multihopSsh = 'multihop_ssh';
+  static const String tunnelManagement = 'tunnel_management';
+  static const String sshConnectionPersistence = 'ssh_connection_persistence';
   static const String collaboration = 'collaboration';
   static const String plugins = 'plugins';
 
@@ -222,7 +226,8 @@ class TermisolFeatures {
     terminalCore, aiAssistant, performanceMonitoring, gpuRenderer,
     gitIntegration, dockerIntegration, databaseClient, fileManager,
     vrSupport, videoPlayback, audioVisualization, model3d,
-    sessionSync, sshExtras, collaboration, plugins,
+    sessionSync, sshExtras, autoSshKeyManagement, multihopSsh,
+    tunnelManagement, sshConnectionPersistence, collaboration, plugins,
   ];
 
   static List<String> get critical => [terminalCore, performanceMonitoring];

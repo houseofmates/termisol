@@ -167,10 +167,10 @@ ServiceRegistry _registerServices() {
   r.register(TermisolFeatures.configurableHotkeys, () => ServiceFactories.createConfigurableHotkeys());
   r.register(TermisolFeatures.smoothAnimations, () => ServiceFactories.createSmoothAnimations());
   r.register(TermisolFeatures.autoBackupSystem, () => ServiceFactories.createAutoBackupSystem());
-  r.register(TermisolFeatures.sshExtras, () => ServiceFactories.createAutoSSHKeyManagement());
-  r.register(TermisolFeatures.sshExtras, () => ServiceFactories.createMultihopSSH());
-  r.register(TermisolFeatures.sshExtras, () => ServiceFactories.createTunnelManagement());
-  r.register(TermisolFeatures.sshExtras, () => ServiceFactories.createSSHConnectionPersistence());
+   r.register(TermisolFeatures.autoSshKeyManagement, () => ServiceFactories.createAutoSSHKeyManagement());
+   r.register(TermisolFeatures.multihopSsh, () => ServiceFactories.createMultihopSSH());
+   r.register(TermisolFeatures.tunnelManagement, () => ServiceFactories.createTunnelManagement());
+   r.register(TermisolFeatures.sshConnectionPersistence, () => ServiceFactories.createSSHConnectionPersistence());
   r.register(TermisolFeatures.codeIntelligence, () => ServiceFactories.createCodeIntelligence());
   r.register(TermisolFeatures.databaseClient, () => ServiceFactories.createDatabaseClient());
   r.register(TermisolFeatures.sessionRecovery, () => ServiceFactories.createSessionRecovery());

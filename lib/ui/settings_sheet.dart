@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../config/pkm_theme.dart';
-import '../core/performance_enforcer.dart';
 import '../core/service_registry.dart';
 
 /// Settings sheet for Termisol configuration

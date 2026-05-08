@@ -28,7 +28,11 @@ class VrPlatformChannel {
   static Future<bool> isVrSupported() async {
     try {
       return await _channel.invokeMethod('isVrSupported');
+    } on PlatformException catch (e) {
+      debugPrint('VR platform error checking support: ${e.code}: ${e.message}');
+      return false;
     } catch (e) {
+      debugPrint('Unexpected error checking VR support: $e');
       return false;
     }
   }
@@ -37,7 +41,11 @@ class VrPlatformChannel {
   static Future<bool> startVrSession() async {
     try {
       return await _channel.invokeMethod('startVrSession');
+    } on PlatformException catch (e) {
+      debugPrint('VR session start failed: ${e.code}: ${e.message}');
+      return false;
     } catch (e) {
+      debugPrint('Unexpected error starting VR session: $e');
       return false;
     }
   }
@@ -46,8 +54,12 @@ class VrPlatformChannel {
   static Future<void> stopVrSession() async {
     try {
       await _channel.invokeMethod('stopVrSession');
+    } on PlatformException catch (e) {
+      debugPrint('VR session stop failed: ${e.code}: ${e.message}');
+      // Don't rethrow - stopping should be best effort
     } catch (e) {
-      // Ignore errors when stopping
+      debugPrint('Unexpected error stopping VR session: $e');
+      // Don't rethrow - stopping should be best effort
     }
   }
 
@@ -81,7 +93,11 @@ class VrPlatformChannel {
       await _channel.invokeMethod('triggerHapticFeedback', {
         'pattern': pattern.toJson(),
       });
+    } on PlatformException catch (e) {
+      debugPrint('Haptic feedback failed: ${e.code}: ${e.message}');
+      // Haptic feedback failure is not critical
     } catch (e) {
+      debugPrint('Unexpected error in haptic feedback: $e');
       // Haptic feedback failure is not critical
     }
   }

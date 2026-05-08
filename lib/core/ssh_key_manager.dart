@@ -93,7 +93,7 @@ class SSHKeyManager {
       final fingerprint = await _calculateFingerprint(publicKey);
       
       final sshKey = SSHKey(
-        id: 'key_${DateTime.now().millisecondsSinceEpoch}',
+        id: 'key_${_generateSecureId()}',
         keyType: keyType,
         keySize: keySize,
         privateKey: keyPair,

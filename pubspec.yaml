@@ -34,6 +34,14 @@ dependencies:
   web_socket_channel: ^2.4.0
   pty:
     path: packages/pty
+  # Security and crypto packages
+  crypto: ^3.0.3
+  convert: ^3.1.1
+  pointycastle: ^3.8.0
+  # Performance and optimization
+  flutter_rust_bridge: ^2.0.0
+  # Enhanced logging
+  stack_trace: ^1.11.1
 
 dev_dependencies:
   flutter_test:

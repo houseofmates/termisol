@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
 
@@ -14,13 +15,13 @@ import 'package:postgres/postgres.dart';
 /// - Connection management
 /// - Query history and favorites
 class DatabaseOperations {
-  static const String _nocobaseHost = '192.168.1.233';
-  static const int _nocobasePort = 5432;
-  static const String _nocobaseDatabase = 'nocobase';
+  static String get _nocobaseHost => Platform.environment['NOCOBASE_HOST'] ?? '192.168.1.233';
+  static int get _nocobasePort => int.tryParse(Platform.environment['NOCOBASE_PORT'] ?? '') ?? 5432;
+  static String get _nocobaseDatabase => Platform.environment['NOCOBASE_DATABASE'] ?? 'nocobase';
   
-  static const String _memsterHost = '192.168.1.250';
-  static const int _memsterPort = 5432;
-  static const String _memsterDatabase = 'memster';
+  static String get _memsterHost => Platform.environment['MEMSTER_HOST'] ?? '192.168.1.250';
+  static int get _memsterPort => int.tryParse(Platform.environment['MEMSTER_PORT'] ?? '') ?? 5432;
+  static String get _memsterDatabase => Platform.environment['MEMSTER_DATABASE'] ?? 'memster';
   
   PostgreSQLConnection? _nocobaseConnection;
   PostgreSQLConnection? _memsterConnection;

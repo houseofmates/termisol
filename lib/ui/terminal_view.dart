@@ -7,7 +7,7 @@ import '../core/gpu_renderer.dart';
 import '../core/deep_l_service.dart';
 import '../config/pkm_theme.dart';
 import 'clipboard_manager.dart';
-import 'retained_terminal_renderer.dart';
+import 'damage_aware_terminal_renderer.dart';
 
 /// xterm terminal theme using Termisol brand yellow (#f6b012) instead of
 /// the default greenish-yellow (#e5e510).
@@ -111,7 +111,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
               shift: true,
             ): () => _clipboard.pasteBracketed(),
           },
-          child: RetainedTerminalRenderer(
+          child: DamageAwareTerminalRenderer(
             terminal: widget.session.terminal,
             controller: widget.session.controller,
             focusNode: widget.focusNode,

@@ -520,7 +520,7 @@ class DebugUtils {
   }
   
   static void logErrorWithContext(String error, String context, [Map<String, dynamic>? additional]) {
-    TermisolLogger().error(error, {
+    TermisolLogger().severe(error, {
       'context': context,
       ...?additional,
     });
@@ -558,6 +558,6 @@ extension LoggerExtensions on Object {
   }
   
   void logError(String message, [Map<String, dynamic>? context, dynamic error, StackTrace? stackTrace]) {
-    logger.error('$runtimeType: $message', context, error, stackTrace);
+    logger.severe('$runtimeType: $message', context, error, stackTrace);
   }
 }

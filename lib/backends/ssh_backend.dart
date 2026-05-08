@@ -121,8 +121,8 @@ class SshBackend implements TermisolPtyBackend {
   Future<void> stop() async {
     _isRunning = false;
     try {
-      await _session?.close();
-      await _client?.close();
+      _session?.close();
+      _client?.close();
     } catch (e) {
       debugPrint('[ssh] stop error: $e');
     }

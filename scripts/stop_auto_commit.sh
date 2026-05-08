@@ -2,7 +2,7 @@
 
 # Stop auto-commit monitoring script
 
-REPO_DIR="/home/house/termisol"
+REPO_DIR="${TERMISOL_REPO_DIR:-$(pwd)}"
 PID_FILE="$REPO_DIR/.git/auto_commit.pid"
 LOG_FILE="$REPO_DIR/.git/auto_commit.log"
 

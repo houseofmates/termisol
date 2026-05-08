@@ -3,7 +3,7 @@
 # Start auto-commit monitoring script
 # This script runs the auto-commit monitoring in background
 
-REPO_DIR="/home/house/termisol"
+REPO_DIR="${TERMISOL_REPO_DIR:-$(pwd)}"
 SCRIPT_DIR="$REPO_DIR/scripts"
 PID_FILE="$REPO_DIR/.git/auto_commit.pid"
 LOG_FILE="$REPO_DIR/.git/auto_commit.log"

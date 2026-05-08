@@ -3,7 +3,7 @@
 # Setup script for auto-commit functionality
 # This script configures and starts the auto-commit system
 
-REPO_DIR="/home/house/termisol"
+REPO_DIR="${TERMISOL_REPO_DIR:-$(pwd)}"
 SCRIPT_DIR="$REPO_DIR/scripts"
 BASHRC="$HOME/.bashrc"
 AUTO_COMMIT_LINE="cd $REPO_DIR && $SCRIPT_DIR/start_auto_commit.sh > /dev/null 2>&1"

@@ -3,7 +3,7 @@
 # Watch and auto-commit script for Termisol
 # Uses inotify to monitor file changes and commits after 10 seconds
 
-REPO_DIR="/home/house/termisol"
+REPO_DIR="${TERMISOL_REPO_DIR:-$(pwd)}"
 LOG_FILE="$REPO_DIR/.git/auto_commit.log"
 MIN_AGE_SECONDS=10
 PENDING_FILE="$REPO_DIR/.git/pending_commit"

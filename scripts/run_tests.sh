@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Project root
-PROJECT_ROOT="/home/house/termisol"
+PROJECT_ROOT="${TERMISOL_REPO_DIR:-$(pwd)}"
 cd "$PROJECT_ROOT"
 
 echo -e "${BLUE}Starting Termisol Test Suite${NC}"

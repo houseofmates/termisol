@@ -17,7 +17,7 @@ import 'package:test/test.dart' as test;
 /// - Memory leak detection
 /// - Security vulnerability scanning
 class AutomatedTestPipeline {
-  static const String _projectRoot = '/home/house/termisol';
+  static const String _projectRoot = Platform.environment['TERMISOL_REPO_DIR'] ?? (Platform.environment['HOME'] ?? '/home/user') + '/termisol';
   static const String _testResultsDir = '$_projectRoot/test_results';
   static const String _reportsDir = '$_projectRoot/reports';
   

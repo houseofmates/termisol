@@ -3,7 +3,7 @@
 # Auto-commit script for Termisol
 # Commits changes older than 10 seconds to main branch
 
-REPO_DIR="/home/house/termisol"
+REPO_DIR="${TERMISOL_REPO_DIR:-$(pwd)}"
 LOG_FILE="$REPO_DIR/.git/auto_commit.log"
 MIN_AGE_SECONDS=10
 

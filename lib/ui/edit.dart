@@ -244,7 +244,9 @@ class _EditTerminalState extends State<EditTerminal> {
   }
 
   void _addCursorAtSelection() {
-    if (_controller.selection.isCollapsed && !_cursors.contains(_controller.selection)) {
+    if (_controller.selection.isCollapsed && 
+        !_cursors.contains(_controller.selection) && 
+        _cursors.length < _maxCursors) {
       setState(() {
         _multiCursorMode = true;
         _cursors.add(_controller.selection);
@@ -389,7 +391,8 @@ class _EditTerminalState extends State<EditTerminal> {
     final matches = <int>[];
     int index = text.indexOf(selectedText);
     
-    while (index != -1) {
+    // Limit matches for performance
+    while (index != -1 && matches.length < _maxCursors) {
       matches.add(index);
       index = text.indexOf(selectedText, index + 1);
     }

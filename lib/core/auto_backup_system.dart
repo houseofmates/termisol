@@ -197,10 +197,12 @@ class AutoBackupSystem {
     final policy = defaultPolicy;
     final expired = all.where((b) {
       final age = now.difference(b.timestamp);
-      switch (policy.retentionType) {
+      switch (policy.retention.type) {
         case BackupRetentionType.days:
-          return age.inDays > policy.retentionValue;
+          return age.inDays > policy.retention.value;
         case BackupRetentionType.count:
+          return false;
+        default:
           return false;
       }
     }).toList();

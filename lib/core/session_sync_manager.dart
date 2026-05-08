@@ -285,11 +285,11 @@ class SyncedSession {
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       version: json['version'] as int,
-      metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
-      history: List<String>.from(json['history'] ?? []),
-      tabs: (json['tabs'] as List?)?.map((t) => SessionTab.fromJson(t as Map<String, dynamic>)).toList() ?? [],
-      activeTabIndex: json['activeTabIndex'] as int? ?? 0,
-      config: Map<String, dynamic>.from(json['config'] ?? {}),
+      metadata: Map<String, dynamic>.from((json['metadata'] as Map?) ?? {}),
+      history: List<String>.from((json['history'] as List?) ?? []),
+      tabs: ((json['tabs'] as List?)?.map((t) => SessionTab.fromJson(Map<String, dynamic>.from(t as Map))).toList() ?? []),
+      activeTabIndex: (json['activeTabIndex'] as int?) ?? 0,
+      config: Map<String, dynamic>.from((json['config'] as Map?) ?? {}),
     );
   }
 }

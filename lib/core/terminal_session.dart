@@ -13,6 +13,7 @@ import 'throttled_renderer.dart';
 import 'optimized_text_buffer.dart';
 import 'lazy_terminal_output.dart';
 import 'smart_auto_complete.dart';
+import 'smart_command_chaining.dart';
 import 'session_persistence.dart';
 import 'crash_recovery.dart';
 import 'long_command_notifier.dart';
@@ -89,6 +90,7 @@ class TerminalSession extends ChangeNotifier {
   late final OptimizedTextBuffer _textBuffer;
   late final LazyTerminalOutput _lazyOutput;
   late final SmartAutoComplete _autoComplete;
+  late final SmartCommandChaining _commandChaining;
   late final SessionPersistence _sessionPersistence;
   late final CrashRecovery _crashRecovery;
   late final LongCommandNotifier _commandNotifier;
@@ -117,6 +119,7 @@ class TerminalSession extends ChangeNotifier {
     _textBuffer = OptimizedTextBuffer(maxLines: maxLines);
     _lazyOutput = LazyTerminalOutput(sessionId: id, visibleLines: 1000);
     _autoComplete = SmartAutoComplete();
+    _commandChaining = SmartCommandChaining();
     _sessionPersistence = SessionPersistence();
     _crashRecovery = CrashRecovery();
     _commandNotifier = LongCommandNotifier();

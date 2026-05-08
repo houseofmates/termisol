@@ -11,6 +11,8 @@ import 'core/service_registry.dart';
 import 'core/service_factories.dart';
 import 'core/adaptive_rendering_system.dart';
 import 'core/robust_error_handler.dart';
+import 'core/advanced_performance_optimizer.dart';
+import 'core/cross_platform_manager.dart';
 
 /// Setup global error handling and crash reporting
 Future<void> _setupErrorHandling() async {
@@ -84,12 +86,23 @@ void _showErrorDialog(String error) {
   ErrorReporter.reportError(error);
 }
 
+/// Initialize all robust systems
+Future<void> _initializeRobustSystems() async {
+  await AdaptiveRenderingSystem().initialize();
+  await AdvancedPerformanceOptimizer().initialize();
+  await CrossPlatformManager().initialize();
+}
+
 /// Entry point for termisol with lazy-loading service registry.
 /// Critical services start immediately; everything else is on-demand.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Setup global error handling
   await _setupErrorHandling();
+  
+  // Initialize robust systems
+  await _initializeRobustSystems();
 
   if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
     await windowManager.ensureInitialized();

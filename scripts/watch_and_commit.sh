@@ -2,6 +2,7 @@
 
 # Watch and auto-commit script for Termisol
 # Uses inotify to monitor file changes and commits after 10 seconds
+# SAFETY: Never commits file deletions. If deletions are detected, aborts.
 
 REPO_DIR="${TERMISOL_REPO_DIR:-$(pwd)}"
 LOG_FILE="$REPO_DIR/.git/auto_commit.log"
@@ -26,14 +27,43 @@ generate_commit_message() {
     fi
 }
 
+# Function to check if staged changes contain dangerous deletions
+has_dangerous_deletions() {
+    local deletions=$(git diff --cached --name-status 2>/dev/null | grep '^D' | wc -l)
+    local total=$(git diff --cached --name-status 2>/dev/null | wc -l)
+    
+    if [ "$deletions" -gt 5 ]; then
+        log_message "ABORT: $deletions file deletions detected (threshold: 5). Refusing to commit."
+        return 0
+    fi
+    
+    if [ "$total" -gt 0 ] && [ "$deletions" -gt 0 ]; then
+        local pct=$((deletions * 100 / total))
+        if [ "$pct" -gt 30 ]; then
+            log_message "ABORT: $deletions deletions out of $total files ($pct%) exceeds 30% threshold. Refusing to commit."
+            return 0
+        fi
+    fi
+    
+    return 1
+}
+
 # Function to commit and push changes
 commit_changes() {
     cd "$REPO_DIR" || exit 1
     
     # Check if there are changes to commit
     if ! git diff --quiet || ! git diff --cached --quiet; then
-        # Add all changes
-        git add .
+        # Stage changes, but NOT deletions
+        git add --ignore-removal .
+        
+        # Guard against accidental deletions
+        if has_dangerous_deletions; then
+            git reset HEAD
+            log_message "Commit aborted due to deletion guard. Manual review required."
+            rm -f "$PENDING_FILE"
+            return
+        fi
         
         # Generate and use commit message
         local commit_msg=$(generate_commit_message)
@@ -90,8 +120,8 @@ log_message "Starting file monitoring for auto-commit"
 
 cd "$REPO_DIR" || exit 1
 
-# Monitor for file changes
-inotifywait -m -r -e modify,create,delete,move --exclude '\.git/' . | while read path action file; do
+# Monitor for file changes — NOTE: delete events are intentionally excluded
+inotifywait -m -r -e modify,create,move --exclude '\.git/' . | while read path action file; do
     if [ -n "$file" ]; then
         full_path="$path$file"
         log_message "Detected $action on $full_path"

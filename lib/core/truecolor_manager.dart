@@ -42,7 +42,7 @@ class TrueColorManager {
     // Parse TrueColor sequences (OSC 4, 10, 11, 12)
     if (sequence.startsWith('\x1b]10;') || sequence.startsWith('\x1b]11;')) {
       // Set foreground color (RGB)
-      final match = RegExp(r'\x1b\](\d+);rgb:([\da-f]{2})/([\da-f]{2})([\da-f]{2})').firstMatch(sequence);
+      final match = RegExp(r'\x1b\](\d+);rgb:([\da-f]{2,4})/([\da-f]{2,4})/([\da-f]{2,4})').firstMatch(sequence);
       if (match != null) {
         final r = int.tryParse(match.group(1)!, radix: 16) ?? 0;
         final g = int.tryParse(match.group(2)!, radix: 16) ?? 0;

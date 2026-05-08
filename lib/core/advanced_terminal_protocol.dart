@@ -38,8 +38,14 @@ class AdvancedTerminalProtocol {
   final List<Color> _colorPalette = List.generate(256, (i) => Color.fromARGB(255, 0, 0, 0));
   bool _trueColorSupported = true;
 
+  // Focus tracking
+  bool _hasFocus = false;
+
   // Keyboard protocol
   final Map<String, String> _keyMappings = {};
+
+  // Event handlers
+  final Map<String, Function> _handlers = {};
 
   AdvancedTerminalProtocol(this._terminal, this._controller);
 

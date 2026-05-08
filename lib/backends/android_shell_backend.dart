@@ -278,7 +278,9 @@ class AndroidShellBackend implements TermisolPtyBackend {
         if (_process != null) {
           _process!.kill(ProcessSignal.sigkill);
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[androidshell] Force kill error: $e');
+      }
     }
   }
 
@@ -300,7 +302,9 @@ class AndroidShellBackend implements TermisolPtyBackend {
         debugPrint('[androidshell] terminate error: $e');
         try {
           _process?.kill(ProcessSignal.sigkill);
-        } catch (_) {}
+        } catch (e) {
+          debugPrint('[androidshell] Termination cleanup error: $e');
+        }
       }
       _process = null;
     }

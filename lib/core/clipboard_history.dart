@@ -287,7 +287,9 @@ class ClipboardHistory {
       try {
         jsonDecode(content);
         return ClipboardType.json;
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('Failed to parse JSON clipboard: $e');
+      }
     }
     
     // Check for code

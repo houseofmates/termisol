@@ -148,21 +148,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const Spacer(),
-                if (_perf != null)
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: PkmTheme.primary.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      '${_perf.currentFps.toStringAsFixed(1)} FPS',
-                      style: TextStyle(
-                        color: PkmTheme.primary,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),

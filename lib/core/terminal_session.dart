@@ -82,8 +82,9 @@ class TerminalSession extends ChangeNotifier {
   void Function(String output)? onOutputReceived;
 
   /// Get command suggestions based on current input
-  List<String> getCommandSuggestions(String currentInput, {int maxSuggestions = 5}) {
-    return _autoComplete.getSuggestions(currentInput, maxSuggestions: maxSuggestions);
+  Future<List<String>> getCommandSuggestions(String currentInput, {int maxSuggestions = 5}) async {
+    final suggestions = await _autoComplete.getSuggestions(currentInput);
+    return suggestions.map((s) => s.command).take(maxSuggestions).toList();
   }
 
   /// Search terminal output semantically (placeholder — returns empty list)

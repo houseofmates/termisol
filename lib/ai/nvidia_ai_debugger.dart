@@ -19,7 +19,7 @@ class NVIDOTerminalDebugger {
   NVIDOTerminalDebugger._internal();
 
   final String _nimEndpoint = 'https://integrate.nvidia.com/v1/chat/completions';
-  final String _apiKey = 'nvapi-'; // User will need to set this
+  String? _apiKey;
   final Map<String, DebugSession> _debugSessions = {};
   final Map<String, CodeFormat> _formatCache = {};
   

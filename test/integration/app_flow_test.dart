@@ -21,7 +21,7 @@ import 'package:termisol/core/enhanced_search_engine.dart';
 import 'package:termisol/core/enhanced_ai_suggestions.dart';
 import 'package:termisol/core/conversational_ai.dart';
 import 'package:termisol/core/automated_workflows.dart';
-import 'package:termisol/vr/advanced_vr_terminal.dart';
+import 'package:termisol/vr/vr_terminal.dart';
 import 'package:termisol/core/github_integration.dart';
 import 'package:termisol/core/git_integration.dart';
 import 'package:termisol/core/neural_processing.dart';

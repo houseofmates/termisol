@@ -621,6 +621,12 @@ class OpenXRFrameState {
   });
 }
 
+/// Type aliases for compatibility
+typedef XrTime = int;
+typedef XrDuration = int;
+typedef XrSystemId = int;
+typedef XrPath = int;
+
 /// Additional OpenXR functions needed
 typedef XrCreateReferenceSpaceNative = Int32 Function(Pointer<XrSession> session, Pointer<XrReferenceSpaceCreateInfo> createInfo, Pointer<Pointer<XrSpace>> space);
 typedef XrCreateReferenceSpace = int Function(Pointer<XrSession> session, Pointer<XrReferenceSpaceCreateInfo> createInfo, Pointer<Pointer<XrSpace>> space);

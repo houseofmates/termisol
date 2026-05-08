@@ -517,8 +517,6 @@ typedef XrDestroySpace = void Function(Pointer<XrSpace> space);
 typedef XrAttachSessionActionSetsNative = Int32 Function(Pointer<XrSession> session, Pointer<XrSessionActionSetsAttachInfo> attachInfo);
 typedef XrAttachSessionActionSets = int Function(Pointer<XrSession> session, Pointer<XrSessionActionSetsAttachInfo> attachInfo);
 
-typedef XrEnumerateViewConfigurationViewsNative = Int32 Function(Pointer<XrInstance> instance, Uint64 systemId, Uint32 viewConfigurationType, Uint32 viewConfigurationTypeCapacityInput, Pointer<Uint32> viewConfigurationTypeCountOutput, Pointer<XrViewConfigurationView> viewConfigurationViews);
-typedef XrEnumerateViewConfigurationViews = int Function(Pointer<XrInstance> instance, Uint64 systemId, Uint32 viewConfigurationType, Uint32 viewConfigurationTypeCapacityInput, Pointer<Uint32> viewConfigurationTypeCountOutput, Pointer<XrViewConfigurationView> viewConfigurationViews);
 
 // OpenXR library interface
 class OpenXRLibrary {
@@ -550,8 +548,7 @@ class OpenXRLibrary {
   late XrCreateReferenceSpace xrCreateReferenceSpace;
   late XrDestroySpace xrDestroySpace;
   late XrAttachSessionActionSets xrAttachSessionActionSets;
-  late XrEnumerateViewConfigurationViews xrEnumerateViewConfigurationViews;
-  
+    
   bool _initialized = false;
   
   OpenXRLibrary._();
@@ -599,8 +596,7 @@ class OpenXRLibrary {
       xrCreateReferenceSpace = _lib.lookupFunction<XrCreateReferenceSpaceNative, XrCreateReferenceSpace>('xrCreateReferenceSpace');
       xrDestroySpace = _lib.lookupFunction<XrDestroySpaceNative, XrDestroySpace>('xrDestroySpace');
       xrAttachSessionActionSets = _lib.lookupFunction<XrAttachSessionActionSetsNative, XrAttachSessionActionSets>('xrAttachSessionActionSets');
-      xrEnumerateViewConfigurationViews = _lib.lookupFunction<XrEnumerateViewConfigurationViewsNative, XrEnumerateViewConfigurationViews>('xrEnumerateViewConfigurationViews');
-      
+            
       _initialized = true;
     } catch (e) {
       throw Exception('Failed to load OpenXR library: $e');

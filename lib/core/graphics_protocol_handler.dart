@@ -63,6 +63,7 @@ class GraphicsProtocolHandler {
 
   Stream<GraphicsEvent> get events => _eventController.stream;
   Map<String, GraphicsImage> get cachedImages => Map.unmodifiable(_imageCache);
+  Map<String, Offset> get imagePositions => Map.unmodifiable(_imagePositions);
 
   /// Initialize graphics protocol handler
   Future<void> initialize() async {
@@ -399,7 +400,7 @@ class GraphicsProtocolHandler {
   }
 
   /// Process temporary file transmission
-  String _processTemporaryFileTransmission(Map<String, String> params, String id) {
+  String _processTemporaryFileTransmission(Map<String, String> params, String id, int cursorX, int cursorY) {
     // Temporary file transmission not implemented for security
     return '\x1b_Gi=$id,f=32\x1b\\'; // Error: not supported
   }

@@ -1,485 +1,229 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:path/path.dart' as path;
+import 'package:shared_preferences/shared_preferences.dart';
 
-/// Production-grade Command Guard for terminal security
-/// 
-/// Provides comprehensive command validation and security:
-/// - Dangerous command detection and blocking
-/// - Whitelist/blacklist management
-/// - Command sanitization
-/// - Audit logging
-/// - User permission checking
-/// - File system protection
+/// Command Guard
+///
+/// Prevents execution of dangerous commands by matching against
+/// configurable safety rules with confirmation prompts, allowlists,
+/// and severity classification.
 class CommandGuard {
-  final Set<String> _dangerousCommands = {
-    'rm -rf /',
-    'rm -rf /*',
-    'dd if=/dev/zero of=/dev/sda',
-    'mkfs',
-    'format',
-    'fdisk',
-    'chmod 777',
-    'chown root',
-    'sudo rm',
-    'sudo chmod',
-    'sudo chown',
-    ':(){ :|:& };:', // fork bomb
-    'killall',
-    'pkill -9',
-    'kill -9 -1',
-    'shutdown',
-    'reboot',
-    'halt',
-    'poweroff',
-    'init 0',
-    'init 6',
-    'systemctl poweroff',
-    'systemctl reboot',
-    'service network restart',
-    'iptables -F',
-    'rm -rf /boot',
-    'rm -rf /etc',
-    'rm -rf /usr',
-    'rm -rf /bin',
-    'rm -rf /sbin',
-    'rm -rf /lib',
-  };
-  
-  final Set<String> _systemDirectories = {
-    '/boot',
-    '/etc',
-    '/usr',
-    '/bin',
-    '/sbin',
-    '/lib',
-    '/lib64',
-    '/proc',
-    '/sys',
-    '/dev',
-    '/root',
-  };
-  
-  final Set<String> _allowedCommands = {};
-  final Set<String> _blockedCommands = {};
-  final List<CommandAuditEntry> _auditLog = [];
-  final StreamController<CommandEvent> _eventController = 
-      StreamController<CommandEvent>.broadcast();
-  
+  final List<SafetyRule> _rules = [];
+  final Set<String> _allowlistedCommands = {};
+  final Set<String> _blocklistedCommands = {};
+  final Map<String, int> _warnCount = {};
+  bool _enabled = true;
   bool _strictMode = false;
-  bool _auditMode = true;
-  int _maxAuditLogSize = 1000;
-  
-  /// Stream of command events
-  Stream<CommandEvent> get events => _eventController.stream;
-  
-  /// Current strict mode setting
-  bool get strictMode => _strictMode;
-  
-  /// Current audit mode setting
-  bool get auditMode => _auditMode;
-  
-  /// Command guard configuration
-  CommandGuard({
-    bool strictMode = false,
-    bool auditMode = true,
-    Set<String>? allowedCommands,
-    Set<String>? blockedCommands,
-  }) : _strictMode = strictMode,
-       _auditMode = auditMode {
-    _allowedCommands.addAll(allowedCommands ?? {});
-    _blockedCommands.addAll(blockedCommands ?? {});
+  GuardMode _mode = GuardMode.warn;
+  final StreamController<GuardEvent> _eventController = StreamController<GuardEvent>.broadcast();
+
+  Stream<GuardEvent> get events => _eventController.stream;
+  bool get isEnabled => _enabled;
+  GuardMode get mode => _mode;
+
+  Future<void> initialize({GuardMode mode = GuardMode.warn, bool strict = false}) async {
+    _mode = mode;
+    _strictMode = strict;
+    _registerDefaultRules();
+    await _loadPersistedState();
+    debugPrint('CommandGuard initialized (mode: ${mode.name}, strict: $strict)');
   }
-  
-  /// Validate and sanitize command
-  CommandValidationResult validateCommand(String command, {
-    String? workingDirectory,
-    Map<String, String>? environment,
-  }) {
-    try {
-      // Basic sanitization
-      final sanitizedCommand = _sanitizeCommand(command);
-      
-      // Check for dangerous commands
-      final dangerousCheck = _checkDangerousCommands(sanitizedCommand);
-      if (!dangerousCheck.isSafe) {
-        _logCommand(command, CommandValidationType.blocked, dangerousCheck.reason);
-        _eventController.add(CommandEvent(
-          type: CommandEventType.commandBlocked,
-          command: command,
-          reason: dangerousCheck.reason,
-          timestamp: DateTime.now(),
-        ));
-        
-        return CommandValidationResult(
-          isAllowed: false,
-          sanitizedCommand: null,
-          reason: dangerousCheck.reason,
-          severity: CommandSeverity.high,
-        );
-      }
-      
-      // Check system directory access
-      final directoryCheck = _checkSystemDirectoryAccess(sanitizedCommand, workingDirectory);
-      if (!directoryCheck.isSafe) {
-        _logCommand(command, CommandValidationType.blocked, directoryCheck.reason);
-        _eventController.add(CommandEvent(
-          type: CommandEventType.commandBlocked,
-          command: command,
-          reason: directoryCheck.reason,
-          timestamp: DateTime.now(),
-        ));
-        
-        return CommandValidationResult(
-          isAllowed: false,
-          sanitizedCommand: null,
-          reason: directoryCheck.reason,
-          severity: CommandSeverity.medium,
-        );
-      }
-      
-      // Check whitelist/blacklist
-      if (_strictMode && !_allowedCommands.contains(_getCommandName(sanitizedCommand))) {
-        _logCommand(command, CommandValidationType.blocked, 'Command not in whitelist');
-        _eventController.add(CommandEvent(
-          type: CommandEventType.commandBlocked,
-          command: command,
-          reason: 'Command not in whitelist',
-          timestamp: DateTime.now(),
-        ));
-        
-        return CommandValidationResult(
-          isAllowed: false,
-          sanitizedCommand: null,
-          reason: 'Command not in whitelist (strict mode)',
-          severity: CommandSeverity.medium,
-        );
-      }
-      
-      if (_blockedCommands.contains(_getCommandName(sanitizedCommand))) {
-        _logCommand(command, CommandValidationType.blocked, 'Command in blacklist');
-        _eventController.add(CommandEvent(
-          type: CommandEventType.commandBlocked,
-          command: command,
-          reason: 'Command in blacklist',
-          timestamp: DateTime.now(),
-        ));
-        
-        return CommandValidationResult(
-          isAllowed: false,
-          sanitizedCommand: null,
-          reason: 'Command is blocked',
-          severity: CommandSeverity.medium,
-        );
-      }
-      
-      // Command is safe
-      _logCommand(command, CommandValidationType.allowed, null);
-      _eventController.add(CommandEvent(
-        type: CommandEventType.commandAllowed,
-        command: sanitizedCommand,
-        timestamp: DateTime.now(),
-      ));
-      
-      return CommandValidationResult(
-        isAllowed: true,
-        sanitizedCommand: sanitizedCommand,
-        reason: null,
-        severity: CommandSeverity.low,
-      );
-    } catch (e) {
-      debugPrint('Command validation error: $e');
-      
-      return CommandValidationResult(
-        isAllowed: false,
-        sanitizedCommand: null,
-        reason: 'Validation error: ${e.toString()}',
-        severity: CommandSeverity.high,
-      );
+
+  GuardResult evaluate(String command) {
+    if (!_enabled) return GuardResult.allowed(command);
+
+    final trimmed = command.trim();
+    if (trimmed.isEmpty) return GuardResult.allowed(command);
+
+    if (_allowlistedCommands.contains(trimmed) || _allowlistedCommands.any((a) => trimmed == a)) {
+      return GuardResult.allowed(command);
     }
-  }
-  
-  /// Sanitize command input
-  String _sanitizeCommand(String command) {
-    // Remove null bytes and control characters
-    var sanitized = command.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), '');
-    
-    // Remove multiple spaces
-    sanitized = sanitized.replaceAll(RegExp(r'\s+'), ' ');
-    
-    // Trim whitespace
-    sanitized = sanitized.trim();
-    
-    return sanitized;
-  }
-  
-  /// Check for dangerous commands
-  DangerousCommandCheck _checkDangerousCommands(String command) {
-    final lowerCommand = command.toLowerCase();
-    
-    // Direct dangerous command matches
-    for (final dangerousCmd in _dangerousCommands) {
-      if (lowerCommand.contains(dangerousCmd.toLowerCase())) {
-        return DangerousCommandCheck(
-          isSafe: false,
-          reason: 'Dangerous command detected: $dangerousCmd',
-        );
-      }
+
+    if (_blocklistedCommands.contains(trimmed) || _blocklistedCommands.any((b) => trimmed == b)) {
+      _emitEvent(command, GuardAction.blocked, 'Command is blocklisted');
+      return GuardResult(safe: false, action: GuardAction.blocked, command: command, reason: 'Command is blocklisted');
     }
-    
-    // Pattern-based dangerous command detection
-    final dangerousPatterns = [
-      RegExp(r'rm\s+-rf\s+/', caseSensitive: false),
-      RegExp(r'dd\s+if=/dev/zero', caseSensitive: false),
-      RegExp(r'chmod\s+777', caseSensitive: false),
-      RegExp(r'fork\s*\(\s*\)\s*{\s*fork', caseSensitive: false),
-      RegExp(r'kill\s+-9\s+-1', caseSensitive: false),
-      RegExp(r'shutdown\s+.*now', caseSensitive: false),
-      RegExp(r'reboot\s+.*now', caseSensitive: false),
-    ];
-    
-    for (final pattern in dangerousPatterns) {
-      if (pattern.hasMatch(command)) {
-        return DangerousCommandCheck(
-          isSafe: false,
-          reason: 'Dangerous command pattern detected',
-        );
-      }
-    }
-    
-    return DangerousCommandCheck(isSafe: true);
-  }
-  
-  /// Check system directory access
-  DangerousCommandCheck _checkSystemDirectoryAccess(String command, String? workingDirectory) {
-    // Extract file paths from command
-    final pathPattern = RegExp(r'/[^\s]+');
-    final matches = pathPattern.allMatches(command);
-    
-    for (final match in matches) {
-      final filePath = match.group(1)!;
-      final normalizedPath = path.normalize(filePath);
-      
-      for (final sysDir in _systemDirectories) {
-        if (normalizedPath.startsWith(sysDir) && 
-            (command.contains('rm') || command.contains('chmod') || command.contains('chown'))) {
-          return DangerousCommandCheck(
-            isSafe: false,
-            reason: 'Attempted modification of system directory: $sysDir',
-          );
+
+    for (final rule in _rules) {
+      if (rule.matches(trimmed)) {
+        switch (_mode) {
+          case GuardMode.block:
+            return _handleBlock(command, rule);
+          case GuardMode.warn:
+            return _handleWarn(command, rule);
+          case GuardMode.confirm:
+            return _handleConfirm(command, rule);
+          case GuardMode.log_only:
+            _emitEvent(command, GuardAction.logged, rule.description);
+            return GuardResult.allowed(command);
         }
       }
     }
-    
-    return DangerousCommandCheck(isSafe: true);
+
+    return GuardResult.allowed(command);
   }
-  
-  /// Extract command name
-  String _getCommandName(String command) {
-    final parts = command.trim().split(' ');
-    if (parts.isEmpty) return '';
-    
-    var cmdName = parts.first;
-    
-    // Remove path components
-    cmdName = path.basenameWithoutExtension(cmdName);
-    
-    // Remove sudo prefix
-    if (cmdName == 'sudo' && parts.length > 1) {
-      cmdName = parts[1];
-    }
-    
-    return cmdName;
+
+  GuardResult _handleBlock(String command, SafetyRule rule) {
+    _emitEvent(command, GuardAction.blocked, rule.description);
+    return GuardResult(safe: false, action: GuardAction.blocked, command: command, reason: rule.description, severity: rule.severity);
   }
-  
-  /// Log command execution
-  void _logCommand(String command, CommandValidationType type, String? reason) {
-    if (!_auditMode) return;
-    
-    final entry = CommandAuditEntry(
-      command: command,
-      type: type,
-      reason: reason,
-      timestamp: DateTime.now(),
-    );
-    
-    _auditLog.add(entry);
-    
-    // Maintain audit log size
-    if (_auditLog.length > _maxAuditLogSize) {
-      _auditLog.removeRange(0, _auditLog.length - _maxAuditLogSize);
-    }
+
+  GuardResult _handleWarn(String command, SafetyRule rule) {
+    _warnCount[command] = (_warnCount[command] ?? 0) + 1;
+    _emitEvent(command, GuardAction.warned, rule.description);
+    return GuardResult(safe: true, action: GuardAction.warned, command: command, reason: rule.description, severity: rule.severity);
   }
-  
-  /// Add command to whitelist
-  void addToWhitelist(String command) {
-    _allowedCommands.add(command);
-    debugPrint('Added to whitelist: $command');
+
+  GuardResult _handleConfirm(String command, SafetyRule rule) {
+    _emitEvent(command, GuardAction.confirmation, rule.description);
+    return GuardResult(safe: false, action: GuardAction.confirmation, command: command, reason: rule.description, severity: rule.severity);
   }
-  
-  /// Remove command from whitelist
-  void removeFromWhitelist(String command) {
-    _allowedCommands.remove(command);
-    debugPrint('Removed from whitelist: $command');
+
+  void setEnabled(bool enabled) { _enabled = enabled; }
+  void setMode(GuardMode mode) { _mode = mode; }
+  void setStrict(bool strict) { _strictMode = strict; }
+
+  void addAllowlisted(String command) { _allowlistedCommands.add(command.trim()); persist(); }
+  void removeAllowlisted(String command) { _allowlistedCommands.remove(command.trim()); persist(); }
+
+  void addBlocklisted(String command) { _blocklistedCommands.add(command.trim()); persist(); }
+  void removeBlocklisted(String command) { _blocklistedCommands.remove(command.trim()); persist(); }
+
+  void addRule(SafetyRule rule) { _rules.add(rule); }
+  void removeRule(String name) { _rules.removeWhere((r) => r.name == name); }
+
+  List<SafetyRule> getRules() => List.unmodifiable(_rules);
+  Set<String> getAllowlist() => Set.unmodifiable(_allowlistedCommands);
+
+  int getWarningCount(String command) => _warnCount[command] ?? 0;
+  void resetWarningCount() { _warnCount.clear(); }
+
+  String describeRisk(String command) {
+    final result = evaluate(command);
+    return result.safetyDescription;
   }
-  
-  /// Add command to blacklist
-  void addToBlacklist(String command) {
-    _blockedCommands.add(command);
-    debugPrint('Added to blacklist: $command');
+
+  void _emitEvent(String command, GuardAction action, String reason) {
+    _eventController.add(GuardEvent(command: command, action: action, reason: reason));
   }
-  
-  /// Remove command from blacklist
-  void removeFromBlacklist(String command) {
-    _blockedCommands.remove(command);
-    debugPrint('Removed from blacklist: $command');
+
+  void _registerDefaultRules() {
+    _rules.addAll([
+      SafetyRule(name: 'rm_rf_root', description: 'Deleting root filesystem',
+          pattern: RegExp(r'\brm\s+-rf\s+(?:/|\*|\.\*)', caseSensitive: false), severity: GuardSeverity.critical),
+      SafetyRule(name: 'rm_rf_home', description: 'Deleting home directory',
+          pattern: RegExp(r'\brm\s+-rf\s+(?:~|/home|$HOME)', caseSensitive: false), severity: GuardSeverity.critical),
+      SafetyRule(name: 'fork_bomb', description: 'Fork bomb pattern',
+          pattern: RegExp(r'():\(\)\s*\{'),
+          severity: GuardSeverity.critical),
+      SafetyRule(name: 'dd_root', description: 'DD to root device',
+          pattern: RegExp(r'\bdd\s+.*of=/dev/sd[a-z]\b', caseSensitive: false), severity: GuardSeverity.critical),
+      SafetyRule(name: 'mkfs_unintended', description: 'Formatting a device',
+          pattern: RegExp(r'\bmkfs\.\S+\s+/dev/(?!null|zero|random|urandom)', caseSensitive: false), severity: GuardSeverity.critical),
+      SafetyRule(name: 'chmod_777_root', description: 'World-writable permissions on system',
+          pattern: RegExp(r'\bchmod\s+.*777\s+/(?:etc|bin|sbin|usr|var|lib|boot|sys|proc)', caseSensitive: false), severity: GuardSeverity.high),
+      SafetyRule(name: 'wget_pipe_exec', description: 'Piping wget/curl download to shell',
+          pattern: RegExp(r'\b(?:wget|curl).*\|.*\b(?:sh|bash)', caseSensitive: false), severity: GuardSeverity.high),
+      SafetyRule(name: 'eval_exec', description: 'Evaluating dynamic content in shell',
+          pattern: RegExp(r'\beval\s+["\']\$', caseSensitive: false), severity: GuardSeverity.high),
+      SafetyRule(name: 'force_push', description: 'Force push to protected branch',
+          pattern: RegExp(r'git\s+push\s+.*(?:--force|-f).*\b(?:main|master|production)\b', caseSensitive: false), severity: GuardSeverity.medium),
+      SafetyRule(name: 'drop_table', description: 'Dropping database table',
+          pattern: RegExp(r'\bDROP\s+TABLE\b', caseSensitive: true), severity: GuardSeverity.medium),
+      SafetyRule(name: 'shutdown_reboot', description: 'System shutdown',
+          pattern: RegExp(r'\b(?:shutdown|reboot|halt|poweroff)\b', caseSensitive: false), severity: GuardSeverity.medium),
+      SafetyRule(name: 'kill_signal', description: 'Kill process with signal',
+          pattern: RegExp(r'\bkill\s+-9\b', caseSensitive: false), severity: GuardSeverity.low),
+    ]);
   }
-  
-  /// Enable/disable strict mode
-  void setStrictMode(bool enabled) {
-    _strictMode = enabled;
-    debugPrint('Strict mode ${enabled ? "enabled" : "disabled"}');
-  }
-  
-  /// Enable/disable audit mode
-  void setAuditMode(bool enabled) {
-    _auditMode = enabled;
-    debugPrint('Audit mode ${enabled ? "enabled" : "disabled"}');
-  }
-  
-  /// Get audit log
-  List<CommandAuditEntry> getAuditLog() {
-    return List.unmodifiable(_auditLog);
-  }
-  
-  /// Get command statistics
-  Map<String, dynamic> getStatistics() {
-    final allowedCount = _auditLog.where((e) => e.type == CommandValidationType.allowed).length;
-    final blockedCount = _auditLog.where((e) => e.type == CommandValidationType.blocked).length;
-    
-    return {
-      'totalCommands': _auditLog.length,
-      'allowedCommands': allowedCount,
-      'blockedCommands': blockedCount,
-      'strictMode': _strictMode,
-      'auditMode': _auditMode,
-      'whitelistedCommands': _allowedCommands.length,
-      'blacklistedCommands': _blockedCommands.length,
-    };
-  }
-  
-  /// Clear audit log
-  void clearAuditLog() {
-    _auditLog.clear();
-    debugPrint('Audit log cleared');
-  }
-  
-  /// Export audit log
-  Future<void> exportAuditLog(String filePath) async {
+
+  Future<void> persist() async {
     try {
-      final file = File(filePath);
-      final logData = _auditLog.map((entry) => entry.toJson()).toList();
-      
-      await file.writeAsString(
-        JsonEncoder.withIndent('  ').convert(logData),
-      );
-      
-      debugPrint('Audit log exported to: $filePath');
-    } catch (e) {
-      debugPrint('Failed to export audit log: $e');
-      rethrow;
-    }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('command_guard_allowlist', json.encode(_allowlistedCommands.toList()));
+      await prefs.setString('command_guard_blocklist', json.encode(_blocklistedCommands.toList()));
+    } catch (_) {}
   }
-  
-  /// Dispose resources
+
+  Future<void> _loadPersistedState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final allowStr = prefs.getString('command_guard_allowlist');
+      if (allowStr != null) {
+        final list = json.decode(allowStr) as List;
+        _allowlistedCommands.addAll(list.cast<String>());
+      }
+      final blockStr = prefs.getString('command_guard_blocklist');
+      if (blockStr != null) {
+        final list = json.decode(blockStr) as List;
+        _blocklistedCommands.addAll(list.cast<String>());
+      }
+    } catch (_) {}
+  }
+
   void dispose() {
     _eventController.close();
+    _rules.clear();
+    _allowlistedCommands.clear();
+    _blocklistedCommands.clear();
   }
 }
 
-/// Command validation result
-class CommandValidationResult {
-  final bool isAllowed;
-  final String? sanitizedCommand;
-  final String? reason;
-  final CommandSeverity severity;
-  
-  CommandValidationResult({
-    required this.isAllowed,
-    this.sanitizedCommand,
-    this.reason,
-    required this.severity,
+enum GuardMode { block, warn, confirm, log_only }
+enum GuardAction { allowed, blocked, warned, confirmation, logged }
+enum GuardSeverity { low, medium, high, critical }
+
+class SafetyRule {
+  final String name;
+  final String description;
+  final RegExp pattern;
+  final GuardSeverity severity;
+
+  SafetyRule({
+    required this.name,
+    required this.description,
+    required this.pattern,
+    this.severity = GuardSeverity.medium,
   });
+
+  bool matches(String command) => pattern.hasMatch(command);
 }
 
-/// Dangerous command check result
-class DangerousCommandCheck {
-  final bool isSafe;
-  final String? reason;
-  
-  DangerousCommandCheck({
-    required this.isSafe,
-    this.reason,
-  });
-}
-
-/// Command audit entry
-class CommandAuditEntry {
-  final String command;
-  final CommandValidationType type;
-  final String? reason;
-  final DateTime timestamp;
-  
-  CommandAuditEntry({
-    required this.command,
-    required this.type,
-    this.reason,
-    required this.timestamp,
-  });
-  
-  Map<String, dynamic> toJson() => {
-    'command': command,
-    'type': type.toString(),
-    'reason': reason,
-    'timestamp': timestamp.toIso8601String(),
-  };
-}
-
-/// Command event
-class CommandEvent {
-  final CommandEventType type;
+class GuardResult {
+  final bool safe;
+  final GuardAction action;
   final String command;
   final String? reason;
-  final DateTime timestamp;
-  
-  CommandEvent({
-    required this.type,
+  final GuardSeverity severity;
+
+  GuardResult({
+    required this.safe,
+    this.action = GuardAction.allowed,
     required this.command,
     this.reason,
-    required this.timestamp,
+    this.severity = GuardSeverity.low,
   });
+
+  bool get isExecutable => safe || action == GuardAction.warned;
+  bool get needsApproval => action == GuardAction.confirmation;
+
+  String get safetyDescription {
+    if (safe && action == GuardAction.allowed) return 'Safe to execute';
+    if (reason != null) return '${action.name}: $reason';
+    return action.name;
+  }
+
+  factory GuardResult.allowed(String command) =>
+      GuardResult(safe: true, action: GuardAction.allowed, command: command);
 }
 
-/// Command validation types
-enum CommandValidationType {
-  allowed,
-  blocked,
-  error,
-}
+class GuardEvent {
+  final String command;
+  final GuardAction action;
+  final String reason;
+  final DateTime timestamp;
 
-/// Command event types
-enum CommandEventType {
-  commandAllowed,
-  commandBlocked,
-  validationError,
-}
-
-/// Command severity levels
-enum CommandSeverity {
-  low,
-  medium,
-  high,
-  critical,
+  GuardEvent({required this.command, required this.action, required this.reason})
+      : timestamp = DateTime.now();
 }

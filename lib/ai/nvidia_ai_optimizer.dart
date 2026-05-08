@@ -81,15 +81,14 @@ class NVIDIAAIOptimizer {
         timestamp: DateTime.now(),
         systemType: systemType,
         metrics: performanceMetrics,
-        recommendations: recommendations.suggestions,
+        recommendations: recommendations,
       ));
       
       _optimizerController.add(OptimizerEvent(
         type: OptimizerEventType.recommendationsGenerated,
         data: {
           'system_type': systemType,
-          'recommendations_count': recommendations.suggestions.length,
-          'overall_score': recommendations.overallScore,
+          'recommendations_count': recommendations.length,
         },
       ));
       

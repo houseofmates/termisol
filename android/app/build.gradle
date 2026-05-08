@@ -61,24 +61,21 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            storeFile file('termisol-release-key.jks')
+            storePassword 'termisol123'
+            keyAlias 'termisol'
+            keyPassword 'termisol123'
+        }
+    }
+
     buildTypes {
         release {
-            // Release builds should be signed with a release keystore.
-            // For local builds, debug signing is used as a fallback.
-            // Replace with your release keystore before distribution.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-
-        vrRelease {
-            initWith release
-            applicationIdSuffix '.vr'
-            manifestPlaceholders = [
-                'appLabel': 'Termisol VR',
-                'vrMode': 'true'
-            ]
         }
     }
 }

@@ -79,8 +79,6 @@ class AdvancedTerminalProtocol {
     _protocolState.addAll({
       'ansi_colors': true,
       'true_color': true,
-      'unicode': true,
-      'bidirectional': true,
       'mouse_sgr': true,
       'mouse_urxvt': true,
       'mouse_dec': true,
@@ -89,15 +87,10 @@ class AdvancedTerminalProtocol {
       'window_title': true,
       'osc_sequences': true,
       'keyboard_protocol': true,
-      'screen_integration': true,
-      'tmux_integration': true,
-      'sixel_graphics': true,
-      'regex_graphics': true,
     });
-    
+
     _supportedProtocols.addAll([
       'ANSI/VT100/VT220/VT320/VT420/VT520',
-      'Unicode 15.0',
       'True Color (24-bit)',
       'SGR Mouse Protocol',
       'URXVT Mouse Protocol',
@@ -107,22 +100,7 @@ class AdvancedTerminalProtocol {
       'Window Title Operations',
       'OSC Sequences',
       'Keyboard Protocol',
-      'Screen Integration',
-      'Tmux Integration',
-      'Sixel Graphics',
-      'ReGIS Graphics',
     ]);
-  }
-  
-  void _registerProtocolHandlers() {
-    _handlers.addAll({
-      'CSI': _handleCsiSequence,
-      'OSC': _handleOscSequence,
-      'ESC': _handleEscapeSequence,
-      'DSC': _handleDeviceControlString,
-      'PM': _handlePrivacyMessage,
-      'APC': _handleApplicationProgramCommand,
-    });
   }
   
   void _initializeColorPalette() {

@@ -162,6 +162,8 @@ class PtyCoreWindows implements PtyCore {
         buffer.write(env.value);
         buffer.write('\u0000');
       }
+      // Double null-terminate the environment block for Windows
+      buffer.write('\u0000');
 
       pEnvironment = buffer.toString().toNativeUtf16();
     }
@@ -175,10 +177,7 @@ class PtyCoreWindows implements PtyCore {
       nullptr,
       win32.FALSE,
       win32.EXTENDED_STARTUPINFO_PRESENT | win32.CREATE_UNICODE_ENVIRONMENT,
-      // pass pEnvironment here causes crash
-      // TODO: fix this
-      // pEnvironment,
-      nullptr,
+      pEnvironment,
       pCurrentDirectory,
       si.cast(),
       pi,

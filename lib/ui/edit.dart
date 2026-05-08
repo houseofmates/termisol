@@ -525,6 +525,13 @@ class _EditTerminalState extends State<EditTerminal> {
       }
     } catch (e) {
       debugPrint('Failed to save content: $e');
+      // Show user-friendly error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 

@@ -642,6 +642,359 @@ class GitIntegration {
     return '';
   }
   
+  /// Get visual diff between commits or branches
+  Future<VisualDiffResult> getVisualDiff({
+    String? commit1,
+    String? commit2,
+    String? branch1,
+    String? branch2,
+    List<String>? filePaths,
+    DiffType diffType = DiffType.unified,
+    int contextLines = 3,
+  }) async {
+    try {
+      final args = <String>['diff'];
+      
+      // Add diff type
+      switch (diffType) {
+        case DiffType.unified:
+          args.add('--unified=$contextLines');
+          break;
+        case DiffType.sideBySide:
+          args.add('--word-diff=color');
+          break;
+        case DiffType.minimal:
+          args.add('--minimal');
+          break;
+        case DiffType.patience:
+          args.add('--patience');
+          break;
+      }
+      
+      // Add commit/branch references
+      if (commit1 != null && commit2 != null) {
+        args.addAll([commit1, commit2]);
+      } else if (branch1 != null && branch2 != null) {
+        args.addAll([branch1, branch2]);
+      } else if (commit1 != null) {
+        args.add(commit1);
+      }
+      
+      // Add file paths
+      if (filePaths != null && filePaths.isNotEmpty) {
+        args.addAll(['--'] + filePaths);
+      }
+      
+      final result = await Process.run('git', args, runInShell: true);
+      
+      if (result.exitCode == 0) {
+        return await _parseVisualDiff(result.stdout as String, diffType);
+      } else {
+        return VisualDiffResult(
+          success: false,
+          error: result.stderr as String,
+          diffType: diffType,
+        );
+      }
+    } catch (e) {
+      debugPrint('⚠️ Failed to get visual diff: $e');
+      return VisualDiffResult(
+        success: false,
+        error: e.toString(),
+        diffType: diffType,
+      );
+    }
+  }
+  
+  /// Get staged diff
+  Future<VisualDiffResult> getStagedDiff({
+    List<String>? filePaths,
+    DiffType diffType = DiffType.unified,
+    int contextLines = 3,
+  }) async {
+    try {
+      final args = <String>['diff', '--staged'];
+      
+      // Add diff type
+      switch (diffType) {
+        case DiffType.unified:
+          args.add('--unified=$contextLines');
+          break;
+        case DiffType.sideBySide:
+          args.add('--word-diff=color');
+          break;
+        case DiffType.minimal:
+          args.add('--minimal');
+          break;
+        case DiffType.patience:
+          args.add('--patience');
+          break;
+      }
+      
+      // Add file paths
+      if (filePaths != null && filePaths.isNotEmpty) {
+        args.addAll(['--'] + filePaths);
+      }
+      
+      final result = await Process.run('git', args, runInShell: true);
+      
+      if (result.exitCode == 0) {
+        return await _parseVisualDiff(result.stdout as String, diffType);
+      } else {
+        return VisualDiffResult(
+          success: false,
+          error: result.stderr as String,
+          diffType: diffType,
+        );
+      }
+    } catch (e) {
+      debugPrint('⚠️ Failed to get staged diff: $e');
+      return VisualDiffResult(
+        success: false,
+        error: e.toString(),
+        diffType: diffType,
+      );
+    }
+  }
+  
+  /// Get diff statistics
+  Future<DiffStatistics> getDiffStatistics({
+    String? commit1,
+    String? commit2,
+    String? branch1,
+    String? branch2,
+  }) async {
+    try {
+      final args = <String>['diff', '--stat'];
+      
+      // Add commit/branch references
+      if (commit1 != null && commit2 != null) {
+        args.addAll([commit1, commit2]);
+      } else if (branch1 != null && branch2 != null) {
+        args.addAll([branch1, branch2]);
+      }
+      
+      final result = await Process.run('git', args, runInShell: true);
+      
+      if (result.exitCode == 0) {
+        return _parseDiffStatistics(result.stdout as String);
+      } else {
+        return DiffStatistics(
+          filesChanged: 0,
+          insertions: 0,
+          deletions: 0,
+          success: false,
+        );
+      }
+    } catch (e) {
+      debugPrint('⚠️ Failed to get diff statistics: $e');
+      return DiffStatistics(
+        filesChanged: 0,
+        insertions: 0,
+        deletions: 0,
+        success: false,
+      );
+    }
+  }
+  
+  /// Parse visual diff output
+  Future<VisualDiffResult> _parseVisualDiff(String diffOutput, DiffType diffType) async {
+    final lines = diffOutput.split('\n');
+    final hunks = <DiffHunk>[];
+    final files = <DiffFile>[];
+    
+    DiffFile? currentFile;
+    DiffHunk? currentHunk;
+    List<String> currentLines = [];
+    
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      
+      if (line.startsWith('diff --git')) {
+        // New file diff
+        if (currentFile != null) {
+          files.add(currentFile);
+        }
+        
+        final match = RegExp(r'diff --git a/(.*) b/(.*)').firstMatch(line);
+        if (match != null) {
+          currentFile = DiffFile(
+            oldPath: match.group(1)!,
+            newPath: match.group(2)!,
+            hunks: [],
+          );
+        }
+        
+        currentLines.clear();
+      } else if (line.startsWith('@@')) {
+        // New hunk
+        if (currentHunk != null && currentFile != null) {
+          currentFile.hunks.add(currentHunk);
+        }
+        
+        final match = RegExp(r'@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(.*)').firstMatch(line);
+        if (match != null) {
+          currentHunk = DiffHunk(
+            oldStart: int.parse(match.group(1)!),
+            oldLines: int.parse(match.group(2) ?? '1'),
+            newStart: int.parse(match.group(3)!),
+            newLines: int.parse(match.group(4) ?? '1'),
+            header: match.group(5) ?? '',
+            lines: [],
+          );
+        }
+        
+        currentLines.clear();
+      } else if (line.isNotEmpty) {
+        // Diff line
+        final diffLine = DiffLine(
+          content: line.substring(1),
+          type: _getDiffLineType(line[0]),
+          lineNumber: _calculateLineNumber(line, currentHunk, currentLines.length),
+        );
+        
+        currentLines.add(line);
+        if (currentHunk != null) {
+          currentHunk.lines.add(diffLine);
+        }
+      }
+    }
+    
+    // Add last hunk and file
+    if (currentHunk != null && currentFile != null) {
+      currentFile.hunks.add(currentHunk);
+    }
+    if (currentFile != null) {
+      files.add(currentFile);
+    }
+    
+    return VisualDiffResult(
+      success: true,
+      files: files,
+      diffType: diffType,
+      rawOutput: diffOutput,
+    );
+  }
+  
+  /// Parse diff statistics
+  DiffStatistics _parseDiffStatistics(String statsOutput) {
+    final lines = statsOutput.split('\n');
+    int filesChanged = 0;
+    int insertions = 0;
+    int deletions = 0;
+    
+    for (final line in lines) {
+      if (line.contains('|')) {
+        final parts = line.split('|');
+        if (parts.length >= 2) {
+          filesChanged++;
+          
+          final stats = parts[1].trim();
+          final match = RegExp(r'(\d+) insertion(?:s)?\(\+\), (\d+) deletion(?:s)?\(-\)').firstMatch(stats);
+          if (match != null) {
+            insertions += int.parse(match.group(1)!);
+            deletions += int.parse(match.group(2)!);
+          }
+        }
+      }
+    }
+    
+    return DiffStatistics(
+      filesChanged: filesChanged,
+      insertions: insertions,
+      deletions: deletions,
+      success: true,
+    );
+  }
+  
+  /// Get diff line type
+  DiffLineType _getDiffLineType(String prefix) {
+    switch (prefix) {
+      case '+':
+        return DiffLineType.added;
+      case '-':
+        return DiffLineType.removed;
+      case ' ':
+        return DiffLineType.context;
+      default:
+        return DiffLineType.context;
+    }
+  }
+  
+  /// Calculate line number for diff line
+  int _calculateLineNumber(String line, DiffHunk? hunk, int lineIndex) {
+    if (hunk == null) return 0;
+    
+    if (line.startsWith('+')) {
+      return hunk.newStart + lineIndex;
+    } else if (line.startsWith('-')) {
+      return hunk.oldStart + lineIndex;
+    } else {
+      return hunk.newStart + lineIndex;
+    }
+  }
+  
+  /// Generate HTML for visual diff viewer
+  String generateDiffHTML(VisualDiffResult diffResult) {
+    if (!diffResult.success) {
+      return '<div class="error">Error: ${diffResult.error}</div>';
+    }
+    
+    final html = StringBuffer();
+    html.write('<div class="diff-viewer">');
+    
+    for (final file in diffResult.files) {
+      html.write('<div class="diff-file">');
+      html.write('<div class="file-header">');
+      html.write('<span class="file-path">${file.oldPath} → ${file.newPath}</span>');
+      html.write('</div>');
+      
+      for (final hunk in file.hunks) {
+        html.write('<div class="diff-hunk">');
+        html.write('<div class="hunk-header">');
+        html.write('<code>${hunk.header}</code>');
+        html.write('</div>');
+        
+        for (final line in hunk.lines) {
+          final cssClass = _getLineCSSClass(line.type);
+          html.write('<div class="diff-line $cssClass">');
+          html.write('<span class="line-number">${line.lineNumber}</span>');
+          html.write('<span class="line-content">${_escapeHtml(line.content)}</span>');
+          html.write('</div>');
+        }
+        
+        html.write('</div>');
+      }
+      
+      html.write('</div>');
+    }
+    
+    html.write('</div>');
+    return html.toString();
+  }
+  
+  /// Get CSS class for diff line
+  String _getLineCSSClass(DiffLineType type) {
+    switch (type) {
+      case DiffLineType.added:
+        return 'added';
+      case DiffLineType.removed:
+        return 'removed';
+      case DiffLineType.context:
+        return 'context';
+    }
+  }
+  
+  /// Escape HTML characters
+  String _escapeHtml(String text) {
+    return text
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#x27;');
+  }
+  
   /// Get commit details
   Future<GitCommit?> getCommitDetails(String hash) async {
     try {

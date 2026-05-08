@@ -133,11 +133,6 @@ class ServiceFactories {
     return AutomatedWorkflowSystem();
   }
 
-  /// Create advanced VR terminal.
-  static AdvancedVRTerminal createAdvancedVRTerminal() {
-    return AdvancedVRTerminal();
-  }
-
   /// Create GitHub integration.
   static GitHubIntegration createGitHubIntegration() {
     return GitHubIntegration();

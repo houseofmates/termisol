@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:async';
+import '../core/session_persistence.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/service_registry.dart';
@@ -34,16 +36,19 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showSearch = false;
   bool _showHistorySearch = false;
   bool _isSplit = false;
+  Timer? _saveDebounceTimer;
 
   @override
   void initState() {
     super.initState();
     _createInitialTab();
+    _maybeRestoreSessions();
     HeaderbarActions.action.addListener(_onHeaderbarAction);
   }
 
   @override
   void dispose() {
+    _saveDebounceTimer?.cancel();
     HeaderbarActions.action.removeListener(_onHeaderbarAction);
     for (final tab in _tabs) {
       tab.directory.removeListener(_onDirectoryChanged);
@@ -67,6 +72,15 @@ class _HomeScreenState extends State<HomeScreen> {
     if (dir == home) return '~';
     final parts = dir.split('/');
     return parts.lastWhere((p) => p.isNotEmpty, orElse: () => dir);
+  }
+
+  String _nextTabId() {
+    int maxId = -1;
+    for (final tab in _tabs) {
+      final id = int.tryParse(tab.id) ?? -1;
+      if (id > maxId) maxId = id;
+    }
+    return (maxId + 1).toString();
   }
 
   void _onHeaderbarAction() {
@@ -188,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _addTab() {
-    final newTabId = _tabs.length.toString();
+    final newTabId = _nextTabId();
     final newTab = TerminalSession(
       id: newTabId,
       name: 'Terminal ${_tabs.length + 1}',
@@ -204,6 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     _tabFocusNodes[newTabId]?.requestFocus();
+    _saveSessions();
   }
 
   void _switchTab(int index) {
@@ -231,6 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _activeTab = _tabs[0].id;
         }
       });
+      _saveSessions();
     }
   }
 
@@ -334,6 +350,7 @@ class _HomeScreenState extends State<HomeScreen> {
               tab.rename(controller.text);
               setState(() {});
               Navigator.of(context).pop();
+              _saveSessions();
             },
             child: const Text(
               'rename',
@@ -358,6 +375,66 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _toggleHistorySearch() {
     setState(() => _showHistorySearch = !_showHistorySearch);
+  }
+
+  Future<void> _maybeRestoreSessions() async {
+    try {
+      final saved = await SessionPersistence().loadSessions();
+      if (saved.isEmpty || !mounted) return;
+
+      // Dispose initial tab
+      for (final tab in _tabs) {
+        tab.directory.removeListener(_onDirectoryChanged);
+        tab.dispose();
+      }
+      for (final node in _tabFocusNodes.values) {
+        node.dispose();
+      }
+      _tabs.clear();
+      _tabFocusNodes.clear();
+
+      for (final data in saved) {
+        final id = data['id'] as String? ?? '';
+        final name = data['name'] as String? ?? 'Terminal';
+        final workingDirectory = data['workingDirectory'] as String?;
+
+        final session = TerminalSession(
+          id: id,
+          name: name,
+        );
+        session.onAiQuery = _handleAiQuery;
+        session.onEditCommand = _handleEditCommand;
+        session.directory.addListener(_onDirectoryChanged);
+        await session.start(workingDirectory: workingDirectory);
+
+        if (!mounted) return;
+
+        _tabs.add(session);
+        _tabFocusNodes[id] = FocusNode();
+      }
+
+      if (_tabs.isNotEmpty) {
+        _activeTab = _tabs.first.id;
+      }
+
+      if (mounted) {
+        setState(() {});
+      }
+      _saveSessions();
+    } catch (e, stack) {
+      debugPrint('Failed to restore sessions: \$e\n\$stack');
+    }
+  }
+
+  void _saveSessions() {
+    _saveDebounceTimer?.cancel();
+    _saveDebounceTimer = Timer(const Duration(seconds: 2), () async {
+      try {
+        await SessionPersistence().saveSessions(_tabs);
+      } catch (e, stack) {
+        debugPrint('Failed to save sessions: \$e\n\$stack');
+      }
+    });
   }
 
   void _toggleSplit() {

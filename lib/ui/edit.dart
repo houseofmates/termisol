@@ -1563,7 +1563,7 @@ class _EditTerminalState extends State<EditTerminal> {
       // }
       
       // Handle multi-cursor typing
-      if (event.character != null && event.character!.isNotEmpty && !isCtrlPressed && !event.isMetaPressed) {
+      if (event.character != null && event.character!.isNotEmpty && !isCtrlPressed && !(HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.metaLeft) || HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.metaRight))) {
         if (_multiCursorMode) {
           _handleMultiCursorInput(event.character!);
           return;

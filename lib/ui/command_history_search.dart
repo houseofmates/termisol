@@ -80,7 +80,7 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.black.withValues(alpha:(0.85),
+      color: Colors.black.withValues(alpha: 0.85),
       child: Center(
         child: Container(
           width: 600,
@@ -88,7 +88,7 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
           decoration: BoxDecoration(
             color: PkmTheme.background,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: PkmTheme.primary.withValues(alpha:(0.5)),
+            border: Border.all(color: PkmTheme.primary.withValues(alpha: 0.5)),
           ),
           child: Column(
             children: [
@@ -97,7 +97,7 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   border: Border(
-                    bottom: BorderSide(color: PkmTheme.primary.withValues(alpha:(0.3)),
+                    bottom: BorderSide(color: PkmTheme.primary.withValues(alpha: 0.3)),
                   ),
                 ),
                 child: KeyboardListener(
@@ -113,7 +113,7 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
                     decoration: InputDecoration(
                       hintText: 'search command history...',
                       hintStyle: TextStyle(
-                        color: PkmTheme.text.withValues(alpha:(0.5),
+                        color: PkmTheme.text.withValues(alpha: 0.5),
                         fontFamily: PkmTheme.fontUi,
                       ),
                       prefixIcon: const Icon(Icons.search, color: PkmTheme.primary),
@@ -130,7 +130,7 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
                         child: Text(
                           'no matching commands',
                           style: TextStyle(
-                            color: PkmTheme.text.withValues(alpha:(0.5),
+                            color: PkmTheme.text.withValues(alpha: 0.5),
                             fontFamily: PkmTheme.fontUi,
                           ),
                         ),
@@ -148,7 +148,7 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
                                 vertical: 10,
                               ),
                               color: isSelected
-                                  ? PkmTheme.primary.withValues(alpha:(0.2)
+                                  ? PkmTheme.primary.withValues(alpha: 0.2)
                                   : Colors.transparent,
                               child: Row(
                                 children: [
@@ -157,7 +157,7 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
                                     size: 16,
                                     color: isSelected
                                         ? PkmTheme.primary
-                                        : PkmTheme.text.withValues(alpha:(0.5),
+                                        : PkmTheme.text.withValues(alpha: 0.5),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
@@ -177,7 +177,7 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
                                     Text(
                                       'enter to select',
                                       style: TextStyle(
-                                        color: PkmTheme.text.withValues(alpha:(0.4),
+                                        color: PkmTheme.text.withValues(alpha: 0.4),
                                         fontFamily: PkmTheme.fontUi,
                                         fontSize: 12,
                                       ),
@@ -194,7 +194,7 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   border: Border(
-                    top: BorderSide(color: PkmTheme.primary.withValues(alpha:(0.2)),
+                    top: BorderSide(color: PkmTheme.primary.withValues(alpha: 0.2)),
                   ),
                 ),
                 child: Row(
@@ -230,9 +230,9 @@ class _KeyHint extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
-            color: PkmTheme.primary.withValues(alpha:(0.15),
+            color: PkmTheme.primary.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: PkmTheme.primary.withValues(alpha:(0.3)),
+            border: Border.all(color: PkmTheme.primary.withValues(alpha: 0.3)),
           ),
           child: Text(
             keyLabel,
@@ -247,7 +247,7 @@ class _KeyHint extends StatelessWidget {
         Text(
           action,
           style: TextStyle(
-            color: PkmTheme.text.withValues(alpha:(0.5),
+            color: PkmTheme.text.withValues(alpha: 0.5),
             fontFamily: PkmTheme.fontUi,
             fontSize: 11,
           ),

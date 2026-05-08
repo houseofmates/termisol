@@ -28,6 +28,9 @@ class BackgroundProcessor {
   /// Number of queued tasks
   int get queuedTaskCount => _taskQueue.length;
 
+  /// Private accessor for queued task count (used internally)
+  int get _queuedTaskCount => _taskQueue.length;
+
   /// Whether the processor is currently running
   bool get isProcessing => _isProcessing;
 

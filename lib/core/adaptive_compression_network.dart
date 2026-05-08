@@ -116,8 +116,8 @@ class AdaptiveCompressionNetwork {
       final quality = _calculateNetworkQuality();
       _networkQualities['current'] = quality;
       
-      debugPrint('Network quality updated: ${quality.type}');
-      _eventController.add(NetworkEvent('quality_updated', 'Network quality: ${quality.type}'));
+      debugPrint('Network quality updated: ${quality.name}');
+      _eventController.add(NetworkEvent('quality_updated', 'Network quality: ${quality.name}'));
     } catch (e) {
       debugPrint('Failed to update network quality: $e');
     }
@@ -201,7 +201,7 @@ class AdaptiveCompressionNetwork {
   /// Gzip compression
   Future<List<int>> _gzipCompress(List<int> data) async {
     try {
-      final bytes = Uint8List.from(data);
+      final bytes = Uint8List.fromList(data);
       final compressed = gzip.encode(bytes);
       return compressed.toList();
     } catch (e) {

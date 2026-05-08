@@ -211,7 +211,7 @@ class LegacyGraphicsRenderer {
       
       final x = int.parse(match.group(1)!);
       final y = int.parse(match.group(2)!);
-      final char = match.group(3)!);
+      final char = match.group(3)!;
       final command = match.group(4)!;
       
       // Create ANSI graphics object
@@ -685,9 +685,61 @@ class SixelParser {
   }
   
   SixelImage? decode(String data, SixelParams params) {
-    // Implementation for Sixel decoding
-    // This would parse the Sixel data and create an image
-    return null;
+    try {
+      final pixels = <List<SixelPixel>>[];
+      final colorRegisters = <SixelPixel>[];
+      
+      // Initialize color registers with default colors
+      for (int i = 0; i < 256; i++) {
+        colorRegisters.add(SixelPixel.black());
+      }
+      
+      int x = 0, y = 0;
+      int currentColor = 0;
+      
+      // Parse sixel data
+      for (int i = 0; i < data.length; i++) {
+        final char = data.codeUnitAt(i);
+        
+        if (char == 33) { // ! - color register command
+          if (i + 1 < data.length) {
+            currentColor = data.codeUnitAt(i + 1) - 32; // Convert from sixel encoding
+            i++; // Skip next character
+          }
+        } else if (char == 45) { // - - new line
+          x = 0;
+          y += 6;
+        } else if (char >= 63 && char <= 126) { // Printable sixel characters
+          final sixelValue = char - 63;
+          
+          // Ensure we have enough rows
+          while (pixels.length <= y + 5) {
+            pixels.add(List.filled(params.horizontalPixels > 0 ? params.horizontalPixels : 1024, SixelPixel.transparent()));
+          }
+          
+          // Set pixels for this sixel character
+          for (int bit = 0; bit < 6; bit++) {
+            if ((sixelValue & (1 << bit)) != 0 && y + bit < pixels.length && x < pixels[y + bit].length) {
+              pixels[y + bit][x] = colorRegisters[currentColor];
+            }
+          }
+          x++;
+        }
+      }
+      
+      final height = pixels.length;
+      final width = pixels.isNotEmpty ? pixels.first.length : 0;
+      
+      return SixelImage(
+        width: width,
+        height: height,
+        pixels: pixels,
+        params: params,
+      );
+    } catch (e) {
+      debugPrint('⚠️ Failed to decode Sixel data: $e');
+      return null;
+    }
   }
   
   void dispose() {

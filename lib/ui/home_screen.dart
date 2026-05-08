@@ -12,6 +12,7 @@ import 'terminal_view.dart';
 import 'command_palette.dart';
 import 'search_overlay.dart';
 import 'edit.dart';
+import '../vr/quest2_vr_terminal.dart';
 
 /// Home screen with core terminal functionality.
 /// Services are pulled lazily from the registry on first use.
@@ -30,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _activeTab = '0';
   bool _showCommandPalette = false;
   bool _showSearch = false;
+  bool _vrMode = false;
 
   @override
   void initState() {
@@ -307,6 +309,12 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _showSearch = !_showSearch);
   }
 
+  void _toggleVrMode() {
+    final session = _activeSession;
+    if (session == null) return;
+    setState(() => _vrMode = !_vrMode);
+  }
+
   List<PaletteAction> _buildPaletteActions() {
     return [
       PaletteAction(
@@ -406,6 +414,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       onPressed: _toggleCommandPalette,
                       icon: const Icon(Icons.keyboard_command_key, color: PkmTheme.primary),
                       tooltip: 'Command Palette (Ctrl+Shift+P)',
+                    ),
+                    IconButton(
+                      onPressed: _toggleVrMode,
+                      icon: const Icon(Icons.vrpano, color: PkmTheme.primary),
+                      tooltip: 'Toggle VR Mode',
                     ),
                   ],
                 ),

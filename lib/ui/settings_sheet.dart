@@ -58,9 +58,14 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   
                   // Performance section
                   _buildPerformanceSection(),
-                  
+
                   const SizedBox(height: 20),
-                  
+
+                  // Diagnostics section
+                  _buildDiagnosticsSection(),
+
+                  const SizedBox(height: 20),
+
                   // Other settings
                   Text(
                     'Other settings coming soon...',

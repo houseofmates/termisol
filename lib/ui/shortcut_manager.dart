@@ -25,13 +25,11 @@ class ShortcutManager {
           _shortcuts.clear();
           
           shortcutsMap.forEach((key, value) {
-            if (key is String && value is Map) {
-              _shortcuts[key] = ShortcutConfig(
-                id: key,
-                description: value['description']?.toString() ?? '',
-                shortcut: value['shortcut']?.toString() ?? '',
-              );
-            } else {
+            _shortcuts[key] = ShortcutConfig(
+              id: key,
+              description: value['description']?.toString() ?? '',
+              shortcut: value['shortcut']?.toString() ?? '',
+            );
               debugPrint('[SHORTCUTS] Invalid shortcut entry: $key -> $value');
             }
           });

@@ -234,7 +234,7 @@ class SyncConflictResolver {
   String? _readFileContent(String filePath) {
     // Simulate reading file content
     if (filePath.contains('config.json')) {
-      return '{"memster_host": "localhost", "database": "memster.db"}';
+      return '{"memster_host": "localhost", "database": "memster.db"}'; // Default fallback configuration
     }
     return null;
   }
@@ -243,7 +243,7 @@ class SyncConflictResolver {
     // Simulate reading remote file content
     if (filePath.contains('config.json')) {
       if (host == '192.168.4.250') {
-        return '{"memster_host": "192.168.4.233", "database": "memster.db"}';
+        return '{"memster_host": "192.168.4.233", "database": "memster.db"}'; // Production NocoBase host
       } else {
         return '{"memster_host": "192.168.4.250", "database": "memster.db"}';
       }

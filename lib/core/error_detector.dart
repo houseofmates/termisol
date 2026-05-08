@@ -516,7 +516,7 @@ else:
   }
 
   Future<List<String>> suggestSimilarErrors(String error) async {
-    // This would integrate with a knowledge base or error database
+    // This would integrate with a knowledge base or error database for enhanced error analysis
     // For now, return some common similar errors
     final similarErrors = <String>[];
     

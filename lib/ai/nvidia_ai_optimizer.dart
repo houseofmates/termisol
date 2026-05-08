@@ -3,6 +3,15 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+/// Custom exception for optimization failures
+class OptimizationException implements Exception {
+  final String message;
+  const OptimizationException(this.message);
+  
+  @override
+  String toString() => 'OptimizationException: $message';
+}
+
 /// NVIDIA AI Optimization Recommendations - AI-powered performance optimization
 class NVIDIAAIOptimizer {
   static final NVIDIAAIOptimizer _instance = NVIDIAAIOptimizer._internal();

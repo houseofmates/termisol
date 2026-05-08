@@ -6,16 +6,12 @@ import android.os.Bundle
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.meta.vr.sdk.api.OculusVrApi
-import com.meta.vr.sdk.api.VrApi
-import com.meta.vr.sdk.api.HandTracking
-import com.meta.vr.sdk.api.EyeTracking
+import com.oculus.vrappframework.VrAppFramework
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.*
-import org.json.JSONObject
 
 class MainActivity : FlutterActivity() {
     private val TAG = "TermisolVR"

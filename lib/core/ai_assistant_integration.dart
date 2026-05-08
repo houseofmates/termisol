@@ -21,9 +21,9 @@ import 'api_endpoints.dart';
 class AIAssistantIntegration {
   final StreamController<AIEvent> _eventController = StreamController<AIEvent>.broadcast();
   
-  final Map<String, AIContext> _contexts = {};
-  final List<AIInteraction> _interactions = [];
-  final Map<String, AIPattern> _patterns = {};
+  Map<String, AIContext> _contexts = {};
+  List<AIInteraction> _interactions = [];
+  Map<String, AIPattern> _patterns = {};
   final Map<String, AIModel> _models = {};
   AIPreferences _preferences = AIPreferences();
   
@@ -453,7 +453,7 @@ class AIAssistantIntegration {
     
     // Separate local and cloud models
     final localModels = availableModels.where((m) => m.provider == AIProvider.local);
-    final cloudModels = availableModels.where((m) => m.provider == AIProvider.cloud);
+    final cloudModels = availableModels.where((m) => m.provider != AIProvider.local);
     
     // Prefer local models if requested and available
     if (preferLocal && localModels.isNotEmpty) {
@@ -1995,7 +1995,7 @@ class AIContext {
   final String description;
   final List<AIInteraction> interactions;
   final DateTime createdAt;
-  final DateTime lastUpdated;
+  DateTime lastUpdated;
   
   AIContext({
     required this.id,
@@ -2068,9 +2068,9 @@ class AIPattern {
   final String id;
   final String input;
   final String expectedResponse;
-  final int frequency;
+  int frequency;
   final double confidence;
-  final DateTime lastUsed;
+  DateTime lastUsed;
   
   AIPattern({
     required this.id,

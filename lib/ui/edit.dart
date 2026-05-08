@@ -35,6 +35,9 @@ class EditTerminal extends StatefulWidget {
 }
 
 class _EditTerminalState extends State<EditTerminal> {
+  late TextEditingController _controller;
+  late ScrollController _scrollController;
+  late FocusNode _focusNode;
   
   // Editor settings
   bool _showLineNumbers = true;

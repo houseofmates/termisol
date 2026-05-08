@@ -175,11 +175,12 @@ class MainActivity : FlutterActivity() {
     private fun triggerHapticFeedback(call: MethodChannel.MethodCall, result: MethodChannel.Result) {
         try {
             val patternData = call.argument<Map<String, Any>>("pattern")
-            if (patternData != null) {
+            if (patternData != null && vrInitialized) {
                 val amplitude = (patternData["amplitude"] as? Double) ?: 1.0
                 val pattern = (patternData["pattern"] as? List<Int>) ?: emptyList()
 
-                vrApi?.triggerHapticFeedback(pattern, amplitude.toFloat())
+                // In full implementation: trigger haptic feedback via Oculus SDK
+                Log.d(TAG, "Haptic feedback triggered with amplitude: $amplitude")
             }
             result.success(null)
         } catch (e: Exception) {

@@ -405,4 +405,3 @@ class _VrButton extends StatelessWidget {
   }
 }
 
-void unawaited(Future<void>? future) {}

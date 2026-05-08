@@ -580,11 +580,6 @@ enum MemoryPressureEventType {
   highPressure,
 }
 
-/// Helper function to fire and forget futures
-void unawaited(Future<void> future) {
-  // Intentionally empty - just prevents "unawaited_future" lint
-}
-
 /// Extension on List for takeLast
 extension ListExtension<T> on List<T> {
   List<T> takeLast(int n) {

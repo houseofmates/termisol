@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:process_run/process_run.dart';
+import 'api_endpoints.dart';
 
 /// AI assistant integration with local processing and optional cloud AI
 /// 

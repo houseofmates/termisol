@@ -1045,7 +1045,4 @@ enum LayoutEventType {
 enum TabBarPosition { top, bottom, left, right }
 enum SplitOrientation { horizontal, vertical }
 
-/// Helper function to fire and forget futures
-void unawaited(Future<void> future) {
-  // Intentionally empty - just prevents "unawaited_future" lint
-}
+

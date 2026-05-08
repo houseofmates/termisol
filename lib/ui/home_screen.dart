@@ -99,15 +99,17 @@ class _HomeScreenState extends State<HomeScreen> {
   void _closeTab(int index) {
     if (_tabs.length > 1 && index >= 0 && index < _tabs.length) {
       final tab = _tabs[index];
+      final tabId = tab.id;
       tab.dispose();
-      _tabFocusNodes[index]?.dispose();
-      
+      _tabFocusNodes[tabId]?.dispose();
+
       setState(() {
         _tabs.removeAt(index);
-        _tabFocusNodes.remove(index);
-        
-        if (_activeTab >= index) {
-          _activeTab = (_activeTab - 1).clamp(0, _tabs.length - 1);
+        _tabFocusNodes.remove(tabId);
+
+        // If we closed the active tab, switch to another one
+        if (_activeTab == tabId && _tabs.isNotEmpty) {
+          _activeTab = _tabs[0].id;
         }
       });
     }

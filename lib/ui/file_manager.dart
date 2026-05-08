@@ -1036,16 +1036,18 @@ class _TerminalFileManagerState extends State<TerminalFileManager>
       );
     }
     
-    if (GraphicsProtocolHandler().isImageFormat(extension.substring(1))) {
+    final imageExtensions = {
+      '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp', '.avif', '.heic', '.heif', '.tiff', '.ico', '.svg'
+    };
+    if (imageExtensions.contains(extension.toLowerCase())) {
       return Padding(
         padding: const EdgeInsets.all(16),
         child: FutureBuilder<ui.Image?>(
-          future: GraphicsProtocolHandler().loadImageFromFile(file.path),
+          future: _loadImageFromFile(file.path),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return const Center(child: CircularProgressIndicator(color: Colors.grey));
             }
-            
             final image = snapshot.data;
             if (image != null) {
               return Center(
@@ -1057,7 +1059,6 @@ class _TerminalFileManagerState extends State<TerminalFileManager>
                 ),
               );
             }
-            
             return const Center(
               child: Text(
                 'Failed to load image',

@@ -34,7 +34,7 @@ class NVIDOTerminalDebugger {
   /// Initialize with API key
   Future<void> initialize(String apiKey) async {
     if (apiKey.isEmpty || !apiKey.startsWith('nvapi-')) {
-      throw DebugException('Invalid NVIDIA API key format');
+      throw const DebugException('Invalid NVIDIA API key format');
     }
     _apiKey = apiKey;
     _isInitialized = true;

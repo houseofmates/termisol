@@ -203,6 +203,35 @@ class _EditTerminalState extends State<EditTerminal> {
     });
   }
 
+  void _handleTabCompletion() {
+    final text = _controller.text;
+    final cursorPos = _controller.selection.baseOffset;
+    final currentLine = text.substring(0, cursorPos).split('\n').last;
+    
+    // Check for AI command first
+    if (currentLine.trim() == '/ai') {
+      // Replace /ai with empty and open AI chat
+      final lineStart = cursorPos - currentLine.length;
+      final newText = text.substring(0, lineStart) + text.substring(cursorPos);
+      _controller.text = newText;
+      _controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: lineStart),
+      );
+      _onTextChanged();
+      
+      _openAIChat();
+      return;
+    }
+    
+    // Handle general auto-completion
+    if (_showCompletion && _completions.isNotEmpty) {
+      _acceptCompletion();
+    } else {
+      // Trigger completion if not showing
+      _updateCompletions();
+    }
+  }
+
   String _detectLanguage() {
     final text = _controller.text.toLowerCase();
     final extension = path.extension(widget.filePath).toLowerCase();

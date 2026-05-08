@@ -15,8 +15,8 @@ import 'package:process_run/process_run.dart';
 /// - AI-powered cache optimization
 class IntelligentCacheManager {
   final Map<String, CacheTier> _cacheTiers = {};
-  final Map<String, CacheEntry> _cacheEntries = {};
-  final Map<String, CachePattern> _accessPatterns = {};
+  Map<String, CacheEntry> _cacheEntries = {};
+  Map<String, CachePattern> _accessPatterns = {};
   final StreamController<CacheEvent> _eventController = StreamController<CacheEvent>.broadcast();
   
   Timer? _cleanupTimer;

@@ -353,7 +353,7 @@ class GraphicsProtocolHandler {
   }
 
   /// Process direct image transmission
-  String _processDirectTransmission(Map<String, String> params, String id) {
+  String _processDirectTransmission(Map<String, String> params, String id, int cursorX, int cursorY) {
     try {
       final data = params['d'];
       final format = params['f'] ?? '100';
@@ -379,6 +379,9 @@ class GraphicsProtocolHandler {
           data: data,
           format: 'kitty',
         );
+
+        // Ensure position is set
+        _imagePositions[id] ??= Offset(cursorX.toDouble(), cursorY.toDouble());
       }
 
       _totalImagesProcessed++;

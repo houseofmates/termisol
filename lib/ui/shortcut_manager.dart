@@ -30,8 +30,6 @@ class ShortcutManager {
               description: value['description']?.toString() ?? '',
               shortcut: value['shortcut']?.toString() ?? '',
             );
-              debugPrint('[SHORTCUTS] Invalid shortcut entry: $key -> $value');
-            }
           });
           
           debugPrint('[SHORTCUTS] Loaded ${_shortcuts.length} shortcuts from storage');

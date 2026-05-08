@@ -3130,7 +3130,7 @@ Once configured, I'll provide intelligent assistance based on your file context.
                   _acceptCompletion();
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
                     color: isSelected ? const Color(0xFF444444) : Colors.transparent,
                     borderRadius: BorderRadius.circular(4),
@@ -3165,7 +3165,7 @@ Once configured, I'll provide intelligent assistance based on your file context.
                       if (isSelected)
                         Icon(
                           Icons.arrow_right,
-                          color: const Color(0xFF50fa7b), // Green
+                          color: const Color(0xFF50fa7b).withAlpha(255), // Green
                           size: 16,
                         ),
                     ],

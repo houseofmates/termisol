@@ -3141,4 +3141,71 @@ Once configured, I'll provide intelligent assistance based on your file context.
       ),
     );
   }
+  
+  /// Save editor state for crash recovery
+  Future<void> _saveEditorState() async {
+    try {
+      final state = EditorState(
+        filePath: widget.filePath,
+        content: _controller.text,
+        cursorPosition: _controller.selection.baseOffset,
+        selectionStart: _controller.selection.start,
+        selectionEnd: _controller.selection.end,
+        multiCursorPositions: _cursors.map((c) => c.baseOffset).toList(),
+        multiCursorMode: _multiCursorMode,
+        settings: {
+          'fontSize': _fontSize,
+          'theme': _currentTheme,
+          'lineNumbers': _showLineNumbers,
+          'wordWrap': _wordWrap,
+          'rainbowSyntax': _rainbowSyntax,
+        },
+        timestamp: DateTime.now(),
+      );
+      
+      await _crashRecovery.saveEditorState(state);
+      await _crashRecovery.saveTextContent(widget.filePath, _controller.text);
+    } catch (e) {
+      debugPrint('❌ Failed to save editor state: $e');
+      await _crashRecovery.logError(EditorError(
+        type: EditorErrorType.stateSaveFailed,
+        message: 'Failed to save editor state',
+        details: 'File: ${widget.filePath}, Error: $e',
+        timestamp: DateTime.now(),
+      ));
+    }
+  }
+  
+  @override
+  void dispose() {
+    try {
+      // Save final state before disposal
+      ErrorMonitor.monitorError('Final state save', () async {
+        await _saveEditorState();
+      });
+      
+      // Clean up resources
+      _autoSaveManager.dispose();
+      _saveTimer?.cancel();
+      _undoTimer?.cancel();
+      _controller.dispose();
+      _scrollController.dispose();
+      _focusNode.dispose();
+      _searchController.dispose();
+      _aiChatController.dispose();
+      _collaborationManager.dispose();
+      
+      debugPrint('🧹 Editor disposed successfully');
+    } catch (e) {
+      debugPrint('❌ Error during editor disposal: $e');
+      _crashRecovery.logError(EditorError(
+        type: EditorErrorType.systemError,
+        message: 'Error during editor disposal',
+        details: 'File: ${widget.filePath}, Error: $e',
+        timestamp: DateTime.now(),
+      ));
+    }
+    
+    super.dispose();
+  }
 }

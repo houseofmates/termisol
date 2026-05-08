@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
@@ -40,6 +41,10 @@ class GraphicsProtocolHandler {
   // Pending images for processing
   final Map<int, PendingImage> _pendingImages = {};
   int _nextImageId = 1;
+
+  // Kitty protocol state
+  final Map<int, KittyImage> _kittyImages = {};
+  int _kittyImageId = 1;
   
   // Protocol state
   GraphicsProtocolState _protocolState = GraphicsProtocolState();

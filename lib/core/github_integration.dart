@@ -315,12 +315,6 @@ class GitHubIntegration {
     return http.delete(uri, headers: _defaultHeaders());
   }
 
-  dynamic _createClient() {
-    final client = HttpClient();
-    client.connectionTimeout = const Duration(seconds: 15);
-    return client;
-  }
-
   Map<String, String> _defaultHeaders() => {
     'Accept': 'application/vnd.github.v3+json',
     'User-Agent': 'Termisol/1.0',

@@ -125,8 +125,9 @@ class TerminalSession extends ChangeNotifier {
       _crashRecovery.startHealthMonitoring();
     _sessionPersistence.startAutoSave(() => _saveSessionState());
       
-      // Setup bracketed paste mode
-      bracketedPaste.enable();
+      // Setup focus management
+      focusManager = FocusManager(terminal, controller, onFocusChanged, onFocusEvent);
+      focusManager.enableFocusEvents();
   }
 
   /// rename this session and notify listeners.

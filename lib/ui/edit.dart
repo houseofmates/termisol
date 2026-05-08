@@ -35,6 +35,8 @@ class EditTerminal extends StatefulWidget {
 }
 
 class _EditTerminalState extends State<EditTerminal> {
+  @override
+  Widget build(BuildContext context) {
   late TextEditingController _controller;
   late ScrollController _scrollController;
   late FocusNode _focusNode;

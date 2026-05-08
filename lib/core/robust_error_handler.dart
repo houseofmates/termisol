@@ -720,19 +720,19 @@ class ErrorReport {
   };
   
   factory ErrorReport.fromJson(Map<String, dynamic> json) => ErrorReport(
-    id: json['id'],
-    timestamp: DateTime.parse(json['timestamp']),
-    error: json['error'],
-    stackTrace: json['stackTrace'],
-    context: json['context'],
+    id: json['id'] as String,
+    timestamp: DateTime.parse(json['timestamp'] as String),
+    error: json['error'] as String,
+    stackTrace: json['stackTrace'] as String?,
+    context: json['context'] as String?,
     metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
     severity: ErrorSeverity.values.firstWhere(
       (e) => e.toString() == json['severity'],
       orElse: () => ErrorSeverity.error,
     ),
-    recoverable: json['recoverable'] ?? true,
-    platform: json['platform'] ?? 'unknown',
-    version: json['version'] ?? '1.0.0',
+    recoverable: json['recoverable'] as bool? ?? true,
+    platform: json['platform'] as String? ?? 'unknown',
+    version: json['version'] as String? ?? '1.0.0',
   );
 }
 

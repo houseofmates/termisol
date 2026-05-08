@@ -535,103 +535,34 @@ class AdvancedTerminalProtocol {
   void _handleMode(List<int> params, bool set) {
     for (final param in params) {
       switch (param) {
-        case 1:
-          // Application cursor keys
+        case 25: // DECTCEM - Text Cursor Enable Mode
+          _controller.setCursorVisibility(set);
           break;
-        case 2:
-          // ANSI/VT52 mode
-          break;
-        case 3:
-          // 132 column mode
-          break;
-        case 4:
-          // Smooth scrolling
-          break;
-        case 5:
-          // Reverse video
-          break;
-        case 6:
-          // Origin mode
-          break;
-        case 7:
-          // Wrap around mode
-          break;
-        case 8:
-          // Auto-repeat keys
-          break;
-        case 9:
-          // Interlace
-          break;
-        case 12:
-          // Start blinking cursor
-          break;
-        case 25:
-          // Hide/show cursor
-          break;
-        case 40:
-          // Allow 80->132 mode
-          break;
-        case 45:
-          // Reverse wrap-around mode
-          break;
-        case 47:
-          // Use alternate screen buffer
-          break;
-        case 1000:
+        case 1000: // Mouse tracking - normal mode
           _setMouseTracking(set ? MouseProtocol.normal : MouseProtocol.none);
           break;
-        case 1001:
-          _setMouseTracking(set ? MouseProtocol.highlight : MouseProtocol.none);
-          break;
-        case 1002:
+        case 1002: // Mouse tracking - button event mode
           _setMouseTracking(set ? MouseProtocol.buttonEvent : MouseProtocol.none);
           break;
-        case 1003:
+        case 1003: // Mouse tracking - any event mode
           _setMouseTracking(set ? MouseProtocol.anyEvent : MouseProtocol.none);
           break;
-        case 1004:
+        case 1004: // Focus tracking
           _setFocusTracking(set);
           break;
-        case 1005:
+        case 1005: // Mouse tracking - URXVT mode
           _setMouseTracking(set ? MouseProtocol.urxvt : MouseProtocol.none);
           break;
-        case 1006:
+        case 1006: // Mouse tracking - SGR mode
           _setMouseTracking(set ? MouseProtocol.sgr : MouseProtocol.none);
           break;
-        case 1015:
-          _setMouseTracking(set ? MouseProtocol.urxvt : MouseProtocol.none);
-          break;
-        case 1016:
+        case 1016: // Mouse tracking - SGR pixels mode
           _setMouseTracking(set ? MouseProtocol.sgrPixels : MouseProtocol.none);
           break;
-        case 2004:
+        case 2004: // Bracketed paste mode
           _setBracketedPasteMode(set);
           break;
-        case 1036:
-          // Send ESC when meta key pressed
-          break;
-        case 1037:
-          // Delete DEL key
-          break;
-        case 1039:
-          // Send ESC when alt key pressed
-          break;
-        case 1047:
-          // Use alternate screen buffer, clearing it first
-          break;
-        case 1048:
-          // Save cursor as in DECSC
-          break;
-        case 1049:
-          // Save cursor and use alternate screen buffer
-          break;
-        case 2000:
-          // Bracketed paste mode
-          break;
-        default:
-          if (param >= 1000 && param < 2000) {
-            debugPrint('🔍 Unknown private mode: $param');
-          }
+        // Other modes are acknowledged but not implemented for simplicity
       }
     }
   }

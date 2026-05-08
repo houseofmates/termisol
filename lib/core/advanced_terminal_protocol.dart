@@ -803,7 +803,7 @@ class AdvancedTerminalProtocol {
   /// Handle mouse events
   void handleMouseEvent(int x, int y, MouseButtons buttons, MouseActions action) {
     if (!_mouseTrackingEnabled) return;
-    
+
     switch (_currentMouseProtocol) {
       case MouseProtocol.normal:
         _sendNormalMouseEvent(x, y, buttons, action);
@@ -821,46 +821,43 @@ class AdvancedTerminalProtocol {
         break;
     }
   }
-  
+
   void _sendNormalMouseEvent(int x, int y, MouseButtons buttons, MouseActions action) {
     final buttonCode = _getButtonCode(buttons, action);
     final sequence = '\x1b[M${String.fromCharCode(buttonCode)}${String.fromCharCode(x + 32)}${String.fromCharCode(y + 32)}';
     _sendResponse(sequence);
   }
-  
+
   void _sendSgrMouseEvent(int x, int y, MouseButtons buttons, MouseActions action) {
     final buttonCode = _getButtonCode(buttons, action);
     final sequence = '\x1b[<${buttonCode};${x};${y}${action == MouseActions.release ? 'm' : 'M'}';
     _sendResponse(sequence);
   }
-  
+
   void _sendUrxvtMouseEvent(int x, int y, MouseButtons buttons, MouseActions action) {
     final buttonCode = _getButtonCode(buttons, action);
     final sequence = '\x1b[${buttonCode};${x};${y}M';
     _sendResponse(sequence);
   }
-  
+
   void _sendSgrPixelMouseEvent(int x, int y, MouseButtons buttons, MouseActions action) {
-    // Convert character coordinates to pixel coordinates
     final pixelX = x * 8; // Approximate character width
     final pixelY = y * 16; // Approximate character height
-    
     final buttonCode = _getButtonCode(buttons, action);
     final sequence = '\x1b[<${buttonCode};${pixelX};${pixelY}${action == MouseActions.release ? 'm' : 'M'}';
     _sendResponse(sequence);
   }
-  
+
   int _getButtonCode(MouseButtons buttons, MouseActions action) {
     int code = 0;
-    
-    if (buttons.contains(MouseButtons.left)) code |= 1;
-    if (buttons.contains(MouseButtons.middle)) code |= 2;
-    if (buttons.contains(MouseButtons.right)) code |= 3;
-    
+    if (buttons == MouseButtons.left) code = 0;
+    else if (buttons == MouseButtons.middle) code = 1;
+    else if (buttons == MouseButtons.right) code = 2;
+
     if (action == MouseActions.drag) code |= 32;
     if (action == MouseActions.doubleClick) code |= 64;
     if (action == MouseActions.tripleClick) code |= 128;
-    
+
     return code;
   }
   

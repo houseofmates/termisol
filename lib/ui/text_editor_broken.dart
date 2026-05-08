@@ -104,6 +104,11 @@ class _TextEditorState extends State<TextEditor> {
   bool _showSummary = false;
   String? _summaryText;
   bool _isSummarizing = false;
+  
+  // Multiple Cursors
+  final List<TextSelection> _cursors = [];
+  bool _multiCursorMode = false;
+  int _activeCursorIndex = 0;
 
   @override
   void initState() {
@@ -118,6 +123,9 @@ class _TextEditorState extends State<TextEditor> {
     _detectLanguage();
     _deepL.initialize();
     _nvidiaClient.initialize();
+    
+    // Initialize with single cursor
+    _cursors.add(TextSelection.collapsed(offset: 0));
   }
 
   @override
@@ -1190,10 +1198,73 @@ class _TextEditorState extends State<TextEditor> {
 
   void _handleRightClick(Offset position) {
     final selectedText = _controller.selection.textInside(_controller.text);
+    
+    if (_multiCursorMode && HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlLeft)) {
+      // Add cursor at position in multi-cursor mode
+      _addCursorAtPosition(position);
+      return;
+    }
+    
     setState(() {
       _showContextMenu = true;
       _contextMenuPosition = position;
       _contextMenuSelectedText = selectedText.isNotEmpty ? selectedText : null;
+    });
+  }
+  
+  void _addCursorAtPosition(Offset globalPosition) {
+    // Convert global position to text offset
+    // This is a simplified implementation - in practice you'd need to calculate the exact text position
+    final currentText = _controller.text;
+    final lines = currentText.split('\n');
+    
+    // For now, add cursor at current selection or end of text
+    final newOffset = _controller.selection.isValid ? _controller.selection.end : currentText.length;
+    
+    setState(() {
+      _cursors.add(TextSelection.collapsed(offset: newOffset));
+      _activeCursorIndex = _cursors.length - 1;
+    });
+  }
+  
+  void _removeAllCursors() {
+    setState(() {
+      _cursors.clear();
+      _cursors.add(TextSelection.collapsed(offset: _controller.selection.baseOffset));
+      _activeCursorIndex = 0;
+      _multiCursorMode = false;
+    });
+  }
+  
+  void _toggleMultiCursorMode() {
+    setState(() {
+      _multiCursorMode = !_multiCursorMode;
+      if (!_multiCursorMode) {
+        _removeAllCursors();
+      }
+    });
+  }
+  
+  void _selectAllOccurrences() {
+    final selectedText = _controller.selection.textInside(_controller.text);
+    if (selectedText.isEmpty) return;
+    
+    final text = _controller.text;
+    final matches = <int>[];
+    int index = text.indexOf(selectedText);
+    
+    while (index != -1) {
+      matches.add(index);
+      index = text.indexOf(selectedText, index + 1);
+    }
+    
+    setState(() {
+      _cursors.clear();
+      for (final match in matches) {
+        _cursors.add(TextSelection.collapsed(offset: match));
+      }
+      _multiCursorMode = true;
+      _activeCursorIndex = 0;
     });
   }
   

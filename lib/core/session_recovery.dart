@@ -398,9 +398,9 @@ class SessionSnapshot {
       title: json['title'] as String? ?? '',
       workingDirectory: json['workingDirectory'] as String? ?? '/',
       commandCount: json['commandCount'] as int? ?? 0,
-      recentCommands: List<String>.from(json['recentCommands'] ?? []),
-      recentScrollback: List<String>.from(json['recentScrollback'] ?? []),
-      metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
+      recentCommands: List<String>.from((json['recentCommands'] as List?) ?? []),
+      recentScrollback: List<String>.from((json['recentScrollback'] as List?) ?? []),
+      metadata: Map<String, dynamic>.from((json['metadata'] as Map?) ?? {}),
       timestamp: DateTime.parse(json['timestamp'] as String),
       entryCount: json['entryCount'] as int? ?? 0,
     );

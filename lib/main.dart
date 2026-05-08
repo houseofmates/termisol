@@ -10,6 +10,7 @@ import 'core/headerbar_actions.dart';
 import 'core/service_registry.dart';
 import 'core/service_factories.dart';
 import 'core/robust_error_handler.dart';
+import 'core/termisol_core_integration.dart';
 
 /// Setup global error handling and crash reporting
 Future<void> _setupErrorHandling() async {
@@ -85,6 +86,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await _setupErrorHandling();
+  await TermisolCoreIntegration.instance.initialize();
 
   const headerBarChannel = MethodChannel('com.termisol/headerbar');
   headerBarChannel.setMethodCallHandler((call) async {

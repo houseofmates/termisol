@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/service_registry.dart';
 import '../core/terminal_session.dart';
-import '../core/ai_assistant_integration.dart';
+import '../ai/ai_terminal_assistant.dart';
 import '../core/headerbar_actions.dart';
 import '../config/pkm_theme.dart';
 import 'settings_page.dart';

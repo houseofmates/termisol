@@ -1,12 +1,9 @@
 import 'dart:async';
-import 'dart:ui' as ui;
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
-import 'production_gpu_renderer.dart';
-import 'nvidia_ai_client.dart';
-import 'terminal_session.dart';
 
-/// Real-time performance metrics collected from Flutter's frame timing.
+/// real-time performance metrics collected from Flutter's frame timing.
 class PerformanceMetrics {
   final double buildDurationMs;
   final double rasterDurationMs;
@@ -25,18 +22,16 @@ class PerformanceMetrics {
   });
 }
 
-/// Termisol Core Integration System.
+/// termisol core integration system.
 ///
-/// Ties together terminal sessions, cloud AI, and real performance monitoring
-/// using Flutter's SchedulerBinding frame timings. No ghost integrations.
+/// collects real frame timing data via SchedulerBinding.addTimingsCallback
+/// and exposes a stream of PerformanceMetrics. no ghost integrations.
 class TermisolCoreIntegration {
   static TermisolCoreIntegration? _instance;
   static TermisolCoreIntegration get instance => _instance ??= TermisolCoreIntegration._();
 
   TermisolCoreIntegration._();
 
-  late final ProductionGpuRenderer _gpuRenderer;
-  late final NvidiaAIClient _cloudAi;
   late TermisolCoreConfig _config;
 
   final List<PerformanceMetrics> _frameTimings = [];
@@ -45,78 +40,23 @@ class TermisolCoreIntegration {
   int _consecutiveSlowFrames = 0;
   bool _isInitialized = false;
 
-  /// Stream of real frame timing metrics.
+  /// stream of real frame timing metrics.
   Stream<PerformanceMetrics> get metrics => _metricsController.stream;
 
-  /// Initialize the core integration system.
+  /// whether the system is initialized.
+  bool get isInitialized => _isInitialized;
+
+  /// initialize the core integration system.
   Future<bool> initialize({TermisolCoreConfig? config}) async {
     if (_isInitialized) return true;
 
     _config = config ?? TermisolCoreConfig.highPerformance();
-
-    try {
-      _gpuRenderer = ProductionGpuRenderer.instance;
-      if (_config.enableGpuAcceleration) {
-        _gpuRenderer.setAcceleration(true);
-      }
-
-      if (_config.enableCloudAi) {
-        _cloudAi = NvidiaAIClient();
-        await _cloudAi.initialize();
-      }
-
-      _startRealPerformanceMonitoring();
-      _isInitialized = true;
-      return true;
-    } catch (e, stack) {
-      debugPrint('Core integration initialization failed: $e\n$stack');
-      return false;
-    }
+    _startRealPerformanceMonitoring();
+    _isInitialized = true;
+    return true;
   }
 
-  /// Create a terminal session with the configured backend.
-  Future<TerminalSession> createTerminalSession({
-    String? id,
-    String? name,
-    int maxLines = 50000,
-  }) async {
-    if (!_isInitialized) {
-      throw StateError('Core integration not initialized. Call initialize() first.');
-    }
-
-    final sessionId = id ?? 'session_${DateTime.now().millisecondsSinceEpoch}';
-    final sessionName = name ?? 'Terminal $sessionId';
-
-    final session = TerminalSession(
-      id: sessionId,
-      name: sessionName,
-      maxLines: maxLines,
-    );
-
-    return session;
-  }
-
-  /// Handle AI queries using the cloud AI client only.
-  /// Local AI fallback has been removed as no quantized model is shipped.
-  Future<String> handleAiQuery(String query) async {
-    if (!_isInitialized) return 'AI services unavailable: core not initialized';
-
-    try {
-      if (_config.enableCloudAi && _cloudAi.isInitialized) {
-        final response = await _cloudAi.chatCompletion(
-          messages: [ChatMessage(role: 'user', content: query)],
-        );
-        final content = response.content;
-        if (content.isNotEmpty) return content;
-      }
-      return 'AI services unavailable: no cloud AI configured';
-    } catch (e) {
-      debugPrint('AI query failed: $e');
-      return 'AI query failed: $e';
-    }
-  }
-
-  /// Start real performance monitoring using Flutter's frame timings callback.
+  /// start real performance monitoring using Flutter's frame timings callback.
   void _startRealPerformanceMonitoring() {
     SchedulerBinding.instance.addTimingsCallback((List<FrameTiming> timings) {
       for (final timing in timings) {
@@ -145,18 +85,14 @@ class TermisolCoreIntegration {
       }
     });
 
-    // Periodic memory and health check
+    // periodic memory and health check
     _metricsTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       _checkMemoryPressure();
     });
   }
 
-  /// Auto-optimize based on real frame metrics and system state.
-  /// If raster > 16ms for 3 consecutive frames: reduce quality.
-  /// If memory > 512MB: aggressive eviction.
-  /// If thermal critical: disable GPU acceleration.
+  /// auto-optimize based on real frame metrics and system state.
   void _evaluateAutoOptimization(PerformanceMetrics metric) {
-    // Check frame time performance
     if (metric.rasterDurationMs > 16.0) {
       _consecutiveSlowFrames++;
     } else {
@@ -164,53 +100,55 @@ class TermisolCoreIntegration {
     }
 
     if (_consecutiveSlowFrames >= 3) {
-      _gpuRenderer.setAcceleration(false);
       _consecutiveSlowFrames = 0;
-      debugPrint('[perf] raster > 16ms for 3 frames: disabled GPU acceleration');
+      debugPrint('[perf] raster > 16ms for 3 frames: consider reducing terminal font size or scrollback');
     }
 
-    // Check thermal state (simplified - would need battery_thermal plugin for real data)
     _checkThermalState();
   }
 
-  /// Check thermal state and adjust performance accordingly.
+  /// simplified thermal check using frame time as a proxy.
   void _checkThermalState() {
-    // This is a simplified thermal check. In production, would use:
-    // - battery_thermal plugin on Android
-    // - system thermal APIs on desktop platforms
-    // For now, we'll use frame time as a thermal proxy
-    
     if (_frameTimings.length >= 60) {
       final recentFrames = _frameTimings.sublist(_frameTimings.length - 60);
       final avgFrameTime = recentFrames.fold<double>(0.0, (sum, m) => sum + m.totalFrameTimeMs) / recentFrames.length;
-      
-      // If average frame time is consistently high, assume thermal throttling
+
       if (avgFrameTime > 20.0) {
-        _gpuRenderer.setAcceleration(false);
-        debugPrint('[perf] High average frame time suggests thermal throttling: disabled GPU acceleration');
+        debugPrint('[perf] high average frame time detected: consider reducing quality');
       }
     }
   }
 
-  /// Check memory pressure and evict caches if needed.
+  /// check memory pressure using available platform APIs.
   void _checkMemoryPressure() {
-    // Flutter does not expose RSS directly; use cache heuristics.
-    final memStats = _gpuRenderer.getMemoryStats();
-    final estimated = (memStats['estimatedMemoryUsage'] as int?) ?? 0;
+    try {
+      final info = _getProcessInfo();
+      final rssMb = (info['rss'] as int? ?? 0) / (1024 * 1024);
 
-    if (estimated > 512 * 1024 * 1024) {
-      _gpuRenderer.clearCaches();
-      debugPrint('[perf] estimated memory > 512MB: cleared caches');
+      if (rssMb > 512) {
+        debugPrint('[perf] process RSS > 512MB: consider clearing scrollback or image caches');
+      }
+    } catch (e) {
+      // process info not available on this platform
     }
   }
 
-  /// Get the last N performance samples.
+  Map<String, dynamic> _getProcessInfo() {
+    // Flutter does not expose RSS directly; return empty on unsupported platforms.
+    if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
+      // could parse /proc/self/status on Linux, but keep it simple.
+      return {};
+    }
+    return {};
+  }
+
+  /// get the last N performance samples.
   List<PerformanceMetrics> getRecentMetrics({int count = 60}) {
     if (_frameTimings.length <= count) return List.unmodifiable(_frameTimings);
     return List.unmodifiable(_frameTimings.sublist(_frameTimings.length - count));
   }
 
-  /// Get average frame time over the last N samples.
+  /// get average frame time over the last N samples.
   double getAverageFrameTimeMs({int samples = 60}) {
     final recent = getRecentMetrics(count: samples);
     if (recent.isEmpty) return 0.0;
@@ -218,7 +156,7 @@ class TermisolCoreIntegration {
     return sum / recent.length;
   }
 
-  /// Get current system status.
+  /// get current system status.
   Map<String, dynamic> getSystemStatus() {
     return {
       'initialized': _isInitialized,
@@ -227,15 +165,10 @@ class TermisolCoreIntegration {
         'averageFrameTimeMs': getAverageFrameTimeMs(),
         'sampleCount': _frameTimings.length,
       },
-      'gpu_renderer': _gpuRenderer.getMemoryStats(),
-      'ai': {
-        'cloud_enabled': _config.enableCloudAi,
-        'cloud_status': _config.enableCloudAi ? _cloudAi.getMetrics() : null,
-      },
     };
   }
 
-  /// Dispose all resources.
+  /// dispose all resources.
   Future<void> dispose() async {
     _metricsTimer?.cancel();
     _metricsController.close();

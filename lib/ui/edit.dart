@@ -232,25 +232,7 @@ class _EditTerminalState extends State<EditTerminal> {
     }
   }
 
-  String _detectLanguage() {
-    final text = _controller.text.toLowerCase();
-    final extension = path.extension(widget.filePath).toLowerCase();
-    
-    if (extension == '.dart') return 'dart';
-    if (extension == '.py') return 'python';
-    if (extension == '.js') return 'javascript';
-    if (extension == '.sh' || extension == '.bash') return 'shell';
-    if (extension == '.ts') return 'javascript';
-    
-    // Check content patterns
-    if (text.contains('import ') || text.contains('from ')) return 'python';
-    if (text.contains('function ') || text.contains('const ')) return 'javascript';
-    if (text.contains('def ') || text.contains('class ')) return 'python';
-    if (text.contains('Widget ') || text.contains('StatefulWidget')) return 'dart';
-    
-    return 'text';
-  }
-
+  
   Widget _buildCompletionPopup() {
     final text = _controller.text;
     final cursorPos = _controller.selection.baseOffset;

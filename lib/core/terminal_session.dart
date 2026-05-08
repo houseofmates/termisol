@@ -229,8 +229,8 @@ class TerminalSession extends ChangeNotifier {
     // Actually send input to the backend
     try {
       _backend!.write(utf8.encode(input));
-    } catch (e) {
-      if (kDebugMode) debugPrint('writeInput error: $e');
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('writeInput error: $e\n$stack');
       _error = e.toString();
       notifyListeners();
     }
@@ -241,8 +241,8 @@ class TerminalSession extends ChangeNotifier {
     terminal.resize(cols, rows);
     try {
       _backend?.resize(cols, rows);
-    } catch (e) {
-      if (kDebugMode) debugPrint('resize error: $e');
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('resize error: $e\n$stack');
     }
   }
 
@@ -299,14 +299,14 @@ class TerminalSession extends ChangeNotifier {
 
     try {
       await _backend?.stop();
-    } catch (e) {
-      if (kDebugMode) debugPrint('disposeSession stop error: $e');
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('disposeSession stop error: $e\n$stack');
     }
 
     try {
       await _backend?.terminate();
-    } catch (e) {
-      if (kDebugMode) debugPrint('disposeSession terminate error: $e');
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('disposeSession terminate error: $e\n$stack');
     }
 
     _backend = null;

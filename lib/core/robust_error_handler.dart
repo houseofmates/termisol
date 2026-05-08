@@ -431,7 +431,7 @@ class RobustErrorHandler {
       
       _logger.info('All caches cleared');
     } catch (e) {
-      _logger.error('Cache clearing failed: $e');
+      _logger.severe('Cache clearing failed: $e');
     }
   }
   

@@ -6,97 +6,72 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:xterm/xterm.dart';
 
-/// Advanced Terminal Protocol System
-/// 
-/// Implements comprehensive terminal protocol support exceeding Kitty:
-/// - Complete ANSI/VT100/VT220/VT320/VT420/VT520 compatibility
-/// - Full Unicode 15.0 with bidirectional text and complex scripts
-/// - Advanced mouse protocols (SGR, URXVT, DEC, SGR-Pixels)
-/// - Bracketed paste mode with enhanced security
+/// Lean, Production-Ready Terminal Protocol System
+///
+/// Focuses on essential functionality with robust implementations:
+/// - ANSI/VT100/VT220/VT320/VT420/VT520 compatibility
+/// - True color (24-bit RGB) support
+/// - Mouse tracking (SGR, URXVT, DEC protocols)
+/// - Bracketed paste mode
 /// - Focus tracking and window management
-/// - True color and palette management
 /// - Keyboard protocol for enhanced key detection
-/// - Screen/tmux integration
-/// - Extended capabilities (BEL, OSC sequences, etc.)
 class AdvancedTerminalProtocol {
   bool _isInitialized = false;
   late final Terminal _terminal;
   late final TerminalController _controller;
-  
-  // Protocol state
+
+  // Core protocol state
   final Map<String, dynamic> _protocolState = {};
   final List<String> _supportedProtocols = [];
-  final Map<String, ProtocolHandler> _handlers = {};
-  
+
   // Mouse tracking
   MouseProtocol _currentMouseProtocol = MouseProtocol.none;
   bool _mouseTrackingEnabled = false;
-  bool _sgrPixelMode = false;
-  
+
   // Bracketed paste
   bool _bracketedPasteMode = false;
   final StringBuffer _pasteBuffer = StringBuffer();
-  
+
   // Focus tracking
   bool _focusTrackingEnabled = false;
   bool _hasFocus = true;
-  
+
   // Window management
   String _windowTitle = '';
   String _iconName = '';
-  
+
   // Color management
   final List<Color> _colorPalette = List.generate(256, (i) => Color.fromARGB(255, 0, 0, 0));
   bool _trueColorSupported = true;
-  
-  // Unicode and bidirectional text
-  bool _unicodeSupport = true;
-  bool _bidirectionalEnabled = false;
-  String _currentDirection = 'ltr';
-  
+
   // Keyboard protocol
   KeyboardProtocol _keyboardProtocol = KeyboardProtocol.none;
   final Map<String, String> _keyMappings = {};
-  
-  // Screen/tmux integration
-  bool _screenMode = false;
-  bool _tmuxMode = false;
-  String _terminalType = 'xterm-256color';
-  
+
   AdvancedTerminalProtocol(this._terminal, this._controller);
-  
+
   bool get isInitialized => _isInitialized;
   bool get mouseTrackingEnabled => _mouseTrackingEnabled;
   bool get bracketedPasteMode => _bracketedPasteMode;
   bool get focusTrackingEnabled => _focusTrackingEnabled;
   String get windowTitle => _windowTitle;
   bool get trueColorSupported => _trueColorSupported;
-  bool get unicodeSupport => _unicodeSupport;
-  
-  /// Initialize all protocol handlers
+
+  /// Initialize with essential protocol support
   Future<void> initialize() async {
     if (_isInitialized) return;
-    
+
     try {
-      // Initialize protocol state
       _initializeProtocolState();
-      
-      // Register protocol handlers
-      _registerProtocolHandlers();
-      
-      // Initialize color palette
       _initializeColorPalette();
-      
-      // Initialize key mappings
       _initializeKeyMappings();
-      
-      // Set terminal capabilities
       _setTerminalCapabilities();
-      
+
       _isInitialized = true;
-      debugPrint('🔌 Advanced Terminal Protocol initialized');
+      debugPrint('🔌 Terminal Protocol initialized with essential support');
     } catch (e) {
       debugPrint('⚠️ Failed to initialize terminal protocol: $e');
+      rethrow; // Fail fast - don't silently ignore initialization errors
     }
   }
   

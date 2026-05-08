@@ -17,7 +17,7 @@ a terminal emulator built with Flutter. it uses the real `xterm.dart` package fo
 - **no custom GPU renderer**: rendering is handled by `xterm.dart`'s built-in `TerminalView`, wrapped in a `RepaintBoundary` for paint isolation
 - **no offline AI on desktop**: desktop builds are cloud-only. no quantized model is bundled
 - **no sixel/kitty/iterm2 graphics in the terminal grid**: `GraphicsProtocolHandler` exists in `lib/multimedia/` but is not wired into the active `TerminalView`
-- **no "smart" features**: the ~300 files claiming intelligent this-and-that in `lib/core/` were aspirational fiction and are not imported by the working app
+- **no "smart" features**: most files in `lib/core/` are aspirational fiction and are not imported by the working app. only the core terminal functionality (session management, PTY backend, AI assistant) is actually implemented and functional
 
 ## architecture (honest)
 

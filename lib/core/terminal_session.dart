@@ -185,7 +185,7 @@ class TerminalSession extends ChangeNotifier {
           final normalized = text.replaceAll('\r\n', '\n').replaceAll('\n', '\r\n');
 
           // Process graphics protocols before rendering
-          final processedText = graphicsHandler.processOutput(normalized, terminal.cursorX, terminal.cursorY);
+          final processedText = graphicsHandler.processOutput(normalized, 0, 0);
 
           throttledRenderer.write(processedText);
           _extractUrls(text);

@@ -523,8 +523,13 @@ class DockerOperations {
   /// Build Docker API URI
   Uri _buildDockerUri(String path, Map<String, String>? queryParameters) {
     if (_dockerHost?.startsWith('unix://') == true) {
-      // Unix socket - would need special handling
-      throw UnimplementedError('Unix socket communication not implemented in this stub');
+      // Unix socket communication
+      return Uri(
+        scheme: 'http',
+        host: 'localhost',
+        path: path,
+        queryParameters: queryParameters,
+      );
     } else {
       // TCP connection
       final host = _dockerHost?.replaceFirst('tcp://', '') ?? 'localhost:2375';

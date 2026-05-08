@@ -5,7 +5,7 @@ import '../core/service_registry.dart';
 import '../core/terminal_session.dart';
 import '../core/ai_assistant_integration.dart';
 import '../config/pkm_theme.dart';
-import 'settings_sheet.dart';
+import 'settings_page.dart';
 import 'terminal_view.dart';
 import 'command_palette.dart';
 import 'search_overlay.dart';
@@ -79,11 +79,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showSettings() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: PkmTheme.popup,
-      builder: (context) => SettingsSheet(
-        registry: widget.registry,
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => SettingsPage(registry: widget.registry),
       ),
     );
   }

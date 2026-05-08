@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:pty/pty.dart';
 import '../backends/android_shell_backend.dart';
 import 'ffi_pty_backend.dart';
+import 'prompt_config.dart';
 
 /// Cross-platform PTY backend interface for termisol.
 abstract class TermisolPtyBackend {
@@ -97,6 +98,13 @@ class _PtyBackend implements TermisolPtyBackend {
     });
 
     if (kDebugMode) debugPrint('[pty] started pty: $shell');
+
+    // Inject termisol-colored PS1 after shell initializes
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (_isRunning && _pty != null) {
+        write(utf8.encode("export PS1='${PromptConfig.bashPs1}'\n"));
+      }
+    });
   }
 
   @override

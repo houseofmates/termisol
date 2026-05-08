@@ -50,7 +50,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleAiQuery(String query) {
-    _ai?.processQuery(query);
+    try {
+      _ai?.processQuery(query);
+    } catch (e) {
+      // Graceful degradation: AI fails, but terminal continues working
+      debugPrint('AI query failed, continuing without AI: $e');
+    }
   }
 
   void _toggleFps() {

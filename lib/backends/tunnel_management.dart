@@ -154,7 +154,7 @@ class TunnelManagement {
   }
 
   /// Create a new tunnel
-  String createTunnel({
+  Future<String> createTunnel({
     required TunnelType type,
     required String host,
     required int remotePort,
@@ -174,7 +174,7 @@ class TunnelManagement {
       type: type,
       host: host,
       remotePort: remotePort,
-      localPort: localPort ?? _findAvailablePort(),
+      localPort: localPort ?? await _findAvailablePort(),
       username: username,
       password: password,
       keyPath: keyPath,

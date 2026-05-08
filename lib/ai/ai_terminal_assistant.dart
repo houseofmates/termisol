@@ -54,7 +54,7 @@ class NvidiaAITerminalAssistant {
 
     // Enable AI features based on config
     final aiEnabled = config.get<bool>('ai.enabled', true);
-    if (aiEnabled && _apiKey != null) {
+    if (aiEnabled && _apiKey?.isNotEmpty == true) {
       _isInitialized = true;
       debugPrint('NVIDIA AI Terminal Assistant initialized');
     } else {

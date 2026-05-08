@@ -7,6 +7,7 @@ import '../core/gpu_renderer.dart';
 import '../core/deep_l_service.dart';
 import '../config/pkm_theme.dart';
 import 'clipboard_manager.dart';
+import 'retained_terminal_renderer.dart';
 
 /// xterm terminal theme using Termisol brand yellow (#f6b012) instead of
 /// the default greenish-yellow (#e5e510).
@@ -110,14 +111,9 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
               shift: true,
             ): () => _clipboard.pasteBracketed(),
           },
-          child: TerminalView(
-            widget.session.terminal,
+          child: RetainedTerminalRenderer(
+            terminal: widget.session.terminal,
             controller: widget.session.controller,
-            theme: termisolTerminalTheme,
-            textStyle: const TerminalStyle(
-              fontSize: 14,
-              fontFamily: 'Droid Sans Mono',
-            ),
             focusNode: widget.focusNode,
             autofocus: widget.autofocus,
             onSecondaryTapUp: (details, _) => _showContextMenu(context, details.globalPosition),

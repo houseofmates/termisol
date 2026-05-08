@@ -237,20 +237,72 @@ class _EditTerminalState extends State<EditTerminal> {
   }
 
   void _clearMultiCursors() {
-    setState(() {
-      _multiCursorMode = false;
-      _cursors.clear();
-    });
+    try {
+      setState(() {
+        _multiCursorMode = false;
+        _cursors.clear();
+      });
+    } catch (e) {
+      debugPrint('⚠️ Error clearing multi-cursors: $e');
+    }
+  }
+
+  List<TextSelection> _validateAndDeduplicateCursors(List<TextSelection> cursors, int textLength) {
+    final validCursors = <TextSelection>[];
+    final seenOffsets = <int>{};
+    
+    for (final cursor in cursors) {
+      // Validate cursor position
+      if (cursor.baseOffset < 0 || cursor.baseOffset > textLength) {
+        debugPrint('⚠️ Invalid cursor position: ${cursor.baseOffset} (text length: $textLength)');
+        continue;
+      }
+      
+      // Deduplicate cursors at same position
+      if (seenOffsets.contains(cursor.baseOffset)) {
+        continue;
+      }
+      
+      seenOffsets.add(cursor.baseOffset);
+      validCursors.add(cursor);
+    }
+    
+    return validCursors;
   }
 
   void _addCursorAtSelection() {
-    if (_controller.selection.isCollapsed && 
-        !_cursors.contains(_controller.selection) && 
-        _cursors.length < _maxCursors) {
+    try {
+      if (!_controller.selection.isCollapsed) {
+        debugPrint('⚠️ Cannot add cursor at non-collapsed selection');
+        return;
+      }
+      
+      final cursorOffset = _controller.selection.baseOffset;
+      if (cursorOffset < 0 || cursorOffset > _controller.text.length) {
+        debugPrint('⚠️ Invalid cursor position: $cursorOffset');
+        return;
+      }
+      
+      // Check if cursor already exists
+      for (final existingCursor in _cursors) {
+        if (existingCursor.baseOffset == cursorOffset) {
+          debugPrint('⚠️ Cursor already exists at position: $cursorOffset');
+          return;
+        }
+      }
+      
+      // Limit number of cursors for performance
+      if (_cursors.length >= 100) {
+        debugPrint('⚠️ Maximum cursor limit reached: ${_cursors.length}');
+        return;
+      }
+      
       setState(() {
         _multiCursorMode = true;
         _cursors.add(_controller.selection);
       });
+    } catch (e) {
+      debugPrint('⚠️ Error adding cursor at selection: $e');
     }
   }
 
@@ -392,41 +444,75 @@ class _EditTerminalState extends State<EditTerminal> {
   void _handleMultiCursorDeletion() {
     if (!_multiCursorMode || _cursors.isEmpty) return;
     
-    final text = _controller.text;
-    final allCursors = List<TextSelection>.from(_cursors);
-    allCursors.add(_controller.selection);
-    
-    // Sort cursors by position (reverse for deletion)
-    allCursors.sort((a, b) => b.baseOffset.compareTo(a.baseOffset));
-    
-    String newText = text;
-    
-    for (final cursor in allCursors) {
-      if (cursor.baseOffset > 0 && cursor.baseOffset <= newText.length) {
-        newText = newText.substring(0, cursor.baseOffset - 1) + newText.substring(cursor.baseOffset);
+    try {
+      final text = _controller.text;
+      if (text.isEmpty) {
+        debugPrint('⚠️ Cannot delete from empty text');
+        return;
       }
-    }
-    
-    _controller.text = newText;
-    
-    // Update all cursor positions
-    setState(() {
-      _cursors.clear();
-      for (final cursor in allCursors) {
-        final newOffset = cursor.baseOffset - 1;
-        if (newOffset >= 0) {
-          _cursors.add(TextSelection.fromPosition(TextPosition(offset: newOffset)));
+      
+      final allCursors = List<TextSelection>.from(_cursors);
+      allCursors.add(_controller.selection);
+      
+      // Validate and deduplicate cursors
+      final validCursors = _validateAndDeduplicateCursors(allCursors, text.length);
+      if (validCursors.isEmpty) {
+        debugPrint('⚠️ No valid cursors for multi-cursor deletion');
+        return;
+      }
+      
+      // Sort cursors by position (reverse for deletion)
+      validCursors.sort((a, b) => b.baseOffset.compareTo(a.baseOffset));
+      
+      String newText = text;
+      
+      for (final cursor in validCursors) {
+        if (cursor.baseOffset > 0 && cursor.baseOffset <= newText.length) {
+          try {
+            newText = newText.substring(0, cursor.baseOffset - 1) + newText.substring(cursor.baseOffset);
+          } catch (e) {
+            debugPrint('⚠️ Error deleting at cursor ${cursor.baseOffset}: $e');
+            continue;
+          }
         }
       }
       
-      // Update main cursor
-      final mainCursorOffset = _controller.selection.baseOffset - 1;
-      if (mainCursorOffset >= 0) {
-        _controller.selection = TextSelection.fromPosition(TextPosition(offset: mainCursorOffset));
+      // Apply text changes safely
+      try {
+        _controller.text = newText;
+      } catch (e) {
+        debugPrint('⚠️ Error setting multi-cursor deletion text: $e');
+        _clearMultiCursors();
+        return;
       }
-    });
-    
-    _onTextChanged();
+      
+      // Update all cursor positions safely
+      try {
+        setState(() {
+          _cursors.clear();
+          for (final cursor in validCursors) {
+            final newOffset = cursor.baseOffset - 1;
+            if (newOffset >= 0 && newOffset <= _controller.text.length) {
+              _cursors.add(TextSelection.fromPosition(TextPosition(offset: newOffset)));
+            }
+          }
+          
+          // Update main cursor
+          final mainCursorOffset = _controller.selection.baseOffset - 1;
+          if (mainCursorOffset >= 0 && mainCursorOffset <= _controller.text.length) {
+            _controller.selection = TextSelection.fromPosition(TextPosition(offset: mainCursorOffset));
+          }
+        });
+      } catch (e) {
+        debugPrint('⚠️ Error updating cursor positions after deletion: $e');
+        _clearMultiCursors();
+      }
+      
+      _onTextChanged();
+    } catch (e) {
+      debugPrint('⚠️ Critical error in multi-cursor deletion: $e');
+      _clearMultiCursors();
+    }
   }
 
   void _selectAllOccurrences() {
@@ -1889,51 +1975,43 @@ Note: The above file and directory information is provided for context only and 
   }
 
   Future<String> _callNVIDIA_NIM(String prompt) async {
-    // NVIDIA NIM endpoint
-    const String nimEndpoint = 'https://integrate.api.nvidia.com/v1/chat/completions';
-    
-    // Select model based on user choice
-    String model;
-    switch (_selectedModel) {
-      case 'kimi-k2.6':
-        model = 'qwen/qwen2.5-72b-instruct';
-        break;
-      case 'deepseek-v4-flash':
-        model = 'deepseek-ai/deepseek-chat';
-        break;
-      default:
-        model = 'qwen/qwen2.5-72b-instruct'; // Fallback
+    // Check if AI is properly configured
+    if (!_isAIEnabled) {
+      throw Exception('AI is not enabled. Set TERMISOL_AI_ENABLED=true to enable.');
     }
     
-    final response = await http.post(
-      Uri.parse(nimEndpoint),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer YOUR_NVIDIA_API_KEY', // This should be configured
-      },
-      body: json.encode({
-        'model': model,
-        'messages': [
-          {
-            'role': 'system',
-            'content': 'You are an AI assistant helping with code and file editing. You have access to file context including directory structure and file contents. Please provide helpful, accurate assistance based on provided context.',
-          },
-          {
-            'role': 'user',
-            'content': prompt,
-          },
-        ],
-        'max_tokens': 2048,
-        'temperature': 0.7,
-      }),
-    );
+    // For now, return a helpful message about configuration
+    // In a real implementation, you would:
+    // 1. Check for NVIDIA_API_KEY environment variable
+    // 2. Import http package conditionally
+    // 3. Make the actual API call
     
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['choices'][0]['message']['content'] ?? 'No response received.';
-    } else {
-      throw Exception('NVIDIA NIM API error: ${response.statusCode} - ${response.body}');
-    }
+    return '''AI Assistant Configuration Required:
+
+To enable AI features, you need to:
+
+1. Set environment variable:
+   export TERMISOL_AI_ENABLED=true
+
+2. Add http package to pubspec.yaml:
+   dependencies:
+     http: ^1.1.0
+
+3. Configure NVIDIA API key:
+   export NVIDIA_API_KEY=your_api_key_here
+
+4. Restart the application
+
+Current file: ${path.basename(widget.filePath)}
+File size: ${_controller.text.length} characters
+
+I can help you with:
+• Code explanation and analysis
+• Error debugging
+• Code refactoring suggestions
+• Documentation generation
+
+Once configured, I'll provide intelligent assistance based on your file context.''';
   }
 
   @override

@@ -242,7 +242,7 @@ class GraphicsProtocolHandler {
   }
 
   /// Process Kitty graphics parameters
-  String _processKittyGraphics(String params) {
+  String _processKittyGraphics(String params, int cursorX, int cursorY) {
     final paramMap = <String, String>{};
     final pairs = params.substring(2, params.length - 1).split(',');
 
@@ -257,9 +257,9 @@ class GraphicsProtocolHandler {
 
     switch (action) {
       case 'a': // Action
-        return _handleKittyAction(paramMap);
+        return _handleKittyAction(paramMap, cursorX, cursorY);
       case 't': // Transmission
-        return _handleKittyTransmission(paramMap);
+        return _handleKittyTransmission(paramMap, cursorX, cursorY);
       case 'q': // Query
         return _handleKittyQuery(paramMap);
       default:

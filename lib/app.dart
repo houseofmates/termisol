@@ -34,11 +34,42 @@ class TermisolApp extends StatelessWidget {
       ),
     );
 
+    // Check if running on VR device
+    final isVr = _isVrDevice();
+
     return MaterialApp(
       title: 'termisol',
       debugShowCheckedModeBanner: false,
       theme: theme,
-      home: HomeScreen(registry: registry),
+      home: isVr ? _buildVrHome(registry) : HomeScreen(registry: registry),
+    );
+  }
+
+  bool _isVrDevice() {
+    if (!Platform.isAndroid) return false;
+    // Check config for VR support
+    try {
+      final config = ProductionConfigSystem();
+      return config.get<bool>('device.is_vr', false) || config.get<bool>('features.vr_support', false);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Widget _buildVrHome(ServiceRegistry registry) {
+    // For VR, use a simplified interface
+    return Container(
+      color: PkmTheme.background,
+      child: Center(
+        child: Text(
+          'VR Mode Not Fully Implemented',
+          style: TextStyle(
+            color: PkmTheme.primary,
+            fontSize: 24,
+            fontFamily: PkmTheme.fontUi,
+          ),
+        ),
+      ),
     );
   }
 }

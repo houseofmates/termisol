@@ -73,8 +73,8 @@ class NVIDIAAIOptimizer {
       final response = await _callNVIDIA(prompt);
       final recommendations = _parseOptimizationResponse(response);
       
-      // Cache results
-      _recommendations[cacheKey] = recommendations;
+      // Cache results - add to list since _recommendations is now a List
+      _recommendations.addAll(recommendations);
       
       // Add to history
       _history.add(OptimizationHistory(

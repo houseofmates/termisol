@@ -2480,39 +2480,6 @@ Note: The above file and directory information is provided for context only and 
     }
   }
 
-  Future<String> _callNVIDIA_NIM(String prompt) async {
-    // Check if AI is properly configured
-    if (!_isAIEnabled) {
-      throw Exception('AI is not enabled. Set TERMISOL_AI_ENABLED=true to enable.');
-    }
-    
-    // For now, return a helpful message about configuration
-    // In a real implementation, you would:
-    // 1. Check for NVIDIA_API_KEY environment variable
-    // 2. Import http package conditionally
-    // 3. Make the actual API call
-    
-    return '''AI Assistant Configuration Required:
-
-To enable AI features, you need to:
-
-1. Set environment variable:
-   export TERMISOL_AI_ENABLED=true
-
-2. Add http package to pubspec.yaml:
-   dependencies:
-     http: ^1.1.0
-
-3. Configure NVIDIA API key:
-   export NVIDIA_API_KEY=your_api_key_here
-
-4. Restart the application
-
-Current file: ${path.basename(widget.filePath)}
-File size: ${_controller.text.length} characters
-''';
-  }
-
   @override
   Widget build(BuildContext context) {
     return KeyboardListener(

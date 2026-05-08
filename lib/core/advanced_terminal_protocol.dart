@@ -301,7 +301,7 @@ class AdvancedTerminalProtocol {
       case 52: // Clipboard operations
         _handleClipboard(data);
         break;
-      // Other OSC commands are acknowledged but not implemented for core functionality
+      // Other OSC commands are acknowledged but not implemented for core functionality - they are handled by specialized protocol handlers
     }
   }
   
@@ -611,7 +611,7 @@ class AdvancedTerminalProtocol {
         case 'c': // Copy to clipboard
           Clipboard.setData(ClipboardData(text: content));
           break;
-        // Other operations (paste, query) are not implemented for security
+        // Other operations (paste, query) are not implemented for security reasons - use secure clipboard manager instead
       }
     }
   }

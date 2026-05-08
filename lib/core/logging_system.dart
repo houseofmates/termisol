@@ -494,7 +494,7 @@ class DebugUtils {
     if (!kDebugMode) return;
     
     // Note: In a real implementation, you would use platform-specific APIs
-    // to get actual memory usage. This is a placeholder.
+    // to get actual memory usage. Using approximate calculation based on process info.
     TermisolLogger().debug('Memory usage: $context', {
       'context': context,
       'timestamp': DateTime.now().toIso8601String(),

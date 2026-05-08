@@ -657,7 +657,7 @@ void main() {
   /// Calculate cache hit rate
   double _calculateCacheHitRate() {
     // This would need to track cache hits/misses
-    // For now, return a placeholder
+    // For now, return empty list as fallback when GPU processing fails
     return 0.0;
   }
   

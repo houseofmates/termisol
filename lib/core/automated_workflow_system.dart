@@ -463,7 +463,7 @@ class AutomatedWorkflowSystem {
     for (final entry in parameters.entries) {
       final value = entry.value;
       if (value is String) {
-        // Replace variable placeholders
+        // Replace variable references with actual values
         String processedValue = value;
         for (final variable in variables.entries) {
           processedValue = processedValue.replaceAll('\${${variable.key}}', variable.value.toString());

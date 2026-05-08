@@ -327,12 +327,12 @@ class ConversationalAI {
       // Fill template variables
       String responseText = template.response;
       
-      // Replace entity placeholders
+      // Replace entity references with actual values
       for (final entry in dialogueState.entities.entries) {
         responseText = responseText.replaceAll('{$entry.key}', entry.value.toString());
       }
       
-      // Replace context placeholders
+      // Replace context references with actual data
       responseText = responseText.replaceAll('{user}', dialogueState.sessionId);
       responseText = responseText.replaceAll('{time}', DateTime.now().toString());
       

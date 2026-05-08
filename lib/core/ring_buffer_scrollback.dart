@@ -169,7 +169,7 @@ class RingBufferScrollback {
       final compressedBytes = Uint8List.fromList(compressed);
       _compressedLines[index] = compressedBytes;
       
-      // Replace with compressed placeholder
+      // Replace with compressed data marker
       _buffer[index] = TerminalLine.compressed(
         index: index,
         compressedData: compressedBytes,

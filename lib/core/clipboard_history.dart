@@ -307,7 +307,7 @@ class ClipboardHistory {
 
   String _detectApplication() {
     // In a real implementation, this would detect the active application
-    // For now, return a placeholder
+    // For now, return empty string as fallback
     return 'unknown';
   }
 

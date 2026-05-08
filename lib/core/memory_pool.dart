@@ -371,7 +371,7 @@ class MemoryPool {
   /// Trigger garbage collection
   void _triggerGarbageCollection() {
     // Note: Dart doesn't have direct GC control
-    // This would be a placeholder for potential future Dart APIs
+    // This would be a placeholder for potential future Dart APIs for direct memory management
     _usage.lastGCTime = DateTime.now();
   }
   

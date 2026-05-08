@@ -537,13 +537,59 @@ class AIEvent {
   }
 }
 
+/// AI conversation data structure
+class AIConversation {
+  final String id;
+  final List<AIMessage> messages;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final String? context;
+
+  AIConversation({
+    required this.id,
+    required this.messages,
+    required this.createdAt,
+    required this.updatedAt,
+    this.context,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'messages': messages.map((m) => m.toJson()).toList(),
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+    'context': context,
+  };
+}
+
+/// AI message data structure
+class AIMessage {
+  final String role;
+  final String content;
+  final DateTime timestamp;
+  final Map<String, dynamic>? metadata;
+
+  AIMessage({
+    required this.role,
+    required this.content,
+    required this.timestamp,
+    this.metadata,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'role': role,
+    'content': content,
+    'timestamp': timestamp.toIso8601String(),
+    'metadata': metadata,
+  };
+}
+
 /// AI event types
 enum AIEventType {
   responseGenerated,
   requestFailed,
   suggestionsGenerated,
   contextCleared,
-}
 }
 
 class AIServiceResponse {

@@ -79,8 +79,12 @@ class _TextEditorState extends State<TextEditor> {
   // Search
   bool _showSearch = false;
   final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _replaceController = TextEditingController();
   int _currentSearchIndex = 0;
   List<int> _searchMatches = [];
+  bool _useRegex = false;
+  bool _matchCase = false;
+  bool _matchWholeWord = false;
   
   // Auto-completion
   bool _showCompletion = false;
@@ -500,11 +504,24 @@ class _TextEditorState extends State<TextEditor> {
     
     final text = _controller.text;
     final matches = <int>[];
-    int index = text.indexOf(query);
     
-    while (index != -1) {
-      matches.add(index);
-      index = text.indexOf(query, index + 1);
+    if (_useRegex) {
+      try {
+        final regex = RegExp(
+          query,
+          caseSensitive: _matchCase,
+          multiLine: true,
+        );
+        
+        for (final match in regex.allMatches(text)) {
+          matches.add(match.start);
+        }
+      } catch (e) {
+        // Invalid regex, fall back to literal search
+        _literalSearch(query, text, matches);
+      }
+    } else {
+      _literalSearch(query, text, matches);
     }
     
     setState(() {
@@ -515,6 +532,57 @@ class _TextEditorState extends State<TextEditor> {
     if (matches.isNotEmpty) {
       _scrollToMatch(matches[0]);
     }
+  }
+  
+  void _literalSearch(String query, String text, List<int> matches) {
+    if (_matchWholeWord) {
+      final wordPattern = RegExp(r'\b' + RegExp.escape(query) + r'\b', 
+        caseSensitive: _matchCase);
+      for (final match in wordPattern.allMatches(text)) {
+        matches.add(match.start);
+      }
+    } else {
+      int index = text.indexOf(query, 0);
+      while (index != -1) {
+        matches.add(index);
+        index = text.indexOf(query, index + 1);
+      }
+    }
+  }
+  
+  void _replaceAll() {
+    final searchText = _searchController.text;
+    final replaceText = _replaceController.text;
+    
+    if (searchText.isEmpty) return;
+    
+    String newText = _controller.text;
+    
+    if (_useRegex) {
+      try {
+        final regex = RegExp(
+          searchText,
+          caseSensitive: _matchCase,
+          multiLine: true,
+        );
+        newText = newText.replaceAll(regex, replaceText);
+      } catch (e) {
+        // Invalid regex, don't replace
+        return;
+      }
+    } else {
+      if (_matchWholeWord) {
+        final wordPattern = RegExp(r'\b' + RegExp.escape(searchText) + r'\b', 
+          caseSensitive: _matchCase);
+        newText = newText.replaceAll(wordPattern, replaceText);
+      } else {
+        newText = newText.replaceAll(searchText, replaceText);
+      }
+    }
+    
+    _controller.text = newText;
+    _searchText(); // Refresh search
+    _onTextChanged();
   }
 
   void _nextSearchMatch() {
@@ -625,44 +693,148 @@ class _TextEditorState extends State<TextEditor> {
                 // Search
                 if (_showSearch)
                   Expanded(
-                    child: Row(
+                    child: Column(
                       children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _searchController,
-                            style: const TextStyle(color: Colors.white, fontSize: 12),
-                            decoration: InputDecoration(
-                              hintText: 'Search...',
-                              hintStyle: TextStyle(color: Colors.grey[400]),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4),
-                                borderSide: BorderSide(color: Colors.grey[600]!),
+                        // Search input row
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _searchController,
+                                style: const TextStyle(color: Colors.white, fontSize: 12),
+                                decoration: InputDecoration(
+                                  hintText: 'Search...',
+                                  hintStyle: TextStyle(color: Colors.grey[400]),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                    borderSide: BorderSide(color: Colors.grey[600]!),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                ),
+                                onChanged: (_) => _searchText(),
+                                onSubmitted: (_) => _nextSearchMatch(),
                               ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             ),
-                            onChanged: (_) => _searchText(),
-                            onSubmitted: (_) => _nextSearchMatch(),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${_currentSearchIndex + 1}/${_searchMatches.length}',
+                              style: TextStyle(color: Colors.grey[400], fontSize: 10),
+                            ),
+                            IconButton(
+                              onPressed: _previousSearchMatch,
+                              icon: const Icon(Icons.keyboard_arrow_up, size: 16),
+                              color: Colors.grey[400],
+                            ),
+                            IconButton(
+                              onPressed: _nextSearchMatch,
+                              icon: const Icon(Icons.keyboard_arrow_down, size: 16),
+                              color: Colors.grey[400],
+                            ),
+                            IconButton(
+                              onPressed: () => setState(() => _showSearch = false),
+                              icon: const Icon(Icons.close, size: 16),
+                              color: Colors.grey[400],
+                            ),
+                          ],
+                        ),
+                        
+                        // Search options row
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: Row(
+                            children: [
+                              // Regex checkbox
+                              Row(
+                                children: [
+                                  Checkbox(
+                                    value: _useRegex,
+                                    onChanged: (value) {
+                                      setState(() => _useRegex = value!);
+                                      _searchText();
+                                    },
+                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  Text(
+                                    'Regex',
+                                    style: TextStyle(color: Colors.grey[300], fontSize: 10),
+                                  ),
+                                ],
+                              ),
+                              
+                              const SizedBox(width: 8),
+                              
+                              // Match case checkbox
+                              Row(
+                                children: [
+                                  Checkbox(
+                                    value: _matchCase,
+                                    onChanged: (value) {
+                                      setState(() => _matchCase = value!);
+                                      _searchText();
+                                    },
+                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  Text(
+                                    'Case',
+                                    style: TextStyle(color: Colors.grey[300], fontSize: 10),
+                                  ),
+                                ],
+                              ),
+                              
+                              const SizedBox(width: 8),
+                              
+                              // Whole word checkbox
+                              Row(
+                                children: [
+                                  Checkbox(
+                                    value: _matchWholeWord,
+                                    onChanged: (value) {
+                                      setState(() => _matchWholeWord = value!);
+                                      _searchText();
+                                    },
+                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  Text(
+                                    'Word',
+                                    style: TextStyle(color: Colors.grey[300], fontSize: 10),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${_currentSearchIndex + 1}/${_searchMatches.length}',
-                          style: TextStyle(color: Colors.grey[400], fontSize: 10),
-                        ),
-                        IconButton(
-                          onPressed: _previousSearchMatch,
-                          icon: const Icon(Icons.keyboard_arrow_up, size: 16),
-                          color: Colors.grey[400],
-                        ),
-                        IconButton(
-                          onPressed: _nextSearchMatch,
-                          icon: const Icon(Icons.keyboard_arrow_down, size: 16),
-                          color: Colors.grey[400],
-                        ),
-                        IconButton(
-                          onPressed: () => setState(() => _showSearch = false),
-                          icon: const Icon(Icons.close, size: 16),
-                          color: Colors.grey[400],
+                        
+                        // Replace row
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _replaceController,
+                                style: const TextStyle(color: Colors.white, fontSize: 12),
+                                decoration: InputDecoration(
+                                  hintText: 'Replace...',
+                                  hintStyle: TextStyle(color: Colors.grey[400]),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                    borderSide: BorderSide(color: Colors.grey[600]!),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            ElevatedButton(
+                              onPressed: _replaceAll,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange[700],
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              ),
+                              child: const Text(
+                                'Replace All',
+                                style: TextStyle(color: Colors.white, fontSize: 10),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

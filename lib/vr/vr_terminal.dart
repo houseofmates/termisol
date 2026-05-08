@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import '../core/service_registry.dart';
 import '../core/vr_platform_channel.dart';
 import '../config/pkm_theme.dart';
-
-class VrTerminal extends StatefulWidget {
   final Widget terminalWidget;
   final ServiceRegistry registry;
 

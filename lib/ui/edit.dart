@@ -10,6 +10,7 @@ import 'package:flutter_highlight/themes/github.dart';
 import 'package:path/path.dart' as path;
 import 'editor_validator.dart';
 import 'edit_collaboration_manager.dart';
+import 'editor_crash_recovery.dart';
 
 /// Edit - A modern terminal text editor with WYSIWYG markdown, rainbow syntax highlighting,
 /// and Windows Notepad-style hotkeys

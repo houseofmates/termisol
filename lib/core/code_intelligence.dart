@@ -146,13 +146,11 @@ class CodeIntelligence {
   List<CodeSymbol> _extractFunctions(String content, String ext) {
     final symbols = <CodeSymbol>[];
     try {
-      final patterns = _functionPatterns(ext);
-      for (final pattern in patterns) {
-        for (final match in pattern.allMatches(content)) {
-          final name = match.group(1);
-          if (name != null && name.isNotEmpty) {
-            symbols.add(CodeSymbol(name: name, type: 'function', line: _findLine(content, match.start)));
-          }
+      final pattern = _functionPatterns(ext);
+      for (final match in pattern.allMatches(content)) {
+        final name = match.group(1);
+        if (name != null && name.isNotEmpty) {
+          symbols.add(CodeSymbol(name: name, type: 'function', line: _findLine(content, match.start)));
         }
       }
     } catch (_) {}

@@ -307,7 +307,7 @@ class CommandStatistics {
       count: json['count'] as int? ?? 0,
       successCount: json['successCount'] as int? ?? 0,
       totalDuration: Duration(milliseconds: json['totalDurationMs'] as int? ?? 0),
-      lastUsed: DateTime.tryParse(json['lastUsed'] ?? '') ?? DateTime.now(),
+      lastUsed: DateTime.tryParse((json['lastUsed'] as String?) ?? '') ?? DateTime.now(),
     );
   }
 }

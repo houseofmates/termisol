@@ -75,7 +75,13 @@ class OpenXRRenderer {
     final cols = 80; // Fixed terminal width
     
     // Create terminal picture
-    final picture = _pictureRecorder.endRecording();
+    final recorder = ui.PictureRecorder();
+    final canvas = ui.Canvas(recorder);
+    
+    // Draw terminal content
+    _drawTerminalContent(canvas, rows, cols);
+    
+    final picture = recorder.endRecording();
     
     // Convert to image with proper dimensions
     final image = await picture.toImage(cols * 12, rows * 24);

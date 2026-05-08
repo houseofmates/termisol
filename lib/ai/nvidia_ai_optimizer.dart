@@ -443,6 +443,7 @@ class OptimizationRecommendation {
   final String riskLevel;
   
   OptimizationRecommendation({
+    required this.id,
     required this.timestamp,
     required this.overallScore,
     required this.suggestions,

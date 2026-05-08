@@ -32,6 +32,12 @@ class RobustErrorHandler {
   // Connection pool for error recovery
   final List<dynamic> _connectionPool = [];
   
+  // Recovery state variables
+  Timer? _monitoringTimer;
+  int _errorCount = 0;
+  String? _lastError;
+  bool _isRecovering = false;
+  
   Stream<ErrorReport> get errorStream => _errorController.stream;
   
   // Configuration
@@ -448,7 +454,7 @@ class RobustErrorHandler {
       
       _logger.info('Critical services restarted');
     } catch (e) {
-      _logger.error('Failed to restart critical services: $e');
+      _logger.severe('Failed to restart critical services: $e');
     }
   }
   

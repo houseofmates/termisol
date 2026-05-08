@@ -8,7 +8,7 @@ import 'bracketed_paste_manager.dart';
 import 'focus_manager.dart';
 import 'truecolor_manager.dart';
 import 'kitty_graphics_manager.dart';
-import 'mouse_protocol_manager.dart' as mouse;
+import 'mouse_protocol_manager.dart';
 import 'ligature_font_manager.dart';
 import 'throttled_renderer.dart';
 import 'optimized_text_buffer.dart';
@@ -120,7 +120,7 @@ class TerminalSession extends ChangeNotifier {
     focusManager.enableFocusEvents();
     trueColor.enable();
     kittyGraphics.enable();
-    mouseProtocol.enable(mouse.MouseMode.any);
+    mouseProtocol.enable(TermisolMouseMode.any);
     ligatureFont.setFont('Fira Code', enableLigatures: true);
 
     // Start health monitoring and auto-save

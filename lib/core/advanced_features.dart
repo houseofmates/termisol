@@ -1088,16 +1088,504 @@ class SyntaxRule {
 }
 
 class AutoCompleter {
-  Future<void> initialize(AdvancedConfig config) async {}
-  Map<String, dynamic> getStatistics() => {};
-  Future<void> dispose() async {}
+  AdvancedConfig? _config;
+  bool _isInitialized = false;
+  final Map<String, List<CompletionItem>> _completionDatabase = {};
+  final Map<String, int> _completionStats = {};
+  final List<String> _recentCompletions = [];
+  final Map<String, double> _completionWeights = {};
+  
+  static const int _maxRecentCompletions = 100;
+  static const int _maxSuggestions = 10;
+  
+  Future<void> initialize(AdvancedConfig config) async {
+    if (_isInitialized) return;
+    
+    try {
+      _config = config;
+      
+      // Load completion database
+      await _loadCompletionDatabase();
+      
+      _isInitialized = true;
+      debugPrint('🤖 AutoCompleter initialized with ${_completionDatabase.length} completion items');
+    } catch (e) {
+      debugPrint('❌ Failed to initialize AutoCompleter: $e');
+      rethrow;
+    }
+  }
+  
+  Future<void> _loadCompletionDatabase() async {
+    // Load completions for different languages
+    _completionDatabase['dart'] = await _loadDartCompletions();
+    _completionDatabase['flutter'] = await _loadFlutterCompletions();
+    _completionDatabase['javascript'] = await _loadJavaScriptCompletions();
+    _completionDatabase['typescript'] = await _loadTypeScriptCompletions();
+    _completionDatabase['python'] = await _loadPythonCompletions();
+    _completionDatabase['shell'] = await _loadShellCompletions();
+  }
+  
+  Future<List<CompletionItem>> _loadDartCompletions() async {
+    await Future.delayed(Duration(milliseconds: 20));
+    return [
+      CompletionItem(label: 'class', type: CompletionType.keyword, documentation: 'Define a class'),
+      CompletionItem(label: 'extends', type: CompletionType.keyword, documentation: 'Inherit from a class'),
+      CompletionItem(label: 'implements', type: CompletionType.keyword, documentation: 'Implement an interface'),
+      CompletionItem(label: 'import', type: CompletionType.keyword, documentation: 'Import a library'),
+      CompletionItem(label: 'async', type: CompletionType.keyword, documentation: 'Mark function as asynchronous'),
+      CompletionItem(label: 'await', type: CompletionType.keyword, documentation: 'Wait for future completion'),
+      CompletionItem(label: 'Future<void>', type: CompletionType.type, documentation: 'Future that returns void'),
+      CompletionItem(label: 'Stream<T>', type: CompletionType.type, documentation: 'Stream of type T'),
+      CompletionItem(label: 'StatefulWidget', type: CompletionType.class, documentation: 'Widget with mutable state'),
+      CompletionItem(label: 'StatelessWidget', type: CompletionType.class, documentation: 'Widget without state'),
+    ];
+  }
+  
+  Future<List<CompletionItem>> _loadFlutterCompletions() async {
+    await Future.delayed(Duration(milliseconds: 20));
+    return [
+      CompletionItem(label: 'build', type: CompletionType.method, documentation: 'Build the widget'),
+      CompletionItem(label: 'setState', type: CompletionType.method, documentation: 'Update widget state'),
+      CompletionItem(label: 'Container', type: CompletionType.widget, documentation: 'A container widget'),
+      CompletionItem(label: 'Row', type: CompletionType.widget, documentation: 'Layout children horizontally'),
+      CompletionItem(label: 'Column', type: CompletionType.widget, documentation: 'Layout children vertically'),
+      CompletionItem(label: 'Text', type: CompletionType.widget, documentation: 'Display text'),
+      CompletionItem(label: 'Icon', type: CompletionType.widget, documentation: 'Display an icon'),
+      CompletionItem(label: 'ElevatedButton', type: CompletionType.widget, documentation: 'Material design button'),
+      CompletionItem(label: 'Scaffold', type: CompletionType.widget, documentation: 'Material design layout'),
+    ];
+  }
+  
+  Future<List<CompletionItem>> _loadJavaScriptCompletions() async {
+    await Future.delayed(Duration(milliseconds: 20));
+    return [
+      CompletionItem(label: 'function', type: CompletionType.keyword, documentation: 'Define a function'),
+      CompletionItem(label: 'const', type: CompletionType.keyword, documentation: 'Declare constant'),
+      CompletionItem(label: 'let', type: CompletionType.keyword, documentation: 'Declare block-scoped variable'),
+      CompletionItem(label: 'async', type: CompletionType.keyword, documentation: 'Mark function as asynchronous'),
+      CompletionItem(label: 'await', type: CompletionType.keyword, documentation: 'Wait for promise completion'),
+      CompletionItem(label: 'Promise', type: CompletionType.class, documentation: 'Promise object'),
+      CompletionItem(label: 'console.log', type: CompletionType.method, documentation: 'Log to console'),
+      CompletionItem(label: 'fetch', type: CompletionType.method, documentation: 'Make HTTP request'),
+    ];
+  }
+  
+  Future<List<CompletionItem>> _loadTypeScriptCompletions() async {
+    await Future.delayed(Duration(milliseconds: 20));
+    return [
+      ...await _loadJavaScriptCompletions(),
+      CompletionItem(label: 'interface', type: CompletionType.keyword, documentation: 'Define an interface'),
+      CompletionItem(label: 'type', type: CompletionType.keyword, documentation: 'Define a type alias'),
+      CompletionItem(label: 'string', type: CompletionType.type, documentation: 'String type'),
+      CompletionItem(label: 'number', type: CompletionType.type, documentation: 'Number type'),
+      CompletionItem(label: 'boolean', type: CompletionType.type, documentation: 'Boolean type'),
+    ];
+  }
+  
+  Future<List<CompletionItem>> _loadPythonCompletions() async {
+    await Future.delayed(Duration(milliseconds: 20));
+    return [
+      CompletionItem(label: 'def', type: CompletionType.keyword, documentation: 'Define a function'),
+      CompletionItem(label: 'class', type: CompletionType.keyword, documentation: 'Define a class'),
+      CompletionItem(label: 'import', type: CompletionType.keyword, documentation: 'Import a module'),
+      CompletionItem(label: 'from', type: CompletionType.keyword, documentation: 'Import from module'),
+      CompletionItem(label: 'async def', type: CompletionType.keyword, documentation: 'Define async function'),
+      CompletionItem(label: 'await', type: CompletionType.keyword, documentation: 'Wait for coroutine'),
+      CompletionItem(label: 'List', type: CompletionType.type, documentation: 'List type'),
+      CompletionItem(label: 'Dict', type: CompletionType.type, documentation: 'Dictionary type'),
+      CompletionItem(label: 'print', type: CompletionType.method, documentation: 'Print to console'),
+    ];
+  }
+  
+  Future<List<CompletionItem>> _loadShellCompletions() async {
+    await Future.delayed(Duration(milliseconds: 20));
+    return [
+      CompletionItem(label: 'git', type: CompletionType.command, documentation: 'Git version control'),
+      CompletionItem(label: 'npm', type: CompletionType.command, documentation: 'Node package manager'),
+      CompletionItem(label: 'docker', type: CompletionType.command, documentation: 'Docker container management'),
+      CompletionItem(label: 'kubectl', type: CompletionType.command, documentation: 'Kubernetes CLI'),
+      CompletionItem(label: 'ssh', type: CompletionType.command, documentation: 'Secure shell'),
+      CompletionItem(label: 'curl', type: CompletionType.command, documentation: 'Transfer data from URL'),
+      CompletionItem(label: 'grep', type: CompletionType.command, documentation: 'Search text patterns'),
+      CompletionItem(label: 'find', type: CompletionType.command, documentation: 'Find files'),
+    ];
+  }
+  
+  Map<String, dynamic> getStatistics() {
+    return {
+      'is_initialized': _isInitialized,
+      'completion_database_size': _completionDatabase.length,
+      'total_completion_items': _completionDatabase.values.fold(0, (sum, items) => sum + items.length),
+      'recent_completions': _recentCompletions.length,
+      'completion_stats': Map.from(_completionStats),
+    };
+  }
+  
+  Future<List<CompletionItem>> getCompletions(String prefix, String language) async {
+    if (!_isInitialized) {
+      throw StateError('AutoCompleter not initialized');
+    }
+    
+    try {
+      final items = _completionDatabase[language.toLowerCase()] ?? [];
+      
+      // Filter items by prefix
+      final filteredItems = items.where((item) => 
+          item.label.toLowerCase().startsWith(prefix.toLowerCase())).toList();
+      
+      // Sort by relevance and weight
+      final sortedItems = _sortCompletions(filteredItems, prefix);
+      
+      // Update statistics
+      _completionStats['total_requests'] = (_completionStats['total_requests'] ?? 0) + 1;
+      _completionStats['requests_${language}'] = (_completionStats['requests_${language}'] ?? 0) + 1;
+      
+      return sortedItems.take(_maxSuggestions).toList();
+    } catch (e) {
+      debugPrint('❌ Failed to get completions: $e');
+      return [];
+    }
+  }
+  
+  List<CompletionItem> _sortCompletions(List<CompletionItem> items, String prefix) {
+    // Sort by multiple criteria
+    items.sort((a, b) {
+      // Priority 1: Exact prefix match
+      final aExact = a.label.toLowerCase().startsWith(prefix.toLowerCase());
+      final bExact = b.label.toLowerCase().startsWith(prefix.toLowerCase());
+      
+      if (aExact && !bExact) return -1;
+      if (!aExact && bExact) return 1;
+      
+      // Priority 2: Type priority
+      final typePriority = {
+        CompletionType.keyword: 0,
+        CompletionType.method: 1,
+        CompletionType.class: 2,
+        CompletionType.widget: 3,
+        CompletionType.type: 4,
+        CompletionType.command: 5,
+      };
+      
+      final aPriority = typePriority[a.type] ?? 99;
+      final bPriority = typePriority[b.type] ?? 99;
+      
+      if (aPriority != bPriority) return aPriority.compareTo(bPriority);
+      
+      // Priority 3: Usage weight
+      final aWeight = _completionWeights[a.label] ?? 0.0;
+      final bWeight = _completionWeights[b.label] ?? 0.0;
+      
+      if (aWeight != bWeight) return bWeight.compareTo(aWeight);
+      
+      // Priority 4: Alphabetical
+      return a.label.compareTo(b.label);
+    });
+    
+    return items;
+  }
+  
+  void recordCompletion(String completion) {
+    _recentCompletions.add(completion);
+    if (_recentCompletions.length > _maxRecentCompletions) {
+      _recentCompletions.removeAt(0);
+    }
+    
+    // Update weight
+    _completionWeights[completion] = (_completionWeights[completion] ?? 0.0) + 1.0;
+    
+    _completionStats['total_completions'] = (_completionStats['total_completions'] ?? 0) + 1;
+  }
+  
+  Future<void> dispose() async {
+    try {
+      _completionDatabase.clear();
+      _completionStats.clear();
+      _recentCompletions.clear();
+      _completionWeights.clear();
+      _isInitialized = false;
+      
+      debugPrint('🤖 AutoCompleter disposed');
+    } catch (e) {
+      debugPrint('❌ Error disposing AutoCompleter: $e');
+    }
+  }
+}
+
+enum CompletionType {
+  keyword,
+  method,
+  class,
+  widget,
+  type,
+  command,
+}
+
+class CompletionItem {
+  final String label;
+  final CompletionType type;
+  final String documentation;
+  final String? insertText;
+  
+  CompletionItem({
+    required this.label,
+    required this.type,
+    required this.documentation,
+    this.insertText,
+  });
 }
 
 class PluginManager {
-  Future<void> initialize(AdvancedConfig config) async {}
-  Map<String, dynamic> getStatistics() => {};
-  Future<void> cleanup() async {}
-  Future<void> dispose() async {}
+  AdvancedConfig? _config;
+  bool _isInitialized = false;
+  final Map<String, Plugin> _plugins = {};
+  final Map<String, int> _pluginStats = {};
+  final List<String> _loadedPlugins = [];
+  Timer? _cleanupTimer;
+  
+  static const Duration _cleanupInterval = Duration(minutes: 10);
+  static const int _maxPlugins = 100;
+  
+  Future<void> initialize(AdvancedConfig config) async {
+    if (_isInitialized) return;
+    
+    try {
+      _config = config;
+      
+      // Load built-in plugins
+      await _loadBuiltinPlugins();
+      
+      // Start cleanup timer
+      _cleanupTimer = Timer.periodic(_cleanupInterval, (_) => _performCleanup());
+      
+      _isInitialized = true;
+      debugPrint('🔌 PluginManager initialized with ${_plugins.length} plugins');
+    } catch (e) {
+      debugPrint('❌ Failed to initialize PluginManager: $e');
+      rethrow;
+    }
+  }
+  
+  Future<void> _loadBuiltinPlugins() async {
+    // Load built-in plugins
+    final builtinPlugins = [
+      Plugin(
+        id: 'syntax_highlighter',
+        name: 'Syntax Highlighter',
+        version: '1.0.0',
+        description: 'Provides syntax highlighting for various languages',
+        author: 'Termisol Team',
+        enabled: true,
+      ),
+      Plugin(
+        id: 'auto_completer',
+        name: 'Auto Completer',
+        version: '1.0.0',
+        description: 'Provides intelligent code completion',
+        author: 'Termisol Team',
+        enabled: true,
+      ),
+      Plugin(
+        id: 'file_manager',
+        name: 'File Manager',
+        version: '1.0.0',
+        description: 'Enhanced file management capabilities',
+        author: 'Termisol Team',
+        enabled: true,
+      ),
+      Plugin(
+        id: 'git_integration',
+        name: 'Git Integration',
+        version: '1.0.0',
+        description: 'Git version control integration',
+        author: 'Termisol Team',
+        enabled: true,
+      ),
+    ];
+    
+    for (final plugin in builtinPlugins) {
+      _plugins[plugin.id] = plugin;
+      if (plugin.enabled) {
+        await _enablePlugin(plugin.id);
+      }
+    }
+  }
+  
+  Future<void> _enablePlugin(String pluginId) async {
+    final plugin = _plugins[pluginId];
+    if (plugin == null) {
+      throw ArgumentError('Plugin not found: $pluginId');
+    }
+    
+    if (!plugin.enabled) {
+      plugin.enabled = true;
+      _loadedPlugins.add(pluginId);
+      _pluginStats['enabled_${pluginId}'] = DateTime.now().millisecondsSinceEpoch;
+      debugPrint('🔌 Enabled plugin: ${plugin.name}');
+    }
+  }
+  
+  Future<void> disablePlugin(String pluginId) async {
+    final plugin = _plugins[pluginId];
+    if (plugin == null) {
+      throw ArgumentError('Plugin not found: $pluginId');
+    }
+    
+    if (plugin.enabled) {
+      plugin.enabled = false;
+      _loadedPlugins.remove(pluginId);
+      _pluginStats['disabled_${pluginId}'] = DateTime.now().millisecondsSinceEpoch;
+      debugPrint('🔌 Disabled plugin: ${plugin.name}');
+    }
+  }
+  
+  Future<Plugin?> installPlugin(String pluginPath) async {
+    try {
+      // Simulate plugin installation
+      await Future.delayed(Duration(milliseconds: 100));
+      
+      final plugin = Plugin(
+        id: 'plugin_${DateTime.now().millisecondsSinceEpoch}',
+        name: 'External Plugin',
+        version: '1.0.0',
+        description: 'External plugin installed from $pluginPath',
+        author: 'External',
+        enabled: false,
+        path: pluginPath,
+      );
+      
+      if (_plugins.length >= _maxPlugins) {
+        throw StateError('Maximum number of plugins reached');
+      }
+      
+      _plugins[plugin.id] = plugin;
+      _pluginStats['installed_${plugin.id}'] = DateTime.now().millisecondsSinceEpoch;
+      
+      debugPrint('🔌 Installed plugin: ${plugin.name}');
+      return plugin;
+    } catch (e) {
+      debugPrint('❌ Failed to install plugin: $e');
+      return null;
+    }
+  }
+  
+  Future<bool> uninstallPlugin(String pluginId) async {
+    try {
+      final plugin = _plugins[pluginId];
+      if (plugin == null) {
+        return false;
+      }
+      
+      // Disable plugin first
+      if (plugin.enabled) {
+        await disablePlugin(pluginId);
+      }
+      
+      // Remove plugin
+      _plugins.remove(pluginId);
+      _pluginStats['uninstalled_$pluginId'] = DateTime.now().millisecondsSinceEpoch;
+      
+      debugPrint('🔌 Uninstalled plugin: ${plugin.name}');
+      return true;
+    } catch (e) {
+      debugPrint('❌ Failed to uninstall plugin: $e');
+      return false;
+    }
+  }
+  
+  List<Plugin> getEnabledPlugins() {
+    return _plugins.values.where((plugin) => plugin.enabled).toList();
+  }
+  
+  List<Plugin> getAllPlugins() {
+    return _plugins.values.toList();
+  }
+  
+  Plugin? getPlugin(String pluginId) {
+    return _plugins[pluginId];
+  }
+  
+  Map<String, dynamic> getStatistics() {
+    return {
+      'is_initialized': _isInitialized,
+      'total_plugins': _plugins.length,
+      'enabled_plugins': _loadedPlugins.length,
+      'loaded_plugins': _loadedPlugins,
+      'plugin_stats': Map.from(_pluginStats),
+    };
+  }
+  
+  Future<void> cleanup() async {
+    try {
+      // Remove disabled plugins that haven't been used recently
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final pluginsToRemove = <String>[];
+      
+      for (final entry in _plugins.entries) {
+        final plugin = entry.value;
+        if (!plugin.enabled) {
+          final lastUsed = _pluginStats['disabled_${plugin.id}'];
+          if (lastUsed != null && (now - lastUsed) > Duration(days: 7).inMilliseconds) {
+            pluginsToRemove.add(plugin.id);
+          }
+        }
+      }
+      
+      for (final pluginId in pluginsToRemove) {
+        await uninstallPlugin(pluginId);
+      }
+      
+      _pluginStats['last_cleanup'] = now;
+      debugPrint('🧹 PluginManager cleanup completed');
+    } catch (e) {
+      debugPrint('❌ PluginManager cleanup failed: $e');
+    }
+  }
+  
+  void _performCleanup() {
+    cleanup();
+  }
+  
+  Future<void> dispose() async {
+    try {
+      _cleanupTimer?.cancel();
+      
+      // Disable all plugins
+      for (final pluginId in List.from(_loadedPlugins)) {
+        await disablePlugin(pluginId);
+      }
+      
+      _plugins.clear();
+      _pluginStats.clear();
+      _loadedPlugins.clear();
+      _isInitialized = false;
+      
+      debugPrint('🔌 PluginManager disposed');
+    } catch (e) {
+      debugPrint('❌ Error disposing PluginManager: $e');
+    }
+  }
+}
+
+class Plugin {
+  final String id;
+  final String name;
+  final String version;
+  final String description;
+  final String author;
+  bool enabled;
+  final String? path;
+  final DateTime installedAt;
+  
+  Plugin({
+    required this.id,
+    required this.name,
+    required this.version,
+    required this.description,
+    required this.author,
+    required this.enabled,
+    this.path,
+  }) : installedAt = DateTime.now();
 }
 
 class ExtensionRegistry {

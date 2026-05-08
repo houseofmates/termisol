@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
 
 /// Mouse protocol modes.
-enum MouseMode {
+enum TermisolMouseMode {
   none,
   normal, // X10 - basic click reporting
   buttonTracking, // X11 - button press/release
@@ -18,33 +18,33 @@ class MouseProtocolManager {
   final Terminal terminal;
   final TerminalController controller;
   bool _enabled = false;
-  MouseMode _currentMode = MouseMode.none;
+  TermisolMouseMode _currentMode = TermisolMouseMode.none;
 
   MouseProtocolManager(this.terminal, this.controller);
 
   /// Enable mouse protocol with specified mode.
-  void enable(MouseMode mode) {
+  void enable(TermisolMouseMode mode) {
     if (!_enabled || _currentMode != mode) {
       _enabled = true;
       _currentMode = mode;
 
       switch (mode) {
-        case MouseMode.normal:
+        case TermisolMouseMode.normal:
           terminal.write('\x1b[?9h'); // X10
           break;
-        case MouseMode.buttonTracking:
+        case TermisolMouseMode.buttonTracking:
           terminal.write('\x1b[?1000h'); // X11
           break;
-        case MouseMode.any:
+        case TermisolMouseMode.any:
           terminal.write('\x1b[?1003h'); // X11 any
           break;
-        case MouseMode.highlight:
+        case TermisolMouseMode.highlight:
           terminal.write('\x1b[?1001h'); // Highlight
           break;
-        case MouseMode.urxvt:
+        case TermisolMouseMode.urxvt:
           terminal.write('\x1b[?1015h'); // URXVT
           break;
-        case MouseMode.sgr:
+        case TermisolMouseMode.sgr:
           terminal.write('\x1b[?1006h'); // SGR
           break;
       }
@@ -57,7 +57,7 @@ class MouseProtocolManager {
   void disable() {
     if (_enabled) {
       _enabled = false;
-      _currentMode = MouseMode.none;
+      _currentMode = TermisolMouseMode.none;
 
       // Disable all mouse modes
       terminal.write('\x1b[?9l'); // X10
@@ -75,7 +75,7 @@ class MouseProtocolManager {
   bool get isEnabled => _enabled;
 
   /// Get current mouse mode.
-  MouseMode get currentMode => _currentMode;
+  TermisolMouseMode get currentMode => _currentMode;
 
   /// Handle mouse events from terminal.
   void handleMouseEvent(String event) {
@@ -96,7 +96,7 @@ class MouseProtocolManager {
         if (kDebugMode) debugPrint('Mouse: $button $action at ($x, $y)');
 
         // Handle URL clicks (highlight mode)
-        if (_currentMode == MouseMode.highlight && button == 'left' && action == 'press') {
+        if (_currentMode == TermisolMouseMode.highlight && button == 'left' && action == 'press') {
           _handleUrlClick(x, y);
         }
       }

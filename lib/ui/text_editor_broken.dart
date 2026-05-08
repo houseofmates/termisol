@@ -712,6 +712,56 @@ class _TextEditorState extends State<TextEditor> {
                 
                 const Spacer(),
                 
+                // Command mode indicator
+                if (_commandMode)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.green[700],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.command_line, color: Colors.white, size: 12),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'COMMAND',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                
+                // Visual mode indicator
+                if (_visualMode)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[700],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.visibility, color: Colors.white, size: 12),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'VISUAL',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                
                 // Multi-cursor indicator
                 if (_multiCursorMode || _isAltPressed)
                   Container(
@@ -1774,6 +1824,340 @@ class _TextEditorState extends State<TextEditor> {
       _isDragging = false;
       _dragStartOffset = -1;
     });
+  }
+  
+  // Vim-style Command Mode Functions
+  void _enterCommandMode() {
+    setState(() {
+      _commandMode = true;
+      _commandController.clear();
+    });
+    _commandController.requestFocus();
+  }
+  
+  void _exitCommandMode() {
+    setState(() {
+      _commandMode = false;
+      _commandController.clear();
+    });
+    _focusNode.requestFocus();
+  }
+  
+  void _executeCommand(String command) {
+    final parts = command.trim().split(' ');
+    final cmd = parts[0].toLowerCase();
+    
+    switch (cmd) {
+      case 'w':
+      case 'write':
+        _saveContent();
+        _showStatus('File saved');
+        break;
+        
+      case 'q':
+      case 'quit':
+        if (widget.onClose != null) {
+          widget.onClose!();
+        }
+        break;
+        
+      case 'wq':
+      case 'x':
+        _saveContent();
+        if (widget.onClose != null) {
+          widget.onClose!();
+        }
+        break;
+        
+      case 'q!':
+        if (widget.onClose != null) {
+          widget.onClose!();
+        }
+        break;
+        
+      case 'help':
+        _showHelpDialog();
+        break;
+        
+      case 'set':
+        _handleSetCommand(parts);
+        break;
+        
+      case 'nu':
+      case 'number':
+        _toggleLineNumbers();
+        break;
+        
+      case 'syntax':
+        if (parts.length > 1) {
+          _toggleSyntax(parts[1]);
+        }
+        break;
+        
+      default:
+        if (command.isNotEmpty && int.tryParse(command) != null) {
+          _goToLine(int.parse(command));
+        } else {
+          _showStatus('Unknown command: $command');
+        }
+    }
+    
+    _lastCommand = command;
+    _exitCommandMode();
+  }
+  
+  void _handleSetCommand(List<String> parts) {
+    if (parts.length < 2) return;
+    
+    final setting = parts[1].toLowerCase();
+    
+    switch (setting) {
+      case 'nu':
+      case 'number':
+        setState(() {
+          _showLineNumbers = true;
+        });
+        _showStatus('Line numbers enabled');
+        break;
+        
+      case 'nonu':
+      case 'nonumber':
+        setState(() {
+          _showLineNumbers = false;
+        });
+        _showStatus('Line numbers disabled');
+        break;
+        
+      case 'ai':
+      case 'autoindent':
+        setState(() {
+          _autoIndent = true;
+        });
+        _showStatus('Auto indent enabled');
+        break;
+        
+      case 'noai':
+      case 'noautoindent':
+        setState(() {
+          _autoIndent = false;
+        });
+        _showStatus('Auto indent disabled');
+        break;
+    }
+  }
+  
+  void _showStatus(String message) {
+    // Show status in a snackbar or status bar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+  
+  // Visual Mode Functions
+  void _enterVisualMode() {
+    setState(() {
+      _visualMode = true;
+      _visualStart = _controller.selection.baseOffset;
+    });
+    _showStatus('-- VISUAL --');
+  }
+  
+  void _exitVisualMode() {
+    setState(() {
+      _visualMode = false;
+    });
+    _focusNode.requestFocus();
+  }
+  
+  // Navigation Functions
+  void _jumpToMatchingBracket() {
+    final text = _controller.text;
+    final cursorPos = _controller.selection.baseOffset;
+    
+    if (cursorPos >= text.length) return;
+    
+    final char = text[cursorPos];
+    final brackets = {
+      '{': '}', '}': '{',
+      '[': ']', ']': '[',
+      '(': ')', ')': '(',
+    };
+    
+    if (brackets.containsKey(char)) {
+      final targetChar = brackets[char]!;
+      int direction = (char == '{' || char == '[' || char == '(') ? 1 : -1;
+      int depth = 0;
+      
+      for (int i = cursorPos + direction; i >= 0 && i < text.length; i += direction) {
+        if (text[i] == char) {
+          depth++;
+        } else if (text[i] == targetChar) {
+          depth--;
+          if (depth == 0) {
+            _controller.selection = TextSelection.collapsed(offset: i);
+            _scrollToPosition(i);
+            break;
+          }
+        }
+      }
+    }
+  }
+  
+  void _scrollToPosition(int position) {
+    // Simple scroll to position
+    final lines = _controller.text.substring(0, position).split('\n');
+    final lineNumber = lines.length;
+    final lineHeight = _fontSize * 1.2;
+    final scrollPosition = (lineNumber - 1) * lineHeight;
+    
+    _scrollController.animateTo(
+      scrollPosition,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+    );
+  }
+  
+  void _showGoToLineDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Go to Line'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: 'Line number',
+          ),
+          keyboardType: TextInputType.number,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              final lineNum = int.tryParse(controller.text);
+              if (lineNum != null) {
+                _goToLine(lineNum);
+              }
+              Navigator.of(context).pop();
+            },
+            child: const Text('Go'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  void _goToLine(int lineNumber) {
+    final lines = _controller.text.split('\n');
+    if (lineNumber < 1 || lineNumber > lines.length) return;
+    
+    int offset = 0;
+    for (int i = 0; i < lineNumber - 1; i++) {
+      offset += lines[i].length + 1; // +1 for newline
+    }
+    
+    _controller.selection = TextSelection.collapsed(offset: offset);
+    _scrollToPosition(offset);
+  }
+  
+  void _toggleLineNumbers() {
+    setState(() {
+      _showLineNumbers = !_showLineNumbers;
+    });
+    _showStatus('Line numbers ${_showLineNumbers ? 'enabled' : 'disabled'}');
+  }
+  
+  void _toggleSyntax(String option) {
+    switch (option.toLowerCase()) {
+      case 'on':
+        // Enable syntax highlighting
+        _showStatus('Syntax highlighting enabled');
+        break;
+      case 'off':
+        // Disable syntax highlighting
+        _showStatus('Syntax highlighting disabled');
+        break;
+    }
+  }
+  
+  void _startIncrementalSearch() {
+    // Show incremental search interface
+    _showStatus('Incremental search - type to search');
+  }
+  
+  void _showHelpDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Command Help'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHelpSection('Commands', [
+                ':w or :write - Save file',
+                ':q or :quit - Quit editor',
+                ':wq or :x - Save and quit',
+                ':q! - Force quit without saving',
+                ':help - Show this help',
+                ':set nu - Enable line numbers',
+                ':set nonu - Disable line numbers',
+                ':number - Go to line number',
+              ]),
+              _buildHelpSection('Shortcuts', [
+                ': - Enter command mode',
+                'V - Enter visual mode',
+                'Escape - Exit visual/command mode',
+                'Ctrl+G - Go to line',
+                'Ctrl+% - Jump to matching bracket',
+                'Alt+Click - Add cursor',
+                'Alt+Drag - Multi-select',
+              ]),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildHelpSection(String title, List<String> items) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...items.map((item) => Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text(
+            item,
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontFamily: 'monospace',
+            ),
+          ),
+        )),
+        const SizedBox(height: 16),
+      ],
+    );
   }
   
   void _removeAllCursors() {

@@ -1623,8 +1623,8 @@ class _TextEditorState extends State<TextEditor> {
   void _handleRightClick(Offset position) {
     final selectedText = _controller.selection.textInside(_controller.text);
     
-    if (_multiCursorMode && HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlLeft)) {
-      // Add cursor at position in multi-cursor mode
+    if (_isAltPressed) {
+      // Add cursor at position when Alt+Right-click
       _addCursorAtPosition(position);
       return;
     }
@@ -1637,17 +1637,61 @@ class _TextEditorState extends State<TextEditor> {
   }
   
   void _addCursorAtPosition(Offset globalPosition) {
-    // Convert global position to text offset
-    // This is a simplified implementation - in practice you'd need to calculate the exact text position
-    final currentText = _controller.text;
-    final lines = currentText.split('\n');
+    if (_cursors.length >= 10) {
+      // Limit to 10 cursors
+      return;
+    }
     
-    // For now, add cursor at current selection or end of text
-    final newOffset = _controller.selection.isValid ? _controller.selection.end : currentText.length;
+    // For simplicity, add cursor at current selection end
+    // In a real implementation, you'd calculate the exact text position from the click coordinates
+    final newOffset = _controller.selection.end;
     
     setState(() {
       _cursors.add(TextSelection.collapsed(offset: newOffset));
       _activeCursorIndex = _cursors.length - 1;
+      _multiCursorMode = true;
+    });
+  }
+  
+  void _handleAltClick(Offset position) {
+    if (_isAltPressed) {
+      _addCursorAtPosition(position);
+    }
+  }
+  
+  void _handleAltDragStart(Offset position) {
+    if (_isAltPressed) {
+      setState(() {
+        _isDragging = true;
+        _dragStartOffset = _controller.selection.baseOffset;
+      });
+    }
+  }
+  
+  void _handleAltDragUpdate(Offset position) {
+    if (_isAltPressed && _isDragging && _dragStartOffset >= 0) {
+      // Calculate current selection based on mouse position
+      // This is simplified - in practice you'd calculate the text offset from position
+      final currentOffset = _controller.selection.extentOffset;
+      final selectionLength = currentOffset - _dragStartOffset;
+      
+      // Update all cursors to have the same selection
+      setState(() {
+        for (int i = 0; i < _cursors.length; i++) {
+          final cursorStart = _cursors[i].baseOffset;
+          _cursors[i] = TextSelection(
+            baseOffset: cursorStart,
+            extentOffset: cursorStart + selectionLength,
+          );
+        }
+      });
+    }
+  }
+  
+  void _handleAltDragEnd() {
+    setState(() {
+      _isDragging = false;
+      _dragStartOffset = -1;
     });
   }
   

@@ -8,14 +8,13 @@ void main() {
   late ServiceRegistry registry;
 
   setUp(() {
-    registry = ServiceRegistry.instance;
+    registry = ServiceRegistry();  // Create new instance for each test
     // Enable VR support for tests
     registry.register(TermisolFeatures.vrSupport, () => true, enabled: true);
   });
 
   tearDown(() {
-    // Reset registry after each test
-    ServiceRegistry.reset();
+    // No need to reset since we create new instances
   });
 
   group('VrTerminal', () {

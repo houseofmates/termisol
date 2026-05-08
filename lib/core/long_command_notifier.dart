@@ -19,12 +19,19 @@ class LongCommandNotifier {
   bool _isInitialized = false;
 
   LongCommandNotifier() {
+    // Skip audio initialization in tests
+    if (const bool.fromEnvironment('FLUTTER_TEST', defaultValue: false)) {
+      _audioPlayer = null;
+      _isInitialized = true;
+      return;
+    }
+
     try {
       _audioPlayer = AudioPlayer();
       _audioPlayer!.setPlayerMode(PlayerMode.lowLatency);
       _isInitialized = true;
     } catch (e) {
-      // Audio not available in test environment
+      // Audio not available
       _audioPlayer = null;
       _isInitialized = true;
     }

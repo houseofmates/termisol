@@ -426,7 +426,11 @@ class KittyGraphicsRenderer {
       final image = frame.image;
       
       final byteData = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
-      return byteData!.buffer.asUint8List();
+      if (byteData == null) return null;
+      
+      final result = byteData.buffer.asUint8List();
+      image.dispose();
+      return result;
     } catch (e) {
       debugPrint('⚠️ Failed to decode JPEG: $e');
       return null;
@@ -441,7 +445,11 @@ class KittyGraphicsRenderer {
       final image = frame.image;
       
       final byteData = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
-      return byteData!.buffer.asUint8List();
+      if (byteData == null) return null;
+      
+      final result = byteData.buffer.asUint8List();
+      image.dispose();
+      return result;
     } catch (e) {
       debugPrint('⚠️ Failed to decode WebP: $e');
       return null;

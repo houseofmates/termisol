@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:ffi/ffi.dart';
 import 'pty_backend.dart';
+import 'prompt_config.dart';
 
 // FFI bindings for native PTY operations
 typedef _PtySpawnNative = Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, Int32, Int32);

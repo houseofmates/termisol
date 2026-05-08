@@ -81,7 +81,7 @@ class ConversationalAI {
         context: initialContext ?? ConversationContext(),
         persona: persona ?? 'assistant',
         history: [],
-        state: DialogueState.active,
+        state: DialogueStatus.active,
       );
       
       // Initialize dialogue state
@@ -204,7 +204,7 @@ class ConversationalAI {
       if (session == null) return false;
       
       // Mark session as ended
-      session.state = DialogueState.ended;
+      session.state = DialogueStatus.ended;
       session.endedAt = DateTime.now();
       
       // Clean up resources
@@ -227,7 +227,7 @@ class ConversationalAI {
   
   /// Get all active sessions
   List<ConversationSession> getActiveSessions() {
-    return _sessions.values.where((s) => s.state == DialogueState.active).toList();
+    return _sessions.values.where((s) => s.state == DialogueStatus.active).toList();
   }
   
   /// Get session history
@@ -345,7 +345,11 @@ class ConversationalAI {
       );
     } catch (e) {
       debugPrint('❌ Failed to generate template response: $e');
-      return null;
+      return AIResponse(
+        text: 'I apologize, but I encountered an error while generating a response.',
+        confidence: 0.0,
+        suggestions: [],
+      );
     }
   }
   
@@ -368,7 +372,7 @@ class ConversationalAI {
       case ConditionType.contextEquals:
         return context.data[condition.key]?.toString() == condition.value;
       case ConditionType.contextContains:
-        return context.data[condition.key]?.toString().contains(condition.value) == true;
+        return context.data[condition.key]?.toString().contains(condition.value ?? '') == true;
       default:
         return true;
     }
@@ -451,9 +455,9 @@ class ConversationalAI {
       
       // Update state based on intent
       if (intent.name == 'goodbye' || intent.name == 'end_conversation') {
-        dialogueState.state = DialogueState.ending;
-      } else if (dialogueState.state == DialogueState.ending) {
-        dialogueState.state = DialogueState.active;
+        dialogueState.state = DialogueStatus.ending;
+      } else if (dialogueState.state == DialogueStatus.ending) {
+        dialogueState.state = DialogueStatus.active;
       }
     } catch (e) {
       debugPrint('❌ Failed to update dialogue state: $e');
@@ -618,7 +622,7 @@ class ConversationalAI {
 /// Supporting classes
 
 enum MessageRole { user, assistant, system }
-enum DialogueState { active, paused, ended }
+enum DialogueStatus { active, paused, ending, ended }
 enum ConditionType { contextHasKey, contextEquals, contextContains }
 
 class ConversationSession {
@@ -629,7 +633,7 @@ class ConversationSession {
   ConversationContext context;
   String persona;
   final List<ConversationMessage> history;
-  DialogueState state;
+  DialogueStatus state;
   
   ConversationSession({
     required this.id,
@@ -687,7 +691,7 @@ class DialogueState {
     this.entities = const {},
     this.contextSlots = const {},
     this.confidence = 0.0,
-    this.state = DialogueState.active,
+    this.state = DialogueStatus.active,
   });
 }
 

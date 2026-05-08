@@ -313,4 +313,3 @@ class DebugEvent {
     DateTime? timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
 }
-```

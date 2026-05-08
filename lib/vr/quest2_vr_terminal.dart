@@ -76,7 +76,7 @@ class _Quest2VrTerminalState extends State<Quest2VrTerminal> {
         backgroundColor: Colors.black,
         body: RawKeyboardListener(
           focusNode: _focusNode,
-          onKeyEvent: _handleKeyEvent,
+          onKey: _handleKeyEvent,
           child: Stack(
             children: [
               // Main terminal view with enhancements
@@ -127,11 +127,11 @@ class _Quest2VrTerminalState extends State<Quest2VrTerminal> {
                       ),
                     ],
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.vrpano, color: Colors.white, size: 20),
-                      SizedBox(width: 6),
+                      const Icon(Icons.vrpano, color: Colors.white, size: 20),
+                      const SizedBox(width: 6),
                       Text(
                         _is3DEnabled ? 'VR 3D' : 'VR MODE',
                         style: const TextStyle(

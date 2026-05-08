@@ -315,7 +315,7 @@ Focus on:
     }
     
     final response = await http.post(
-      const Uri.parse(_nimEndpoint),
+      Uri.parse(_nimEndpoint),
       headers: {
         'Authorization': 'Bearer $_apiKey',
         'Content-Type': 'application/json',
@@ -502,12 +502,7 @@ Focus on:
     return ['git', 'npm', 'yarn', 'docker', 'python', 'node', 'go', 'rust'];
   }
 
-  void _startCleanupTimer() {
-    _cleanupTimer = Timer.periodic(_cleanupInterval, (_) {
-      _cleanupCache();
-    });
-  }
-
+  
   void _cleanupCache() {
     final now = DateTime.now();
     final expiredKeys = <String>[];

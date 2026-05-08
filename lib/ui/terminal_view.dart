@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xterm/xterm.dart';
 import '../core/terminal_session.dart';
 import '../core/gpu_renderer.dart';
@@ -80,6 +81,20 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
       widget.session.controller,
     );
     widget.session.addListener(_onSessionChanged);
+    _loadFontSize();
+  }
+
+  Future<void> _loadFontSize() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getDouble('termisol_font_size');
+    if (saved != null && mounted) {
+      setState(() => _fontSize = saved.clamp(_minFontSize, _maxFontSize));
+    }
+  }
+
+  Future<void> _saveFontSize() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('termisol_font_size', _fontSize);
   }
 
   @override
@@ -96,18 +111,21 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     setState(() {
       _fontSize = (_fontSize + 1.0).clamp(_minFontSize, _maxFontSize);
     });
+    _saveFontSize();
   }
 
   void _zoomOut() {
     setState(() {
       _fontSize = (_fontSize - 1.0).clamp(_minFontSize, _maxFontSize);
     });
+    _saveFontSize();
   }
 
   void _zoomReset() {
     setState(() {
       _fontSize = _defaultTerminalFontSize;
     });
+    _saveFontSize();
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
@@ -179,6 +197,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
               height: 1.2,
             ),
             onKeyEvent: _handleKeyEvent,
+            padding: EdgeInsets.zero,
             onSecondaryTapUp: (details, offset) => _showContextMenu(context, details.globalPosition),
           ),
         ),

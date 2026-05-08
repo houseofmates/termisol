@@ -162,7 +162,6 @@ lib/
 - **Platform-specific requirements**:
   - Linux: GTK development headers, libpty
   - Android: Android SDK and NDK
-  - VR: Meta Quest 2 with developer mode
 
 ### Quick Start
 
@@ -433,9 +432,6 @@ class MyPlugin extends TerminalPlugin {
 
 **Terminal not rendering properly**
 ```bash
-# Check GPU acceleration
-flutter config --enable-gpu
-
 # Verify PTY permissions
 ls -la /dev/ptmx
 ```
@@ -446,7 +442,7 @@ ls -la /dev/ptmx
 cat ~/.config/termisol/config.yaml | grep -A 5 ai:
 
 # Test network connectivity
-curl -I https://api.nvidia.com/nim
+curl -I https://api.nvidia.com/v1/chat/completions
 ```
 
 **Performance issues**

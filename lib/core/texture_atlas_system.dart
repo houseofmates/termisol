@@ -431,7 +431,14 @@ class AtlasPage {
       canvas.drawImage(_atlasImage!, Offset.zero, Paint());
       
       final picture = recorder.endRecording();
-      _atlasImage = await picture.toImage(width, height);
+      try {
+        final newAtlasImage = await picture.toImage(width, height);
+        // Dispose old atlas image
+        _atlasImage?.dispose();
+        _atlasImage = newAtlasImage;
+      } finally {
+        picture.dispose();
+      }
     } catch (e) {
       debugPrint('Failed to draw texture to atlas: $e');
     }

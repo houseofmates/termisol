@@ -19,6 +19,7 @@ import 'crash_recovery.dart';
 import 'long_command_notifier.dart';
 import 'termisol_plugin_system.dart';
 import 'ring_buffer_scrollback.dart';
+import 'command_history.dart';
 
 /// Called when the user types `/ai <query>` and presses Enter.
 /// If null, `/ai` commands are passed through to shell normally.
@@ -48,6 +49,7 @@ class TerminalSession extends ChangeNotifier {
   TermisolPtyBackend? _backend;
   bool _connected = false;
   String? _error;
+  final CommandHistory commandHistory = CommandHistory();
   StreamSubscription? _outputSub;
 
   /// Called when the user types `/ai <query>` and presses Enter.
@@ -223,6 +225,11 @@ class TerminalSession extends ChangeNotifier {
         final filePath = bufferText.substring(5).trim();
         onEditCommand?.call(filePath);
         return;
+      }
+
+      // Record non-empty commands to history
+      if (bufferText.isNotEmpty) {
+        commandHistory.add(bufferText);
       }
     }
 

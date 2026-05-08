@@ -334,6 +334,14 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _showHistorySearch = !_showHistorySearch);
   }
 
+  void _toggleSplit() {
+    if (_tabs.length < 2) {
+      // Create second tab if needed
+      _addTab();
+    }
+    setState(() => _isSplit = !_isSplit);
+  }
+
   List<PaletteAction> _buildPaletteActions() {
     return [
       PaletteAction(

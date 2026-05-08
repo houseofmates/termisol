@@ -1665,7 +1665,7 @@ void main() {
         pass
     
     def method(self):
-        # TODO: Add method implementation
+        # Add your method implementation here
         pass''';
         case 'javascript':
           return '''class ${filename.replaceAll('.js', '')} {

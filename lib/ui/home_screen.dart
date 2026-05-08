@@ -54,7 +54,9 @@ class _HomeScreenState extends State<HomeScreen> {
           contextId: 'terminal_${_activeTab}',
           preferLocal: true,
         );
-        return response.success ? response.output : 'AI service unavailable';
+        final success = response.success as bool? ?? false;
+        final output = response.output as String?;
+        return success && output != null ? output : 'AI service unavailable';
       }
       return 'AI service not configured';
     } catch (e) {
@@ -354,7 +356,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           decoration: BoxDecoration(
                             color: Colors.black,
                             border: Border.all(
-                              color: PkmTheme.primary.withValues(alpha: 0.3),
+                              color: PkmTheme.primary.withOpacity(0.3),
                             ),
                             borderRadius: BorderRadius.circular(4),
                           ),

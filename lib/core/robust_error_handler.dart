@@ -39,10 +39,12 @@ class RobustErrorHandler {
   bool _isRecovering = false;
   
   // Additional state variables
-  DateTime? _startTime;
+  DateTime? _startTime = DateTime.now();
   final List<dynamic> _pendingRequests = [];
   final Map<String, dynamic> _networkCache = {};
   final List<dynamic> _performanceMetrics = [];
+  final List<Timer> _pendingTimeouts = [];
+  final Map<String, Timer> _connectionTimeouts = {};
   
   Stream<ErrorReport> get errorStream => _errorController.stream;
   

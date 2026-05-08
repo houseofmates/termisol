@@ -218,7 +218,7 @@ class PtyCoreWindows implements PtyCore {
   final int _hProcess;
 
   static const _bufferSize = 4096;
-  final _buffer = calloc<Int8>(_bufferSize + 1).address;
+  final _buffer = calloc<Uint8>(_bufferSize + 1).address;
 
   @override
   Uint8List? read() {
@@ -298,7 +298,7 @@ class PtyCoreWindows implements PtyCore {
 
   @override
   void write(List<int> data) {
-    final buffer = calloc<Int8>(data.length);
+    final buffer = calloc<Uint8>(data.length);
     buffer.asTypedList(data.length).setAll(0, data);
     final written = calloc<Uint32>();
     win32.WriteFile(_inputWriteSide, buffer, data.length, written, nullptr);

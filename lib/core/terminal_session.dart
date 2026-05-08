@@ -201,9 +201,11 @@ class TerminalSession extends ChangeNotifier {
           // Process graphics protocols before rendering
           final processedText = graphicsHandler.processOutput(normalized, 0, 0);
 
-          throttledRenderer.write(processedText);
-          _extractUrls(text);
-          onOutputReceived?.call(text);
+           throttledRenderer.write(processedText);
+           _extractUrls(text);
+           // Index output for semantic search
+           _semanticSearch.indexDocument('terminal_output_$id', DateTime.now().millisecondsSinceEpoch.toString(), text);
+           onOutputReceived?.call(text);
         },
         onError: (Object e) {
           _error = e.toString();

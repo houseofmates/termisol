@@ -469,6 +469,19 @@ class OptimizationSuggestion {
     this.applied = false,
     this.appliedAt,
   });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'description': description,
+    'impact': impact,
+    'effort': effort,
+    'category': category,
+    'command': command,
+    'priority': priority,
+    'applied': applied,
+    'appliedAt': appliedAt?.toIso8601String(),
+  };
 }
 
 class PerformanceProfile {

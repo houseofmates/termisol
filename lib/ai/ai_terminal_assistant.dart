@@ -600,10 +600,3 @@ class AIServiceResponse {
     required this.processingTime,
   });
 }
-
-enum AICapability {
-  textGeneration,
-  codeCompletion,
-  terminalCommand,
-  fileAnalysis,
-}

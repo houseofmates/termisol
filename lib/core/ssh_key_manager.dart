@@ -6,7 +6,6 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:crypto/crypto.dart';
-import 'package:pointycastle/pointycastle.dart';
 import 'package:pointycastle/export.dart';
 
 /// SSH Key Manager with Agent Support

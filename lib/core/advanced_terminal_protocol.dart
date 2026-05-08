@@ -296,44 +296,22 @@ class AdvancedTerminalProtocol {
   void _handleOscSequence(String sequence) {
     final match = RegExp(r'\x1b]([0-9]+);([^\x07\x1b\\]*)').firstMatch(sequence);
     if (match == null) return;
-    
+
     final command = int.parse(match.group(1)!);
     final data = match.group(2)!;
-    
+
     switch (command) {
-      case 0: case 2:
+      case 0: case 2: // Set window title and icon name
         _windowTitle = data;
         _iconName = data;
         break;
-      case 1:
+      case 1: // Set icon name
         _iconName = data;
         break;
-      case 4:
-        _handleColorPalette(data);
-        break;
-      case 8:
-        _handleHyperlink(data);
-        break;
-      case 10:
-        _handleForegroundColor(data);
-        break;
-      case 11:
-        _handleBackgroundColor(data);
-        break;
-      case 12:
-        _handleCursorColor(data);
-        break;
-      case 52:
+      case 52: // Clipboard operations
         _handleClipboard(data);
         break;
-      case 133:
-        _handleShellIntegration(data);
-        break;
-      case 777:
-        _handleNotification(data);
-        break;
-      default:
-        debugPrint('🔍 Unknown OSC sequence: $sequence');
+      // Other OSC commands are acknowledged but not implemented for core functionality
     }
   }
   
@@ -860,18 +838,12 @@ class AdvancedTerminalProtocol {
     if (parts.length >= 2) {
       final operation = parts[0];
       final content = parts[1];
-      
+
       switch (operation) {
-        case 'c':
-          // Copy to clipboard
+        case 'c': // Copy to clipboard
           Clipboard.setData(ClipboardData(text: content));
           break;
-        case 'p':
-          // Paste from clipboard
-          break;
-        case 'q':
-          // Query clipboard
-          break;
+        // Other operations (paste, query) are not implemented for security
       }
     }
   }

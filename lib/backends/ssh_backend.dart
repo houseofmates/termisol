@@ -11,6 +11,8 @@ import '../core/pty_backend.dart';
 /// Supports password and private-key authentication. The connection is
 /// established lazily on [start] and can be reconnected after [terminate].
 class SshBackend implements TermisolPtyBackend {
+  @override
+  final String name = 'SSH Backend';
   final String host;
   final int port;
   final String username;
@@ -22,6 +24,7 @@ class SshBackend implements TermisolPtyBackend {
   SSHSession? _session;
   final _outputController = StreamController<List<int>>.broadcast();
   bool _isRunning = false;
+  bool _isDisposed = false;
 
   @override
   Stream<List<int>> get output => _outputController.stream;
@@ -36,7 +39,7 @@ class SshBackend implements TermisolPtyBackend {
   });
 
   @override
-  Future<void> start({int cols = 80, int rows = 24}) async {
+  Future<void> start({int cols = 80, int rows = 24, String? workingDirectory}) async {
     try {
       final socket = await SSHSocket.connect(host, port)
           .timeout(const Duration(seconds: 10));
@@ -60,23 +63,26 @@ class SshBackend implements TermisolPtyBackend {
       _isRunning = true;
 
       _session!.stdout.listen(
-        (data) => _outputController.add(data),
+        (data) => _safeAdd(data),
         onDone: () => _isRunning = false,
         onError: (e) {
-          debugPrint('[SSH] stdout error: $e');
+          if (kDebugMode) debugPrint('[SSH] stdout error: $e');
           _isRunning = false;
         },
       );
 
       _session!.stderr.listen(
-        (data) => _outputController.add(data),
-        onError: (e) => debugPrint('[SSH] stderr error: $e'),
+        (data) => _safeAdd(data),
+        onError: (e) {
+          if (kDebugMode) debugPrint('[SSH] stderr error: $e');
+        },
       );
 
-      debugPrint('[SSH] Connected to $host:$port as $username');
+      if (kDebugMode) debugPrint('[SSH] Connected to $host:$port as $username');
     } catch (e) {
-      _outputController.add(utf8.encode('\r\n[ssh error: $e]\r\n'));
+      _safeAdd(utf8.encode('\r\n[ssh error: $e]\r\n'));
       _isRunning = false;
+      rethrow;
     }
   }
 
@@ -86,18 +92,18 @@ class SshBackend implements TermisolPtyBackend {
       final keyData = await File(privateKeyPath!).readAsString();
       return SSHKeyPair.fromPem(keyData, privateKeyPassphrase ?? '');
     } catch (e) {
-      debugPrint('[SSH] Failed to load private key: $e');
+      if (kDebugMode) debugPrint('[SSH] Failed to load private key: $e');
       return [];
     }
   }
 
   @override
   void write(List<int> data) {
-    if (_session == null) return;
+    if (_session == null || !_isRunning) return;
     try {
       _session!.write(Uint8List.fromList(data));
     } catch (e) {
-      debugPrint('[SSH] Write error: $e');
+      if (kDebugMode) debugPrint('[SSH] Write error: $e');
     }
   }
 
@@ -107,7 +113,7 @@ class SshBackend implements TermisolPtyBackend {
       try {
         _session!.resizeTerminal(cols, rows);
       } catch (e) {
-        debugPrint('[SSH] Resize error: $e');
+        if (kDebugMode) debugPrint('[SSH] Resize error: $e');
       }
     }
   }
@@ -116,10 +122,13 @@ class SshBackend implements TermisolPtyBackend {
   Future<void> stop() async {
     _isRunning = false;
     try {
-      await _session?.done;
+      _session?.close();
+      await _session?.done.timeout(const Duration(seconds: 5), onTimeout: () {});
       _session = null;
     } catch (e) {
-      debugPrint('[SSH] Stop error: $e');
+      if (kDebugMode) debugPrint('[SSH] Stop error: $e');
+    } finally {
+      await _closeController();
     }
   }
 
@@ -127,13 +136,31 @@ class SshBackend implements TermisolPtyBackend {
   Future<void> terminate() async {
     _isRunning = false;
     try {
-      await _session?.done;
+      _session?.close();
+      await _session?.done.timeout(const Duration(seconds: 3), onTimeout: () {});
       _session = null;
       _client?.close();
       _client = null;
     } catch (e) {
-      debugPrint('[SSH] Terminate error: $e');
+      if (kDebugMode) debugPrint('[SSH] Terminate error: $e');
+    } finally {
+      await _closeController();
     }
-    await _outputController.close();
   }
+
+  Future<void> _closeController() async {
+    if (!_outputController.isClosed && !_isDisposed) {
+      await _outputController.close();
+    }
+    _isDisposed = true;
+  }
+
+  void _safeAdd(List<int> data) {
+    if (!_outputController.isClosed && !_isDisposed) {
+      _outputController.add(data);
+    }
+  }
+
+  @override
+  bool get isConnected => _isRunning && _client != null && _session != null;
 }

@@ -7,6 +7,9 @@ import 'pty_backend.dart';
 import '../backends/local_backend.dart';
 import '../backends/ssh_backend.dart';
 import '../backends/android_shell_backend.dart';
+import 'crash_recovery.dart';
+import 'long_command_notifier.dart';
+import 'termisol_plugin_system.dart';
 
 // Session data for saving/loading
 class TerminalSessionData {

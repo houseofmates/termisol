@@ -448,11 +448,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: const Icon(Icons.keyboard_command_key, color: PkmTheme.primary),
                       tooltip: 'Command Palette (Ctrl+Shift+P)',
                     ),
-                    IconButton(
-                      onPressed: _toggleVrMode,
-                      icon: const Icon(Icons.vrpano, color: PkmTheme.primary),
-                      tooltip: 'Toggle VR Mode',
-                    ),
                   ],
                 ),
               ),

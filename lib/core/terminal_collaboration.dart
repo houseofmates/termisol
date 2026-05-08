@@ -227,6 +227,26 @@ class TerminalCollaboration {
         final transfer = FileTransfer.fromJson(event.data);
         _handleFileTransfer(transfer);
         break;
+        
+      case CollaborationEventType.sessionJoined:
+        final session = SharedSession.fromJson(event.data);
+        _sharedSessions[session.id] = session;
+        break;
+        
+      case CollaborationEventType.sessionLeft:
+        final sessionId = event.data['session_id'] as String;
+        _sharedSessions.remove(sessionId);
+        break;
+        
+      case CollaborationEventType.chatMessage:
+        final message = ChatMessage.fromJson(event.data);
+        _onChatMessage.forEach((callback) => callback(message));
+        break;
+        
+      case CollaborationEventType.systemNotification:
+        final notification = SystemNotification.fromJson(event.data);
+        _onSystemNotification.forEach((callback) => callback(notification));
+        break;
     }
     
     // Store event in history
@@ -246,6 +266,16 @@ class TerminalCollaboration {
         
       case CollaborationNotificationType.systemMessage:
         _handleSystemMessage(notification.data);
+        break;
+        
+      case CollaborationNotificationType.userJoined:
+        final user = CollaborationUser.fromJson(notification.data);
+        _onUserJoined.forEach((callback) => callback(user));
+        break;
+        
+      case CollaborationNotificationType.userLeft:
+        final userId = notification.data['user_id'] as String;
+        _activeCollaborators.removeWhere((c) => c.id == userId);
         break;
     }
   }

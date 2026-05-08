@@ -2413,6 +2413,9 @@ class _EditTerminalState extends State<EditTerminal> {
     }
   }
 
+  // Public method for testing
+  void handleTabCompletion() => _handleTabCompletion();
+
   void _updateCompletionsDebounced() {
     _completionTimer?.cancel();
     _completionTimer = Timer(const Duration(milliseconds: 300), () {

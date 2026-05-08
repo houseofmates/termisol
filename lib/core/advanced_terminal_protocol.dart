@@ -437,47 +437,99 @@ class AdvancedTerminalProtocol {
     }
   }
   
-  // Individual command handlers
-  
   void _handleCursorPosition(List<int> params) {
-    final row = params.isNotEmpty ? params[0] : 1;
-    final col = params.length > 1 ? params[1] : 1;
-    // Implementation would move cursor to specified position
+    final row = params.isNotEmpty && params[0] > 0 ? params[0] : 1;
+    final col = params.length > 1 && params[1] > 0 ? params[1] : 1;
+    _controller.setCursorPosition(col - 1, row - 1);
   }
-  
+
   void _handleCursorMovement(String command, List<int> params) {
-    final count = params.isNotEmpty ? params[0] : 1;
-    // Implementation would move cursor based on command
+    final count = params.isNotEmpty && params[0] > 0 ? params[0] : 1;
+    switch (command) {
+      case 'A': _controller.moveCursorUp(count); break;      // Up
+      case 'B': _controller.moveCursorDown(count); break;    // Down
+      case 'C': _controller.moveCursorForward(count); break; // Forward
+      case 'D': _controller.moveCursorBack(count); break;    // Back
+    }
   }
-  
+
   void _handleErase(String command, List<int> params) {
     final mode = params.isNotEmpty ? params[0] : 0;
-    // Implementation would erase based on command and mode
-  }
-  
-  void _handleScrolling(String command, List<int> params) {
-    final count = params.isNotEmpty ? params[0] : 1;
-    // Implementation would scroll up or down
-  }
-  
-  void _handleGraphics(List<int> params) {
-    for (final param in params) {
-      if (param >= 30 && param <= 37) {
-        // Set foreground color
-      } else if (param >= 40 && param <= 47) {
-        // Set background color
-      } else if (param >= 90 && param <= 97) {
-        // Set bright foreground color
-      } else if (param >= 100 && param <= 107) {
-        // Set bright background color
-      } else if (param == 38) {
-        // True color foreground
-      } else if (param == 48) {
-        // True color background
-      } else {
-        // Other graphics attributes (bold, underline, etc.)
-      }
+    switch (command) {
+      case 'J': // Erase in Display
+        switch (mode) {
+          case 0: _controller.eraseFromCursorToEnd(); break;    // From cursor to end
+          case 1: _controller.eraseFromStartToCursor(); break;  // From start to cursor
+          case 2: _controller.eraseEntireDisplay(); break;      // Entire display
+        }
+        break;
+      case 'K': // Erase in Line
+        switch (mode) {
+          case 0: _controller.eraseFromCursorToEndOfLine(); break;    // From cursor to end of line
+          case 1: _controller.eraseFromStartOfLineToCursor(); break;  // From start of line to cursor
+          case 2: _controller.eraseEntireLine(); break;               // Entire line
+        }
+        break;
     }
+  }
+
+  void _handleGraphics(List<int> params) {
+    if (params.isEmpty) {
+      // Reset all attributes
+      _controller.resetAttributes();
+      return;
+    }
+
+    for (final param in params) {
+      if (param == 0) {
+        _controller.resetAttributes();
+      } else if (param == 1) {
+        _controller.setBold(true);
+      } else if (param == 4) {
+        _controller.setUnderline(true);
+      } else if (param >= 30 && param <= 37) {
+        // Standard foreground colors
+        _controller.setForegroundColor(_getAnsiColor(param - 30));
+      } else if (param >= 40 && param <= 47) {
+        // Standard background colors
+        _controller.setBackgroundColor(_getAnsiColor(param - 40));
+      } else if (param >= 90 && param <= 97) {
+        // Bright foreground colors
+        _controller.setForegroundColor(_getAnsiBrightColor(param - 90));
+      } else if (param >= 100 && param <= 107) {
+        // Bright background colors
+        _controller.setBackgroundColor(_getAnsiBrightColor(param - 100));
+      }
+      // Note: True color sequences (38;2;r;g;b) would be handled in a more complex parser
+    }
+  }
+
+  Color _getAnsiColor(int index) {
+    const ansiColors = [
+      Color.fromARGB(255, 0, 0, 0),       // Black
+      Color.fromARGB(255, 170, 0, 0),     // Red
+      Color.fromARGB(255, 0, 170, 0),     // Green
+      Color.fromARGB(255, 170, 85, 0),    // Yellow
+      Color.fromARGB(255, 0, 0, 170),     // Blue
+      Color.fromARGB(255, 170, 0, 170),   // Magenta
+      Color.fromARGB(255, 0, 170, 170),   // Cyan
+      Color.fromARGB(255, 170, 170, 170), // White
+    ];
+    return index >= 0 && index < ansiColors.length ? ansiColors[index] : ansiColors[7];
+  }
+
+  Color _getAnsiBrightColor(int index) {
+    const brightColors = [
+      Color.fromARGB(255, 85, 85, 85),    // Bright Black (Gray)
+      Color.fromARGB(255, 255, 85, 85),   // Bright Red
+      Color.fromARGB(255, 85, 255, 85),   // Bright Green
+      Color.fromARGB(255, 255, 255, 85),  // Bright Yellow
+      Color.fromARGB(255, 85, 85, 255),   // Bright Blue
+      Color.fromARGB(255, 255, 85, 255),  // Bright Magenta
+      Color.fromARGB(255, 85, 255, 255),  // Bright Cyan
+      Color.fromARGB(255, 255, 255, 255), // Bright White
+    ];
+    return index >= 0 && index < brightColors.length ? brightColors[index] : brightColors[7];
   }
   
   void _handleMode(List<int> params, bool set) {

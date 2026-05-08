@@ -1371,3 +1371,95 @@ enum GitActionCategory {
   cleanup,
   init,
 }
+
+/// Visual diff result data structure
+class VisualDiffResult {
+  final bool success;
+  final List<DiffFile> files;
+  final DiffType diffType;
+  final String? error;
+  final String? rawOutput;
+  
+  VisualDiffResult({
+    required this.success,
+    required this.diffType,
+    this.files = const [],
+    this.error,
+    this.rawOutput,
+  });
+}
+
+/// Diff file data structure
+class DiffFile {
+  final String oldPath;
+  final String newPath;
+  final List<DiffHunk> hunks;
+  
+  DiffFile({
+    required this.oldPath,
+    required this.newPath,
+    required this.hunks,
+  });
+}
+
+/// Diff hunk data structure
+class DiffHunk {
+  final int oldStart;
+  final int oldLines;
+  final int newStart;
+  final int newLines;
+  final String header;
+  final List<DiffLine> lines;
+  
+  DiffHunk({
+    required this.oldStart,
+    required this.oldLines,
+    required this.newStart,
+    required this.newLines,
+    required this.header,
+    required this.lines,
+  });
+}
+
+/// Diff line data structure
+class DiffLine {
+  final String content;
+  final DiffLineType type;
+  final int lineNumber;
+  
+  DiffLine({
+    required this.content,
+    required this.type,
+    required this.lineNumber,
+  });
+}
+
+/// Diff statistics data structure
+class DiffStatistics {
+  final int filesChanged;
+  final int insertions;
+  final int deletions;
+  final bool success;
+  
+  DiffStatistics({
+    required this.filesChanged,
+    required this.insertions,
+    required this.deletions,
+    required this.success,
+  });
+}
+
+/// Diff type enumeration
+enum DiffType {
+  unified,
+  sideBySide,
+  minimal,
+  patience,
+}
+
+/// Diff line type enumeration
+enum DiffLineType {
+  added,
+  removed,
+  context,
+}

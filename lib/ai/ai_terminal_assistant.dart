@@ -224,7 +224,7 @@ class NvidiaAITerminalAssistant {
       final data = jsonDecode(response.body);
       final content = data['choices']?[0]?['message']?['content'] ?? '';
 
-      return AIResponse.success(content);
+      return AIResponse.success(content.toString());
     } else {
       throw Exception('API request failed: ${response.statusCode} ${response.body}');
     }

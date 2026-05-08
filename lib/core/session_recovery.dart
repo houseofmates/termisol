@@ -4,6 +4,15 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
+extension IterableTakeLast<T> on Iterable<T> {
+  Iterable<T> takeLast(int n) {
+    if (n <= 0) return const [];
+    final list = toList();
+    if (list.length <= n) return list;
+    return list.sublist(list.length - n);
+  }
+}
+
 /// Session Recovery
 ///
 /// Recovers terminal sessions after crashes or disconnections.
@@ -48,6 +57,7 @@ class SessionRecovery {
       createdAt: DateTime.now(),
       entries: [],
       workingDirectory: workingDirectory ?? '/',
+      lastActivity: DateTime.now(),
       metadata: metadata ?? {},
     );
   }

@@ -54,8 +54,8 @@ class LongCommandNotifier {
       
       // Schedule notification after timeout
       _activeCommands[command] = Timer(commandTimeout, () async {
-        await _audioPlayer.setSourceAsset('assets/notif.mp3');
-        await _audioPlayer.resume();
+        await _audioPlayer?.setSourceAsset('assets/notif.mp3');
+        await _audioPlayer?.resume();
       });
     } catch (e) {
       print('Failed to log long command: $e');

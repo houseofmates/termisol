@@ -1,7 +1,5 @@
 import 'dart:io';
 import 'dart:async';
-import 'dart:convert';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
@@ -11,17 +9,12 @@ import 'app.dart';
 import 'core/headerbar_actions.dart';
 import 'core/service_registry.dart';
 import 'core/service_factories.dart';
-import 'core/adaptive_rendering_system.dart';
 import 'core/robust_error_handler.dart';
-import 'core/advanced_performance_optimizer.dart';
-import 'core/cross_platform_manager.dart';
 
 /// Setup global error handling and crash reporting
 Future<void> _setupErrorHandling() async {
-  // Initialize robust error handler
   await RobustErrorHandler().initialize();
-  
-  // Handle Flutter errors
+
   FlutterError.onError = (FlutterErrorDetails details) async {
     await RobustErrorHandler().handleError(
       details.exception,
@@ -32,7 +25,6 @@ Future<void> _setupErrorHandling() async {
     _showErrorDialog(details.exceptionAsString());
   };
 
-  // Handle platform errors
   PlatformDispatcher.instance.onError = (error, stack) {
     RobustErrorHandler().handleError(
       error,
@@ -88,23 +80,11 @@ void _showErrorDialog(String error) {
   ErrorReporter.reportError(error);
 }
 
-/// Initialize all robust systems
-Future<void> _initializeRobustSystems() async {
-  await AdaptiveRenderingSystem.instance.initialize();
-  await AdvancedPerformanceOptimizer().initialize();
-  await CrossPlatformManager().initialize();
-}
-
-/// Entry point for termisol with lazy-loading service registry.
-/// Critical services start immediately; everything else is on-demand.
+/// Entry point for termisol.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Setup global error handling
   await _setupErrorHandling();
-  
-  // Initialize robust systems
-  await _initializeRobustSystems();
 
   const headerBarChannel = MethodChannel('com.termisol/headerbar');
   headerBarChannel.setMethodCallHandler((call) async {
@@ -130,7 +110,6 @@ void main() async {
     });
   }
 
-  // Only set mobile orientations on actual mobile platforms
   if (Platform.isAndroid || Platform.isIOS) {
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
@@ -144,7 +123,7 @@ void main() async {
   final registry = _registerServices();
   await registry.initializeCritical();
 
-  if (kDebugMode) debugPrint('termisol started (lazy init)');
+  if (kDebugMode) debugPrint('termisol started');
   runZonedGuarded(() {
     runApp(TermisolApp(registry: registry));
   }, (error, stackTrace) async {
@@ -153,76 +132,14 @@ void main() async {
   });
 }
 
-/// Register all services with real implementations.
-/// Services are created lazily on first use for better performance.
+/// Register services that are actually used in the working ui path.
 ServiceRegistry _registerServices() {
   final r = ServiceRegistry.instance;
 
-  // Core terminal features
   r.register(TermisolFeatures.terminalCore, () => true);
-
-  // AI and performance features
   r.register(TermisolFeatures.aiAssistant, () => ServiceFactories.createAIAssistant());
-  r.register(TermisolFeatures.performanceMonitoring, () => ServiceFactories.createPerformanceEnforcer());
-  r.register(TermisolFeatures.gpuRenderer, () => ServiceFactories.createGpuRenderer());
-  r.register(TermisolFeatures.sub16msLatencyOptimizer, () => ServiceFactories.createLatencyOptimizer());
-  r.register(TermisolFeatures.adaptiveFramePacer, () => ServiceFactories.createFramePacer());
   r.register(TermisolFeatures.productionConfigSystem, () => ServiceFactories.createConfigSystem());
-  r.register(TermisolFeatures.backgroundProcessor, () => ServiceFactories.createBackgroundProcessor());
-  r.register(TermisolFeatures.memoryOptimizer, () => ServiceFactories.createMemoryOptimizer());
-  r.register(TermisolFeatures.networkResilience, () => ServiceFactories.createNetworkResilience());
-
-  // Advanced features
-  r.register(TermisolFeatures.sessionSync, () => ServiceFactories.createSessionSyncManager());
-  r.register(TermisolFeatures.llmPluginSystem, () => ServiceFactories.createLLMPluginSystem());
-  r.register(TermisolFeatures.gnomeIntegration, () => ServiceFactories.createGnomeIntegration());
-  r.register(TermisolFeatures.smartCommandChaining, () => ServiceFactories.createSmartCommandChaining());
-  r.register(TermisolFeatures.semanticSearchEngine, () => ServiceFactories.createSemanticSearchEngine());
-  r.register(TermisolFeatures.enhancedAISuggestions, () => ServiceFactories.createEnhancedAISuggestions());
-  r.register(TermisolFeatures.conversationalAI, () => ServiceFactories.createConversationalAI());
-  r.register(TermisolFeatures.automatedWorkflows, () => ServiceFactories.createAutomatedWorkflowSystem());
-
-  // Integration features
-  r.register(TermisolFeatures.gitIntegration, () => ServiceFactories.createGitHubIntegration());
-  r.register(TermisolFeatures.neuralProcessing, () => ServiceFactories.createNeuralProcessingSystem());
-  r.register(TermisolFeatures.plugins, () => ServiceFactories.createPluginManager());
-  r.register(TermisolFeatures.audioAlertService, () => ServiceFactories.createAudioAlertService());
-  r.register(TermisolFeatures.keyboardMacroReader, () => ServiceFactories.createKeyboardMacroReader());
-  r.register(TermisolFeatures.syncServices, () => ServiceFactories.createSyncServices());
-
-  // Development and operations features
-  r.register(TermisolFeatures.dockerIntegration, () => ServiceFactories.createDockerOperations());
-  r.register(TermisolFeatures.integratedDebugger, () => ServiceFactories.createIntegratedDebugger());
-  r.register(TermisolFeatures.taskRunner, () => ServiceFactories.createTaskRunner());
-  r.register(TermisolFeatures.configurableHotkeys, () => ServiceFactories.createConfigurableHotkeys());
-  r.register(TermisolFeatures.smoothAnimations, () => ServiceFactories.createSmoothAnimations());
-  r.register(TermisolFeatures.autoBackupSystem, () => ServiceFactories.createAutoBackupSystem());
-
-  // SSH extras - use a single composite registration instead of overwriting
-  r.register(TermisolFeatures.sshExtras, () => _createSshExtras());
-
-  r.register(TermisolFeatures.codeIntelligence, () => ServiceFactories.createCodeIntelligence());
-  r.register(TermisolFeatures.databaseClient, () => ServiceFactories.createDatabaseClient());
-  r.register(TermisolFeatures.sessionRecovery, () => ServiceFactories.createSessionRecovery());
-  r.register(TermisolFeatures.commandGuard, () => ServiceFactories.createCommandGuard());
-  r.register(TermisolFeatures.asciicastRecorder, () => ServiceFactories.createAsciicastRecorder());
-
-  // Content features
   r.register(TermisolFeatures.fileManager, () => true);
 
-  // Protocol and rendering features
-  r.register(TermisolFeatures.advancedTerminalProtocol, () => ServiceFactories.createAdvancedTerminalProtocol());
-  r.register(TermisolFeatures.adaptiveCompressionNetwork, () => ServiceFactories.createAdaptiveCompressionNetwork());
-
   return r;
-}
-
-/// Composite SSH extras factory.
-dynamic _createSshExtras() {
-  return {
-    'autoSSHKeyManagement': ServiceFactories.createAutoSSHKeyManagement(),
-    'multihopSSH': ServiceFactories.createMultihopSSH(),
-    'tunnelManagement': ServiceFactories.createTunnelManagement(),
-    'sshConnectionPersistence': ServiceFactories.createSSHConnectionPersistence(),
-  };
 }

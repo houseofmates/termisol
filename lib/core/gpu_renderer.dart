@@ -38,8 +38,8 @@ class GpuRenderer {
       final image = await picture.toImage(1, 1);
       image.dispose();
       picture.dispose();
-    } catch (e) {
-      debugPrint('[GPU] Warm-up failed: $e');
+    } catch (e, stack) {
+      debugPrint('[gpu] warm-up failed: $e\n$stack');
     }
   }
 

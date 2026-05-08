@@ -457,11 +457,11 @@ class _TerminalFileManagerState extends State<TerminalFileManager>
               ],
             ),
           ),
-          PopupMenuItem(
-            onTap: () {
-              Navigator.pop(context);
-              Clipboard.setData(ClipboardData(text: file.path);
-              ScaffoldMessenger.of(context).showSnackBar(
+                           PopupMenuItem(
+                             onTap: () {
+                               Navigator.pop(context);
+                               Clipboard.setData(ClipboardData(text: file.path));
+                               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Path copied to clipboard'),
                   backgroundColor: Colors.green,
@@ -718,10 +718,10 @@ class _TerminalFileManagerState extends State<TerminalFileManager>
                               ],
                             ),
                           ),
-                          PopupMenuItem(
-                            onTap: () {
-                              Clipboard.setData(ClipboardData(text: file.path);
-                              ScaffoldMessenger.of(context).showSnackBar(
+                           PopupMenuItem(
+                             onTap: () {
+                               Clipboard.setData(ClipboardData(text: file.path));
+                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Path copied to clipboard'),
                                   backgroundColor: Colors.green,

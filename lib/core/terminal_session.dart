@@ -79,8 +79,9 @@ class TerminalSession extends ChangeNotifier {
   void Function(String output)? onOutputReceived;
 
   /// Get command suggestions based on current input
-  Future<List<String>> getCommandSuggestions(String currentInput, {int maxSuggestions = 5}) async {
-    return _commandChaining.getCommandSuggestions(id, currentInput, maxSuggestions: maxSuggestions);
+  List<String> getCommandSuggestions(String currentInput, {int maxSuggestions = 5}) {
+    final suggestions = _commandChaining.suggestNext(currentInput, maxSuggestions: maxSuggestions);
+    return suggestions.map((s) => s.command).toList();
   }
 
   final List<DetectedUrl> detectedUrls = [];

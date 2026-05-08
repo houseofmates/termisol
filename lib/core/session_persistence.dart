@@ -834,7 +834,7 @@ class CrashReport {
       deviceId: json['device_id'] as String,
       activeSessions: json['active_sessions'] as int? ?? 0,
       lastKnownState: Map<String, dynamic>.from((json['last_known_state'] ?? {}) as Map<dynamic, dynamic>),
-      error: json['error'] as String?,
+      error: json['error'] as String? ?? '',
     );
   }
 }

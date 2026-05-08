@@ -15,7 +15,6 @@ import 'openxr_session.dart';
 class OpenXRRenderer {
   late final OpenXRSession _session;
   late final ui.SceneBuilder _sceneBuilder;
-  late final ui.PictureRecorder _pictureRecorder;
   
   final double _eyeSeparation = 0.064; // 64mm IPD
   final double _nearPlane = 0.1;

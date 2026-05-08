@@ -39,8 +39,27 @@ class TermisolPluginSystem {
 
   /// Load plugin from file
   Future<Plugin?> _loadPluginFromFile(String pluginPath) async {
-    // Stub implementation for testing - always return null
-    return null;
+    try {
+      final file = File(pluginPath);
+      if (!await file.exists()) return null;
+
+      final content = await file.readAsString();
+      final pluginInfo = _parsePluginConfig(content);
+
+      // Create plugin instance
+      final plugin = SimplePlugin(
+        name: pluginInfo['name'] ?? 'Unknown Plugin',
+        version: pluginInfo['version'] ?? '1.0.0',
+        description: pluginInfo['description'] ?? '',
+        author: pluginInfo['author'] ?? 'Unknown',
+        config: pluginInfo,
+      );
+
+      return plugin;
+    } catch (e) {
+      TermisolLogger().severe('Failed to load plugin from file: $pluginPath', null, e);
+      return null;
+    }
   }
 
   /// Parse plugin configuration

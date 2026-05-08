@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/service_registry.dart';
+import '../core/headerbar_actions.dart';
 import '../core/terminal_session.dart';
 import '../core/ai_assistant_integration.dart';
 import '../config/pkm_theme.dart';
@@ -32,6 +33,29 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _createInitialTab();
+    HeaderbarActions.action.addListener(_onHeaderbarAction);
+  }
+
+  void _onHeaderbarAction() {
+    final action = HeaderbarActions.action.value;
+    if (action == null) return;
+    switch (action) {
+      case 'newTab':
+        _addTab();
+        break;
+      case 'search':
+        _toggleSearch();
+        break;
+      case 'settings':
+        _showSettings();
+        break;
+      case 'dictate':
+        // Show a snackbar or start speech-to-text if available
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('dictation not yet implemented')),
+        );
+        break;
+    }
   }
 
   TerminalSession? get _activeSession {
@@ -392,6 +416,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    HeaderbarActions.action.removeListener(_onHeaderbarAction);
     // Dispose all tabs
     for (final tab in _tabs) {
       tab.dispose();

@@ -82,6 +82,9 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     );
     widget.session.addListener(_onSessionChanged);
     _loadFontSize();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.focusNode?.requestFocus();
+    });
   }
 
   Future<void> _loadFontSize() async {

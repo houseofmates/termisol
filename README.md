@@ -19,9 +19,9 @@ termisol is a complete command-line workspace designed for modern developers, sy
 ## 🚀 core features
 
 ### terminal excellence
-- **full xterm-256color emulation** with complete VT100/VT220 compatibility
-- **high-performance rendering** with GPU acceleration and sub-16ms frame times
-- **intelligent scrollback buffer** supporting up to 100,000 lines with semantic search
+- **full xterm-256color emulation** with VT100/VT220 compatibility via the xterm package
+- **damage-aware rendering** using CustomPainter with cached Paragraph objects
+- **scrollback buffer** supporting up to 50,000 lines
 - **advanced text selection** with keyboard and mouse support
 - **bracketed paste mode** preventing accidental command execution
 - **configurable cursor styles** with customizable blink rates
@@ -43,47 +43,12 @@ termisol is a complete command-line workspace designed for modern developers, sy
 
 ## 🤖 AI integration
 
-termisol features cutting-edge AI assistance that makes the command line accessible to everyone:
+Termisol can forward queries to external AI APIs (e.g., NVIDIA NIM). This requires an API key and network connectivity. There is no local AI fallback.
 
-### natural language Processing
-- **command translation**: type "show me all running processes" and get `ps aux`
-- **intent recognition**: understands what you want to do, not just what you type
-- **contextual suggestions**: learns your workflow and predicts your next commands
-- **error analysis**: explains command failures in plain English and suggests fixes
+- **/ai command**: type `/ai <question>` in the terminal to send a query to the configured cloud AI service
+- **AI response injection**: responses are written back into the terminal buffer
 
-### Ssmart features
-- **code explanation**: hover over any code snippet for instant AI-powered explanations
-- **performance optimization**: analyzes your commands and suggests faster alternatives
-- **security monitoring**: warns about potentially dangerous commands before execution
-- **learning m**: interactive tutorials that adapt to your skill level
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-## 🎬 multimedia capabilities
-
-### image viewer
-- **comprehensive format support**: JPEG, PNG, WebP, AVIF, HEIC, TIFF, SVG
-- **Iinteractive viewing**: zoom, pan, rotate with smooth animations
-- **batch operations**: view multiple images in a gallery format
-- **metadata display**: EXIF data and image information on demand
-
-### video player
-- **inline video playback** with full controls (play, pause, seek, volume)
-- **format support**: MP4, WebM, AVI, MKV, MOV
-- **subtitle rendering** with customizable styling
-- **picture-in-picture mode** for multitasking
-
-### audio visualizer
-- **real-time audio visualization** with multiple visualization types
-- **spectrum analyzer**, waveform display, and frequency bars
-- **support for common audio formats**: MP3, WAV, FLAC, OGG
-- **interactive controls** for playback and visualization settings
-
-### 3D model viewer
-- **3D model inspection** directly in the terminal
-- **format support**: OBJ, STL, GLTF, PLY
-- **interactive controls**: rotate, zoom, pan with mouse/touch
-- **wireframe and solid rendering modes**
+**Note**: AI features are entirely dependent on third-party API availability and are disabled by default until configured.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

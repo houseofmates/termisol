@@ -53,7 +53,7 @@ class TrueColorManager {
       }
     } else if (sequence.startsWith('\x1b]12;')) {
       // Set background color (RGB)
-      final match = RegExp(r'\x1b\](\d+);rgb:([\da-f]{6}/([\da-f]{6})([\da-f]{6})').firstMatch(sequence);
+      final match = RegExp(r'\x1b\](\d+);rgb:([\da-f]{2,4})/([\da-f]{2,4})/([\da-f]{2,4})').firstMatch(sequence);
       if (match != null) {
         final r = int.tryParse(match.group(1)!, radix: 16) ?? 0;
         final g = int.tryParse(match.group(2)!, radix: 16) ?? 0;

@@ -1,3 +1,16 @@
+/// Command suggestion
+class CommandSuggestion {
+  final String command;
+  final String description;
+  final int priority;
+
+  CommandSuggestion({
+    required this.command,
+    required this.description,
+    this.priority = 0,
+  });
+}
+
 /// Smart auto-complete system
 class SmartAutoComplete {
   final List<String> _recentCommands = [];

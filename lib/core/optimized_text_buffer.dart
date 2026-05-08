@@ -2,8 +2,10 @@
 class OptimizedTextBuffer {
   OptimizedTextBuffer({required int maxLines});
 
-  int get _cursorPosition => 0;
+  int get cursorPosition => 0;
   Map<String, dynamic> get stats => {};
+
+  String getVisibleText(int maxLines) => '';
 
   void clear() {
     // Stub implementation

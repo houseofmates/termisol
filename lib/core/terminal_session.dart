@@ -8,6 +8,23 @@ import '../backends/local_backend.dart';
 import '../backends/ssh_backend.dart';
 import '../backends/android_shell_backend.dart';
 
+// Session data for saving/loading
+class TerminalSessionData {
+  final String id;
+  final String name;
+  final String type;
+  final Map<String, dynamic> state;
+  final DateTime timestamp;
+
+  TerminalSessionData({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.state,
+    required this.timestamp,
+  });
+}
+
 /// Callback signature for AI queries intercepted from the terminal.
 ///
 /// The [query] contains everything after `/ai ` and may include any

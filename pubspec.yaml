@@ -57,3 +57,7 @@ flutter:
   assets:
     - assets/profiles/
     - assets/icons/
+  fonts:
+    - family: DroidSansMono
+      fonts:
+        - asset: assets/fonts/DroidSansMono-Regular.ttf

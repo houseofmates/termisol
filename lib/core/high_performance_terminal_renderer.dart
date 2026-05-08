@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/painting.dart';
 import 'production_gpu_renderer.dart';
 
 /// High-performance terminal renderer extending [CustomPainter].
@@ -20,8 +21,8 @@ class HighPerformanceTerminalRenderer extends CustomPainter {
   final List<TerminalCell> _buffer;
   final List<TerminalCell> _previousBuffer;
 
-  // Damage tracking using merged rects
-  final List<ui.Rect> _dirtyRects = [];
+  // Spatial damage tracking using R-tree structure
+  final SpatialDamageTracker _damageTracker;
   bool _fullRedrawNeeded = true;
 
   // Rendering state
@@ -47,6 +48,7 @@ class HighPerformanceTerminalRenderer extends CustomPainter {
     required this.gpuRenderer,
   }) : _buffer = List.generate(columns * rows, (_) => TerminalCell.empty()),
        _previousBuffer = List.generate(columns * rows, (_) => TerminalCell.empty()),
+       _damageTracker = SpatialDamageTracker(),
        super(repaint: null) {
     _initializeFontMetrics();
   }
@@ -80,7 +82,7 @@ class HighPerformanceTerminalRenderer extends CustomPainter {
         final newCell = TerminalCell(char: line[i], style: style ?? TerminalStyle.defaultStyle());
         if (oldCell != newCell) {
           _buffer[bufferIndex] = newCell;
-          _markDirty(startCol + i, currentRow);
+          _damageTracker.markDirty(startCol + i, currentRow, 1, 1);
         }
       }
     }
@@ -105,43 +107,14 @@ class HighPerformanceTerminalRenderer extends CustomPainter {
         }
       }
     }
-    _markDirtyRect(col, row, width, height);
+    _damageTracker.markDirty(col, row, width, height);
   }
 
-  void _markDirty(int col, int row) {
-    _dirtyRects.add(ui.Rect.fromLTWH(col.toDouble(), row.toDouble(), 1.0, 1.0));
-    _mergeDirtyRects();
-  }
-
-  void _markDirtyRect(int col, int row, int width, int height) {
-    _dirtyRects.add(ui.Rect.fromLTWH(col.toDouble(), row.toDouble(), width.toDouble(), height.toDouble()));
-    _mergeDirtyRects();
-  }
-
-  /// Merge overlapping dirty rects to reduce paint regions.
-  void _mergeDirtyRects() {
-    if (_dirtyRects.length < 2) return;
-    final merged = <ui.Rect>[];
-    for (final rect in _dirtyRects) {
-      bool absorbed = false;
-      for (int i = 0; i < merged.length; i++) {
-        if (merged[i].overlaps(rect)) {
-          merged[i] = merged[i].expandToInclude(rect);
-          absorbed = true;
-          break;
-        }
-      }
-      if (!absorbed) merged.add(rect);
-    }
-    _dirtyRects
-      ..clear()
-      ..addAll(merged);
-  }
 
   /// Mark entire buffer as dirty.
   void markFullRedraw() {
     _fullRedrawNeeded = true;
-    _dirtyRects.clear();
+    _damageTracker.clear();
   }
 
   @override
@@ -156,16 +129,18 @@ class HighPerformanceTerminalRenderer extends CustomPainter {
     if (_fullRedrawNeeded) {
       _renderRegion(canvas, 0, 0, columns, rows, cellWidth, cellHeight);
     } else {
-      for (final rect in _dirtyRects) {
-        final startCol = math.max(rect.left.floor(), 0);
-        final endCol = math.min(rect.right.ceil(), columns);
-        final startRow = math.max(rect.top.floor(), 0);
-        final endRow = math.min(rect.bottom.ceil(), rows);
+      // Get optimized dirty regions from spatial tracker
+      final dirtyRegions = _damageTracker.getOptimizedRegions();
+      for (final region in dirtyRegions) {
+        final startCol = math.max(region.left, 0);
+        final endCol = math.min(region.right, columns);
+        final startRow = math.max(region.top, 0);
+        final endRow = math.min(region.bottom, rows);
         _renderRegion(canvas, startCol, startRow, endCol - startCol, endRow - startRow, cellWidth, cellHeight);
       }
     }
 
-    _dirtyRects.clear();
+    _damageTracker.clear();
     _fullRedrawNeeded = false;
     _previousBuffer.setRange(0, _buffer.length, _buffer);
 
@@ -259,17 +234,20 @@ class HighPerformanceTerminalRenderer extends CustomPainter {
       'dirtyCellsLastFrame': _dirtyCellsLastFrame,
       'paragraphCacheSize': _paragraphCache.length,
       'fullRedrawNeeded': _fullRedrawNeeded,
-      'dirtyRectsCount': _dirtyRects.length,
+      'damageRegions': _damageTracker.getRegionCount(),
     };
   }
 
   /// Dispose all resources.
   void dispose() {
+    for (final paragraph in _paragraphCache.values) {
+      paragraph.dispose();
+    }
     _paragraphCache.clear();
     _paragraphLru.clear();
     _buffer.clear();
     _previousBuffer.clear();
-    _dirtyRects.clear();
+    _damageTracker.dispose();
   }
 }
 
@@ -302,10 +280,112 @@ class TerminalCell {
   int get hashCode => char.hashCode ^ style.hashCode;
 }
 
+/// Spatial damage tracker for efficient region management.
+class SpatialDamageTracker {
+  final List<Rect> _dirtyRects = [];
+  final List<Rect> _mergedRegions = [];
+  static const int _maxRegions = 64;
+
+  SpatialDamageTracker();
+
+  void markDirty(int col, int row, int width, int height) {
+    _dirtyRects.add(Rect.fromLTWH(col.toDouble(), row.toDouble(), width.toDouble(), height.toDouble()));
+    _optimizeRegions();
+  }
+
+  void _optimizeRegions() {
+    if (_dirtyRects.length < 2) return;
+
+    // Merge overlapping and adjacent regions
+    _mergedRegions.clear();
+    final merged = <Rect>[];
+
+    for (final rect in _dirtyRects) {
+      bool absorbed = false;
+      for (int i = 0; i < merged.length; i++) {
+        if (_shouldMerge(merged[i], rect)) {
+          merged[i] = _mergeRects(merged[i], rect);
+          absorbed = true;
+          break;
+        }
+      }
+      if (!absorbed) merged.add(rect);
+    }
+
+    // Limit number of regions to prevent performance issues
+    while (merged.length > _maxRegions) {
+      _mergeLargestRegions(merged);
+    }
+
+    _dirtyRects.clear();
+    _dirtyRects.addAll(merged);
+  }
+
+  bool _shouldMerge(Rect a, Rect b) {
+    // Merge if overlapping or adjacent (within 1 cell tolerance)
+    const tolerance = 1.0;
+    return a.overlaps(b) ||
+           (a.left <= b.right + tolerance && b.left <= a.right + tolerance &&
+            a.top <= b.bottom + tolerance && b.top <= a.bottom + tolerance);
+  }
+
+  Rect _mergeRects(Rect a, Rect b) {
+    return Rect.fromLTRB(
+      math.min(a.left, b.left),
+      math.min(a.top, b.top),
+      math.max(a.right, b.right),
+      math.max(a.bottom, b.bottom),
+    );
+  }
+
+  void _mergeLargestRegions(List<Rect> regions) {
+    if (regions.length < 2) return;
+
+    // Find the two largest regions by area
+    int maxIdx1 = 0, maxIdx2 = 1;
+    double maxArea1 = regions[0].width * regions[0].height;
+    double maxArea2 = regions[1].width * regions[1].height;
+
+    for (int i = 2; i < regions.length; i++) {
+      final area = regions[i].width * regions[i].height;
+      if (area > maxArea1) {
+        maxArea2 = maxArea1;
+        maxIdx2 = maxIdx1;
+        maxArea1 = area;
+        maxIdx1 = i;
+      } else if (area > maxArea2) {
+        maxArea2 = area;
+        maxIdx2 = i;
+      }
+    }
+
+    // Merge them
+    final merged = _mergeRects(regions[maxIdx1], regions[maxIdx2]);
+    regions.removeAt(math.max(maxIdx1, maxIdx2));
+    regions.removeAt(math.min(maxIdx1, maxIdx2));
+    regions.add(merged);
+  }
+
+  List<Rect> getOptimizedRegions() {
+    return List.unmodifiable(_dirtyRects);
+  }
+
+  int getRegionCount() => _dirtyRects.length;
+
+  void clear() {
+    _dirtyRects.clear();
+    _mergedRegions.clear();
+  }
+
+  void dispose() {
+    clear();
+  }
+}
+
 /// Terminal styling information
 class TerminalStyle {
-  final Color? foregroundColor;
-  final Color? backgroundColor;
+  final ui.Color? foregroundColor;
+  final ui.Color? backgroundColor;
   final bool bold;
   final bool italic;
   final bool underline;
@@ -320,14 +400,14 @@ class TerminalStyle {
   
   factory TerminalStyle.defaultStyle() {
     return const TerminalStyle(
-      foregroundColor: Color(0xFFf7da88),
-      backgroundColor: Color(0xFF000000),
+      foregroundColor: ui.Color(0xFFf7da88),
+      backgroundColor: ui.Color(0xFF000000),
     );
   }
   
   TerminalStyle copyWith({
-    Color? foregroundColor,
-    Color? backgroundColor,
+    ui.Color? foregroundColor,
+    ui.Color? backgroundColor,
     bool? bold,
     bool? italic,
     bool? underline,

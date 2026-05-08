@@ -63,6 +63,12 @@ class _EditTerminalState extends State<EditTerminal> {
   final List<Map<String, String>> _aiChatMessages = [];
   String _selectedModel = 'kimi-k2.6'; // Default to Kimi K2.6
   
+  // Auto-completion
+  bool _showCompletion = false;
+  List<String> _completions = [];
+  int _selectedCompletion = 0;
+  Timer? _completionTimer;
+  
   // Hotkey configuration
   final Map<String, String> _defaultHotkeys = {
     'save': 'Ctrl+Shift+S',
@@ -204,6 +210,7 @@ class _EditTerminalState extends State<EditTerminal> {
   void dispose() {
     _saveTimer?.cancel();
     _undoTimer?.cancel();
+    _completionTimer?.cancel();
     _controller.dispose();
     _scrollController.dispose();
     _focusNode.dispose();

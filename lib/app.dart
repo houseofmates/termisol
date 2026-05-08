@@ -47,13 +47,7 @@ class TermisolApp extends StatelessWidget {
 
   bool _isVrDevice() {
     if (!Platform.isAndroid) return false;
-    // Check config for VR support
-    try {
-      final config = ProductionConfigSystem();
-      return config.get<bool>('device.is_vr', false) || config.get<bool>('features.vr_support', false);
-    } catch (e) {
-      return false;
-    }
+    return false; // VR support removed — uses standard Android build
   }
 
   Widget _buildVrHome(ServiceRegistry registry) {

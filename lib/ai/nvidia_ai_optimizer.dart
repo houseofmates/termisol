@@ -434,6 +434,7 @@ Focus on:
 
 // Data classes
 class OptimizationRecommendation {
+  final String id;
   final DateTime timestamp;
   final double overallScore;
   final List<OptimizationSuggestion> suggestions;

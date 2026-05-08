@@ -296,8 +296,8 @@ class TerminalSession extends ChangeNotifier {
         'is_loading': _lazyOutput.isLoading,
       },
       'auto_complete_stats': {
-        'history_size': _autoComplete._recentCommands.length,
-        'command_frequency': _autoComplete._commandFrequency,
+          'history_size': _autoComplete.recentCommands.length,
+          'command_frequency': _autoComplete.commandFrequency,
       },
       'active_plugins': _pluginSystem.loadedPlugins.map((p) => p.name).toList(),
       'active_long_commands': _commandNotifier.activeCommands,

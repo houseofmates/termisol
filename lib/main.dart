@@ -3,74 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 import 'app.dart';
-import 'core/performance_enforcer.dart';
-import 'core/production_gpu_renderer.dart';
-import 'core/sub_16ms_latency_optimizer.dart';
-import 'core/adaptive_frame_pacer.dart';
-import 'ai/ai_terminal_assistant.dart';
-import 'ai/nvidia_ai_terminal_assistant.dart';
-import 'core/nvidia_ai_client.dart';
+import 'core/service_registry.dart';
 import 'config/production_config_system.dart';
 import 'config/ssh_passcode_manager.dart';
-// Existing core systems
-import 'core/background_processor.dart';
-import 'core/memory_optimizer.dart';
-import 'core/network_resilience.dart';
-import 'core/session_sync_manager.dart';
-import 'core/llm_plugin_system.dart';
-import 'ui/gnome_integration.dart';
-// New imports for enhanced features
-import 'core/smart_command_chaining.dart';
-import 'core/semantic_search_engine.dart';
-import 'core/enhanced_search_engine.dart';
-import 'core/enhanced_ai_suggestions.dart';
-import 'core/conversational_ai.dart';
-import 'core/automated_workflows.dart';
-import 'core/git_integration.dart';
-import 'vr/advanced_vr_terminal.dart';
-import 'core/github_integration.dart';
-import 'core/neural_processing.dart';
-import 'core/terminal_pane_manager.dart';
-import 'core/plugin_ecosystem.dart';
-// Newly integrated services
-import 'core/audio_alert_service.dart';
-import 'core/keyboard_macro_reader.dart';
-import 'core/sync_services.dart';
-import 'core/docker_operations.dart';
-import 'core/integrated_debugger_nim.dart';
-import 'core/task_runner.dart';
-import 'core/configurable_hotkeys.dart';
-import 'core/smooth_animations.dart';
-import 'core/auto_backup_system.dart';
-import 'core/auto_ssh_key_management.dart';
-import 'core/multihop_ssh.dart';
-import 'core/tunnel_management.dart';
-import 'core/ssh_connection_persistence.dart';
-import 'core/code_intelligence.dart';
-import 'core/database_client.dart';
-import 'core/session_recovery.dart';
-import 'core/command_guard.dart';
-import 'core/asciicast_recorder.dart';
 
-/// entry point for termisol with production optimizations.
+/// entry point for termisol with lazy-loading service registry.
+/// critical services start immediately; everything else is on-demand.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // initialize production configuration system
   final configSystem = await ProductionConfigSystem.initialize();
-
-  // load ssh passcode (asked once via home_screen if missing)
   await SshPasscodeManager().load();
-  
-  // Apply performance optimizations
-  final perfConfig = configSystem.performance;
-  if (perfConfig.hardwareAcceleration) {
-    debugPrint('🚀 Hardware acceleration enabled');
-  }
 
-  // initialize window manager on desktop before runapp
-  // on linux we only ensure initialization; the native gtk runner handles
-  // window creation and showing to avoid conflicts with window_manager.
   if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
     await windowManager.ensureInitialized();
     if (!Platform.isLinux) {
@@ -89,7 +33,6 @@ void main() async {
     }
   }
 
-  // force hardware acceleration and optimal settings
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
@@ -97,172 +40,74 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // enable high performance mode for optimal gpu utilization
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
-  debugPrint('🚀 starting termisol with production GPU acceleration');
+  final registry = _registerServices(configSystem);
+  await registry.initializeCritical();
 
-  // Initialize core systems
-  final backgroundProcessor = BackgroundProcessor();
-  final memoryOptimizer = MemoryOptimizer();
-  final networkResilience = NetworkResilience();
-  final sessionSyncManager = SessionSyncManager();
-  final llmPluginSystem = LLMPluginSystem();
-  final gnomeIntegration = GnomeIntegration();
+  debugPrint('🚀 termisol started (lazy init)');
+  runApp(TermisolApp(registry: registry));
+}
 
-  await backgroundProcessor.initialize();
-  await memoryOptimizer.initialize();
-  await networkResilience.initialize();
-  await sessionSyncManager.initialize();
-  await llmPluginSystem.initialize();
-  await gnomeIntegration.initialize();
+/// Register all services with lazy-loading factories.
+/// None are created here — they instantiate on first use.
+ServiceRegistry _registerServices(ProductionConfigSystem config) {
+  final r = ServiceRegistry.instance;
 
-  // start the sub-16ms performance enforcer
-  final performanceEnforcer = PerformanceEnforcer();
-  final gpuRenderer = ProductionGpuRenderer();
-  final latencyOptimizer = Sub16msLatencyOptimizer();
-  final framePacer = AdaptiveFramePacer();
+  r.register(TermisolFeatures.terminalCore, () => true, enabled: true);
 
-  await gpuRenderer.initialize();
-  await latencyOptimizer.initialize();
-  framePacer.initialize();
+  r.register(TermisolFeatures.aiAssistant, () async {
+    final ai = NvidiaAITerminalAssistant(NvidiaAIClient());
+    await ai.initialize();
+    return ai;
+  }, enabled: config.ai.enabled, timeout: const Duration(seconds: 15));
 
-  performanceEnforcer.start();
+  r.register(TermisolFeatures.performanceMonitoring, () {
+    final enforcer = PerformanceEnforcer();
+    enforcer.start();
+    return enforcer;
+  }, enabled: config.performance.hardwareAcceleration);
 
-  // initialize ai systems
-  final aiAssistant = AITerminalAssistant();
-  final nvidiaAIClient = NvidiaAIClient();
-  final nvidiaAIAssistant = NvidiaAITerminalAssistant(nvidiaAIClient);
+  r.register(TermisolFeatures.gpuRenderer, () async {
+    final renderer = ProductionGpuRenderer();
+    await renderer.initialize();
+    return renderer;
+  }, enabled: config.performance.gpuAcceleration, timeout: const Duration(seconds: 8));
 
-  await aiAssistant.initialize();
-  await nvidiaAIClient.initialize();
-   await nvidiaAIAssistant.initialize();
+  r.register(TermisolFeatures.gitIntegration, () => GitIntegration()..initialize(),
+      enabled: config.gitIntegration);
 
-   // Initialize enhanced features
-  final smartCommandChaining = SmartCommandChaining();
-  final enhancedSearchEngine = EnhancedSearchEngine();
-  final semanticSearchEngine = SemanticSearchEngine(enhancedSearchEngine, aiAssistant);
-  final enhancedAISuggestions = EnhancedAISuggestions(aiAssistant);
-  final conversationalAI = ConversationalAI(aiAssistant, smartCommandChaining, semanticSearchEngine, enhancedAISuggestions);
-  final automatedWorkflows = AutomatedWorkflowSystem(smartCommandChaining, conversationalAI);
-  final advancedVRTerminal = AdvancedVRTerminal(
-    conversationalAI: conversationalAI,
-    workflowSystem: automatedWorkflows,
-    aiSuggestions: enhancedAISuggestions,
-    terminalWidget: const SizedBox(), // Placeholder, will be set in HomeScreen
-  );
-  final gitIntegration = GitIntegration();
-  final githubIntegration = GitHubIntegration(gitIntegration, conversationalAI, semanticSearchEngine);
-  final neuralProcessing = NeuralProcessingSystem(aiAssistant);
-  final paneManager = TerminalPaneManager();
-  final pluginManager = PluginManager(aiClient: nvidiaAIClient);
+  r.register(TermisolFeatures.dockerIntegration, () => DockerOperations()..initialize(),
+      enabled: config.dockerIntegration);
 
-  // Initialize all new systems
-  await Future.wait([
-    backgroundProcessor.initialize(),
-    memoryOptimizer.initialize(),
-    networkResilience.initialize(),
-    sessionSyncManager.initialize(),
-    llmPluginSystem.initialize(),
-    gnomeIntegration.initialize(),
-    smartCommandChaining.initialize(),
-    semanticSearchEngine.initialize(),
-    enhancedAISuggestions.initialize(),
-    conversationalAI.initialize(),
-    automatedWorkflows.initialize(),
-    githubIntegration.initialize(),
-    neuralProcessing.initialize(),
-    paneManager.initialize(),
-    pluginManager.initialize(),
-  ]);
+  r.register(TermisolFeatures.databaseClient, () {
+    final client = DatabaseClient();
+    client.initialize();
+    return client;
+  }, enabled: config.databaseClient);
 
-  // Initialize newly integrated services
-  final audioAlertService = AudioAlertService();
-  final keyboardMacroReader = KeyboardMacroReader();
-  final syncServices = SyncServices();
-  final dockerOperations = DockerOperations();
-  final integratedDebugger = IntegratedDebugger();
-  final taskRunner = TaskRunner();
-  final configurableHotkeys = ConfigurableHotkeys();
-  final smoothAnimations = SmoothAnimations();
-  final autoBackupSystem = AutoBackupSystem();
-  final autoSshKeyManagement = AutoSSHKeyManagement();
-  final multihopSsh = MultihopSSH();
-  final tunnelManagement = TunnelManagement();
-  final sshConnectionPersistence = SSHConnectionPersistence();
-  final codeIntelligence = CodeIntelligence();
+  r.register(TermisolFeatures.fileManager, () => true, enabled: true);
 
-  await Future.wait([
-    audioAlertService.initialize(),
-    keyboardMacroReader.initialize(),
-  ]);
+  r.register(TermisolFeatures.vrSupport, () => true, enabled: config.vrSupport);
 
-  integratedDebugger.initialize();
-  taskRunner.initialize();
-  configurableHotkeys.initialize();
-  smoothAnimations.initialize();
-  autoBackupSystem.initialize();
-  autoSshKeyManagement.initialize();
-  multihopSsh.initialize();
-  tunnelManagement.initialize();
-  sshConnectionPersistence.initialize();
-  codeIntelligence.initialize();
-  syncServices.initialize();
+  r.register(TermisolFeatures.videoPlayback, () => true,
+      enabled: config.multimedia.videoPlayer);
+  r.register(TermisolFeatures.audioVisualization, () => true,
+      enabled: config.multimedia.audioVisualizer);
+  r.register(TermisolFeatures.model3d, () => true,
+      enabled: config.multimedia.model3dViewer);
 
-  final databaseClient = DatabaseClient();
-  final sessionRecovery = SessionRecovery();
-  final commandGuard = CommandGuard();
-  final asciicastRecorder = AsciicastRecorder();
+  r.register(TermisolFeatures.sessionSync, () => SessionSyncManager()..initialize(),
+      enabled: config.sessionSync);
 
-  await Future.wait([
-    databaseClient.initialize(),
-    sessionRecovery.initialize(),
-    commandGuard.initialize(),
-    asciicastRecorder.initialize(),
-  ]);
+  r.register(TermisolFeatures.sshExtras, () => SSHConnectionPersistence()..initialize(),
+      enabled: config.ssh.enabled);
 
-  runApp(TermisolApp(
-    aiAssistant: nvidiaAIAssistant,
-    performanceEnforcer: performanceEnforcer,
-    gpuRenderer: gpuRenderer,
-    latencyOptimizer: latencyOptimizer,
-    framePacer: framePacer,
-    configSystem: configSystem,
-    backgroundProcessor: backgroundProcessor,
-    memoryOptimizer: memoryOptimizer,
-    networkResilience: networkResilience,
-    sessionSyncManager: sessionSyncManager,
-    llmPluginSystem: llmPluginSystem,
-    gnomeIntegration: gnomeIntegration,
-    // Enhanced features
-    smartCommandChaining: smartCommandChaining,
-    semanticSearchEngine: semanticSearchEngine,
-    enhancedAISuggestions: enhancedAISuggestions,
-    conversationalAI: conversationalAI,
-    automatedWorkflows: automatedWorkflows,
-    advancedVRTerminal: advancedVRTerminal,
-    githubIntegration: githubIntegration,
-    neuralProcessing: neuralProcessing,
-    paneManager: paneManager,
-    pluginManager: pluginManager,
-    // Newly integrated services
-    audioAlertService: audioAlertService,
-    keyboardMacroReader: keyboardMacroReader,
-    syncServices: syncServices,
-    dockerOperations: dockerOperations,
-    integratedDebugger: integratedDebugger,
-    taskRunner: taskRunner,
-    configurableHotkeys: configurableHotkeys,
-    smoothAnimations: smoothAnimations,
-    autoBackupSystem: autoBackupSystem,
-    autoSshKeyManagement: autoSshKeyManagement,
-    multihopSsh: multihopSsh,
-    tunnelManagement: tunnelManagement,
-    sshConnectionPersistence: sshConnectionPersistence,
-    codeIntelligence: codeIntelligence,
-    databaseClient: databaseClient,
-    sessionRecovery: sessionRecovery,
-    commandGuard: commandGuard,
-    asciicastRecorder: asciicastRecorder,
-  ));
+  r.register(TermisolFeatures.collaboration, () => true, enabled: config.collaboration);
+
+  r.register(TermisolFeatures.plugins, () {
+    return PluginManager(aiClient: NvidiaAIClient())..initialize();
+  }, enabled: config.plugins);
+
+  return r;
 }

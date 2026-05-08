@@ -1920,7 +1920,6 @@ ${context != null ? '- Context: ${context.description}' : ''}
     };
 
     try {
-      final endpoints = ApiEndpoints();
       final request = await HttpClient()
           .post(uri, headers: headers, body: jsonEncode(payload))
           .timeout(endpoints.requestTimeout);

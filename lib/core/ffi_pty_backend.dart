@@ -5,21 +5,22 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:ffi/ffi.dart';
+import 'pty_backend.dart';
 
 // FFI bindings for native PTY operations
-typedef _PtySpawnNative = NativeFunction<Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, Int32, Int32)>;
+typedef _PtySpawnNative = Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, Int32, Int32);
 typedef _PtySpawnDart = Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, int, int);
 
-typedef _PtyWriteNative = NativeFunction<Void Function(Int32, Pointer<Uint8>, Int32)>;
+typedef _PtyWriteNative = Void Function(Int32, Pointer<Uint8>, Int32);
 typedef _PtyWriteDart = void Function(int, Pointer<Uint8>, int);
 
-typedef _PtyReadNative = NativeFunction<Int32 Function(Int32, Pointer<Uint8>, Int32)>;
+typedef _PtyReadNative = Int32 Function(Int32, Pointer<Uint8>, Int32);
 typedef _PtyReadDart = int Function(int, Pointer<Uint8>, int);
 
-typedef _PtyResizeNative = NativeFunction<Void Function(Int32, Int32, Int32)>;
+typedef _PtyResizeNative = Void Function(Int32, Int32, Int32);
 typedef _PtyResizeDart = void Function(int, int, int);
 
-typedef _PtyCloseNative = NativeFunction<Void Function(Int32)>;
+typedef _PtyCloseNative = Void Function(Int32);
 typedef _PtyCloseDart = void Function(int);
 
 /// High-performance FFI-based PTY backend with direct memory access

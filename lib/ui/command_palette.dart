@@ -161,7 +161,7 @@ class _CommandPaletteState extends State<CommandPalette> {
             decoration: BoxDecoration(
               color: PkmTheme.popup,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: PkmTheme.primary.withValues(alpha: 0.3)),
+              border: Border.all(color: PkmTheme.primary.withOpacity(0.3)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -191,11 +191,11 @@ class _CommandPaletteState extends State<CommandPalette> {
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: PkmTheme.primary.withValues(alpha: 0.3)),
+                          borderSide: BorderSide(color: PkmTheme.primary.withOpacity(0.3)),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: PkmTheme.primary.withValues(alpha: 0.3)),
+                          borderSide: BorderSide(color: PkmTheme.primary.withOpacity(0.3)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(4),
@@ -239,7 +239,7 @@ class _CommandPaletteState extends State<CommandPalette> {
                                 padding: const EdgeInsets.symmetric(horizontal: 16),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? PkmTheme.primary.withValues(alpha: 0.15)
+                                      ? PkmTheme.primary.withOpacity(0.15)
                                       : Colors.transparent,
                                   border: Border(
                                     left: BorderSide(

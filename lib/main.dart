@@ -34,14 +34,6 @@ Future<void> _setupErrorHandling() async {
     _showErrorDialog(error.toString());
     return true;
   };
-
-  // Handle uncaught errors in zones
-  runZonedGuarded(() {
-    // The main app will run in this zone
-  }, (error, stackTrace) async {
-    await _logError('Uncaught Error', error.toString(), stackTrace);
-    _showErrorDialog(error.toString());
-  });
 }
 
 /// Log error to local file

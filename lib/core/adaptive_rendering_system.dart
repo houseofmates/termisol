@@ -94,6 +94,14 @@ class AdaptiveRenderingSystem {
 
         // Estimate memory based on device class
         switch (deviceClass) {
+          case DeviceClass.unknown:
+            capabilities.memoryGB = 6.0;
+            capabilities.hasDedicatedGPU = false;
+            break;
+          case DeviceClass.desktop:
+            capabilities.memoryGB = 16.0;
+            capabilities.hasDedicatedGPU = true;
+            break;
           case DeviceClass.flagship:
             capabilities.memoryGB = 12.0;
             capabilities.hasDedicatedGPU = true;

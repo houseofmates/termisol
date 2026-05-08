@@ -92,7 +92,7 @@ class LongCommandNotifier {
     }
     _activeCommands.clear();
     
-    _audioPlayer.dispose();
+    _audioPlayer?.dispose();
     _isInitialized = false;
   }
 }

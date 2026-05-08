@@ -62,6 +62,42 @@ class _EditTerminalState extends State<EditTerminal> {
   final TextEditingController _aiChatController = TextEditingController();
   final List<Map<String, String>> _aiChatMessages = [];
   String _selectedModel = 'kimi-k2.6'; // Default to Kimi K2.6
+
+  Widget _buildSettingToggle({
+    required String title,
+    required String value,
+    required VoidCallback onTap,
+    required bool currentValue,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: currentValue ? Colors.blue.withValues(alpha: 0.2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              title,
+              color: currentValue ? Colors.white : Colors.grey[400],
+              size: 16,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              value,
+              style: TextStyle(
+                color: currentValue ? Colors.white : Colors.grey[300],
+                fontSize: 12,
+                fontFamily: _fontFamily,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
   
   // Auto-completion
   bool _showCompletion = false;
@@ -2650,15 +2686,7 @@ class _EditTerminalState extends State<EditTerminal> {
     }
   }
 
-  void _openAIChat() {
-    setState(() {
-      _showAIChat = true;
-    });
-    
-    // Send initial context message
-    _sendInitialContext();
-  }
-
+  
   void _sendInitialContext() {
     final context = _buildFileContext();
     setState(() {

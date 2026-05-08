@@ -168,7 +168,7 @@ Future<void> _pluginWorker(SendPort sendPort) async {
         case 'execute':
           try {
             // Execute plugin method in isolate
-            final result = _executePluginInIsolate(data);
+            final result = _executePluginInIsolate(data as Map<String, dynamic>);
             sendPort.send({'type': 'result', 'data': result});
           } catch (e) {
             sendPort.send({'type': 'error', 'error': e.toString()});

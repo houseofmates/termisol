@@ -13,6 +13,7 @@ analyzer:
     - "**/*.freezed.dart"
     - "**/generated_plugin_registrant.dart"
     - "unused/**"
+    - "scripts/**"
 
 linter:
   rules:

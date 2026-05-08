@@ -265,13 +265,9 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   }
 
   Offset _calculateImagePosition(String imageId) {
-    // Calculate position based on terminal state
-    // This is a simplified implementation
-    final terminal = widget.session.terminal;
-    final cursorY = terminal.cursorY;
-    final lineHeight = _fontSize * 1.2;
-
-    return Offset(0, cursorY * lineHeight);
+    // Graphics overlay is not fully implemented.
+    // Return a fixed position; real implementation would track terminal cursor.
+    return Offset.zero;
   }
 
   Future<void> _handleCtrlC() async {

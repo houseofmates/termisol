@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -589,16 +590,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  @override
-  void dispose() {
-    // Dispose all tabs
-    for (final tab in _tabs) {
-      tab.dispose();
-    }
-    for (final node in _tabFocusNodes.values) {
-      node.dispose();
-    }
-
-    super.dispose();
-  }
 }

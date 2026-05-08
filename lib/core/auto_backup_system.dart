@@ -83,7 +83,7 @@ class AutoBackupSystem {
           if (await src.exists()) {
             final filename = path.replaceAll('/', '_').replaceAll('\\', '_');
             await src.copy('${backupDir.path}/$filename');
-            metadata['files'] = (metadata['files'] as List? ?? [])..add(filename);
+            metadata['files'] = ((metadata['files'] as List?) ?? [])..add(filename);
           }
         }
       }

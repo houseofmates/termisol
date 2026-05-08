@@ -291,6 +291,7 @@ class MainActivity : FlutterActivity() {
     override fun onDestroy() {
         super.onDestroy()
         scope.cancel()
-        vrApi?.shutdown()
+        vrInitialized = false
+        // In full implementation: vrApi?.shutdown()
     }
 }

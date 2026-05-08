@@ -1,8 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
+/// Custom exception for AI suggestion failures
+class AISuggestionException implements Exception {
+  final String message;
+  const AISuggestionException(this.message);
+  
+  @override
+  String toString() => 'AISuggestionException: $message';
+}
 
 /// Context-Aware AI Suggestions with NVIDIA NIM integration
 class ContextAwareAISuggestions {

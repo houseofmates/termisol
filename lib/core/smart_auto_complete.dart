@@ -12,6 +12,10 @@ class SmartAutoComplete {
     return [];
   }
 
+  void addToHistory(String command) {
+    // Stub implementation
+  }
+
   List<String> get recentCommands => _recentCommands;
   Map<String, int> get commandFrequency => _commandFrequency;
 

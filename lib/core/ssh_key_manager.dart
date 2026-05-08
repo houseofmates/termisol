@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:crypto/crypto.dart';
 import 'package:pointycastle/pointycastle.dart';
+import 'package:pointycastle/export.dart';
 
 /// SSH Key Manager with Agent Support
 /// 
@@ -791,16 +792,71 @@ MHcCAQEEI${_generateRandomString(128)}
   }
 
   String _encryptData(String data, String passphrase) {
-    // Simplified encryption (in reality would use proper encryption)
-    final key = utf8.encode(passphrase);
-    final bytes = utf8.encode(data);
-    
-    final encrypted = <int>[];
-    for (int i = 0; i < bytes.length; i++) {
-      encrypted.add(bytes[i] ^ key[i % key.length]);
+    try {
+      final salt = _secureRandom(16);
+      final nonce = _secureRandom(12);
+      final key = _deriveKey(passphrase, salt);
+
+      final params = AEADParameters(KeyParameter(key), 128, nonce, Uint8List(0));
+      final cipher = GCMBlockCipher(AESEngine());
+      cipher.init(true, params);
+
+      final input = utf8.encode(data);
+      final output = Uint8List(cipher.getOutputSize(input.length));
+      var offset = cipher.processBytes(Uint8List.fromList(input), 0, input.length, output, 0);
+      cipher.doFinal(output, offset);
+
+      // Combine: salt(16) + nonce(12) + ciphertext+tag
+      final result = Uint8List(salt.length + nonce.length + output.length);
+      result.setAll(0, salt);
+      result.setAll(salt.length, nonce);
+      result.setAll(salt.length + nonce.length, output);
+
+      return base64Encode(result);
+    } catch (e) {
+      debugPrint('❌ Encryption failed: $e');
+      throw Exception('Failed to encrypt SSH key: $e');
     }
-    
-    return base64Encode(encrypted);
+  }
+
+  String _decryptData(String encryptedData, String passphrase) {
+    try {
+      final bytes = base64Decode(encryptedData);
+
+      if (bytes.length < 28) {
+        throw Exception('Invalid encrypted data: too short');
+      }
+
+      final salt = bytes.sublist(0, 16);
+      final nonce = bytes.sublist(16, 28);
+      final ciphertext = bytes.sublist(28);
+
+      final key = _deriveKey(passphrase, salt);
+
+      final params = AEADParameters(KeyParameter(key), 128, nonce, Uint8List(0));
+      final cipher = GCMBlockCipher(AESEngine());
+      cipher.init(false, params);
+
+      final output = Uint8List(cipher.getOutputSize(ciphertext.length));
+      var offset = cipher.processBytes(ciphertext, 0, ciphertext.length, output, 0);
+      cipher.doFinal(output, offset);
+
+      return utf8.decode(output);
+    } catch (e) {
+      debugPrint('❌ Decryption failed: $e');
+      throw Exception('Failed to decrypt SSH key: invalid passphrase or corrupted data');
+    }
+  }
+
+  Uint8List _deriveKey(String passphrase, Uint8List salt) {
+    final derivator = PBKDF2KeyDerivator(HMac(SHA256Digest(), 64));
+    derivator.init(Pbkdf2Parameters(salt, 100000, 32));
+    return derivator.process(Uint8List.fromList(utf8.encode(passphrase)));
+  }
+
+  Uint8List _secureRandom(int length) {
+    final random = math.Random.secure();
+    return Uint8List.fromList(List<int>.generate(length, (_) => random.nextInt(256)));
   }
 
   String _generateRandomString(int length) {

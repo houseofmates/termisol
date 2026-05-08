@@ -73,7 +73,7 @@ class ContextAwareAISuggestions {
   }) async {
     // Validate inputs
     if (!_isInitialized) {
-      throw AISuggestionException('AI Suggestions not initialized. Call initialize() first.');
+      throw const AISuggestionException('AI Suggestions not initialized. Call initialize() first.');
     }
     
     if (currentCommand.isEmpty) {
@@ -81,7 +81,7 @@ class ContextAwareAISuggestions {
     }
     
     if (currentDirectory.isEmpty) {
-      throw AISuggestionException('Current directory cannot be empty');
+      throw const AISuggestionException('Current directory cannot be empty');
     }
     
     if (commandHistory.length > 1000) {

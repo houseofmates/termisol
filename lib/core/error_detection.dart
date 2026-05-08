@@ -396,7 +396,7 @@ Format as JSON array:
   String _substituteCommand(String template, DetectedError error) {
     var command = template;
     
-    // Substitute common placeholders
+    // Substitute common error patterns
     command = command.replaceAll('{original_command}', error.command ?? '');
     command = command.replaceAll('{file}', _extractFileFromError(error.output));
     command = command.replaceAll('{user}', Platform.environment['USER'] ?? 'user');

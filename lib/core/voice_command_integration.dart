@@ -523,7 +523,7 @@ class VoiceCommandIntegration {
       final match = regex.firstMatch(transcription);
       
       if (match != null) {
-        // Replace placeholders with actual values
+        // Replace parameter references with actual values
         String commandString = pattern.action;
         for (int i = 1; i < match.groupCount; i++) {
           commandString = commandString.replace('{$i}', match.group(i) ?? '');

@@ -20,7 +20,7 @@ class SmartAutoComplete {
     // Stub implementation
   }
 
-  Future<List<String>> getSuggestions(String partialCommand) async {
+  Future<List<CommandSuggestion>> getSuggestions(String partialCommand) async {
     // Stub implementation
     return [];
   }

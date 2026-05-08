@@ -14,15 +14,16 @@ import 'package:http/http.dart' as http;
 /// - Performance optimization and monitoring
 class NvidiaNimCommandPredictor {
   static const String _nimEndpoint = 'https://integrate.api.nvidia.com/v1/chat/completions';
-  static const String _apiKey = 'YOUR_NVIDIA_API_KEY'; // Should be configured
   static const Duration _requestTimeout = Duration(seconds: 10);
   static const int _maxTokens = 2048;
   static const double _temperature = 0.7;
-  
+
+  String? _apiKey;
+
   final Map<String, List<CommandPrediction>> _predictionCache = {};
   final List<CommandHistory> _commandHistory = [];
   final Map<String, ModelInfo> _availableModels = {};
-  
+
   String _selectedModel = 'nvidia/nemotron-4-340b-instruct';
   bool _isInitialized = false;
   int _totalPredictions = 0;
@@ -30,8 +31,21 @@ class NvidiaNimCommandPredictor {
   double _totalResponseTime = 0.0;
 
   NvidiaNimCommandPredictor() {
+    _loadApiKey();
     _initializePredictor();
   }
+
+  /// Load API key from environment variables.
+  /// Hardcoded placeholders are a security risk and have been removed.
+  void _loadApiKey() {
+    _apiKey = Platform.environment['NVIDIA_NIM_API_KEY'] ??
+              Platform.environment['NVIDIA_API_KEY'];
+    if (_apiKey == null || _apiKey!.isEmpty) {
+      debugPrint('⚠️ NVIDIA NIM API key not configured. Set NVIDIA_NIM_API_KEY or NVIDIA_API_KEY environment variable.');
+    }
+  }
+
+  bool get _apiKeyConfigured => _apiKey != null && _apiKey!.isNotEmpty;
 
   /// Initialize the predictor
   Future<void> _initializePredictor() async {
@@ -45,6 +59,10 @@ class NvidiaNimCommandPredictor {
 
   /// Load available models from NVIDIA NIM
   Future<void> _loadAvailableModels() async {
+    if (!_apiKeyConfigured) {
+      debugPrint('⚠️ Skipping model loading: NVIDIA NIM API key not configured');
+      return;
+    }
     try {
       final response = await http.get(
         Uri.parse('https://integrate.api.nvidia.com/v1/models'),
@@ -100,6 +118,9 @@ class NvidiaNimCommandPredictor {
       );
 
       // Call NVIDIA NIM API
+      if (!_apiKeyConfigured) {
+        return _getFallbackPredictions(currentInput, recentCommands);
+      }
       final predictions = await _callNimAPI(context, maxSuggestions);
       
       // Cache results

@@ -277,6 +277,10 @@ Focus on:
   }
 
   Future<String> _callNVIDIA(String prompt) async {
+    if (_apiKey == null) {
+      throw AISuggestionException('NVIDIA API key not initialized');
+    }
+    
     final response = await http.post(
       Uri.parse(_nimEndpoint),
       headers: {

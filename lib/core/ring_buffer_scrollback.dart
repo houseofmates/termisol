@@ -33,7 +33,7 @@ class RingBufferScrollback {
     this.maxLines = 50000,
     this.compressionThreshold = 10000,
     this.gcThreshold = 75000,
-  }) : _buffer = List<TerminalLine>.filled(maxLines) {
+  }) : _buffer = List<TerminalLine>.filled(maxLines, TerminalLine.fromText('')) {
     _startGcTimer();
   }
 
@@ -166,12 +166,13 @@ class RingBufferScrollback {
     try {
       final text = line.getText();
       final compressed = gzip.encode(utf8.encode(text));
-      _compressedLines[index] = compressed;
+      final compressedBytes = Uint8List.fromList(compressed);
+      _compressedLines[index] = compressedBytes;
       
       // Replace with compressed placeholder
       _buffer[index] = TerminalLine.compressed(
         index: index,
-        compressedData: compressed,
+        compressedData: compressedBytes,
         originalLength: text.length,
       );
     } catch (e) {
@@ -228,7 +229,7 @@ class RingBufferScrollback {
       
       for (final key in keysToRemove) {
         _compressedLines.remove(key);
-        _buffer[key] = null; // Clear the reference
+        _buffer[key] = TerminalLine.fromText(''); // Clear the reference
       }
       
       debugPrint('[scrollback] GC removed $linesToRemove old compressed lines');

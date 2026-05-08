@@ -1,23 +1,18 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../ai/nvidia_ai_terminal_assistant.dart';
-import '../core/performance_enforcer.dart';
+import '../core/service_registry.dart';
 import '../core/terminal_session.dart';
 import '../backends/local_backend.dart';
 import '../production_fps_overlay.dart';
 import '../config/pkm_theme.dart';
 
-/// Enhanced home screen with core terminal functionality
+/// Home screen with core terminal functionality.
+/// Services are pulled lazily from the registry on first use.
 class HomeScreen extends StatefulWidget {
-  final NvidiaAITerminalAssistant aiAssistant;
-  final PerformanceEnforcer performanceEnforcer;
-  
-  const HomeScreen({
-    super.key,
-    required this.aiAssistant,
-    required this.performanceEnforcer,
-  });
+  final ServiceRegistry registry;
+
+  const HomeScreen({super.key, required this.registry});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -28,21 +23,19 @@ class _HomeScreenState extends State<HomeScreen> {
   final Map<int, FocusNode> _tabFocusNodes = {};
   int _activeTab = 0;
   bool _showFps = false;
-  
+
+  /// Lazily get the AI assistant; returns null if disabled or failed.
+  dynamic get _ai => widget.registry.get(TermisolFeatures.aiAssistant);
+
+  /// Lazily get performance enforcer.
+  dynamic get _perf => widget.registry.get(TermisolFeatures.performanceMonitoring);
+
   @override
   void initState() {
     super.initState();
-    
-    // Initialize AI assistant
-    widget.aiAssistant.initialize();
-    
-    // Setup performance monitoring
-    widget.performanceEnforcer.addListener(_onPerformanceUpdate);
-    
-    // Create initial tab
     _createInitialTab();
   }
-  
+
   void _createInitialTab() {
     final session = TerminalSession(
       id: 0,
@@ -50,29 +43,20 @@ class _HomeScreenState extends State<HomeScreen> {
       backend: LocalBackend(),
       onAiQuery: _handleAiQuery,
     );
-    
+
     _tabs.add(session);
     _tabFocusNodes[0] = FocusNode();
     _activeTab = 0;
   }
-  
+
   void _handleAiQuery(String query) {
-    // Handle AI queries
-    widget.aiAssistant.processQuery(query);
+    _ai?.processQuery(query);
   }
-  
-  void _onPerformanceUpdate() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-  
+
   void _toggleFps() {
-    setState(() {
-      _showFps = !_showFps;
-    });
+    setState(() => _showFps = !_showFps);
   }
-  
+
   void _addTab() {
     final newTab = TerminalSession(
       id: _tabs.length,
@@ -80,22 +64,19 @@ class _HomeScreenState extends State<HomeScreen> {
       backend: LocalBackend(),
       onAiQuery: _handleAiQuery,
     );
-    
+
     setState(() {
       _tabs.add(newTab);
       _tabFocusNodes[newTab.id] = FocusNode();
       _activeTab = newTab.id;
     });
-    
+
     _tabFocusNodes[newTab.id]?.requestFocus();
   }
-  
+
   void _switchTab(int index) {
     if (index >= 0 && index < _tabs.length) {
-      setState(() {
-        _activeTab = index;
-      });
-      
+      setState(() => _activeTab = index);
       _tabFocusNodes[index]?.requestFocus();
     }
   }

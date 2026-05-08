@@ -1,6 +1,5 @@
 package com.termisol
 
-import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -20,6 +19,7 @@ class MainActivity : FlutterActivity() {
     private val EYE_TRACKING_CHANNEL = "com.termisol/vr/eye_tracking"
     private val DEVICE_DETECTION_CHANNEL = "com.termisol/vr/device_detection"
 
+    private var vrAppFramework: VrAppFramework? = null
     private var vrInitialized = false
     private var handTrackingSink: EventChannel.EventSink? = null
     private var eyeTrackingSink: EventChannel.EventSink? = null
@@ -29,7 +29,7 @@ class MainActivity : FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        checkVrPermissions()
+        requestVrPermissions()
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -46,44 +46,36 @@ class MainActivity : FlutterActivity() {
             }
         }
 
-        // Hand tracking event channel
         EventChannel(flutterEngine.dartExecutor.binaryMessenger, HAND_TRACKING_CHANNEL).setStreamHandler(
             object : EventChannel.StreamHandler {
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                     handTrackingSink = events
                     startHandTrackingUpdates()
                 }
-
                 override fun onCancel(arguments: Any?) {
                     handTrackingSink = null
-                    stopHandTrackingUpdates()
                 }
             }
         )
 
-        // Eye tracking event channel
         EventChannel(flutterEngine.dartExecutor.binaryMessenger, EYE_TRACKING_CHANNEL).setStreamHandler(
             object : EventChannel.StreamHandler {
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                     eyeTrackingSink = events
                     startEyeTrackingUpdates()
                 }
-
                 override fun onCancel(arguments: Any?) {
                     eyeTrackingSink = null
-                    stopEyeTrackingUpdates()
                 }
             }
         )
 
-        // Device detection event channel
         EventChannel(flutterEngine.dartExecutor.binaryMessenger, DEVICE_DETECTION_CHANNEL).setStreamHandler(
             object : EventChannel.StreamHandler {
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                     deviceDetectionSink = events
                     sendDeviceInfo()
                 }
-
                 override fun onCancel(arguments: Any?) {
                     deviceDetectionSink = null
                 }
@@ -91,18 +83,16 @@ class MainActivity : FlutterActivity() {
         )
     }
 
-    private fun checkVrPermissions() {
+    private fun requestVrPermissions() {
         val permissions = arrayOf(
             "com.oculus.permission.HAND_TRACKING",
             "com.oculus.permission.EYE_TRACKING"
         )
-
-        val missingPermissions = permissions.filter {
+        val missing = permissions.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
-
-        if (missingPermissions.isNotEmpty()) {
-            ActivityCompat.requestPermissions(this, missingPermissions.toTypedArray(), 100)
+        if (missing.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, missing.toTypedArray(), 100)
         }
     }
 
@@ -114,31 +104,18 @@ class MainActivity : FlutterActivity() {
     private fun initializeVr(result: MethodChannel.Result) {
         try {
             if (!isVrSupported()) {
-                result.success(mapOf(
-                    "success" to false,
-                    "error" to "VR not supported on this device"
-                ))
+                result.success(mapOf("success" to false, "error" to "VR not supported on this device"))
                 return
             }
 
-            // Initialize VR framework
-            // Note: In a full implementation, this would initialize the Oculus VR API
-            // For now, we'll simulate successful initialization
+            vrAppFramework = VrAppFramework()
             vrInitialized = true
 
-            val deviceInfo = getDeviceInfo()
-            result.success(mapOf(
-                "success" to true,
-                "deviceInfo" to deviceInfo
-            ))
-
+            result.success(mapOf("success" to true, "deviceInfo" to getDeviceInfo()))
             Log.i(TAG, "VR initialized successfully")
         } catch (e: Exception) {
             Log.e(TAG, "VR initialization failed", e)
-            result.success(mapOf(
-                "success" to false,
-                "error" to e.message
-            ))
+            result.success(mapOf("success" to false, "error" to e.message))
         }
     }
 
@@ -148,7 +125,7 @@ class MainActivity : FlutterActivity() {
                 result.success(false)
                 return
             }
-            // In full implementation: enter VR mode via Oculus SDK
+            vrAppFramework?.enterVrMode(this)
             result.success(true)
             Log.i(TAG, "VR session started")
         } catch (e: Exception) {
@@ -163,7 +140,7 @@ class MainActivity : FlutterActivity() {
                 result.success(false)
                 return
             }
-            // In full implementation: exit VR mode via Oculus SDK
+            vrAppFramework?.exitVrMode()
             result.success(true)
             Log.i(TAG, "VR session stopped")
         } catch (e: Exception) {
@@ -176,16 +153,14 @@ class MainActivity : FlutterActivity() {
         try {
             val patternData = call.argument<Map<String, Any>>("pattern")
             if (patternData != null && vrInitialized) {
-                val amplitude = (patternData["amplitude"] as? Double) ?: 1.0
-                val pattern = (patternData["pattern"] as? List<Int>) ?: emptyList()
-
-                // In full implementation: trigger haptic feedback via Oculus SDK
+                val amplitude = (patternData["amplitude"] as? Double)?.toFloat() ?: 1.0f
+                vrAppFramework?.triggerHapticFeedback(amplitude)
                 Log.d(TAG, "Haptic feedback triggered with amplitude: $amplitude")
             }
             result.success(null)
         } catch (e: Exception) {
             Log.e(TAG, "Haptic feedback failed", e)
-            result.success(null) // Don't fail for haptic feedback
+            result.success(null)
         }
     }
 
@@ -194,15 +169,14 @@ class MainActivity : FlutterActivity() {
             packageManager.hasSystemFeature("oculus.hardware.quest_3s") -> "quest3s"
             packageManager.hasSystemFeature("oculus.hardware.quest_3") -> "quest3"
             packageManager.hasSystemFeature("oculus.hardware.quest_2") -> "quest2"
-            else -> "quest" // Generic Quest device
+            else -> "quest"
         }
-
         return mapOf(
             "deviceType" to deviceType,
             "supportsHandTracking" to packageManager.hasSystemFeature("oculus.software.handtracking"),
             "supportsEyeTracking" to packageManager.hasSystemFeature("oculus.software.eyetracking"),
             "supportsSpatialAudio" to packageManager.hasSystemFeature("oculus.software.spatial_audio"),
-            "displayRefreshRate" to 90.0 // Quest default
+            "displayRefreshRate" to 90.0
         )
     }
 
@@ -220,78 +194,40 @@ class MainActivity : FlutterActivity() {
         scope.launch {
             while (handTrackingSink != null && vrInitialized) {
                 try {
-                    // In full implementation: get real hand tracking data from Oculus SDK
-                    // For now, provide mock data that matches the expected structure
-                    val mockHandData = mapOf(
-                        "leftHand" to mapMockHandData(true, 200.0, 300.0),
-                        "rightHand" to mapMockHandData(true, 600.0, 300.0),
-                        "confidence" to 0.95
-                    )
-                    handTrackingSink?.success(mockHandData)
-                    delay(16) // ~60fps
+                    val handData = vrAppFramework?.pollHandTracking()
+                    if (handData != null) {
+                        handTrackingSink?.success(handData)
+                    }
+                    delay(16)
                 } catch (e: Exception) {
                     Log.e(TAG, "Hand tracking update failed", e)
-                    delay(1000) // Slow down on error
+                    delay(1000)
                 }
             }
         }
-    }
-
-    private fun stopHandTrackingUpdates() {
-        // Hand tracking stops when sink is null
     }
 
     private fun startEyeTrackingUpdates() {
         scope.launch {
             while (eyeTrackingSink != null && vrInitialized) {
                 try {
-                    // In full implementation: get real eye tracking data from Oculus SDK
-                    // For now, provide mock data that matches the expected structure
-                    val mockEyeData = mapOf(
-                        "gazePosition" to mapOf("x" to 400.0, "y" to 300.0),
-                        "pupilDilation" to 0.6,
-                        "leftEyeBlink" to false,
-                        "rightEyeBlink" to false,
-                        "confidence" to 0.9
-                    )
-                    eyeTrackingSink?.success(mockEyeData)
-                    delay(16) // ~60fps
+                    val eyeData = vrAppFramework?.pollEyeTracking()
+                    if (eyeData != null) {
+                        eyeTrackingSink?.success(eyeData)
+                    }
+                    delay(16)
                 } catch (e: Exception) {
                     Log.e(TAG, "Eye tracking update failed", e)
-                    delay(1000) // Slow down on error
+                    delay(1000)
                 }
             }
         }
-    }
-
-    private fun stopEyeTrackingUpdates() {
-        // Eye tracking stops when sink is null
-    }
-
-    private fun mapMockHandData(isLeft: Boolean, x: Double, y: Double): Map<String, Any> {
-        // Mock hand data that matches Flutter expectations
-        // In full implementation, this would map real Oculus SDK hand data
-        val fingers = (0..4).map { fingerIndex ->
-            mapOf(
-                "type" to fingerIndex,
-                "tipPosition" to mapOf("x" to x + fingerIndex * 20.0, "y" to y),
-                "confidence" to 0.9
-            )
-        }
-
-        return mapOf(
-            "position" to mapOf("x" to x, "y" to y),
-            "confidence" to 0.95,
-            "gesture" to 1, // HandGesture.open
-            "fingers" to fingers,
-            "isTracked" to true
-        )
     }
 
     override fun onDestroy() {
         super.onDestroy()
         scope.cancel()
         vrInitialized = false
-        // In full implementation: vrApi?.shutdown()
+        vrAppFramework?.shutdown()
     }
 }

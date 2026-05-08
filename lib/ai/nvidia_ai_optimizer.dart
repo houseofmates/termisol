@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'nvidia_ai_optimizer_classes.dart';
 
 /// Custom exception for optimization failures
 class OptimizationException implements Exception {

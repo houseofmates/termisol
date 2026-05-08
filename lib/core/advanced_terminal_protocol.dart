@@ -288,12 +288,8 @@ class AdvancedTerminalProtocol {
     final data = match.group(2)!;
 
     switch (command) {
-      case 0: case 2: // Set window title and icon name
+      case 0: case 2: // Set window title
         _windowTitle = data;
-        _iconName = data;
-        break;
-      case 1: // Set icon name
-        _iconName = data;
         break;
       case 52: // Clipboard operations
         _handleClipboard(data);

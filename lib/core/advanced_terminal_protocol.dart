@@ -584,16 +584,21 @@ class AdvancedTerminalProtocol {
     }
   }
   
-  void _handleCursorStorage(String command) {
-    if (command == 's') {
-      _saveCursor();
-    } else if (command == 'u') {
-      _restoreCursor();
-    }
-  }
-  
+   void _handleCursorStorage(String command) {
+     if (command == 's') {
+       _controller.saveCursor();
+     } else if (command == 'u') {
+       _controller.restoreCursor();
+     }
+   }
 
-  }
+   void _saveCursor() {
+     _controller.saveCursor();
+   }
+
+   void _restoreCursor() {
+     _controller.restoreCursor();
+   }
   
   void _handleHyperlink(String data) {
     final parts = data.split(';');

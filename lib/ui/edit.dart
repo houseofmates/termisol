@@ -100,6 +100,7 @@ class _EditTerminalState extends State<EditTerminal> {
   bool _multiCursorMode = false;
   static const int _maxCursors = 50; // Limit cursors for performance
   bool _isAIEnabled = false; // Add AI enable/disable flag
+  bool _isApplyingRemoteOperation = false; // Prevent operation loops
   
   // Search
   bool _showSearch = false;

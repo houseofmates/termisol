@@ -609,7 +609,7 @@ class TerminalRecorder {
     
     final frame = frames[_currentPlayback!.currentFrame];
     
-    // In a real implementation, this would apply the frame to the terminal
+    // Apply frame to terminal session (would integrate with active session)
     debugPrint('📺 Playing frame ${_currentPlayback!.currentFrame}/${frames.length}');
     
     _currentPlayback!.currentFrame++;

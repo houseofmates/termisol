@@ -2630,43 +2630,6 @@ Once configured, I'll provide intelligent assistance based on your file context.
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.people, size: 14, color: Colors.green[300]),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${_activeCollaborators.length + 1} users',
-                                style: TextStyle(
-                                  color: Colors.green[300],
-                                  fontSize: 10,
-                                  fontFamily: _fontFamily,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      // Multi-cursor status indicator
-                      if (_multiCursorMode)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.call_split, size: 14, color: Colors.orange[300]),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${_cursors.length + 1} cursors',
-                                style: TextStyle(
-                                  color: Colors.orange[300],
-                                  fontSize: 10,
-                                  fontFamily: _fontFamily,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       IconButton(
                         onPressed: () => setState(() => _showSettings = !_showSettings),
                         icon: Icon(Icons.settings, size: 16, color: Colors.grey[400]),

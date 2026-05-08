@@ -110,6 +110,7 @@ class TerminalSession extends ChangeNotifier {
     _crashRecovery = CrashRecovery();
     _commandNotifier = LongCommandNotifier();
     _pluginSystem = TermisolPluginSystem();
+    bracketedPaste = BracketedPasteManager(terminal, controller);
     
     // Start health monitoring and auto-save
       _crashRecovery.startHealthMonitoring();

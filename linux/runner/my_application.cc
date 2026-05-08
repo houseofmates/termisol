@@ -50,14 +50,44 @@ static void on_headerbar_dictate(GtkButton* button, MyApplication* self) {
                                   nullptr, nullptr, nullptr);
 }
 
+// Context menu callbacks for terminal operations
+static void on_menu_copy(GtkMenuItem* item, MyApplication* self) {
+  if (self->channel == nullptr) return;
+  g_autoptr(FlValue) args = fl_value_new_string("copy");
+  fl_method_channel_invoke_method(self->channel, "headerbar_action", args,
+                                  nullptr, nullptr, nullptr);
+}
+
+static void on_menu_paste(GtkMenuItem* item, MyApplication* self) {
+  if (self->channel == nullptr) return;
+  g_autoptr(FlValue) args = fl_value_new_string("paste");
+  fl_method_channel_invoke_method(self->channel, "headerbar_action", args,
+                                  nullptr, nullptr, nullptr);
+}
+
+static void on_menu_select_all(GtkMenuItem* item, MyApplication* self) {
+  if (self->channel == nullptr) return;
+  g_autoptr(FlValue) args = fl_value_new_string("selectAll");
+  fl_method_channel_invoke_method(self->channel, "headerbar_action", args,
+                                  nullptr, nullptr, nullptr);
+}
+
+static void add_menu_item(GtkWidget* menu, const gchar* label,
+                          GCallback callback, MyApplication* self) {
+  GtkWidget* item = gtk_menu_item_new_with_label(label);
+  g_signal_connect(item, "activate", callback, self);
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+}
+
 static gboolean on_btn_box_button_press(GtkWidget* widget,
                                         GdkEventButton* event,
                                         MyApplication* self) {
   if (event->button == 3 && self->channel != nullptr) {
     GtkWidget* menu = gtk_menu_new();
-    GtkWidget* item = gtk_menu_item_new_with_label("new tab");
-    g_signal_connect(item, "activate", G_CALLBACK(on_headerbar_newtab), self);
-    gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+    add_menu_item(menu, "new tab", G_CALLBACK(on_headerbar_newtab), self);
+    add_menu_item(menu, "copy", G_CALLBACK(on_menu_copy), self);
+    add_menu_item(menu, "paste", G_CALLBACK(on_menu_paste), self);
+    add_menu_item(menu, "select all", G_CALLBACK(on_menu_select_all), self);
     gtk_widget_show_all(menu);
     gtk_menu_popup_at_pointer(GTK_MENU(menu), (GdkEvent*)event);
     return TRUE;
@@ -76,7 +106,10 @@ static void my_application_activate(GApplication* application) {
   GdkScreen* screen = gtk_window_get_screen(window);
   if (GDK_IS_X11_SCREEN(screen)) {
     const gchar* wm_name = gdk_x11_screen_get_window_manager_name(screen);
-    if (g_strcmp0(wm_name, "GNOME Shell") != 0) {
+    // Enable CSD on GNOME and Pantheon (Elementary OS)
+    if (g_strcmp0(wm_name, "GNOME Shell") != 0 &&
+        g_strcmp0(wm_name, "Mutter") != 0 &&
+        g_strcmp0(wm_name, "Pantheon") != 0) {
       use_header_bar = FALSE;
     }
   }
@@ -86,11 +119,11 @@ static void my_application_activate(GApplication* application) {
   if (use_header_bar) {
     header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
     gtk_widget_show(GTK_WIDGET(header_bar));
-    gtk_header_bar_set_title(header_bar, "termisol");
+    gtk_header_bar_set_title(header_bar, "Termisol");
     gtk_header_bar_set_show_close_button(header_bar, TRUE);
     gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
   } else {
-    gtk_window_set_title(window, "termisol");
+    gtk_window_set_title(window, "Termisol");
   }
 
   gtk_window_set_default_size(window, 1280, 720);
@@ -201,6 +234,9 @@ static void my_application_dispose(GObject* object) {
   if (self->channel != nullptr) {
     g_object_unref(self->channel);
     self->channel = nullptr;
+  }
+  if (self->view != nullptr) {
+    self->view = nullptr;
   }
   G_OBJECT_CLASS(my_application_parent_class)->dispose(object);
 }

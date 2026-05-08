@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
-import 'dart:developer' as developer;
-import 'package:logging/logging.dart';
+import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:logging/logging.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 /// Production-grade error handling system for Termisol
@@ -698,4 +701,71 @@ class ErrorAlert {
     this.context,
     required this.severity,
   });
+}
+
+/// Missing helper functions for robust error handler
+extension RobustErrorHandlerHelpers on RobustErrorHandler {
+  
+  /// Clear old log files
+  Future<void> _clearOldLogFiles() async {
+    try {
+      final documentsDir = await getApplicationDocumentsDirectory();
+      final logDir = Directory('${documentsDir.path}/logs');
+      
+      if (await logDir.exists()) {
+        await for (final entity in logDir.list()) {
+          if (entity is File && entity.path.endsWith('.log')) {
+            final stat = await entity.stat();
+            final age = DateTime.now().difference(stat.modified);
+            if (age.inDays > 7) {
+              await entity.delete();
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to clear old log files: $e');
+    }
+  }
+  
+  /// Reinitialize critical connections
+  Future<void> _reinitializeCriticalConnections() async {
+    try {
+      // Reset connection pool
+      _connectionPool.clear();
+      
+      // Test basic connectivity
+      await _testBasicConnectivity();
+      
+      debugPrint('Critical connections reinitialized');
+    } catch (e) {
+      debugPrint('Failed to reinitialize connections: $e');
+    }
+  }
+  
+  /// Test basic connectivity
+  Future<bool> _testBasicConnectivity() async {
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } catch (e) {
+      debugPrint('Connectivity test failed: $e');
+      return false;
+    }
+  }
+  
+  /// Get current memory usage
+  Map<String, dynamic> _getCurrentMemoryUsage() {
+    try {
+      final imageCache = PaintingBinding.instance.imageCache;
+      return {
+        'imageCacheSize': imageCache.currentSize,
+        'imageCacheBytes': imageCache.currentSizeBytes,
+        'liveByteCount': -1, // Not available in all environments
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+    } catch (e) {
+      return {'error': e.toString(), 'timestamp': DateTime.now().toIso8601String()};
+    }
+  }
 }

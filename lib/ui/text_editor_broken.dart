@@ -1381,7 +1381,7 @@ class _TextEditorState extends State<TextEditor> {
                               // Multi-cursor options
                               _buildContextMenuItem(
                                 icon: Icons.control_point,
-                                label: 'Add Cursor Here',
+                                label: 'Add Cursor Here (Alt+Click)',
                                 onPressed: () {
                                   _hideContextMenu();
                                   _addCursorAtPosition(_contextMenuPosition);

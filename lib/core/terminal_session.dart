@@ -76,6 +76,9 @@ class TerminalSession extends ChangeNotifier {
   /// Focus manager for bracketed paste integration.
   late final FocusManager focusManager;
 
+  /// TrueColor manager for 24-bit color support.
+  late final TrueColorManager trueColor;
+
   /// Called whenever data is received from the backend.
   /// Useful for monitoring output to detect errors or context changes.
   void Function(String output)? onOutputReceived;

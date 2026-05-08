@@ -763,11 +763,13 @@ class GraphicsProtocolState {
   bool kittyProtocolEnabled = true;
   bool sixelEnabled = true;
   bool alphaChannelEnabled = true;
+  Color? currentColor;
 
   GraphicsProtocolState({
     this.trueColorEnabled = true,
     this.kittyProtocolEnabled = true,
     this.sixelEnabled = true,
     this.alphaChannelEnabled = true,
+    this.currentColor,
   });
 }

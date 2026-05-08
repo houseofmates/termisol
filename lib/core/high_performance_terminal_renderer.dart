@@ -4,299 +4,273 @@ import 'dart:typed_data';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'production_gpu_renderer.dart';
 
-/// High-performance terminal renderer with CustomPainter and damage tracking
-/// 
-/// Replaces the slow xterm package widget-based rendering with a retained
-/// grid system that only redraws changed regions (damage tracking).
-class HighPerformanceTerminalRenderer {
+/// High-performance terminal renderer extending [CustomPainter].
+///
+/// Paints directly to [Canvas] using cached [Paragraph] objects per unique
+/// style run. Damage tracking uses a list of [Rect] regions with merge
+/// and deduplication. The paragraph cache is bounded with LRU eviction.
+class HighPerformanceTerminalRenderer extends CustomPainter {
   final int columns;
   final int rows;
   final ProductionGpuRenderer gpuRenderer;
-  
+
   // Terminal buffer - character grid with styling
   final List<TerminalCell> _buffer;
   final List<TerminalCell> _previousBuffer;
-  
-  // Damage tracking
-  final Set<GridRegion> _dirtyRegions = {};
+
+  // Damage tracking using merged rects
+  final List<ui.Rect> _dirtyRects = [];
   bool _fullRedrawNeeded = true;
-  
+
   // Rendering state
-  final TextPainter _textPainter = TextPainter();
   final Map<String, ui.Paragraph> _paragraphCache = {};
-  final Map<String, ui.Image> _imageCache = {};
-  
+  final List<String> _paragraphLru = [];
+
   // Performance metrics
   int _frameCount = 0;
   int _dirtyCellsLastFrame = 0;
-  final Stopwatch _frameTimer = Stopwatch()..start();
-  
+  final Stopwatch _frameTimer = Stopwatch();
+
   // Font measurement
   late final double _charWidth;
   late final double _charHeight;
-  late final double _lineHeight;
-  
+
+  static const int _maxParagraphCache = 2048;
+  static const String _fontFamily = 'Droid Sans Mono';
+  static const double _fontSize = 14.0;
+
   HighPerformanceTerminalRenderer({
     required this.columns,
     required this.rows,
     required this.gpuRenderer,
   }) : _buffer = List.generate(columns * rows, (_) => TerminalCell.empty()),
-       _previousBuffer = List.generate(columns * rows, (_) => TerminalCell.empty()) {
+       _previousBuffer = List.generate(columns * rows, (_) => TerminalCell.empty()),
+       super(repaint: null) {
     _initializeFontMetrics();
   }
-  
+
   void _initializeFontMetrics() {
-    _textPainter.textDirection = TextDirection.ltr;
-    _textPainter.text = const TextSpan(
-      text: 'M',
-      style: TextStyle(
-        fontFamily: 'Droid Sans Mono',
-        fontSize: 14,
-        height: 1.0,
+    final textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+      text: const TextSpan(
+        text: 'M',
+        style: TextStyle(fontFamily: _fontFamily, fontSize: _fontSize, height: 1.0),
       ),
     );
-    _textPainter.layout();
-    
-    _charWidth = _textPainter.width;
-    _charHeight = _textPainter.height;
-    _lineHeight = _charHeight * 1.2; // Add some line spacing
+    textPainter.layout();
+    _charWidth = textPainter.width;
+    _charHeight = textPainter.height;
+    textPainter.dispose();
   }
-  
-  /// Write text to the terminal buffer
-  void write(String text, {
-    int? col, 
-    int? row, 
-    TerminalStyle? style,
-    bool moveCursor = true,
-  }) {
+
+  /// Write text to the terminal buffer.
+  void write(String text, {int? col, int? row, TerminalStyle? style}) {
     final lines = text.split('\n');
-    
     for (int lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       final line = lines[lineIndex];
       final currentRow = (row ?? 0) + lineIndex;
-      
       if (currentRow >= rows) break;
-      
       final startCol = lineIndex == 0 ? (col ?? 0) : 0;
       for (int i = 0; i < line.length && startCol + i < columns; i++) {
         final bufferIndex = currentRow * columns + startCol + i;
-        if (bufferIndex < _buffer.length) {
-          final oldCell = _buffer[bufferIndex];
-          _buffer[bufferIndex] = TerminalCell(
-            char: line[i],
-            style: style ?? TerminalStyle.defaultStyle(),
-          );
-          
-          // Mark as dirty if changed
-          if (oldCell != _buffer[bufferIndex]) {
-            _markDirty(startCol + i, currentRow);
-          }
+        if (bufferIndex >= _buffer.length) continue;
+        final oldCell = _buffer[bufferIndex];
+        final newCell = TerminalCell(char: line[i], style: style ?? TerminalStyle.defaultStyle());
+        if (oldCell != newCell) {
+          _buffer[bufferIndex] = newCell;
+          _markDirty(startCol + i, currentRow);
         }
       }
     }
   }
-  
-  /// Clear the terminal buffer
+
+  /// Clear the terminal buffer.
   void clear({TerminalStyle? style}) {
     for (int i = 0; i < _buffer.length; i++) {
       _buffer[i] = TerminalCell.empty(style: style);
-      _markDirtyByIndex(i);
     }
+    _fullRedrawNeeded = true;
+    _dirtyRects.clear();
   }
-  
-  /// Clear a rectangular region
+
+  /// Clear a rectangular region.
   void clearRegion(int col, int row, int width, int height, {TerminalStyle? style}) {
     for (int r = row; r < math.min(row + height, rows); r++) {
       for (int c = col; c < math.min(col + width, columns); c++) {
         final index = r * columns + c;
         if (index < _buffer.length) {
           _buffer[index] = TerminalCell.empty(style: style);
-          _markDirty(c, r);
         }
       }
     }
+    _markDirtyRect(col, row, width, height);
   }
-  
-  /// Mark a cell as dirty
+
   void _markDirty(int col, int row) {
-    _dirtyRegions.add(GridRegion(col, row, 1, 1));
+    _dirtyRects.add(ui.Rect.fromLTWH(col.toDouble(), row.toDouble(), 1.0, 1.0));
+    _mergeDirtyRects();
   }
-  
-  /// Mark a cell as dirty by buffer index
-  void _markDirtyByIndex(int index) {
-    final col = index % columns;
-    final row = index ~/ columns;
-    _markDirty(col, row);
+
+  void _markDirtyRect(int col, int row, int width, int height) {
+    _dirtyRects.add(ui.Rect.fromLTWH(col.toDouble(), row.toDouble(), width.toDouble(), height.toDouble()));
+    _mergeDirtyRects();
   }
-  
-  /// Mark entire buffer as dirty (full redraw)
-  void markFullRedraw() {
-    _fullRedrawNeeded = true;
-    _dirtyRegions.clear();
-  }
-  
-  /// Get dirty regions for rendering
-  List<GridRegion> getDirtyRegions() {
-    if (_fullRedrawNeeded) {
-      return [GridRegion(0, 0, columns, rows)];
-    }
-    
-    // Merge overlapping regions for efficiency
-    final merged = <GridRegion>[];
-    final regions = _dirtyRegions.toList();
-    
-    for (final region in regions) {
-      bool merged = false;
+
+  /// Merge overlapping dirty rects to reduce paint regions.
+  void _mergeDirtyRects() {
+    if (_dirtyRects.length < 2) return;
+    final merged = <ui.Rect>[];
+    for (final rect in _dirtyRects) {
+      bool absorbed = false;
       for (int i = 0; i < merged.length; i++) {
-        if (merged[i].intersects(region)) {
-          merged[i] = merged[i].merge(region);
-          merged = true;
+        if (merged[i].overlaps(rect)) {
+          merged[i] = merged[i].expandToInclude(rect);
+          absorbed = true;
           break;
         }
       }
-      if (!merged) {
-        merged.add(region);
-      }
+      if (!absorbed) merged.add(rect);
     }
-    
-    return merged;
+    _dirtyRects
+      ..clear()
+      ..addAll(merged);
   }
-  
-  /// Render the terminal to a canvas
-  void render(ui.Canvas canvas, Size size) {
+
+  /// Mark entire buffer as dirty.
+  void markFullRedraw() {
+    _fullRedrawNeeded = true;
+    _dirtyRects.clear();
+  }
+
+  @override
+  void paint(ui.Canvas canvas, ui.Size size) {
     _frameTimer.reset();
+    _frameTimer.start();
     _dirtyCellsLastFrame = 0;
-    
-    final dirtyRegions = getDirtyRegions();
-    
-    for (final region in dirtyRegions) {
-      _renderRegion(canvas, region, size);
-    }
-    
-    // Clear dirty regions for next frame
-    _dirtyRegions.clear();
-    _fullRedrawNeeded = false;
-    
-    // Copy current buffer to previous for diffing
-    _previousBuffer.setRange(0, _buffer.length, _buffer);
-    
-    _frameCount++;
-    _frameTimer.stop();
-    
-    // Update GPU renderer metrics
-    gpuRenderer.recordFrame(_frameTimer.elapsedMicroseconds / 1000.0);
-  }
-  
-  /// Render a specific region
-  void _renderRegion(ui.Canvas canvas, GridRegion region, Size size) {
+
     final cellWidth = size.width / columns;
     final cellHeight = size.height / rows;
-    
-    for (int row = region.row; row < region.row + region.height && row < rows; row++) {
-      for (int col = region.col; col < region.col + region.width && col < columns; col++) {
+
+    if (_fullRedrawNeeded) {
+      _renderRegion(canvas, 0, 0, columns, rows, cellWidth, cellHeight);
+    } else {
+      for (final rect in _dirtyRects) {
+        final startCol = math.max(rect.left.floor(), 0);
+        final endCol = math.min(rect.right.ceil(), columns);
+        final startRow = math.max(rect.top.floor(), 0);
+        final endRow = math.min(rect.bottom.ceil(), rows);
+        _renderRegion(canvas, startCol, startRow, endCol - startCol, endRow - startRow, cellWidth, cellHeight);
+      }
+    }
+
+    _dirtyRects.clear();
+    _fullRedrawNeeded = false;
+    _previousBuffer.setRange(0, _buffer.length, _buffer);
+
+    _frameCount++;
+    _frameTimer.stop();
+    gpuRenderer.recordFrame(_frameTimer.elapsedMicroseconds / 1000.0);
+  }
+
+  void _renderRegion(ui.Canvas canvas, int startCol, int startRow, int width, int height, double cellWidth, double cellHeight) {
+    for (int row = startRow; row < startRow + height && row < rows; row++) {
+      for (int col = startCol; col < startCol + width && col < columns; col++) {
         final index = row * columns + col;
         if (index >= _buffer.length) continue;
-        
         final cell = _buffer[index];
-        if (cell.char.isEmpty) continue;
-        
+        if (cell.char == ' ' || cell.char.isEmpty) continue;
         _dirtyCellsLastFrame++;
-        
-        // Calculate cell position
         final x = col * cellWidth;
         final y = row * cellHeight;
-        
-        // Draw background if needed
         if (cell.style.backgroundColor != null) {
-          final bgPaint = Paint()
-            ..color = cell.style.backgroundColor!;
           canvas.drawRect(
-            Rect.fromLTWH(x, y, cellWidth, cellHeight),
-            bgPaint,
+            ui.Rect.fromLTWH(x, y, cellWidth, cellHeight),
+            ui.Paint()..color = cell.style.backgroundColor!,
           );
         }
-        
-        // Draw character
         _renderCharacter(canvas, cell, x, y, cellWidth, cellHeight);
       }
     }
   }
-  
-  /// Render a single character
+
   void _renderCharacter(ui.Canvas canvas, TerminalCell cell, double x, double y, double width, double height) {
     final cacheKey = _getParagraphCacheKey(cell.char, cell.style);
     ui.Paragraph? paragraph = _paragraphCache[cacheKey];
-    
     if (paragraph == null) {
       paragraph = _createParagraph(cell.char, cell.style);
       _paragraphCache[cacheKey] = paragraph;
-      
-      // Limit cache size
-      if (_paragraphCache.length > 1000) {
-        final keysToRemove = _paragraphCache.keys.take(100);
-        for (final key in keysToRemove) {
-          _paragraphCache.remove(key);
-        }
+      _updateLru(cacheKey);
+      if (_paragraphCache.length > _maxParagraphCache) {
+        _evictOldestParagraphs(100);
       }
+    } else {
+      _updateLru(cacheKey);
     }
-    
-    canvas.drawParagraph(
-      paragraph,
-      Offset(x, y + (height - paragraph.height) / 2),
-    );
+    canvas.drawParagraph(paragraph, ui.Offset(x, y + (height - paragraph.height) / 2));
   }
-  
-  /// Create a text paragraph for rendering
+
   ui.Paragraph _createParagraph(String text, TerminalStyle style) {
     final builder = ui.ParagraphBuilder(ui.ParagraphStyle(
-      fontFamily: 'Droid Sans Mono',
-      fontSize: 14,
+      fontFamily: _fontFamily,
+      fontSize: _fontSize,
       height: 1.0,
       textDirection: TextDirection.ltr,
     ))
       ..pushStyle(ui.TextStyle(
-        color: style.foregroundColor ?? const Color(0xFFf7da88),
+        color: style.foregroundColor ?? const ui.Color(0xFFf7da88),
         backgroundColor: style.backgroundColor,
         fontWeight: style.bold ? FontWeight.bold : FontWeight.normal,
         fontStyle: style.italic ? FontStyle.italic : FontStyle.normal,
         decoration: style.underline ? TextDecoration.underline : TextDecoration.none,
       ))
       ..addText(text);
-    
     final paragraph = builder.build();
-    paragraph.layout(ui.ParagraphConstraints(width: double.infinity));
+    paragraph.layout(const ui.ParagraphConstraints(width: double.infinity));
     return paragraph;
   }
-  
-  /// Get cache key for paragraph
-  String _getParagraphCacheKey(String text, TerminalStyle style) {
-    return '${text}_${style.hashCode}';
+
+  void _updateLru(String key) {
+    _paragraphLru.remove(key);
+    _paragraphLru.add(key);
   }
-  
-  /// Get performance metrics
+
+  void _evictOldestParagraphs(int count) {
+    for (int i = 0; i < count && _paragraphLru.isNotEmpty; i++) {
+      final key = _paragraphLru.removeAt(0);
+      _paragraphCache.remove(key);
+    }
+  }
+
+  String _getParagraphCacheKey(String text, TerminalStyle style) {
+    return '${text.hashCode}_${style.foregroundColor?.value ?? 0}_${style.backgroundColor?.value ?? 0}_${style.bold}_${style.italic}_${style.underline}';
+  }
+
+  @override
+  bool shouldRepaint(covariant HighPerformanceTerminalRenderer oldDelegate) {
+    return true;
+  }
+
+  /// Get performance metrics.
   Map<String, dynamic> getMetrics() {
     return {
       'frameCount': _frameCount,
-      'lastFrameTime': _frameTimer.elapsedMicroseconds / 1000.0,
+      'lastFrameTimeMs': _frameTimer.elapsedMicroseconds / 1000.0,
       'dirtyCellsLastFrame': _dirtyCellsLastFrame,
       'paragraphCacheSize': _paragraphCache.length,
-      'imageCacheSize': _imageCache.length,
       'fullRedrawNeeded': _fullRedrawNeeded,
-      'dirtyRegionsCount': _dirtyRegions.length,
+      'dirtyRectsCount': _dirtyRects.length,
     };
   }
-  
-  /// Dispose resources
+
+  /// Dispose all resources.
   void dispose() {
-    _textPainter.dispose();
     _paragraphCache.clear();
-    _imageCache.clear();
+    _paragraphLru.clear();
     _buffer.clear();
     _previousBuffer.clear();
-    _dirtyRegions.clear();
+    _dirtyRects.clear();
   }
 }
 

@@ -76,15 +76,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _handleEditCommand(String filePath) async {
     if (!mounted) return;
+
+    String content = '';
+    try {
+      final file = File(filePath);
+      if (await file.exists()) {
+        content = await file.readAsString();
+      }
+    } catch (e, stack) {
+      debugPrint('edit: failed to read file: $e\n$stack');
+      content = '';
+    }
+
+    if (!mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => EditTerminal(
           filePath: filePath,
-          initialContent: '',
-          onSave: (content) async {
-            final file = File(filePath);
-            await file.writeAsString(content);
-          },
+          initialContent: content,
           onClose: () => Navigator.of(context).pop(),
         ),
       ),

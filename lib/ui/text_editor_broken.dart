@@ -1205,6 +1205,19 @@ class _TextEditorState extends State<TextEditor> {
                           return KeyEventResult.handled;
                         }
                         
+                        // Marks system
+                        if (event.logicalKey == LogicalKeyboardKey.keyM && HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.shiftLeft)) {
+                          // Set mark (Shift+M)
+                          _showSetMarkDialog();
+                          return KeyEventResult.handled;
+                        }
+                        
+                        if (event.logicalKey == LogicalKeyboardKey.quote && HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.shiftLeft)) {
+                          // Jump to mark (Shift+')
+                          _showJumpToMarkDialog();
+                          return KeyEventResult.handled;
+                        }
+                        
                         // Incremental search
                         if (event.logicalKey == LogicalKeyboardKey.slash && HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlLeft)) {
                           _startIncrementalSearch();

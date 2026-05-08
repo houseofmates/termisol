@@ -217,7 +217,7 @@ class SmartCommandChaining {
       if (patternsData != null) {
         final data = json.decode(patternsData) as Map<String, dynamic>;
         for (final entry in data.entries) {
-          final graph = CommandGraph.fromJson(entry.key, entry.value as Map<String, dynamic>);
+          final graph = CommandGraph.fromJson(entry.key, Map<String, dynamic>.from(entry.value as Map));
           _patterns[entry.key] = graph;
         }
       }

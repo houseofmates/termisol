@@ -21,7 +21,6 @@ Future<void> _setupErrorHandling() async {
       details.exception,
       details.stack,
       context: 'Flutter Error',
-      severity: ErrorSeverity.error,
     );
     _showErrorDialog(details.exceptionAsString());
   };
@@ -31,7 +30,6 @@ Future<void> _setupErrorHandling() async {
       error,
       stack,
       context: 'Platform Error',
-      severity: ErrorSeverity.error,
     );
     _showErrorDialog(error.toString());
     return true;
@@ -119,7 +117,7 @@ void main() async {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
 
   final registry = _registerServices();

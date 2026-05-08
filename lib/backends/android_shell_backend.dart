@@ -16,15 +16,19 @@ import '../core/pty_backend.dart';
 /// Because there is no real PTY on Android, this backend implements a simple
 /// line discipline: local echo, backspace handling, and \r -> \n translation.
 class AndroidShellBackend implements TermisolPtyBackend {
+  @override
+  final String name = 'Android Shell Backend';
   final String? workingDirectory;
   Process? _process;
   final _outputController = StreamController<List<int>>.broadcast();
   bool _isRunning = false;
+  bool _isDisposed = false;
   int _retryCount = 0;
   static const int _maxRetries = 3;
 
   // Line-discipline buffer for interactive use without a PTY.
   final StringBuffer _lineBuffer = StringBuffer();
+  final _writeLock = Object();
 
   @override
   Stream<List<int>> get output => _outputController.stream;
@@ -32,7 +36,7 @@ class AndroidShellBackend implements TermisolPtyBackend {
   AndroidShellBackend({this.workingDirectory});
 
   @override
-  Future<void> start({int cols = 80, int rows = 24}) async {
+  Future<void> start({int cols = 80, int rows = 24, String? workingDirectory}) async {
     final env = await _buildEnvironment(cols, rows);
     await _startProcess(env);
   }
@@ -54,9 +58,6 @@ class AndroidShellBackend implements TermisolPtyBackend {
     env['TMPDIR'] = tmpDir.path;
     env['SHELL'] = '/system/bin/sh';
 
-    // Build a comprehensive PATH. On Android 10+ core utilities live in
-    // APEX modules, so we must include those directories. We prepend our
-    // known directories to any existing PATH the runtime already set up.
     final existingPath = env['PATH'] ?? '';
     final paths = <String>[
       '/apex/com.android.runtime/bin',
@@ -73,7 +74,6 @@ class AndroidShellBackend implements TermisolPtyBackend {
       paths.insert(0, '/data/data/com.termux/files/usr/bin');
     }
     if (existingPath.isNotEmpty) {
-      // Append original PATH so we don't lose anything the runtime provided.
       paths.add(existingPath);
     }
     env['PATH'] = paths.join(':');
@@ -123,11 +123,11 @@ class AndroidShellBackend implements TermisolPtyBackend {
       _process!.stdout.listen(
         _onProcessOutput,
         onDone: () {
-          debugPrint('[androidshell] stdout stream ended');
+          if (kDebugMode) debugPrint('[androidshell] stdout stream ended');
           _isRunning = false;
         },
         onError: (e) {
-          debugPrint('[androidshell] stdout error: $e');
+          if (kDebugMode) debugPrint('[androidshell] stdout error: $e');
           _isRunning = false;
         },
       );
@@ -138,77 +138,77 @@ class AndroidShellBackend implements TermisolPtyBackend {
       );
 
       _process!.exitCode.then((code) {
-        debugPrint('[androidshell] shell exited with code $code');
+        if (kDebugMode) debugPrint('[androidshell] shell exited with code $code');
         _isRunning = false;
-        if (!_outputController.isClosed) {
-          _outputController
-              .add(utf8.encode('\r\n[process exited: $code]\r\n'));
-        }
+        _safeAdd(utf8.encode('\r\n[process exited: $code]\r\n'));
       });
 
-      debugPrint('[androidshell] started shell: $shell');
+      if (kDebugMode) debugPrint('[androidshell] started shell: $shell');
 
       // Set a colored PS1 and emit the first prompt.
-      // We delay slightly so TerminalSession has time to attach its listener.
       Future.delayed(const Duration(milliseconds: 300), () {
-        if (!_isRunning || _outputController.isClosed) return;
-        // Send PS1 export: yellow username, cyan directory.
-        _process!.stdin.add(utf8.encode(
-          "export PS1='\[\e[38;2;246;176;18m\]termisol\[\e[0m\]:\[\e[38;2;53;199;255m\]\$PWD\[\e[0m\]\$ '\n",
-        ));
-        _outputController.add(utf8.encode('\r\n'));
+        if (!_isRunning || _isDisposed) return;
+        _safeWriteStdin(
+          "export PS1='\\[\\e[38;2;246;176;18m\\]termisol\\[\\e[0m\\]:\\[\\e[38;2;53;199;255m\\]\\\$PWD\\[\\e[0m\\]\\\$ '\n",
+        );
+        _safeAdd(utf8.encode('\r\n'));
       });
     } on ProcessException catch (e) {
-      debugPrint('[androidshell] process error: ${e.message}');
+      if (kDebugMode) debugPrint('[androidshell] process error: ${e.message}');
       if (_retryCount < _maxRetries) {
         _retryCount++;
-        debugPrint('[androidshell] retrying ($_retryCount/$_maxRetries)...');
+        if (kDebugMode) debugPrint('[androidshell] retrying ($_retryCount/$_maxRetries)...');
         await _startProcess(env);
       } else {
-        _emitError(
-            'failed to start shell after $_maxRetries attempts: ${e.message}');
+        _emitError('failed to start shell after $_maxRetries attempts: ${e.message}');
       }
     } on FileSystemException catch (e) {
-      debugPrint('[androidshell] filesystem error: ${e.message}');
+      if (kDebugMode) debugPrint('[androidshell] filesystem error: ${e.message}');
       _emitError('permission denied: ${e.message}');
     } catch (e) {
-      debugPrint('[androidshell] unexpected error: $e');
+      if (kDebugMode) debugPrint('[androidshell] unexpected error: $e');
       _emitError('shell error: $e');
     }
   }
 
   void _onProcessOutput(List<int> data) {
-    try {
-      if (!_outputController.isClosed) {
-        _outputController.add(data);
-      }
-    } catch (e) {
-      debugPrint('[androidshell] output error: $e');
-    }
+    _safeAdd(data);
   }
 
   void _emitError(String message) {
-    if (!_outputController.isClosed) {
-      _outputController.add(
-          utf8.encode('\r\n\x1b[31m[error] $message\x1b[0m\r\n'));
+    _safeAdd(utf8.encode('\r\n\x1b[31m[error] $message\x1b[0m\r\n'));
+  }
+
+  void _safeAdd(List<int> data) {
+    if (!_outputController.isClosed && !_isDisposed) {
+      _outputController.add(data);
+    }
+  }
+
+  void _safeWriteStdin(String data) {
+    try {
+      _process?.stdin.add(utf8.encode(data));
+    } catch (e) {
+      if (kDebugMode) debugPrint('[androidshell] stdin write error: $e');
     }
   }
 
   /// Simple line discipline for Android shells running without a PTY.
-  ///
-  /// - Echoes printable characters so the user can see what they type.
-  /// - Buffers a line until \r or \n, then sends it with a \n terminator.
-  /// - Handles backspace (\b / 0x7F) locally.
-  /// - Passes escape sequences straight through.
   @override
   void write(List<int> data) {
     if (_process == null || !_isRunning) return;
+    synchronized(_writeLock, () {
+      _doWrite(data);
+    });
+  }
+
+  void _doWrite(List<int> data) {
     try {
       final text = utf8.decode(data, allowMalformed: true);
 
       // Escape sequences (arrow keys, etc.) go straight to the shell.
       if (text.contains('\x1b')) {
-        _process!.stdin.add(data);
+        _safeWriteStdin(text);
         return;
       }
 
@@ -216,56 +216,45 @@ class AndroidShellBackend implements TermisolPtyBackend {
         final ch = String.fromCharCode(rune);
 
         if (ch == '\r' || ch == '\n') {
-          // Enter pressed.
           final line = _lineBuffer.toString();
           _lineBuffer.clear();
-          _outputController.add(utf8.encode('\r\n'));
+          _safeAdd(utf8.encode('\r\n'));
           if (line.isNotEmpty) {
-            _process!.stdin.add(utf8.encode('$line\n'));
+            _safeWriteStdin('$line\n');
           } else {
-            _process!.stdin.add([0x0A]);
+            _safeWriteStdin('\n');
           }
         } else if (ch == '\b' || ch == '\x7f') {
-          // Backspace / delete.
           if (_lineBuffer.isNotEmpty) {
             final str = _lineBuffer.toString();
             _lineBuffer.clear();
             _lineBuffer.write(str.substring(0, str.length - 1));
-            // Erase character on screen: back, space, back.
-            _outputController.add(utf8.encode('\b \b'));
+            _safeAdd(utf8.encode('\b \b'));
           }
         } else if (rune == 0x03) {
-          // Ctrl+C.
           _lineBuffer.clear();
-          _outputController.add(utf8.encode('^C\r\n'));
-          _process!.stdin.add([0x03]);
+          _safeAdd(utf8.encode('^C\r\n'));
+          _safeWriteStdin('\x03');
         } else if (rune == 0x04) {
-          // Ctrl+D.
           if (_lineBuffer.isEmpty) {
-            unawaited(_process!.stdin.close());
+            _process?.stdin.close();
           }
         } else if (rune < 0x20) {
-          // Other control chars pass through raw.
-          _process!.stdin.add([rune]);
+          _safeWriteStdin(String.fromCharCode(rune));
         } else {
-          // Printable char: buffer and echo.
           _lineBuffer.write(ch);
-          _outputController.add(utf8.encode(ch));
+          _safeAdd(utf8.encode(ch));
         }
       }
     } catch (e) {
-      debugPrint('[androidshell] write error: $e');
-      if (!_outputController.isClosed) {
-        _outputController.add(
-            utf8.encode('\r\n\x1b[31m[i/o error: $e]\x1b[0m\r\n'));
-      }
+      if (kDebugMode) debugPrint('[androidshell] write error: $e');
+      _safeAdd(utf8.encode('\r\n\x1b[31m[i/o error: $e]\x1b[0m\r\n'));
     }
   }
 
   @override
   void resize(int cols, int rows) {
-    // No-op: without a PTY resize escape sequences are meaningless to the
-    // shell.
+    // No-op: without a PTY resize escape sequences are meaningless to the shell.
   }
 
   @override
@@ -279,9 +268,10 @@ class AndroidShellBackend implements TermisolPtyBackend {
           _process!.kill(ProcessSignal.sigkill);
         }
       } catch (e) {
-        debugPrint('[androidshell] Force kill error: $e');
+        if (kDebugMode) debugPrint('[androidshell] Force kill error: $e');
       }
     }
+    await _closeController();
   }
 
   @override
@@ -299,17 +289,34 @@ class AndroidShellBackend implements TermisolPtyBackend {
           },
         );
       } catch (e) {
-        debugPrint('[androidshell] terminate error: $e');
+        if (kDebugMode) debugPrint('[androidshell] terminate error: $e');
         try {
           _process?.kill(ProcessSignal.sigkill);
         } catch (e) {
-          debugPrint('[androidshell] Termination cleanup error: $e');
+          if (kDebugMode) debugPrint('[androidshell] Termination cleanup error: $e');
         }
       }
       _process = null;
     }
 
-    await _outputController.close();
-    debugPrint('[androidshell] terminated');
+    await _closeController();
+    if (kDebugMode) debugPrint('[androidshell] terminated');
   }
+
+  Future<void> _closeController() async {
+    if (!_outputController.isClosed && !_isDisposed) {
+      await _outputController.close();
+    }
+    _isDisposed = true;
+  }
+
+  @override
+  bool get isConnected => _isRunning && _process != null;
+}
+
+// Simple synchronized helper since dart:io doesn't expose one for isolate-local locks
+void synchronized(Object lock, void Function() action) {
+  // In a single-threaded event loop this is effectively a no-op,
+  // but it documents the intent. For true concurrency use an Isolate or Mutex.
+  action();
 }

@@ -318,102 +318,24 @@ class AdvancedTerminalProtocol {
   /// Handle escape sequences
   void _handleEscapeSequence(String sequence) {
     if (sequence.length < 2) return;
-    
+
     final command = sequence[1];
-    
+
     switch (command) {
-      case '7':
-        _saveCursor();
+      case '7': // Save cursor position
+        _controller.saveCursor();
         break;
-      case '8':
-        _restoreCursor();
+      case '8': // Restore cursor position
+        _controller.restoreCursor();
         break;
-      case 'D':
-        _indexDown();
+      case 'c': // Reset to initial state
+        _controller.reset();
         break;
-      case 'E':
-        _nextLine();
-        break;
-      case 'H':
-        _setTabStop();
-        break;
-      case 'M':
-        _reverseIndex();
-        break;
-      case 'N':
-        _singleShiftSelect();
-        break;
-      case 'O':
-        _singleShiftSelect2();
-        break;
-      case 'P':
-        _deviceControlString();
-        break;
-      case 'V':
-        _startGuardedArea();
-        break;
-      case 'W':
-        _endGuardedArea();
-        break;
-      case 'X':
-        _startString();
-        break;
-      case 'Z':
-        _decPrivateIdentification();
-        break;
-      case '[':
-        // Already handled by CSI
-        break;
-      case ']':
-        // Already handled by OSC
-        break;
-      case 'c':
-        _fullReset();
-        break;
-      case '#':
-        _handleDoubleHeightDoubleWidth(sequence.substring(2));
-        break;
-      case '(':
-        _handleCharacterSet(sequence.substring(2), false);
-        break;
-      case ')':
-        _handleCharacterSet(sequence.substring(2), true);
-        break;
-      case '>':
-        _setNumericKeypadMode(false);
-        break;
-      case '=':
-        _setNumericKeypadMode(true);
-        break;
-      default:
-        debugPrint('🔍 Unknown escape sequence: $sequence');
+      // Other escape sequences are handled by xterm library
     }
   }
   
-  /// Handle Device Control String (DCS)
-  void _handleDeviceControlString(String sequence) {
-    if (sequence.startsWith('\x1bPq')) {
-      _handleSixelGraphics(sequence);
-    } else if (sequence.startsWith('\x1bP')) {
-      _handleRegisGraphics(sequence);
-    } else {
-      debugPrint('🔍 Unknown DCS sequence: $sequence');
-    }
-  }
-  
-  /// Handle Privacy Message (PM)
-  void _handlePrivacyMessage(String sequence) {
-    debugPrint('🔍 Privacy message: $sequence');
-  }
-  
-  /// Handle Application Program Command (APC)
-  void _handleApplicationProgramCommand(String sequence) {
-    if (sequence.startsWith('\x1b_G')) {
-      _handleKittyGraphics(sequence);
-    } else {
-      debugPrint('🔍 Unknown APC sequence: $sequence');
-    }
-  }
+
   
   void _handleCursorPosition(List<int> params) {
     final row = params.isNotEmpty && params[0] > 0 ? params[0] : 1;

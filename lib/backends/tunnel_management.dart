@@ -203,9 +203,9 @@ class TunnelManagement {
   /// Find available port
   int _findAvailablePort() {
     try {
-      final socket = ServerSocket.bind('localhost', 0);
+      final socket = await ServerSocket.bind('localhost', 0);
       final port = socket.port;
-      socket.close();
+      await socket.close();
       return port;
     } catch (e) {
       // Fallback to random port in range 20000-30000

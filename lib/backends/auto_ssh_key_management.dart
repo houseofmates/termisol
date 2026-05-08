@@ -583,8 +583,8 @@ $base64Key
       await publicKeyFile.writeAsString(key.publicKey);
       
       // Set file permissions (600 for private key, 644 for public key)
-      await privateKeyFile.setMode(0o600);
-      await publicKeyFile.setMode(0o644);
+      await Process.run('chmod', ['600', privateKeyFile.path]);
+      await Process.run('chmod', ['644', publicKeyFile.path]);
     } catch (e) {
       debugPrint('❌ Failed to save key ${key.name}: $e');
     }

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:termisol/core/logging_system.dart';
 
@@ -21,7 +20,7 @@ class LongCommandNotifier {
 
   LongCommandNotifier() {
     // Skip audio initialization in tests
-    if (const bool.fromEnvironment('FLUTTER_TEST', defaultValue: false)) {
+    if (const bool.fromEnvironment('FLUTTER_TEST')) {
       _audioPlayer = null;
       _isInitialized = true;
       return;
@@ -88,7 +87,7 @@ class LongCommandNotifier {
   /// Get active long commands
   Map<String, bool> get activeCommands {
     return Map.fromEntries(
-      _activeCommands.entries.map((entry) => MapEntry(entry.key, entry.value?.isActive ?? false)),
+      _activeCommands.entries.map((entry) => MapEntry(entry.key, entry.value.isActive ?? false)),
     );
   }
 
@@ -96,7 +95,7 @@ class LongCommandNotifier {
   void dispose() {
     // Cancel all active timers
     for (final timer in _activeCommands.values) {
-      timer?.cancel();
+      timer.cancel();
     }
     _activeCommands.clear();
     

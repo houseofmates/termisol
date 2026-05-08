@@ -1,8 +1,5 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:xterm/xterm.dart';
-import '../config/pkm_theme.dart';
 
 /// Manages ligature-enabled fonts for better code readability.
 /// Supports Fira Code, JetBrains Mono, and other programming fonts.

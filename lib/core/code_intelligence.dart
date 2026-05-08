@@ -66,7 +66,7 @@ class CodeIntelligence {
       ));
 
       return analysis;
-    } catch (e, stack) {
+    } catch (e) {
       _eventController.add(CodeAnalysisEvent(
         CodeAnalysisEventType.analysisFailed,
         'Analysis failed for $filePath: $e',
@@ -370,11 +370,9 @@ class CodeIntelligence {
       switch (extension) {
         case 'dart':
           if (trimmed.startsWith('import ') || trimmed.startsWith('export ')) {
-            final importMatch = RegExp(r"['\"]([^'\"]+)['\"]").firstMatch(trimmed);
-            if (importMatch != null) {
-              imports.add(importMatch.group(1)!);
-            }
-          }
+            final importMatch = RegExp(r"['\"]([^'"]+)['\"]").firstMatch(trimmed);
+            imports.add(importMatch.group(1)!);
+                    }
           break;
         case 'py':
           if (trimmed.startsWith('import ') || trimmed.startsWith('from ')) {
@@ -395,11 +393,9 @@ class CodeIntelligence {
       final trimmed = line.trim();
 
       if (extension == 'dart' && trimmed.startsWith('export ')) {
-        final exportMatch = RegExp(r"['\"]([^'\"]+)['\"]").firstMatch(trimmed);
-        if (exportMatch != null) {
-          exports.add(exportMatch.group(1)!);
-        }
-      }
+        final exportMatch = RegExp(r"['\"]([^'"]+)['\"]").firstMatch(trimmed);
+        exports.add(exportMatch.group(1)!);
+            }
     }
 
     return exports;

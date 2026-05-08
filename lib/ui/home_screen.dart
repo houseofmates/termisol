@@ -125,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final response = await aiService.processText(
           input: query,
           capability: AICapability.text_generation,
-          contextId: 'terminal_${_activeTab}',
+          contextId: 'terminal_$_activeTab',
         );
         final success = response.success as bool? ?? false;
         final output = response.output as String? ?? '';
@@ -231,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
         PopupMenuItem(
           value: 'new',
           onTap: _addTab,
-          child: Text(
+          child: const Text(
             '+ new',
             style: TextStyle(color: PkmTheme.text),
           ),
@@ -239,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
         PopupMenuItem(
           value: 'rename',
           onTap: () => _renameTab(index),
-          child: Text(
+          child: const Text(
             'rename',
             style: TextStyle(color: PkmTheme.text),
           ),
@@ -247,7 +247,7 @@ class _HomeScreenState extends State<HomeScreen> {
         PopupMenuItem(
           value: 'close',
           onTap: () => _closeTab(index),
-          child: Text(
+          child: const Text(
             'close',
             style: TextStyle(color: PkmTheme.text),
           ),
@@ -263,7 +263,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: PkmTheme.background,
-        title: Text(
+        title: const Text(
           'rename tab',
           style: TextStyle(
             color: PkmTheme.primary,
@@ -272,7 +272,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         content: TextField(
           controller: controller,
-          style: TextStyle(
+          style: const TextStyle(
             color: PkmTheme.text,
             fontFamily: PkmTheme.fontUi,
           ),
@@ -282,10 +282,10 @@ class _HomeScreenState extends State<HomeScreen> {
               color: PkmTheme.text.withValues(alpha: 0.5),
               fontFamily: PkmTheme.fontUi,
             ),
-            enabledBorder: UnderlineInputBorder(
+            enabledBorder: const UnderlineInputBorder(
               borderSide: BorderSide(color: PkmTheme.primary),
             ),
-            focusedBorder: UnderlineInputBorder(
+            focusedBorder: const UnderlineInputBorder(
               borderSide: BorderSide(color: PkmTheme.primary, width: 2),
             ),
           ),
@@ -294,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(
+            child: const Text(
               'cancel',
               style: TextStyle(
                 color: PkmTheme.text,
@@ -308,7 +308,7 @@ class _HomeScreenState extends State<HomeScreen> {
               setState(() {});
               Navigator.of(context).pop();
             },
-            child: Text(
+            child: const Text(
               'rename',
               style: TextStyle(
                 color: PkmTheme.primary,
@@ -481,7 +481,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             animation: animation,
                             builder: (context, child) {
                               return Material(
-                                elevation: 0,
                                 color: Colors.transparent,
                                 child: child,
                               );

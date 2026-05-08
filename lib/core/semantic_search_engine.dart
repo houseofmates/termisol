@@ -277,7 +277,7 @@ class SemanticSearchEngine {
     return text.toLowerCase()
         .replaceAll(RegExp(r'[^a-z0-9\s_\-/\.]'), ' ')
         .split(RegExp(r'\s+'))
-        .where((t) => t.isNotEmpty && t.length >= 1)
+        .where((t) => t.isNotEmpty && t.isNotEmpty)
         .toList();
   }
 

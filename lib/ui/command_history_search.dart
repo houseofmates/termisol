@@ -105,7 +105,7 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
                   onKeyEvent: _handleKey,
                   child: TextField(
                     controller: _controller,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: PkmTheme.text,
                       fontFamily: PkmTheme.fontUi,
                       fontSize: 16,
@@ -197,13 +197,13 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
                     top: BorderSide(color: PkmTheme.primary.withValues(alpha: 0.2)),
                   ),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _KeyHint(keyLabel: '↑↓', action: 'navigate'),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16),
                     _KeyHint(keyLabel: 'enter', action: 'select'),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16),
                     _KeyHint(keyLabel: 'esc', action: 'close'),
                   ],
                 ),
@@ -236,7 +236,7 @@ class _KeyHint extends StatelessWidget {
           ),
           child: Text(
             keyLabel,
-            style: TextStyle(
+            style: const TextStyle(
               color: PkmTheme.primary,
               fontFamily: PkmTheme.fontUi,
               fontSize: 11,

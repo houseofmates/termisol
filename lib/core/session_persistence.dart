@@ -24,7 +24,7 @@ class SessionPersistence {
   // Auto-save system
   Timer? _autoSaveTimer;
   bool _autoSaveEnabled = true;
-  Duration _autoSaveInterval = Duration(minutes: 1);
+  Duration _autoSaveInterval = const Duration(minutes: 1);
   
   // Crash recovery
   final Map<String, CrashReport> _crashReports = {};
@@ -289,7 +289,7 @@ class SessionPersistence {
   }
 
   Future<void> _startCleanupTimer() async {
-    Timer.periodic(Duration(hours: 1), (_) {
+    Timer.periodic(const Duration(hours: 1), (_) {
       _performCleanup();
     });
   }

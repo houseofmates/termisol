@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Command suggestion with enhanced metadata
@@ -245,7 +244,6 @@ class SmartAutoComplete {
         matches.add(CommandSuggestion(
           command: command,
           description: 'Common shell command',
-          priority: 0,
           score: 20.0,
           category: 'system',
         ));
@@ -267,7 +265,6 @@ class SmartAutoComplete {
         matches.add(CommandSuggestion(
           command: command,
           description: 'Fuzzy match from history',
-          priority: 0,
           score: 10.0 + frequency.toDouble() * 0.5,
           category: 'fuzzy',
         ));

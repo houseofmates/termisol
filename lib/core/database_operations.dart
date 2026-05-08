@@ -218,7 +218,7 @@ class DatabaseOperations {
       ));
 
       return queryResult;
-    } catch (e, stack) {
+    } catch (e) {
       final endTime = DateTime.now();
       final duration = endTime.difference(startTime);
 
@@ -381,7 +381,7 @@ class DatabaseOperations {
       }
 
       return DatabaseSchema(tables: tables);
-    } catch (e, stack) {
+    } catch (e) {
       _eventController.add(DatabaseEvent(
         type: DatabaseEventType.schemaError,
         message: 'Failed to get schema: $e',

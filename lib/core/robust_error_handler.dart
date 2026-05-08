@@ -2,13 +2,9 @@ import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:convert';
-import 'dart:ui' as ui;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:logging/logging.dart';
-import 'package:stack_trace/stack_trace.dart';
 
 /// Production-grade error handling system for Termisol
 /// 
@@ -40,7 +36,7 @@ class RobustErrorHandler {
   bool _isRecovering = false;
   
   // Additional state variables
-  DateTime? _startTime = DateTime.now();
+  final DateTime _startTime = DateTime.now();
   final List<dynamic> _pendingRequests = [];
   final Map<String, dynamic> _networkCache = {};
   final List<dynamic> _performanceMetrics = [];
@@ -50,9 +46,9 @@ class RobustErrorHandler {
   Stream<ErrorReport> get errorStream => _errorController.stream;
   
   // Configuration
-  int _maxErrorHistory = 1000;
-  int _errorThreshold = 10; // Alert after 10 similar errors
-  Duration _errorWindow = Duration(minutes: 5);
+  final int _maxErrorHistory = 1000;
+  final int _errorThreshold = 10; // Alert after 10 similar errors
+  final Duration _errorWindow = const Duration(minutes: 5);
   
   /// Initialize the error handler
   Future<void> initialize() async {
@@ -65,7 +61,7 @@ class RobustErrorHandler {
       await _loadErrorHistory();
       
       // Setup periodic cleanup
-      Timer.periodic(Duration(hours: 1), (_) => _cleanupOldErrors());
+      Timer.periodic(const Duration(hours: 1), (_) => _cleanupOldErrors());
       
       _logger.info('Robust error handler initialized');
     } catch (e) {
@@ -384,7 +380,7 @@ class RobustErrorHandler {
         'lastError': _lastError?.toString(),
         'activeConnections': _connectionPool.length,
         'memoryUsage': _getCurrentMemoryUsage(),
-        'uptime': _startTime != null ? DateTime.now().difference(_startTime!).inSeconds : 0,
+        'uptime': DateTime.now().difference(_startTime).inSeconds,
       };
       
       // Save to emergency file
@@ -392,7 +388,7 @@ class RobustErrorHandler {
       final emergencyFile = File('${documentsDir.path}/termisol_emergency_state.json');
       
       await emergencyFile.writeAsString(
-        JsonEncoder.withIndent('  ').convert(emergencyState),
+        const JsonEncoder.withIndent('  ').convert(emergencyState),
       );
       
       _logger.info('Emergency state saved to ${emergencyFile.path}');
@@ -618,7 +614,7 @@ class RobustErrorHandler {
   
   /// Clean up old errors
   void _cleanupOldErrors() {
-    final cutoff = DateTime.now().subtract(Duration(days: 7));
+    final cutoff = DateTime.now().subtract(const Duration(days: 7));
     _errorHistory.removeWhere((error) => error.timestamp.isBefore(cutoff));
     
     // Clean up error counts older than window

@@ -177,7 +177,6 @@ class _EditTerminalState extends State<EditTerminal> {
     try {
       final result = await FilePicker.platform.pickFiles(
         dialogTitle: 'open file',
-        allowMultiple: false,
         withData: true,
       );
       if (result != null && result.files.isNotEmpty) {
@@ -222,7 +221,7 @@ class _EditTerminalState extends State<EditTerminal> {
       );
     } else {
       // wrap around
-      final wrapIdx = text.indexOf(query, 0);
+      final wrapIdx = text.indexOf(query);
       if (wrapIdx >= 0 && wrapIdx != start) {
         _controller.selection = TextSelection(
           baseOffset: wrapIdx,
@@ -331,9 +330,7 @@ class _EditTerminalState extends State<EditTerminal> {
     final sel = _controller.selection;
     if (!sel.isValid || !sel.isCollapsed) {
       // Normal enter if selection or invalid
-      _controller.text = _controller.text.substring(0, sel.start) +
-          '\n' +
-          _controller.text.substring(sel.end);
+      _controller.text = '${_controller.text.substring(0, sel.start)}\n${_controller.text.substring(sel.end)}';
       _controller.selection = TextSelection.collapsed(offset: sel.start + 1);
       return;
     }
@@ -350,11 +347,7 @@ class _EditTerminalState extends State<EditTerminal> {
         ? ' ' * _tabSize
         : '';
 
-    final newText = text.substring(0, sel.start) +
-        '\n' +
-        indent +
-        extraIndent +
-        text.substring(sel.start);
+    final newText = '${text.substring(0, sel.start)}\n$indent$extraIndent${text.substring(sel.start)}';
 
     _controller.value = TextEditingValue(
       text: newText,
@@ -373,10 +366,7 @@ class _EditTerminalState extends State<EditTerminal> {
     final endPos = lineEnd == -1 ? text.length : lineEnd;
     final line = text.substring(lineStart, endPos);
 
-    final newText = text.substring(0, endPos) +
-        '\n' +
-        line +
-        text.substring(endPos);
+    final newText = '${text.substring(0, endPos)}\n$line${text.substring(endPos)}';
 
     _controller.value = TextEditingValue(
       text: newText,
@@ -567,7 +557,6 @@ class _EditTerminalState extends State<EditTerminal> {
                         controller: _textScrollController,
                         child: SingleChildScrollView(
                           controller: _textScrollController,
-                          scrollDirection: Axis.vertical,
                           child: TextField(
                             controller: _controller,
                             focusNode: _focusNode,

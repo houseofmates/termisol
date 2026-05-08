@@ -6,7 +6,7 @@ class LazyTerminalOutput {
   final int visibleLines;
   final _buffer = Queue<String>();
   int _totalLines = 0;
-  bool _loading = false;
+  final bool _loading = false;
   bool _disposed = false;
 
   LazyTerminalOutput({required this.sessionId, required this.visibleLines});

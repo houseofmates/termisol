@@ -206,7 +206,6 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
                 textStyle: TerminalStyle(
                   fontFamily: 'DroidSansMono',
                   fontSize: _fontSize,
-                  height: 1.2,
                 ),
                 onKeyEvent: _handleKeyEvent,
                 padding: EdgeInsets.zero,
@@ -226,7 +225,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   Widget _buildGraphicsOverlay() {
     // Build overlay for inline graphics from GraphicsProtocolHandler
     final graphicsImages = _graphicsHandler.getCachedImages();
-    if (graphicsImages.isEmpty)               return SizedBox.shrink();
+    if (graphicsImages.isEmpty)               return const SizedBox.shrink();
 
     return Stack(
       children: graphicsImages.entries.map((entry) {
@@ -256,7 +255,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
                   ),
                 );
               }
-              return SizedBox.shrink();
+              return const SizedBox.shrink();
             },
           ),
         );

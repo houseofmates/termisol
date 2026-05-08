@@ -16,39 +16,18 @@ Future<void> _setupErrorHandling() async {
   // Handle Flutter errors
   FlutterError.onError = (FlutterErrorDetails details) async {
     await _logError('Flutter Error', details.exceptionAsString(), details.stack);
-    _showErrorDialog(details.exceptionAsString());
+    _reportErrorToUser(details.exceptionAsString());
   };
 
   // Handle platform errors
   PlatformDispatcher.instance.onError = (error, stack) {
     _logError('Platform Error', error.toString(), stack);
-    _showErrorDialog(error.toString());
+    _reportErrorToUser(error.toString());
     return true;
   };
 }
 
-/// Log error to local file
-Future<void> _logError(String type, String error, StackTrace? stack) async {
-  try {
-    final directory = await getApplicationDocumentsDirectory();
-    final logFile = File('${directory.path}/termisol_crash_log.txt');
-
-    final timestamp = DateTime.now().toIso8601String();
-    final logEntry = '''
-[$timestamp] $type:
-Error: $error
-Stack Trace:
-${stack ?? 'No stack trace available'}
-
----
-''';
-
-    await logFile.writeAsString(logEntry, mode: FileMode.append);
-  } catch (e) {
-    // If logging fails, at least print to console
-    debugPrint('Failed to log error: $e');
-  }
-}
+import 'dart:convert';
 
 /// Global error state
 class ErrorReporter {

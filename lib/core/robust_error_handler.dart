@@ -535,7 +535,7 @@ class RobustErrorHandler {
         mode: FileMode.append,
       );
     } catch (e) {
-      developer.log('Failed to persist error: $e');
+      debugPrint('Failed to persist error: $e');
     }
   }
   
@@ -553,7 +553,7 @@ class RobustErrorHandler {
             final report = ErrorReport.fromJson(json);
             _errorHistory.add(report);
           } catch (e) {
-            developer.log('Failed to parse error history: $e');
+            debugPrint('Failed to parse error history: $e');
           }
         }
       }

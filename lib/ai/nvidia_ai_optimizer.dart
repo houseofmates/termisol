@@ -350,6 +350,7 @@ Focus on:
     // CPU-based recommendations
     if (cpuUsage > 0.8) {
       recommendations.add(OptimizationRecommendation(
+        id: 'cpu_opt_1',
         timestamp: DateTime.now(),
         overallScore: 0.7,
         suggestions: [OptimizationSuggestion(

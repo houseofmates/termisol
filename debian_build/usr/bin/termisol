@@ -1,3 +1,1 @@
-#!/bin/bash
-export LD_LIBRARY_PATH=/usr/lib/termisol/lib:$LD_LIBRARY_PATH
-exec /usr/lib/termisol/termisol "$@"
+../lib/termisol/termisol

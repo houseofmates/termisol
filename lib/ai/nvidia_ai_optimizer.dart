@@ -238,7 +238,10 @@ Focus on:
       for (final recommendation in recommendations) {
         if (!_recommendations.any((r) => r.description == recommendation.description)) {
           _recommendations.add(recommendation);
-          _optimizerController.add(recommendation);
+          _optimizerController.add(OptimizerEvent(
+          type: OptimizerEventType.recommendationGenerated,
+          data: recommendation.toJson(),
+        ));
         }
       }
       

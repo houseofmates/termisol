@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
@@ -364,14 +363,6 @@ class _BackpressureStreamController {
     _isPaused = false;
   }
 
-  void _onPause() {
-    _isPaused = true;
-  }
-
-  void _onResume() {
-    _isPaused = false;
-    _currentBufferSize = 0;
-  }
 }
 
 /// High-performance circular buffer for PTY data
@@ -424,7 +415,6 @@ class _CircularBuffer {
       _readPos = (_readPos + 1) % _buffer.length;
     }
     
-    final readLength = _usedSpace;
     _usedSpace = 0;
     return result;
   }

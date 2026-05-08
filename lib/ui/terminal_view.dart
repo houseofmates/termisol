@@ -111,11 +111,11 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
             ): () => _clipboard.pasteBracketed(),
           },
           child: TerminalView(
-            terminal: widget.session.terminal,
+            widget.session.terminal,
             controller: widget.session.controller,
             focusNode: widget.focusNode,
             autofocus: widget.autofocus,
-            onSecondaryTapUp: (details) => _showContextMenu(context, details.globalPosition),
+            onSecondaryTapUp: (details, offset) => _showContextMenu(context, details.globalPosition),
           ),
         ),
       ),

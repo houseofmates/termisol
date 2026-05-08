@@ -40,7 +40,7 @@ class TerminalCollaboration {
   final StreamController<CollaborationEvent> _eventController = StreamController.broadcast();
   
   // Configuration
-  String _serverUrl = 'ws://localhost:8080';
+  String get _serverUrl => Platform.environment['HERMES_SERVER_URL'] ?? 'ws://localhost:8080';
   String? _sshKeyPath;
   bool _autoShareEnabled = true;
   

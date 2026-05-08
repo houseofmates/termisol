@@ -4,9 +4,9 @@ import 'dart:io';
 import 'dart:convert';
 
 class IntelligentHermesSync {
-  static const String _ubuntu250Host = '192.168.4.250';
-  static const String _popos233Host = '192.168.4.233';
-  static const String _hermesPath = '/home/house/.hermes';
+  static String get _ubuntu250Host => Platform.environment['UBUNTU_250_HOST'] ?? '192.168.4.250';
+  static String get _popos233Host => Platform.environment['POPOS_233_HOST'] ?? '192.168.4.233';
+  static String get _hermesPath => Platform.environment['HERMES_PATH'] ?? '/home/${Platform.environment['PERSONAL_NAME'] ?? 'user'}/.hermes';
   static const int _syncInterval = 30000; // 30 seconds
   static const int _maxConflictRetries = 3;
   static const int _syncTimeout = 60000; // 1 minute

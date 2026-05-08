@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'core/service_registry.dart';
 import 'ui/home_screen.dart';
 import 'config/pkm_theme.dart';
+import 'vr/vr_terminal.dart';
 
 /// root application widget for termisol.
 /// all services are accessed lazily via the registry.

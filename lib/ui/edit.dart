@@ -236,6 +236,128 @@ class _EditTerminalState extends State<EditTerminal> {
     });
   }
 
+  void _addCursorAtSelection() {
+    if (_controller.selection.isCollapsed && !_cursors.contains(_controller.selection)) {
+      setState(() {
+        _multiCursorMode = true;
+        _cursors.add(_controller.selection);
+      });
+    }
+  }
+
+  void _removeCursorAt(TextSelection selection) {
+    setState(() {
+      _cursors.remove(selection);
+      if (_cursors.isEmpty) {
+        _multiCursorMode = false;
+      }
+    });
+  }
+
+  void _handleMultiCursorInput(String input) {
+    if (!_multiCursorMode || _cursors.isEmpty) return;
+    
+    final text = _controller.text;
+    final allCursors = List<TextSelection>.from(_cursors);
+    allCursors.add(_controller.selection);
+    
+    // Sort cursors by position to handle offset changes correctly
+    allCursors.sort((a, b) => a.baseOffset.compareTo(b.baseOffset));
+    
+    String newText = text;
+    int offsetAdjustment = 0;
+    
+    for (final cursor in allCursors) {
+      final adjustedOffset = cursor.baseOffset + offsetAdjustment;
+      if (adjustedOffset >= 0 && adjustedOffset <= newText.length) {
+        newText = newText.substring(0, adjustedOffset) + input + newText.substring(adjustedOffset);
+        offsetAdjustment += input.length;
+      }
+    }
+    
+    _controller.text = newText;
+    
+    // Update all cursor positions
+    setState(() {
+      _cursors.clear();
+      for (final cursor in allCursors) {
+        final newOffset = cursor.baseOffset + input.length;
+        _cursors.add(TextSelection.fromPosition(TextPosition(offset: newOffset)));
+      }
+      
+      // Update main cursor
+      final mainCursorOffset = _controller.selection.baseOffset + input.length;
+      _controller.selection = TextSelection.fromPosition(TextPosition(offset: mainCursorOffset));
+    });
+    
+    _onTextChanged();
+  }
+
+  void _handleMultiCursorDeletion() {
+    if (!_multiCursorMode || _cursors.isEmpty) return;
+    
+    final text = _controller.text;
+    final allCursors = List<TextSelection>.from(_cursors);
+    allCursors.add(_controller.selection);
+    
+    // Sort cursors by position (reverse for deletion)
+    allCursors.sort((a, b) => b.baseOffset.compareTo(a.baseOffset));
+    
+    String newText = text;
+    
+    for (final cursor in allCursors) {
+      if (cursor.baseOffset > 0 && cursor.baseOffset <= newText.length) {
+        newText = newText.substring(0, cursor.baseOffset - 1) + newText.substring(cursor.baseOffset);
+      }
+    }
+    
+    _controller.text = newText;
+    
+    // Update all cursor positions
+    setState(() {
+      _cursors.clear();
+      for (final cursor in allCursors) {
+        final newOffset = cursor.baseOffset - 1;
+        if (newOffset >= 0) {
+          _cursors.add(TextSelection.fromPosition(TextPosition(offset: newOffset)));
+        }
+      }
+      
+      // Update main cursor
+      final mainCursorOffset = _controller.selection.baseOffset - 1;
+      if (mainCursorOffset >= 0) {
+        _controller.selection = TextSelection.fromPosition(TextPosition(offset: mainCursorOffset));
+      }
+    });
+    
+    _onTextChanged();
+  }
+
+  void _selectAllOccurrences() {
+    final text = _controller.text;
+    if (_controller.selection.isCollapsed || _controller.selection.textInside(text).isEmpty) return;
+    
+    final selectedText = _controller.selection.textInside(text);
+    final matches = <int>[];
+    int index = text.indexOf(selectedText);
+    
+    while (index != -1) {
+      matches.add(index);
+      index = text.indexOf(selectedText, index + 1);
+    }
+    
+    setState(() {
+      _multiCursorMode = true;
+      _cursors.clear();
+      for (final match in matches) {
+        _cursors.add(TextSelection(
+          baseOffset: match,
+          extentOffset: match + selectedText.length,
+        ));
+      }
+    });
+  }
+
   String _getUndoDescription() {
     if (!_canUndo()) return 'No undo available';
     if (_currentUndoIndex > 0) {
@@ -861,6 +983,17 @@ class _EditTerminalState extends State<EditTerminal> {
         return;
       }
       
+      // Handle multi-cursor shortcuts
+      if (isCtrlPressed && event.logicalKey == LogicalKeyboardKey.keyD) {
+        _addCursorAtSelection();
+        return;
+      }
+      
+      if (isCtrlPressed && isShiftPressed && event.logicalKey ==.keyL) {
+        _selectAllOccurrences();
+        return;
+      }
+      
       if (isCtrlPressed) {
         switch (event.logicalKey) {
           case LogicalKeyboardKey.keyZ:
@@ -927,6 +1060,22 @@ class _EditTerminalState extends State<EditTerminal> {
           case LogicalKeyboardKey.keyI:
             _toggleItalic();
             break;
+        }
+      }
+      
+      // Handle multi-cursor typing
+      if (event.character != null && event.character!.isNotEmpty && !isCtrlPressed && !event.isMetaPressed) {
+        if (_multiCursorMode) {
+          _handleMultiCursorInput(event.character!);
+          return;
+        }
+      }
+      
+      // Handle multi-cursor deletion
+      if (event.logicalKey == LogicalKeyboardKey.backspace) {
+        if (_multiCursorMode) {
+          _handleMultiCursorDeletion();
+          return;
         }
       }
       

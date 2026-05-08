@@ -38,7 +38,7 @@ class CommandGuard {
         _rules.add(GuardRule.fromJson(item));
       }
     } catch (e) {
-      print('CommandGuard: failed to load rules: $e');
+      TermisolLogger().error('CommandGuard: failed to load rules', error: e);
     }
   }
 

@@ -39,10 +39,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _createInitialTab() {
     final session = TerminalSession(
-      id: 0,
-      title: 'Terminal',
-      backend: LocalBackend(),
-      onAiQuery: _handleAiQuery,
+      id: '0',
+      name: 'Terminal',
     );
 
     _tabs.add(session);

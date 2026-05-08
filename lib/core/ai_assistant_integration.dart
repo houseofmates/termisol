@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -24,7 +25,7 @@ class AIAssistantIntegration {
   final List<AIInteraction> _interactions = [];
   final Map<String, AIPattern> _patterns = {};
   final Map<String, AIModel> _models = {};
-  final AIPreferences _preferences = AIPreferences();
+  AIPreferences _preferences = AIPreferences();
   
   Timer? _contextCleanupTimer;
   bool _isInitialized = false;
@@ -1781,8 +1782,8 @@ ${context != null ? '- Context: ${context.description}' : ''}
   String _buildPrompt(String input, AICapability capability, AIContext? context) {
     String prompt = input;
     
-    if (context != null && context.recentInteractions.isNotEmpty) {
-      final recentInteractions = context.recentInteractions.take(3).join('\n');
+    if (context != null && context.interactions.isNotEmpty) {
+      final recentInteractions = context.interactions.take(3).join('\n');
       prompt = 'Recent context:\n$recentInteractions\n\nCurrent request:\n$input';
     }
     
@@ -1922,24 +1923,24 @@ ${context != null ? '- Context: ${context.description}' : ''}
     };
 
     try {
-      final request = await HttpClient()
+      final request = await http
           .post(uri, headers: headers, body: jsonEncode(payload))
           .timeout(endpoints.requestTimeout);
 
       if (request.statusCode != 200) {
         throw OpenAIException(
           'HTTP ${request.statusCode}: ${request.body}',
-          request.statusCode,
+          request.statusCode.toString(),
         );
       }
 
       return request.body;
     } on SocketException catch (e) {
-      throw OpenAIException('Network error: ${e.message}', 0);
+      throw OpenAIException('Network error: ${e.message}', 'network_error');
     } on TimeoutException catch (e) {
-      throw OpenAIException('Request timeout: ${e.message}', 0);
+      throw OpenAIException('Request timeout: ${e.message}', 'timeout');
     } catch (e) {
-      throw OpenAIException('Unexpected error: ${e.toString()}', 0);
+      throw OpenAIException('Unexpected error: ${e.toString()}', 'unknown');
     }
   }
 

@@ -264,7 +264,7 @@ class TermisolIntegrationManager {
 
   Future<void> _initializeContextAwareSuggestions() async {
     final manager = ContextAwareSuggestions();
-    await manager.initialize();
+    manager.initialize();
     _featureManagers['context_aware_suggestions'] = manager;
   }
 

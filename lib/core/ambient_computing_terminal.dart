@@ -18,6 +18,7 @@ import 'package:logging/logging.dart';
 /// - Energy-aware terminal optimization
 /// - Health monitoring for extended terminal sessions
 class AmbientComputingTerminal {
+  static final _logger = Logger('AmbientComputingTerminal');
   bool _isInitialized = false;
   late final SensorManager _sensorManager;
   late final EnvironmentAnalyzer _environmentAnalyzer;
@@ -100,9 +101,9 @@ class AmbientComputingTerminal {
       await _createAmbientProfiles();
       
       _isInitialized = true;
-      debugPrint('🌡️ Ambient Computing Terminal initialized');
+      _logger.info('Ambient Computing Terminal initialized');
     } catch (e) {
-      debugPrint('⚠️ Failed to initialize ambient computing terminal: $e');
+      _logger.severe('Failed to initialize ambient computing terminal: $e');
     }
   }
   
@@ -115,7 +116,7 @@ class AmbientComputingTerminal {
     await _sensorManager.addSensor(NoiseSensor());
     await _sensorManager.addSensor(ProximitySensor());
     
-    debugPrint('🌡️ Environmental sensors initialized');
+    _logger.info('Environmental sensors initialized');
   }
   
   Future<void> _createAmbientProfiles() async {
@@ -159,7 +160,7 @@ class AmbientComputingTerminal {
       ),
     ];
     
-    debugPrint('🌡️ Ambient profiles created');
+    _logger.info('Ambient profiles created');
   }
   
   /// Enable ambient sensing
@@ -180,9 +181,9 @@ class AmbientComputingTerminal {
       // Start continuous sensor reading
       await _startContinuousSensing();
       
-      debugPrint('🌡️ Ambient sensing enabled');
+      _logger.info('Ambient sensing enabled');
     } catch (e) {
-      debugPrint('⚠️ Failed to enable ambient sensing: $e');
+      _logger.severe('Failed to enable ambient sensing: $e');
       rethrow;
     }
   }
@@ -210,7 +211,7 @@ class AmbientComputingTerminal {
         final reading = await sensor.read();
         _sensorReadings[sensor.id] = reading;
       } catch (e) {
-        debugPrint('⚠️ Failed to read sensor ${sensor.id}: $e');
+        _logger.warning('Failed to read sensor ${sensor.id}: $e');
       }
     }
   }

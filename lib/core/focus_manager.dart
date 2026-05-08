@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:xterm/xterm.dart';
 
 /// Manages terminal focus events for bracketed paste mode and vim/emacs integration.

@@ -225,20 +225,23 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   Widget _buildGraphicsOverlay() {
     // Build overlay for inline graphics from GraphicsProtocolHandler
     final graphicsImages = _graphicsHandler.getCachedImages();
-    if (graphicsImages.isEmpty)               return const SizedBox.shrink();
+    final imagePositions = _graphicsHandler.imagePositions;
+    if (graphicsImages.isEmpty) return const SizedBox.shrink();
 
     return Stack(
       children: graphicsImages.entries.map((entry) {
         final imageId = entry.key;
         final image = entry.value;
 
-        // Calculate position based on terminal cursor or stored position
-        // For now, display images at fixed positions - real implementation would track cursor
-        final position = _calculateImagePosition(imageId);
+        // Get stored position in characters
+        final charPosition = imagePositions[imageId] ?? Offset.zero;
+
+        // Convert character position to pixel position
+        final pixelPosition = _convertCharToPixel(charPosition);
 
         return Positioned(
-          left: position.dx,
-          top: position.dy,
+          left: pixelPosition.dx,
+          top: pixelPosition.dy,
           child: FutureBuilder<Uint8List?>(
             future: _graphicsHandler.convertImageForDisplay(imageId),
             builder: (context, snapshot) {

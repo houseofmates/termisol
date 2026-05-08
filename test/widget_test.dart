@@ -54,36 +54,11 @@ void main() {
     final registry = ServiceRegistry.instance;
 
     final app = TermisolApp(registry: registry);
-      enhancedAISuggestions: enhancedAISuggestions,
-      conversationalAI: conversationalAI,
-      automatedWorkflows: automatedWorkflows,
-      vrTerminal: vrTerminal,
-        githubIntegration: githubIntegration,
-        neuralProcessing: neuralProcessing,
-        paneManager: paneManager,
-        pluginManager: pluginManager,
-        audioAlertService: AudioAlertService(),
-        keyboardMacroReader: KeyboardMacroReader(),
-        syncServices: SyncServices(),
-        dockerOperations: DockerOperations(),
-        integratedDebugger: IntegratedDebugger(),
-        taskRunner: TaskRunner(),
-        configurableHotkeys: ConfigurableHotkeys(),
-        smoothAnimations: SmoothAnimations(),
-        autoBackupSystem: AutoBackupSystem(),
-        autoSshKeyManagement: AutoSSHKeyManagement(),
-        multihopSsh: MultihopSSH(),
-        tunnelManagement: TunnelManagement(),
-        sshConnectionPersistence: SSHConnectionPersistence(),
-        codeIntelligence: CodeIntelligence(),
-        databaseClient: DatabaseClient(),
-        sessionRecovery: SessionRecovery(),
-        commandGuard: CommandGuard(),
-        asciicastRecorder: AsciicastRecorder(),
-      );
+
+    // Test that the app can be built
+    await tester.pumpWidget(app);
 
     expect(app, isNotNull);
-    expect(app.aiAssistant, same(aiAssistant));
-    expect(app.performanceEnforcer, same(perf));
+    expect(find.text('termisol'), findsOneWidget);
   });
 }

@@ -40,7 +40,8 @@ class TerminalClipboardManager {
     try {
       await Clipboard.setData(ClipboardData(text: selectedText));
       return true;
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('clipboard copy failed: $e\n$stack');
       return false;
     }
   }
@@ -54,7 +55,8 @@ class TerminalClipboardManager {
         return true;
       }
       return false;
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('clipboard paste failed: $e\n$stack');
       return false;
     }
   }
@@ -68,7 +70,8 @@ class TerminalClipboardManager {
         return true;
       }
       return false;
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('clipboard paste bracketed failed: $e\n$stack');
       return false;
     }
   }
@@ -80,7 +83,8 @@ class TerminalClipboardManager {
       if (text.isEmpty) return false;
       await Clipboard.setData(ClipboardData(text: text));
       return true;
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('clipboard copyAll failed: $e\n$stack');
       return false;
     }
   }
@@ -90,8 +94,8 @@ class TerminalClipboardManager {
   void selectAll() {
     try {
       controller.clearSelection();
-    } catch (e) {
-      debugPrint('Failed to select all: $e');
+    } catch (e, stack) {
+      debugPrint('selectAll failed: $e\n$stack');
     }
   }
 

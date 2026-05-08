@@ -223,7 +223,7 @@ class PtyCoreWindows implements PtyCore {
   @override
   Uint8List? read() {
     final pReadlen = calloc<Uint32>();
-    final buffer = Pointer.fromAddress(_buffer);
+    final buffer = Pointer.fromAddress(_buffer).cast<Uint8>();
     final ret = win32.ReadFile(
       _outputReadSide,
       buffer,

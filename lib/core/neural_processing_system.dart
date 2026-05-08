@@ -149,10 +149,10 @@ class NeuralModel {
   final int hiddenSize;
   final int outputSize;
   final double learningRate;
-  List<List<double>> _weightsIH;
-  List<List<double>> _weightsHO;
-  List<double> _biasHidden;
-  List<double> _biasOutput;
+  late List<List<double>> _weightsIH;
+  late List<List<double>> _weightsHO;
+  late List<double> _biasHidden;
+  late List<double> _biasOutput;
   final List<_TrainingSample> _samples = [];
   double currentLoss = 0.0;
   double accuracy = 0.0;

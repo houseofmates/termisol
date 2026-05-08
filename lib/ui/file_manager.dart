@@ -7,10 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
-import '../core/video_player.dart';
-import '../core/audio_visualizer.dart';
-import '../core/model_3d_viewer.dart';
-import '../core/graphics_protocol_handler.dart';
 import 'text_editor.dart';
 
 /// Built-in file manager with editing preview sidebar for Termisol

@@ -7,11 +7,20 @@ import 'package:flutter/foundation.dart';
 import 'package:ffi/ffi.dart';
 
 // FFI bindings for native PTY operations
-typedef _pty_spawn_func = Pointer<Utf8> Function(Pointer<Utf8> shell, Pointer<Utf8> workingDir, int cols, int rows);
-typedef _pty_write_func = void Function(int fd, Pointer<Uint8> data, int length);
-typedef _pty_read_func = int Function(int fd, Pointer<Uint8> buffer, int length);
-typedef _pty_resize_func = void Function(int fd, int cols, int rows);
-typedef _pty_close_func = void Function(int fd);
+typedef _PtySpawnNative = NativeFunction<Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, Int32, Int32)>;
+typedef _PtySpawnDart = Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, int, int);
+
+typedef _PtyWriteNative = NativeFunction<Void Function(Int32, Pointer<Uint8>, Int32)>;
+typedef _PtyWriteDart = void Function(int, Pointer<Uint8>, int);
+
+typedef _PtyReadNative = NativeFunction<Int32 Function(Int32, Pointer<Uint8>, Int32)>;
+typedef _PtyReadDart = int Function(int, Pointer<Uint8>, int);
+
+typedef _PtyResizeNative = NativeFunction<Void Function(Int32, Int32, Int32)>;
+typedef _PtyResizeDart = void Function(int, int, int);
+
+typedef _PtyCloseNative = NativeFunction<Void Function(Int32)>;
+typedef _PtyCloseDart = void Function(int);
 
 /// High-performance FFI-based PTY backend with direct memory access
 /// Eliminates platform channel overhead and provides proper flow control
@@ -21,11 +30,11 @@ class FfiPtyBackend implements TermisolPtyBackend {
   final String? workingDirectory;
   
   // FFI function pointers
-  late final _pty_spawn_func _ptySpawn;
-  late final _pty_write_func _ptyWrite;
-  late final _pty_read_func _ptyRead;
-  late final _pty_resize_func _ptyResize;
-  late final _pty_close_func _ptyClose;
+  late final _PtySpawnDart _ptySpawn;
+  late final _PtyWriteDart _ptyWrite;
+  late final _PtyReadDart _ptyRead;
+  late final _PtyResizeDart _ptyResize;
+  late final _PtyCloseDart _ptyClose;
   
   // PTY state
   int _ptyFd = -1;
@@ -68,11 +77,11 @@ class FfiPtyBackend implements TermisolPtyBackend {
               ? DynamicLibrary.open('libtermisol_pty.dylib')
               : DynamicLibrary.open('termisol_pty.dll');
       
-      _ptySpawn = dylib.lookupFunction<_pty_spawn_func, _pty_spawn_func>('pty_spawn');
-      _ptyWrite = dylib.lookupFunction<_pty_write_func, _pty_write_func>('pty_write');
-      _ptyRead = dylib.lookupFunction<_pty_read_func, _pty_read_func>('pty_read');
-      _ptyResize = dylib.lookupFunction<_pty_resize_func, _pty_resize_func>('pty_resize');
-      _ptyClose = dylib.lookupFunction<_pty_close_func, _pty_close_func>('pty_close');
+      _ptySpawn = dylib.lookupFunction<_PtySpawnNative, _PtySpawnDart>('pty_spawn');
+      _ptyWrite = dylib.lookupFunction<_PtyWriteNative, _PtyWriteDart>('pty_write');
+      _ptyRead = dylib.lookupFunction<_PtyReadNative, _PtyReadDart>('pty_read');
+      _ptyResize = dylib.lookupFunction<_PtyResizeNative, _PtyResizeDart>('pty_resize');
+      _ptyClose = dylib.lookupFunction<_PtyCloseNative, _PtyCloseDart>('pty_close');
       
       debugPrint('[ffi_pty] FFI functions loaded successfully');
     } catch (e) {
@@ -159,7 +168,7 @@ class FfiPtyBackend implements TermisolPtyBackend {
       if (readData.isEmpty) break;
       
       try {
-        _ptyWrite(_ptyFd, readData.cast<Uint8>(), readData.length);
+        _ptyWrite(_ptyFd, _tempBuffer, readData.length);
       } catch (e) {
         debugPrint('[ffi_pty] Write error: $e');
         break;
@@ -309,18 +318,17 @@ class FfiPtyBackend implements TermisolPtyBackend {
 
 /// Backpressure-enabled stream controller with buffer limits
 class _BackpressureStreamController {
-  final StreamController<List<int>> _controller;
+  late final StreamController<List<int>> _controller;
   static const int _maxBufferSize = 1024 * 1024; // 1MB max buffer
   int _currentBufferSize = 0;
   bool _isPaused = false;
 
-  _BackpressureStreamController() 
-      : _controller = StreamController<List<int>>.broadcast(
-          onListen: _onListen,
-          onCancel: _onCancel,
-          onPause: _onPause,
-          onResume: _onResume,
-        );
+  _BackpressureStreamController() {
+    _controller = StreamController<List<int>>.broadcast(
+      onListen: _onListen,
+      onCancel: _onCancel,
+    );
+  }
 
   Stream<List<int>> get stream => _controller.stream;
   bool get isClosed => _controller.isClosed;

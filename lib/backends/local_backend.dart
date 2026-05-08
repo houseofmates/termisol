@@ -15,7 +15,7 @@ class LocalBackend implements TermisolPtyBackend {
   final _outputController = StreamController<List<int>>.broadcast();
   bool _isRunning = false;
   bool _isDisposed = false;
-  late String _shellPath;
+  String _shellPath = '';
 
   LocalBackend({
     this.workingDirectory = '/tmp',
@@ -83,7 +83,7 @@ class LocalBackend implements TermisolPtyBackend {
       _isRunning = false;
 
       // Attempt recovery with fallback shell
-      if (_shellPath != fallbackShell) {
+      if (_shellPath.isNotEmpty && _shellPath != fallbackShell) {
         if (kDebugMode) debugPrint('[LOCAL] Attempting fallback to $fallbackShell');
         _shellPath = fallbackShell;
         await start(cols: cols, rows: rows, workingDirectory: wd);

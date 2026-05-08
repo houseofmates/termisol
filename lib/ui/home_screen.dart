@@ -626,18 +626,12 @@ class _HomeScreenState extends State<HomeScreen> {
               terminal: _activeSession!.terminal,
               onClose: () => setState(() => _showSearch = false),
             ),
-          // Command history search overlay
-          if (_showHistorySearch && _activeSession != null)
-            CommandHistorySearch(
-              session: _activeSession!,
-              onClose: () => setState(() => _showHistorySearch = false),
-            ),
-          // VR Mode overlay
-          if (_vrMode && _activeSession != null)
-            OpenXRVrTerminal(
-              session: _activeSession!,
-              onExitVr: () => setState(() => _vrMode = false),
-            ),
+           // Command history search overlay
+           if (_showHistorySearch && _activeSession != null)
+             CommandHistorySearch(
+               session: _activeSession!,
+               onClose: () => setState(() => _showHistorySearch = false),
+             ),
         ],
       ),
     );

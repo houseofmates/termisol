@@ -44,6 +44,7 @@ class TerminalSession extends ChangeNotifier {
   String name;
   late final Terminal terminal;
   late final TerminalController controller;
+  late final RingBufferScrollback scrollback;
   TermisolPtyBackend? _backend;
   bool _connected = false;
   String? _error;

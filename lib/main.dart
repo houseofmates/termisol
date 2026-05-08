@@ -29,6 +29,44 @@ Future<void> _setupErrorHandling() async {
 
 import 'dart:convert';
 
+/// Enhanced error logging with structured data
+Future<void> _logError(String type, String error, StackTrace? stack) async {
+  try {
+    final directory = await getApplicationDocumentsDirectory();
+    final logFile = File('${directory.path}/termisol_crash_log.txt');
+    
+    // Keep log file size manageable (max 10MB)
+    if (await logFile.exists() && await logFile.length() > 10 * 1024 * 1024) {
+      await logFile.rename('${directory.path}/termisol_crash_log_${DateTime.now().millisecondsSinceEpoch}.txt');
+    }
+
+    final timestamp = DateTime.now().toIso8601String();
+    final structuredLog = {
+      'timestamp': timestamp,
+      'type': type,
+      'error': error,
+      'stack': stack?.toString(),
+      'platform': Platform.operatingSystem,
+      'version': '1.0.0',
+    };
+
+    await logFile.writeAsString(
+      '${jsonEncode(structuredLog)}\n',
+      mode: FileMode.append,
+    );
+  } catch (e) {
+    // Fallback to system logging
+    if (kDebugMode) {
+      print('CRITICAL: Failed to log error: $e');
+    }
+  }
+}
+
+/// User-friendly error reporting
+void _reportErrorToUser(String error) {
+  ErrorReporter.reportError(error);
+}
+
 /// Global error state
 class ErrorReporter {
   static String? currentError;
@@ -45,10 +83,6 @@ class ErrorReporter {
   }
 }
 
-/// Show user-friendly error dialog
-void _showErrorDialog(String error) {
-  ErrorReporter.reportError(error);
-}
 
 /// entry point for termisol with lazy-loading service registry.
 /// critical services start immediately; everything else is on-demand.

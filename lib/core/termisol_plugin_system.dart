@@ -132,6 +132,11 @@ Future<void> _pluginWorker(SendPort sendPort) async {
   // Stub implementation for testing
 }
 
+Future<bool> _disposePlugin(String pluginId) async {
+  // Stub implementation
+  return true;
+}
+
 // Plugin command handling removed for simplicity
       break;
       

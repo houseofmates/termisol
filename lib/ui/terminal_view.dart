@@ -8,33 +8,36 @@ import '../core/deep_l_service.dart';
 import '../config/pkm_theme.dart';
 import 'clipboard_manager.dart';
 
-/// xterm terminal theme using Termisol brand yellow (#f6b012) instead of
-/// the default greenish-yellow (#e5e510).
+/// gnome terminal color palette extracted from the user's screenshot.
 const termisolTerminalTheme = TerminalTheme(
-  cursor: Color(0xAAAEAFAD),
-  selection: Color(0xFF000713),
-  foreground: Color(0xFFf7da88),
+  cursor: Color(0xFFFFAA00),
+  selection: Color(0xFF0A0E1A),
+  foreground: Color(0xFFFFD6A5),
   background: Color(0xFF000000),
   black: Color(0xFF000000),
-  red: Color(0xFFE06C75),
-  green: Color(0xFF98C379),
-  yellow: Color(0xFFE5C07B),
-  blue: Color(0xFF61AFEF),
-  magenta: Color(0xFFC678DD),
-  cyan: Color(0xFF56B6C2),
-  white: Color(0xFFABB2BF),
-  brightBlack: Color(0xFF5C6370),
-  brightRed: Color(0xFFE06C75),
-  brightGreen: Color(0xFF98C379),
-  brightYellow: Color(0xFFE5C07B),
-  brightBlue: Color(0xFF61AFEF),
-  brightMagenta: Color(0xFFC678DD),
-  brightCyan: Color(0xFF56B6C2),
+  red: Color(0xFFFF0000),
+  green: Color(0xFF00CC00),
+  yellow: Color(0xFFCCCC00),
+  blue: Color(0xFF0000FF),
+  magenta: Color(0xFFFF00FF),
+  cyan: Color(0xFF00CCCC),
+  white: Color(0xFFE5E5E5),
+  brightBlack: Color(0xFF808080),
+  brightRed: Color(0xFFFF0000),
+  brightGreen: Color(0xFF00FF00),
+  brightYellow: Color(0xFFFFFF00),
+  brightBlue: Color(0xFF6666FF),
+  brightMagenta: Color(0xFFFF00FF),
+  brightCyan: Color(0xFF00FFFF),
   brightWhite: Color(0xFFFFFFFF),
   searchHitBackground: Color(0xFFFFFF2B),
   searchHitBackgroundCurrent: Color(0xFF31FF26),
   searchHitForeground: Color(0xFF000000),
 );
+
+const _defaultTerminalFontSize = 14.0;
+const _minFontSize = 8.0;
+const _maxFontSize = 32.0;
 
 /// gpu-optimized terminal widget for termisol.
 class TermisolTerminalView extends StatefulWidget {
@@ -66,6 +69,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   final _deepL = DeepLTranslationService();
   bool _isSummarizing = false;
   bool _isTranslating = false;
+  double _fontSize = _defaultTerminalFontSize;
 
   @override
   void initState() {
@@ -86,6 +90,59 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
 
   void _onSessionChanged() {
     if (mounted) setState(() {});
+  }
+
+  void _zoomIn() {
+    setState(() {
+      _fontSize = (_fontSize + 1.0).clamp(_minFontSize, _maxFontSize);
+    });
+  }
+
+  void _zoomOut() {
+    setState(() {
+      _fontSize = (_fontSize - 1.0).clamp(_minFontSize, _maxFontSize);
+    });
+  }
+
+  void _zoomReset() {
+    setState(() {
+      _fontSize = _defaultTerminalFontSize;
+    });
+  }
+
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+    final ctrl = HardwareKeyboard.instance.isControlPressed;
+    final shift = HardwareKeyboard.instance.isShiftPressed;
+
+    // zoom: ctrl + (or ctrl shift + on us layouts)
+    if (ctrl &&
+        (event.logicalKey == LogicalKeyboardKey.equal ||
+         event.logicalKey == LogicalKeyboardKey.numpadAdd ||
+         (shift && event.logicalKey == LogicalKeyboardKey.equal))) {
+      _zoomIn();
+      return KeyEventResult.handled;
+    }
+
+    // zoom out: ctrl -
+    if (ctrl &&
+        (event.logicalKey == LogicalKeyboardKey.minus ||
+         event.logicalKey == LogicalKeyboardKey.numpadSubtract)) {
+      _zoomOut();
+      return KeyEventResult.handled;
+    }
+
+    // reset zoom: ctrl 0
+    if (ctrl &&
+        !shift &&
+        (event.logicalKey == LogicalKeyboardKey.digit0 ||
+         event.logicalKey == LogicalKeyboardKey.numpad0)) {
+      _zoomReset();
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
   }
 
   @override
@@ -115,6 +172,13 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
             controller: widget.session.controller,
             focusNode: widget.focusNode,
             autofocus: widget.autofocus,
+            theme: termisolTerminalTheme,
+            textStyle: TerminalStyle(
+              fontFamily: 'DroidSansMono',
+              fontSize: _fontSize,
+              height: 1.2,
+            ),
+            onKeyEvent: _handleKeyEvent,
             onSecondaryTapUp: (details, offset) => _showContextMenu(context, details.globalPosition),
           ),
         ),
@@ -265,9 +329,6 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
       final translation = await _deepL.translateToEnglish(text);
       if (translation != null && translation.isNotEmpty) {
         await Clipboard.setData(ClipboardData(text: translation));
-        // Write the translated text to the terminal so it appears at the
-        // cursor, effectively "replacing" the selection with the English
-        // version for the user to use.
         widget.session.terminal.write('\r\n');
         widget.session.terminal.write(
           '\x1b[33m[translated]\x1b[0m $translation\r\n',

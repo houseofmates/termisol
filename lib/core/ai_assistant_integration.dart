@@ -1047,6 +1047,76 @@ class AIAssistantIntegration {
     }
   }
   
+  // OpenAI API helper methods
+  Future<String> _makeOpenAIRequest(String input, AICapability capability, AIContext? context, String apiKey) async {
+    // Implement actual OpenAI API call
+    // For now, return enhanced local processing
+    return _getEnhancedLocalResponse(input, capability);
+  }
+  
+  Future<String> _makeOpenAICodeRequest(String code, AICapability capability, String? language, AIContext? context, String apiKey) async {
+    // Implement actual OpenAI API call for code
+    return _getEnhancedCodeResponse(code, capability, language);
+  }
+  
+  Future<String> _makeOpenAICommandRequest(String command, AICapability capability, AIContext? context, String apiKey) async {
+    // Implement actual OpenAI API call for commands
+    return _getEnhancedCommandResponse(command, capability);
+  }
+  
+  // Fallback methods
+  String _getLocalFallback(String input, AICapability capability) {
+    switch (capability) {
+      case AICapability.text_generation:
+        return _generateLocalTextEnhanced(input);
+      case AICapability.text_analysis:
+        return _analyzeLocalTextEnhanced(input);
+      case AICapability.text_summarization:
+        return _summarizeLocalTextEnhanced(input);
+      default:
+        return 'Local processing not available for this capability';
+    }
+  }
+  
+  String _getLocalCodeFallback(String code, AICapability capability, String? language) {
+    switch (capability) {
+      case AICapability.code_analysis:
+        return _analyzeLocalCodeEnhanced(code, language);
+      case AICapability.code_generation:
+        return _generateLocalCodeEnhanced(code, language);
+      case AICapability.code_completion:
+        return _completeLocalCodeEnhanced(code, language);
+      default:
+        return 'Local code processing not available for this capability';
+    }
+  }
+  
+  String _getLocalCommandFallback(String command, AICapability capability) {
+    switch (capability) {
+      case AICapability.command_suggestion:
+        return _suggestLocalCommandEnhanced(command);
+      case AICapability.command_explanation:
+        return _explainLocalCommandEnhanced(command);
+      case AICapability.command_optimization:
+        return _optimizeLocalCommandEnhanced(command);
+      default:
+        return 'Local command processing not available for this capability';
+    }
+  }
+  
+  // Enhanced local processing methods
+  String _getEnhancedLocalResponse(String input, AICapability capability) {
+    return _getLocalFallback(input, capability);
+  }
+  
+  String _getEnhancedCodeResponse(String code, AICapability capability, String? language) {
+    return _getLocalCodeFallback(code, capability, language);
+  }
+  
+  String _getEnhancedCommandResponse(String command, AICapability capability) {
+    return _getLocalCommandFallback(command, capability);
+  }
+  
   // Local processing helper methods
   Map<String, String> _getLocalTextPatterns() {
     return {

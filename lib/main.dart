@@ -115,7 +115,6 @@ void main() async {
     _showErrorDialog(error.toString());
   });
 }
-}
 
 /// Register all services with lazy-loading factories.
 /// None are created here — they instantiate on first use.

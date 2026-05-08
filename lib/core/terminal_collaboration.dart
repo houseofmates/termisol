@@ -48,6 +48,9 @@ class TerminalCollaboration {
   final List<Function(CollaborationEvent)> _onEventReceived = [];
   final List<Function(String)> _onRoomJoined = [];
   final List<Function(String)> _onRoomLeft = [];
+  final List<Function(Map<String, dynamic>)> _onChatMessage = [];
+  final List<Function(Map<String, dynamic>)> _onSystemNotification = [];
+  final List<Function(Collaborator)> _onUserJoined = [];
   
   TerminalCollaboration();
   

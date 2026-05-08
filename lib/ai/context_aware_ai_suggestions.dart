@@ -503,7 +503,7 @@ Focus on:
   }
 
   
-  void _cleanupCache() {
+  Future<void> _cleanupCache() async {
     final now = DateTime.now();
     final expiredKeys = <String>[];
     

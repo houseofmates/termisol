@@ -3236,39 +3236,6 @@ Once configured, I'll provide intelligent assistance based on your file context.
       ));
     }
   }
-  
-  @override
-  void dispose() {
-    try {
-      // Save final state before disposal
-      ErrorMonitor.monitorError('Final state save', () async {
-        await _saveEditorState();
-      });
-      
-      // Clean up resources
-      _autoSaveManager.dispose();
-      _saveTimer?.cancel();
-      _undoTimer?.cancel();
-      _controller.dispose();
-      _scrollController.dispose();
-      _focusNode.dispose();
-      _searchController.dispose();
-      _aiChatController.dispose();
-      _collaborationManager.dispose();
-      
-      debugPrint('🧹 Editor disposed successfully');
-    } catch (e) {
-      debugPrint('❌ Error during editor disposal: $e');
-      _crashRecovery.logError(EditorError(
-        type: EditorErrorType.systemError,
-        message: 'Error during editor disposal',
-        details: 'File: ${widget.filePath}, Error: $e',
-        timestamp: DateTime.now(),
-      ));
-    }
-    
-    super.dispose();
-  }
 }
 
 // Custom scrollbar widget with rounded thin design and custom color

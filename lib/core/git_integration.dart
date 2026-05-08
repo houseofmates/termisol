@@ -436,7 +436,7 @@ class GitIntegration {
             _stashes.add(GitStash(
               index: index,
               message: message,
-              createdAt: DateTime.now(), // TODO: Get actual date
+              createdAt: _getStashDate(index),
             ));
           }
         }

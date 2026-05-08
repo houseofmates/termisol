@@ -725,7 +725,7 @@ class ErrorReport {
     error: json['error'] as String,
     stackTrace: json['stackTrace'] as String?,
     context: json['context'] as String?,
-    metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
+    metadata: Map<String, dynamic>.from((json['metadata'] ?? {}) as Map<dynamic, dynamic>),
     severity: ErrorSeverity.values.firstWhere(
       (e) => e.toString() == json['severity'],
       orElse: () => ErrorSeverity.error,

@@ -739,14 +739,14 @@ class TerminalSession {
       id: json['id'] as String,
       title: json['title'] as String,
       workingDirectory: json['working_directory'] as String,
-      environment: Map<String, String>.from(json['environment'] ?? {}),
+      environment: Map<String, String>.from((json['environment'] ?? {}) as Map<dynamic, dynamic>),
       command: json['command'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       lastActivity: json['last_activity'] != null ? DateTime.parse(json['last_activity'] as String) : null,
       isActive: json['is_active'] as bool? ?? true,
       content: json['content'] as String? ?? '',
-      history: List<String>.from(json['history'] ?? []),
-      bookmarks: List<String>.from(json['bookmarks'] ?? []),
+      history: List<String>.from((json['history'] ?? []) as List<dynamic>),
+      bookmarks: List<String>.from((json['bookmarks'] ?? []) as List<dynamic>),
     );
   }
 }
@@ -794,7 +794,7 @@ class SessionBackup {
       timestamp: DateTime.parse(json['timestamp'] as String),
       deviceId: json['device_id'] as String,
       sessions: (json['sessions'] as Map<dynamic, dynamic>? ?? {}).cast<String, Map<String, dynamic>>(),
-      metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
+      metadata: Map<String, dynamic>.from((json['metadata'] ?? {}) as Map<dynamic, dynamic>),
     );
   }
 }
@@ -833,8 +833,7 @@ class CrashReport {
       timestamp: DateTime.parse(json['timestamp'] as String),
       deviceId: json['device_id'] as String,
       activeSessions: json['active_sessions'] as int? ?? 0,
-      lastKnownState: Map<String, dynamic>.from(json['last_known_state'] ?? {}),
-      // Line 836 fixed above
+      lastKnownState: Map<String, dynamic>.from((json['last_known_state'] ?? {}) as Map<dynamic, dynamic>),
       error: json['error'] as String?,
     );
   }

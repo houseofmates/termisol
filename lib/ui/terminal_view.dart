@@ -10,32 +10,8 @@ import '../core/graphics_protocol_handler.dart';
 import '../config/pkm_theme.dart';
 import 'clipboard_manager.dart';
 
-/// gnome terminal color palette extracted from the user's screenshot.
-const termisolTerminalTheme = TerminalTheme(
-  cursor: Color(0xFFFFAA00),
-  selection: Color(0xFF0A0E1A),
-  foreground: Color(0xFFFFD6A5),
-  background: Color(0xFF000000),
-  black: Color(0xFF000000),
-  red: Color(0xFFFF0000),
-  green: Color(0xFF00CC00),
-  yellow: Color(0xFFCCCC00),
-  blue: Color(0xFF0000FF),
-  magenta: Color(0xFFFF00FF),
-  cyan: Color(0xFF00CCCC),
-  white: Color(0xFFE5E5E5),
-  brightBlack: Color(0xFF808080),
-  brightRed: Color(0xFFFF0000),
-  brightGreen: Color(0xFF00FF00),
-  brightYellow: Color(0xFFFFFF00),
-  brightBlue: Color(0xFF6666FF),
-  brightMagenta: Color(0xFFFF00FF),
-  brightCyan: Color(0xFF00FFFF),
-  brightWhite: Color(0xFFFFFFFF),
-  searchHitBackground: Color(0xFFFFFF2B),
-  searchHitBackgroundCurrent: Color(0xFF31FF26),
-  searchHitForeground: Color(0xFF000000),
-);
+/// Active terminal theme based on the current [PkmTheme.themeMode].
+TerminalTheme get termisolTerminalTheme => PkmTheme.activeTerminalTheme;
 
 const _defaultTerminalFontSize = 14.0;
 const _minFontSize = 8.0;
@@ -77,6 +53,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   @override
   void initState() {
     super.initState();
+    PkmTheme.themeMode.addListener(_onThemeChanged);
     _deepL.initialize();
     _graphicsHandler = GraphicsProtocolHandler(
       widget.session.terminal,
@@ -94,6 +71,17 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     });
   }
 
+  @override
+  void dispose() {
+    PkmTheme.themeMode.removeListener(_onThemeChanged);
+    widget.session.removeListener(_onSessionChanged);
+    super.dispose();
+  }
+
+  void _onThemeChanged() {
+    if (mounted) setState(() {});
+  }
+
   Future<void> _loadFontSize() async {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getDouble('termisol_font_size');
@@ -105,12 +93,6 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   Future<void> _saveFontSize() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('termisol_font_size', _fontSize);
-  }
-
-  @override
-  void dispose() {
-    widget.session.removeListener(_onSessionChanged);
-    super.dispose();
   }
 
   void _onSessionChanged() {

@@ -926,9 +926,165 @@ class TextProcessor {
 }
 
 class SyntaxHighlighter {
-  Future<void> initialize(AdvancedConfig config) async {}
-  Map<String, dynamic> getStatistics() => {};
-  Future<void> dispose() async {}
+  AdvancedConfig? _config;
+  bool _isInitialized = false;
+  final Map<String, List<SyntaxRule>> _languageRules = {};
+  final Map<String, int> _highlightingStats = {};
+  final List<String> _supportedLanguages = [
+    'dart', 'flutter', 'javascript', 'typescript', 'python', 
+    'java', 'cpp', 'c', 'go', 'rust', 'html', 'css', 'json', 'yaml'
+  ];
+  
+  static const int _maxCacheSize = 1000;
+  final Map<String, String> _highlightCache = {};
+  
+  Future<void> initialize(AdvancedConfig config) async {
+    if (_isInitialized) return;
+    
+    try {
+      _config = config;
+      
+      // Load syntax rules for all supported languages
+      await _loadSyntaxRules();
+      
+      _isInitialized = true;
+      debugPrint('🎨 SyntaxHighlighter initialized with ${_supportedLanguages.length} languages');
+    } catch (e) {
+      debugPrint('❌ Failed to initialize SyntaxHighlighter: $e');
+      rethrow;
+    }
+  }
+  
+  Future<void> _loadSyntaxRules() async {
+    for (final language in _supportedLanguages) {
+      _languageRules[language] = await _loadLanguageRules(language);
+    }
+  }
+  
+  Future<List<SyntaxRule>> _loadLanguageRules(String language) async {
+    // Simulate loading syntax rules
+    await Future.delayed(Duration(milliseconds: 10));
+    
+    switch (language) {
+      case 'dart':
+      case 'flutter':
+        return [
+          SyntaxRule(type: 'keyword', pattern: RegExp(r'\b(class|extends|implements|with|mixin|import|export|library|part|of|as|show|hide|async|await|yield|return|if|else|for|while|do|switch|case|default|break|continue|try|catch|finally|throw|rethrow|assert|new|const|final|static|var|void|bool|int|double|String|List|Map|Set)\b'), style: 'keyword'),
+          SyntaxRule(type: 'string', pattern: RegExp(r'"[^"]*"|\'[^\']*\''), style: 'string'),
+          SyntaxRule(type: 'comment', pattern: RegExp(r'//.*|/\*[\s\S]*?\*/'), style: 'comment'),
+          SyntaxRule(type: 'number', pattern: RegExp(r'\b\d+\.?\d*\b'), style: 'number'),
+        ];
+      case 'javascript':
+      case 'typescript':
+        return [
+          SyntaxRule(type: 'keyword', pattern: RegExp(r'\b(function|var|let|const|if|else|for|while|do|switch|case|default|break|continue|return|try|catch|finally|throw|new|class|extends|import|export|from|as|async|await|yield|typeof|instanceof|in|of)\b'), style: 'keyword'),
+          SyntaxRule(type: 'string', pattern: RegExp(r'"[^"]*"|\'[^\']*\'|`[^`]*`'), style: 'string'),
+          SyntaxRule(type: 'comment', pattern: RegExp(r'//.*|/\*[\s\S]*?\*/'), style: 'comment'),
+          SyntaxRule(type: 'number', pattern: RegExp(r'\b\d+\.?\d*\b'), style: 'number'),
+        ];
+      case 'python':
+        return [
+          SyntaxRule(type: 'keyword', pattern: RegExp(r'\b(def|class|if|elif|else|for|while|try|except|finally|return|yield|import|from|as|global|nonlocal|lambda|and|or|not|in|is|with|async|await)\b'), style: 'keyword'),
+          SyntaxRule(type: 'string', pattern: RegExp(r'"[^"]*"|\'[^\']*\'|"""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\''), style: 'string'),
+          SyntaxRule(type: 'comment', pattern: RegExp(r'#.*'), style: 'comment'),
+          SyntaxRule(type: 'number', pattern: RegExp(r'\b\d+\.?\d*\b'), style: 'number'),
+        ];
+      default:
+        return [
+          SyntaxRule(type: 'keyword', pattern: RegExp(r'\b\w+\b'), style: 'keyword'),
+          SyntaxRule(type: 'string', pattern: RegExp(r'"[^"]*"|\'[^\']*\''), style: 'string'),
+          SyntaxRule(type: 'comment', pattern: RegExp(r'//.*|/\*[\s\S]*?\*/|#.*'), style: 'comment'),
+        ];
+    }
+  }
+  
+  Map<String, dynamic> getStatistics() {
+    return {
+      'is_initialized': _isInitialized,
+      'supported_languages': _supportedLanguages,
+      'language_rules_count': _languageRules.length,
+      'cache_size': _highlightCache.length,
+      'highlighting_stats': Map.from(_highlightingStats),
+    };
+  }
+  
+  Future<String> highlight(String code, String language) async {
+    if (!_isInitialized) {
+      throw StateError('SyntaxHighlighter not initialized');
+    }
+    
+    final cacheKey = '${language}_${code.hashCode}';
+    if (_highlightCache.containsKey(cacheKey)) {
+      return _highlightCache[cacheKey]!;
+    }
+    
+    try {
+      final rules = _languageRules[language.toLowerCase()];
+      if (rules == null) {
+        debugPrint('⚠️ No syntax rules found for language: $language');
+        return code;
+      }
+      
+      String highlightedCode = code;
+      
+      // Apply syntax rules
+      for (final rule in rules) {
+        highlightedCode = highlightedCode.replaceAllMapped(
+          rule.pattern,
+          (match) => '<span class="${rule.style}">${match.group(0)}</span>',
+        );
+      }
+      
+      // Cache result
+      _addToCache(cacheKey, highlightedCode);
+      
+      // Update statistics
+      _highlightingStats['total_highlights'] = (_highlightingStats['total_highlights'] ?? 0) + 1;
+      _highlightingStats['highlights_${language}'] = (_highlightingStats['highlights_${language}'] ?? 0) + 1;
+      
+      return highlightedCode;
+    } catch (e) {
+      debugPrint('❌ Failed to highlight code: $e');
+      return code; // Return original code on error
+    }
+  }
+  
+  void _addToCache(String key, String value) {
+    _highlightCache[key] = value;
+    
+    // Maintain cache size
+    if (_highlightCache.length > _maxCacheSize) {
+      final keysToRemove = _highlightCache.keys.take(_highlightCache.length - _maxCacheSize);
+      for (final key in keysToRemove) {
+        _highlightCache.remove(key);
+      }
+    }
+  }
+  
+  Future<void> dispose() async {
+    try {
+      _languageRules.clear();
+      _highlightCache.clear();
+      _highlightingStats.clear();
+      _isInitialized = false;
+      
+      debugPrint('🎨 SyntaxHighlighter disposed');
+    } catch (e) {
+      debugPrint('❌ Error disposing SyntaxHighlighter: $e');
+    }
+  }
+}
+
+class SyntaxRule {
+  final String type;
+  final RegExp pattern;
+  final String style;
+  
+  SyntaxRule({
+    required this.type,
+    required this.pattern,
+    required this.style,
+  });
 }
 
 class AutoCompleter {

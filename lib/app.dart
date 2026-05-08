@@ -18,6 +18,124 @@ class TermisolApp extends StatefulWidget {
 }
 
 class _TermisolAppState extends State<TermisolApp> {
+  @override
+  void initState() {
+    super.initState();
+    main.ErrorReporter.onErrorChanged = () {
+      setState(() {});
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final baseTextTheme = GoogleFonts.varelaRoundTextTheme(
+      ThemeData.dark().textTheme,
+    );
+
+    return MaterialApp(
+      title: 'termisol',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark().copyWith(
+        colorScheme: const ColorScheme.dark(
+          primary: PkmTheme.primary,
+          secondary: PkmTheme.secondary,
+          surface: PkmTheme.popup,
+          surfaceContainerHighest: PkmTheme.tabActiveBg,
+        ),
+        scaffoldBackgroundColor: PkmTheme.background,
+        textTheme: baseTextTheme,
+        bottomSheetTheme: const BottomSheetThemeData(
+          backgroundColor: PkmTheme.popup,
+        ),
+        dialogTheme: const DialogThemeData(
+          backgroundColor: PkmTheme.popup,
+        ),
+      ),
+      home: Stack(
+        children: [
+          HomeScreen(registry: widget.registry),
+          if (main.ErrorReporter.currentError != null)
+            _ErrorDialog(error: main.ErrorReporter.currentError!),
+        ],
+      ),
+    );
+  }
+}
+
+class _ErrorDialog extends StatelessWidget {
+  final String error;
+
+  const _ErrorDialog({required this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.black.withOpacity(0.8),
+      child: Center(
+        child: Container(
+          margin: const EdgeInsets.all(32),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: PkmTheme.popup,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.red.withOpacity(0.3)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                color: Colors.red,
+                size: 48,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Something went wrong',
+                style: TextStyle(
+                  color: PkmTheme.text,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'An unexpected error occurred. The error has been logged for review.',
+                style: TextStyle(
+                  color: PkmTheme.primary,
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Error details: ${error.length > 100 ? error.substring(0, 100) + '...' : error}',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                  fontFamily: 'monospace',
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  main.ErrorReporter.clearError();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: PkmTheme.primary,
+                  foregroundColor: Colors.black,
+                ),
+                child: const Text('Continue'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TermisolAppState extends State<TermisolApp> {
   bool _isVrMode = false;
   bool _vrDetectionComplete = false;
 

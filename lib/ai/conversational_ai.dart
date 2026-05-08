@@ -385,7 +385,7 @@ class ConversationalAI {
     
     // Add conversation history
     buffer.writeln('Conversation history:');
-    for (final message in session.history.takeLast(10)) {
+    for (final message in session.history.length > 10 ? session.history.sublist(session.history.length - 10) : session.history) {
       buffer.writeln('${message.role.name}: ${message.content}');
     }
     buffer.writeln('');

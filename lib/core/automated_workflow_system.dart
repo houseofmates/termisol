@@ -348,9 +348,10 @@ class AutomatedWorkflowSystem {
           
           // Execute parallel tasks
           final parallelResults = await _executeParallelTasks(parallelTasks, variables, execution);
-          for (final result in parallelResults) {
-            execution.taskResults[result.taskId] = result;
-            if (!result.success && result.onError == TaskErrorAction.stop) {
+          for (int k = 0; k < parallelResults.length; k++) {
+            final result = parallelResults[k];
+            execution.taskResults[result.taskId!] = result;
+            if (!result.success && parallelTasks[k].onError == TaskErrorAction.stop) {
               execution.status = ExecutionStatus.failed;
               execution.error = result.error;
               execution.completedAt = DateTime.now();
@@ -741,7 +742,7 @@ class AutomatedWorkflowSystem {
 
 enum TaskType { command, httpRequest, fileOperation, conditional, loop, delay, notification }
 enum TaskExecutionMode { sequential, parallel }
-enum TaskErrorAction { stop, continue, retry }
+enum TaskErrorAction { stop, continueAction, retry }
 enum ExecutionStatus { running, completed, failed, stopped, paused }
 enum ConditionOperator { equals, notEquals, greaterThan, lessThan, contains, notContains }
 
@@ -785,9 +786,9 @@ class WorkflowTask {
     required this.name,
     required this.type,
     required this.parameters,
-    required this.conditions,
-    required this.onError,
-    required this.executionMode,
+    this.conditions = const [],
+    this.onError = TaskErrorAction.continueAction,
+    this.executionMode = TaskExecutionMode.sequential,
     this.timeout,
     this.retryCount = 0,
   });
@@ -818,14 +819,14 @@ class WorkflowTrigger {
     );
   }
   
-  factory WorkflowType.webhook(String url) {
+  factory WorkflowTrigger.webhook(String url) {
     return WorkflowTrigger(
       type: TriggerType.webhook,
       config: {'url': url},
     );
   }
   
-  factory WorkflowType.event(String eventName) {
+  factory WorkflowTrigger.event(String eventName) {
     return WorkflowTrigger(
       type: TriggerType.event,
       config: {'event': eventName},
@@ -857,7 +858,7 @@ class WorkflowExecution {
   DateTime? completedAt;
   DateTime? stoppedAt;
   final Map<String, dynamic> inputVariables;
-  final Map<String, dynamic> outputVariables;
+  Map<String, dynamic> outputVariables;
   final Map<String, TaskResult> taskResults;
   int currentTaskIndex;
   String? error;

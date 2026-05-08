@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
-import '../backends/pty_backend.dart';
+import 'pty_backend.dart';
 import 'bracketed_paste_manager.dart';
 import 'focus_manager.dart';
 import 'truecolor_manager.dart';
 import 'kitty_graphics_manager.dart';
-import 'mouse_protocol_manager.dart';
+import 'mouse_protocol_manager.dart' as mouse;
 import 'ligature_font_manager.dart';
 import 'throttled_renderer.dart';
 import 'optimized_text_buffer.dart';
@@ -120,7 +120,7 @@ class TerminalSession extends ChangeNotifier {
     focusManager.enableFocusEvents();
     trueColor.enable();
     kittyGraphics.enable();
-    mouseProtocol.enable(MouseMode.any);
+    mouseProtocol.enable(mouse.MouseMode.any);
     ligatureFont.setFont('Fira Code', enableLigatures: true);
 
     // Start health monitoring and auto-save

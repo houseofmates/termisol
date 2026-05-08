@@ -423,14 +423,14 @@ class GraphicsProtocolHandler {
   }
 
   /// Handle Sixel graphics
-  String handleSixel(String sequence) {
+  String handleSixel(String sequence, int cursorX, int cursorY) {
     if (!_sixelEnabled) return '';
 
     try {
       // Parse Sixel DCS sequences: ESC P ... ESC \
       final match = RegExp(r'\x1bP([0-9;]*)(.*?)\x1b\\').firstMatch(sequence);
       if (match != null) {
-        return _processSixel(match.group(1)!, match.group(2)!);
+        return _processSixel(match.group(1)!, match.group(2)!, cursorX, cursorY);
       }
     } catch (e) {
       debugPrint('Failed to handle Sixel: $e');

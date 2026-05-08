@@ -116,6 +116,9 @@ class _EditTerminalState extends State<EditTerminal> {
     
     // Initialize hotkeys
     _currentHotkeys.addAll(_defaultHotkeys);
+    
+    // Check if AI is enabled via environment variable
+    _isAIEnabled = Platform.environment['TERMISOL_AI_ENABLED'] == 'true';
   }
 
   @override

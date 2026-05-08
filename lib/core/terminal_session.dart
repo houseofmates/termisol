@@ -71,6 +71,13 @@ class TerminalSession extends ChangeNotifier {
   /// Useful for monitoring output to detect errors or context changes.
   void Function(String output)? onOutputReceived;
 
+  /// Detected URLs from terminal output, updated on each output batch.
+  final List<DetectedUrl> detectedUrls = [];
+  final _urlRegex = RegExp(
+    r'https?://[^\s<>\"\'`\)\]\}]+',
+    caseSensitive: false,
+  );
+
   /// Buffer for intercepting /ai commands. xterm sends data character
   /// by character, so we accumulate input until we see a newline.
   final StringBuffer _inputBuffer = StringBuffer();
@@ -147,6 +154,7 @@ class TerminalSession extends ChangeNotifier {
           final normalized =
               text.replaceAll('\r\n', '\n').replaceAll('\n', '\r\n');
           terminal.write(normalized);
+          _extractUrls(text);
           onOutputReceived?.call(text);
         },
         onError: (Object e) {
@@ -329,9 +337,35 @@ class TerminalSession extends ChangeNotifier {
     _backend = null;
   }
 
+  /// Scan text for URLs and add them to detectedUrls with deduplication.
+  void _extractUrls(String text) {
+    final matches = _urlRegex.allMatches(text);
+    for (final match in matches) {
+      final url = match.group(0)!;
+      if (!detectedUrls.any((d) => d.url == url)) {
+        detectedUrls.add(DetectedUrl(
+          url: url,
+          detectedAt: DateTime.now(),
+        ));
+        // Keep list bounded
+        if (detectedUrls.length > 100) {
+          detectedUrls.removeAt(0);
+        }
+      }
+    }
+  }
+
   @override
   void dispose() {
     disposeSession();
     super.dispose();
   }
+}
+
+/// A URL detected in terminal output.
+class DetectedUrl {
+  final String url;
+  final DateTime detectedAt;
+
+  DetectedUrl({required this.url, required this.detectedAt});
 }

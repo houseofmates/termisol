@@ -33,7 +33,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showCommandPalette = false;
   bool _showSearch = false;
   bool _showHistorySearch = false;
-  bool _vrMode = false;
 
   @override
   void initState() {

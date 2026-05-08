@@ -1,8 +1,9 @@
 #!/usr/bin/env dart
 
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:test/test.dart' as test;
 
@@ -24,8 +25,8 @@ class AutomatedTestPipeline {
   final List<String> _failedTests = [];
   
   Future<void> runFullTestSuite() async {
-    print('🚀 Starting Termisol Automated Test Pipeline');
-    print('=' * 60);
+    debugPrint('🚀 Starting Termisol Automated Test Pipeline');
+    debugPrint('=' * 60);
     
     final stopwatch = Stopwatch()..start();
     
@@ -45,21 +46,21 @@ class AutomatedTestPipeline {
       _printSummary(stopwatch);
       
       if (_failedTests.isNotEmpty) {
-        print('\n❌ Test Pipeline Completed with Failures');
-        print('Failed tests: ${_failedTests.join(', ')}');
+        debugPrint('\n❌ Test Pipeline Completed with Failures');
+        debugPrint('Failed tests: ${_failedTests.join(', ')}');
         exit(1);
       } else {
-        print('\n✅ Test Pipeline Completed Successfully');
+        debugPrint('\n✅ Test Pipeline Completed Successfully');
         exit(0);
       }
     } catch (e) {
-      print('\n💥 Test Pipeline Failed: $e');
+      debugPrint('\n💥 Test Pipeline Failed: $e');
       exit(1);
     }
   }
   
   Future<void> _setupEnvironment() async {
-    print('🔧 Setting up test environment...');
+    debugPrint('🔧 Setting up test environment...');
     
     // Create directories
     await Directory(_testResultsDir).create(recursive: true);
@@ -69,7 +70,7 @@ class AutomatedTestPipeline {
     Platform.environment['FLUTTER_TEST'] = 'true';
     Platform.environment['TERMISOL_TEST_MODE'] = 'true';
     
-    print('✅ Test environment ready');
+    debugPrint('✅ Test environment ready');
   }
   
   Future<void> _runUnitTests() async {

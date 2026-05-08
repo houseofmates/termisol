@@ -118,7 +118,7 @@ class SessionRecovery {
       final sessions = await _findRecentSessions();
       if (sessions.isNotEmpty) {
         final latestSession = sessions.first;
-        await _restoreSession(latestSession, isCrashRecovery: true);
+        await restoreSession(latestSession, isCrashRecovery: true);
         
         debugPrint('✅ Crash recovery completed');
         _eventController.add(SessionEvent('crash_recovered', 'Crash recovery completed'));

@@ -1551,3 +1551,46 @@ class _TerminalFileManagerState extends State<TerminalFileManager>
     super.dispose();
   }
 }
+
+/// Custom painter for line numbers in text editor
+class LineNumbersPainter extends CustomPainter {
+  final String text;
+  final double fontSize;
+  final double lineHeight;
+
+  LineNumbersPainter({
+    required this.text,
+    required this.fontSize,
+    required this.lineHeight,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final lines = text.split('\n');
+    final textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.right,
+    );
+
+    final paint = Paint()..color = Colors.grey[600]!;
+
+    for (int i = 0; i < lines.length; i++) {
+      final lineNumber = (i + 1).toString();
+      textPainter.text = TextSpan(
+        text: lineNumber,
+        style: TextStyle(
+          color: Colors.grey[400],
+          fontSize: fontSize * 0.8,
+          fontFamily: 'monospace',
+        ),
+      );
+
+      textPainter.layout(maxWidth: 40);
+      final y = i * lineHeight + (lineHeight - textPainter.height) / 2;
+      textPainter.paint(canvas, Offset(40 - textPainter.width, y));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}

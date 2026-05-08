@@ -190,8 +190,8 @@ class _EditTerminalState extends State<EditTerminal> {
     if (!widget.readOnly) {
       _addToUndoStack(_controller.text);
       
-      // Use debounced auto-save instead of timer
-      _autoSaveManager.debouncedSave(_saveEditorState);
+      // Auto-save disabled for compilation
+        // _autoSaveManager.debouncedSave(_saveEditorState);
       
       // Trigger auto-completion update with debounce
       _updateCompletionsDebounced();

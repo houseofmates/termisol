@@ -121,6 +121,9 @@ class TerminalSession extends ChangeNotifier {
     // Start health monitoring and auto-save
       _crashRecovery.startHealthMonitoring();
     _sessionPersistence.startAutoSave(() => _saveSessionState());
+      
+      // Setup bracketed paste mode
+      bracketedPaste.enable();
   }
 
   /// rename this session and notify listeners.

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -301,8 +302,29 @@ Focus on:
   }
 
   double _getGpuUsage() {
-    // Placeholder for GPU usage monitoring
-    // In a real implementation, this would use NVIDIA ML libraries or system APIs
+    try {
+      // Try to read NVIDIA GPU usage from nvidia-smi
+      final result = Process.runSync('nvidia-smi', [
+        '--query-gpu=utilization.gpu',
+        '--format=csv,noheader,nounits'
+      ]);
+      
+      if (result.exitCode == 0) {
+        final output = result.stdout.toString().trim();
+        if (output.isNotEmpty) {
+          return double.tryParse(output) ?? 0.0;
+        }
+      }
+      
+      // Fallback: try reading from /proc/driver/nvidia/gpus/0/ utilization
+      final gpuUtilFile = File('/proc/driver/nvidia/gpus/0/utilization');
+      if (gpuUtilFile.existsSync()) {
+        final utilization = gpuUtilFile.readAsStringSync().trim();
+        return double.tryParse(utilization) ?? 0.0;
+      }
+    } catch (e) {
+      debugPrint('⚠️ Failed to get GPU usage: $e');
+    }
     return 0.0;
   }
 

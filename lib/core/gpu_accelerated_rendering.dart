@@ -621,21 +621,33 @@ class GPUAcceleratedRendering {
   }
 
   Future<void> _compileDirect3DShader(GPUShader shader) async {
-    // Simulate Direct3D shader compilation
     try {
-      // In practice, this would use Direct3D API
-      await Future.delayed(Duration(milliseconds: 60));
+      // Validate shader source before compilation
+      if (shader.source.isEmpty) {
+        throw ShaderCompilationException('Shader source is empty for ${shader.id}');
+      }
+
+      final startTime = DateTime.now();
+      
+      // Direct3D shader compilation with proper validation
+      await _validateShaderSyntax(shader.source, ShaderLanguage.direct3d);
+      
+      // Generate proper shader binary
+      final binary = await _generateShaderBinary(shader.source, ShaderLanguage.direct3d);
       
       shader.compiled = true;
-      shader.binary = Uint8List.fromList([0xDE, 0xAD, 0xBE, 0xEF]); // Placeholder
+      shader.binary = binary;
+      shader.compilationTime = DateTime.now().difference(startTime);
       
       _shaders[shader.id] = shader;
       
-      developer.log('🎮 Compiled Direct3D shader: ${shader.id}');
+      developer.log('🎮 Successfully compiled Direct3D shader: ${shader.id} in ${shader.compilationTime?.inMilliseconds}ms');
       
     } catch (e) {
       shader.compiled = false;
+      shader.error = e.toString();
       developer.log('🎮 Failed to compile Direct3D shader: $e');
+      throw ShaderCompilationException('Direct3D shader compilation failed: ${e.toString()}');
     }
   }
 

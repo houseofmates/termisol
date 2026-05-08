@@ -103,11 +103,23 @@ class SshBackend implements TermisolPtyBackend {
 
   @override
   void resize(int cols, int rows) {
-    if (_session == null) return;
+    if (_session != null && _isRunning) {
+      try {
+        _session!.resizeTerminal(cols, rows);
+      } catch (e) {
+        debugPrint('[SSH] Resize error: $e');
+      }
+    }
+  }
+
+  @override
+  Future<void> stop() async {
+    _isRunning = false;
     try {
-      _session!.resizeTerminal(cols, rows);
+      await _session?.done;
+      _session = null;
     } catch (e) {
-      debugPrint('[SSH] Resize error: $e');
+      debugPrint('[SSH] Stop error: $e');
     }
   }
 

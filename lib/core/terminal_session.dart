@@ -107,6 +107,12 @@ class TerminalSession extends ChangeNotifier {
     _commandNotifier = LongCommandNotifier();
     _pluginSystem = TermisolPluginSystem();
     bracketedPaste = BracketedPasteManager(terminal, controller);
+    focusManager = FocusManager(terminal, controller, onFocusChanged, onFocusEvent);
+    trueColor = TrueColorManager(terminal, controller);
+    kittyGraphics = KittyGraphicsManager(terminal, controller);
+    mouseProtocol = MouseProtocolManager(terminal, controller);
+    ligatureFont = LigatureFontManager(terminal, controller);
+    throttledRenderer = ThrottledRenderer(terminal);
     
     // Start health monitoring and auto-save
       _crashRecovery.startHealthMonitoring();
@@ -169,7 +175,7 @@ class TerminalSession extends ChangeNotifier {
       // Enable bracketed paste
       bracketedPaste.enable();
 
-      // Start listening for output
+      // Start listening for output with throttled rendering
       _outputSub = _backend!.output.listen(
         (data) {
           final text = utf8.decode(data, allowMalformed: true);
@@ -178,7 +184,9 @@ class TerminalSession extends ChangeNotifier {
           // emulate that here so the terminal displays lines correctly.
           final normalized =
               text.replaceAll('\r\n', '\n').replaceAll('\n', '\r\n');
-          terminal.write(normalized);
+          
+          // Use throttled renderer to prevent UI freezing
+          throttledRenderer.write(normalized);
           _extractUrls(text);
           onOutputReceived?.call(text);
         },

@@ -243,7 +243,7 @@ class AdvancedTerminalProtocol {
 
     final params = match.group(1) ?? '';
     final command = match.group(2)!;
-    final paramList = params.isEmpty ? [] : params.split(';').map((p) => int.tryParse(p) ?? 0).toList();
+    final paramList = params.isEmpty ? <int>[] : params.split(';').map((p) => int.tryParse(p) ?? 0).toList();
 
     switch (command) {
       case 'H': case 'f': // Cursor Position

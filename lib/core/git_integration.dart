@@ -365,12 +365,13 @@ class GitIntegration {
             final isCurrent = parts[1] == '*';
             final trackingInfo = parts[2];
             
+            final lastCommit = await _getBranchLastCommit(branchName);
             _branches.add(GitBranch(
               name: branchName,
               isCurrent: isCurrent,
               isRemote: branchName.startsWith('origin/'),
               trackingInfo: trackingInfo,
-              lastCommit: _getBranchLastCommit(branchName),
+              lastCommit: lastCommit,
             ));
           }
         }
@@ -399,12 +400,15 @@ class GitIntegration {
             final hash = match.group(1)!;
             final message = match.group(2)!;
             
+            final author = await _getCommitAuthor(hash);
+            final date = await _getCommitDate(hash);
+            
             _commits.add(GitCommit(
               hash: hash,
               shortHash: hash.substring(0, 7),
               message: message,
-              author: _getCommitAuthor(hash),
-              date: _getCommitDate(hash),
+              author: author,
+              date: date,
             ));
           }
         }
@@ -994,6 +998,70 @@ class GitIntegration {
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#x27;');
+  }
+  
+  /// Get last commit for a branch
+  GitCommit? _getBranchLastCommit(String branchName) async {
+    try {
+      final result = await Process.run('git', ['log', '-1', '--format=%H|%an|%ad', branchName], runInShell: true);
+      if (result.exitCode == 0) {
+        final output = result.stdout as String;
+        final parts = output.trim().split('|');
+        if (parts.length >= 3) {
+          return GitCommit(
+            hash: parts[0],
+            shortHash: parts[0].substring(0, 7),
+            message: '', // Will be filled separately if needed
+            author: parts[1],
+            date: DateTime.tryParse(parts[2]) ?? DateTime.now(),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ Failed to get branch last commit: $e');
+    }
+    return null;
+  }
+  
+  /// Get commit author
+  String _getCommitAuthor(String hash) async {
+    try {
+      final result = await Process.run('git', ['log', '-1', '--format=%an', hash], runInShell: true);
+      if (result.exitCode == 0) {
+        return (result.stdout as String).trim();
+      }
+    } catch (e) {
+      debugPrint('⚠️ Failed to get commit author: $e');
+    }
+    return 'Unknown';
+  }
+  
+  /// Get commit date
+  DateTime _getCommitDate(String hash) async {
+    try {
+      final result = await Process.run('git', ['log', '-1', '--format=%ad', '--date=iso', hash], runInShell: true);
+      if (result.exitCode == 0) {
+        final dateStr = (result.stdout as String).trim();
+        return DateTime.tryParse(dateStr) ?? DateTime.now();
+      }
+    } catch (e) {
+      debugPrint('⚠️ Failed to get commit date: $e');
+    }
+    return DateTime.now();
+  }
+  
+  /// Get stash date
+  DateTime _getStashDate(int index) async {
+    try {
+      final result = await Process.run('git', ['log', '-1', '--format=%ad', '--date=iso', "stash@{$index}"], runInShell: true);
+      if (result.exitCode == 0) {
+        final dateStr = (result.stdout as String).trim();
+        return DateTime.tryParse(dateStr) ?? DateTime.now();
+      }
+    } catch (e) {
+      debugPrint('⚠️ Failed to get stash date: $e');
+    }
+    return DateTime.now();
   }
   
   /// Get commit details

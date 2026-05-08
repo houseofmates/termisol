@@ -373,7 +373,7 @@ CONFIDENCE: [0.1-1.0 confidence level]
 
   Future<String> _callNVIDIA(String prompt) async {
     if (_apiKey == null) {
-      throw DebugException('NVIDIA API key not initialized');
+      throw const DebugException('NVIDIA API key not initialized');
     }
     
     final response = await http.post(

@@ -223,4 +223,243 @@ Focus on:
     _profiles.clear();
     _history.clear();
   }
+
+  /// Generate cache key for optimization recommendations
+  String _generateCacheKey(Map<String, dynamic> metrics, String systemType) {
+    final metricsHash = metrics.toString().hashCode;
+    return '${systemType}_$metricsHash';
+  }
+
+  /// Load default performance profiles
+  void _loadDefaultProfiles() {
+    _profiles['default'] = PerformanceProfile(
+      name: 'default',
+      description: 'Default performance profile',
+      parameters: {
+        'cpu_threshold': 0.8,
+        'memory_threshold': 0.85,
+        'disk_threshold': 0.9,
+        'network_threshold': 0.8,
+      },
+      createdAt: DateTime.now(),
+    );
+    
+    _profiles['high_performance'] = PerformanceProfile(
+      name: 'high_performance',
+      description: 'High performance profile',
+      parameters: {
+        'cpu_threshold': 0.6,
+        'memory_threshold': 0.7,
+        'disk_threshold': 0.8,
+        'network_threshold': 0.7,
+      },
+      createdAt: DateTime.now(),
+    );
+  }
+
+  /// Parse NVIDIA optimization response
+  OptimizationRecommendation _parseOptimizationResponse(String response) {
+    final lines = response.split('\n');
+    double overallScore = 0.5;
+    final suggestions = <OptimizationSuggestion>[];
+    String? predictedImprovement;
+    String? implementationTime;
+    String? riskLevel;
+    String? currentSection;
+
+    for (int i = 0; i < lines.length - 2; i += 3) {
+      if (lines[i].startsWith('OPTIMIZATION:') && 
+          lines[i + 1].startsWith('IMPACT:') && 
+          lines[i + 2].startsWith('CONFIDENCE:')) {
+        
+        final text = lines[i].substring(13).trim();
+        final impact = lines[i + 1].substring(8).trim();
+        final confidence = double.tryParse(lines[i + 2].substring(12)) ?? 0.5;
+        final time = lines[i + 3].split(':')[1].trim();
+        final risk = lines.length > i + 4 ? lines[i + 4].split(':')[1].trim() : null;
+        
+        suggestions.add(OptimizationSuggestion(
+          text: text,
+          impact: impact,
+          confidence: confidence,
+          implementationTime: time,
+          riskLevel: risk,
+        ));
+      }
+    }
+    
+    return OptimizationRecommendation(
+      overallScore: overallScore,
+      suggestions: suggestions,
+      predictedImprovement: predictedImprovement,
+      implementationTime: implementationTime,
+      riskLevel: riskLevel,
+    );
+  }
+
+  /// Parse system optimization response
+  OptimizationRecommendation _parseSystemOptimizationResponse(String response) {
+    final lines = response.split('\n');
+    double overallScore = 0.5;
+    final suggestions = <OptimizationSuggestion>[];
+    String? predictedImprovement;
+    String? implementationTime;
+    String? riskLevel;
+    String? currentSection;
+
+    for (int i = 0; i < lines.length - 2; i += 3) {
+      if (lines[i].startsWith('OPTIMIZATION:') && 
+          lines[i + 1].startsWith('IMPACT:') && 
+          lines[i + 2].startsWith('CONFIDENCE:')) {
+        
+        final text = lines[i].substring(13).trim();
+        final impact = lines[i + 1].substring(8).trim();
+        final confidence = double.tryParse(lines[i + 2].substring(12)) ?? 0.5;
+        final time = lines[i + 3].split(':')[1].trim();
+        final risk = lines.length > i + 4 ? lines[i + 4].split(':')[1].trim() : null;
+        
+        suggestions.add(OptimizationSuggestion(
+          text: text,
+          impact: impact,
+          confidence: confidence,
+          implementationTime: time,
+          riskLevel: riskLevel,
+        ));
+      }
+    }
+    
+    return OptimizationRecommendation(
+      overallScore: overallScore,
+      suggestions: suggestions,
+      predictedImprovement: predictedImprovement,
+      implementationTime: implementationTime,
+      riskLevel: riskLevel,
+    );
+  }
+
+  /// Parse predictive optimization response
+  OptimizationRecommendation _parsePredictiveOptimizationResponse(String response) {
+    final lines = response.split('\n');
+    double overallScore = 0.5;
+    final suggestions = <OptimizationSuggestion>[];
+    String? predictedImprovement;
+    String? implementationTime;
+    String? riskLevel;
+    String? currentSection;
+
+    for (int i = 0; i < lines.length - 2; i += 3) {
+      if (lines[i].startsWith('OPTIMIZATION:') && 
+          lines[i + 1].startsWith('IMPACT:') && 
+          lines[i + 2].startsWith('CONFIDENCE:')) {
+        
+        final text = lines[i].substring(13).trim();
+        final impact = lines[i + 1].substring(8).trim();
+        final confidence = double.tryParse(lines[i + 2].substring(12)) ?? 0.5;
+        final time = lines[i + 3].split(':')[1].trim();
+        final risk = lines.length > i + 4 ? lines[i + 4].split(':')[1].trim() : null;
+        
+        suggestions.add(OptimizationSuggestion(
+          text: text,
+          impact: impact,
+          confidence: confidence,
+          implementationTime: time,
+          riskLevel: riskLevel,
+        ));
+      }
+    }
+    
+    return OptimizationRecommendation(
+      overallScore: overallScore,
+      suggestions: suggestions,
+      predictedImprovement: predictedImprovement,
+      implementationTime: implementationTime,
+      riskLevel: riskLevel,
+    );
+  }
+
+  /// Execute optimization with monitoring
+  Future<void> _executeOptimization(Optimization) async {
+    try {
+      // Apply optimization
+      debugPrint('🚀 Applying optimization: ${optimization.text}');
+      
+      // Track execution
+      _history.add(OptimizationHistory(
+        timestamp: DateTime.now(),
+        systemType: optimization.systemType,
+        metrics: optimization.metrics,
+        recommendations: [optimization],
+        applied: true,
+      ));
+      
+      _optimizerController.add(OptimizerEvent(
+        type: OptimizerEventType.optimizationApplied,
+        data: {
+          'optimization': optimization.text,
+          'impact': optimization.impact,
+        },
+      ));
+      
+    } catch (e) {
+      debugPrint('❌ Failed to apply optimization: $e');
+      
+      _optimizerController.add(OptimizerEvent(
+        type: OptimizerEventType.optimizationFailed,
+        data: {
+          'error': e.toString(),
+          'optimization': optimization.text,
+        },
+      ));
+    }
+  }
+
+  /// Format metrics for display
+  String _formatMetrics(Map<String, dynamic> metrics) {
+    final buffer = StringBuffer();
+    metrics.forEach((key, value) {
+      buffer.writeln('$key: $value');
+    });
+    return buffer.toString();
+  }
+
+  /// Format context for display
+  String _formatContext(Map<String, dynamic> context) {
+    final buffer = StringBuffer();
+    context.forEach((key, value) {
+      if (value is List) {
+        buffer.writeln('$key: ${(value as List).join(', ')}');
+      } else {
+        buffer.writeln('$key: $value');
+      }
+    });
+    return buffer.toString();
+  }
+
+  /// Format configuration for display
+  String _formatConfig(Map<String, dynamic> config) {
+    final buffer = StringBuffer();
+    config.forEach((key, value) {
+      buffer.writeln('$key: $value');
+    });
+    return buffer.toString();
+  }
+
+  /// Format constraints for display
+  String _formatConstraints(Map<String, dynamic> constraints) {
+    final buffer = StringBuffer();
+    constraints.forEach((key, value) {
+      buffer.writeln('$key: $value');
+    });
+    return buffer.toString();
+  }
+
+  /// Get statistics
+  Map<String, dynamic> getStatistics() {
+    return {
+      'recommendations_count': _recommendations.length,
+      'profiles_count': _profiles.length,
+      'history_count': _history.length,
+      'applied_optimizations': _history.where((h) => h.applied).length,
+    };
+  }
 }

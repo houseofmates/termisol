@@ -128,6 +128,7 @@ class TerminalSession extends ChangeNotifier {
     mouseProtocol = MouseProtocolManager(terminal, controller);
     ligatureFont = LigatureFontManager(terminal, controller);
     throttledRenderer = ThrottledRenderer(terminal);
+    clipboardManager = TerminalClipboardManager(terminal, controller);
 
     // Setup advanced features
     focusManager.enableFocusEvents();

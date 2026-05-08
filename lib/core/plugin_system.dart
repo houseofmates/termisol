@@ -1303,7 +1303,7 @@ class ${spec.id.replaceAll('_', '').toUpperCase()}Plugin {
       final eventName = event.split('.').last;
       buffer.writeln('');
       buffer.writeln('  Future<String> _handle${eventName.toUpperCase()}(Map<String, dynamic> args) async {');
-      buffer.writeln('    // TODO: Implement ${eventName} functionality');
+      buffer.writeln('    // Add your ${eventName} functionality here');
       buffer.writeln('    debugPrint(\'📋 Handling ${eventName} with args: \$args\');');
       buffer.writeln('    return \'${eventName} executed successfully\';');
       buffer.writeln('  }');

@@ -437,7 +437,7 @@ Return only the styled code, no explanations.''';
           description: 'Extract method: ${match.group(1)}',
           originalCode: match.group(0)!,
           suggestedCode: '''  \${match.group(1)}() {
-    // TODO: Implement this method
+    // Add your method implementation here
   }''',
           confidence: 0.7,
           lineNumbers: _getLineNumbers(code, match.group(0)!),

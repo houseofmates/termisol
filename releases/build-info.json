@@ -1,28 +1,29 @@
 {
   "version": "1.0.0",
   "build_date": "2026-05-08T14:57:00Z",
-  "linux_bundle": "termisol-linux-x64",
-  "linux_deb": "termisol_1.0.0_amd64.deb",
-  "linux_tarball": "termisol.tar.gz",
-  "mobile_apk": "termisol-mobile-1.0.0.apk",
-  "vr_apk": "termisol-vr-1.0.0.apk",
-  "mobile_apk_size": "52MB",
-  "linux_bundle_size": "52MB",
-  "linux_deb_size": "15MB",
-  "linux_tarball_size": "19MB",
-  "mobile_features": [
+  "artifacts": {
+    "linux_bundle": "termisol-linux-x64",
+    "linux_deb": "termisol.deb",
+    "android_apk": "termisol.apk",
+    "android_vr_apk": "termisol-vr.apk"
+  },
+  "sizes": {
+    "linux_bundle": "52MB",
+    "linux_deb": "15MB",
+    "android_apk": "52MB",
+    "android_vr_apk": "52MB"
+  },
+  "features": [
     "gpu-accelerated terminal rendering",
     "ai assistant with nvidia nim",
-    "hardware-accelerated rendering",
     "tabbed interface with drag-reorder",
     "copy/paste/translate context menu",
     "zoom with ctrl+plus/minus/zero",
     "text editor with syntax highlight"
   ],
-  "vr_note": "VR flavor removed - uses same APK as mobile (stub VR code removed from active path). Quest 2 support via standard Android build.",
-  "supported_devices": {
+  "supported_platforms": {
     "linux": ["ubuntu 22.04+", "debian-based distros"],
-    "mobile": ["android 10+ (api 29+)", "arm64-v8a", "x86_64"]
+    "android": ["android 10+ (api 29+)", "arm64-v8a", "x86_64"]
   },
   "build_config": {
     "compile_sdk": 36,
@@ -33,5 +34,9 @@
     "java": 17,
     "flutter": "3.41.1",
     "dart": "3.11.0"
+  },
+  "signing": {
+    "android": "self-signed local keystore (android/app/termisol-release-key.jks)",
+    "note": "for personal use only. replace with proper release keystore for play store distribution."
   }
 }

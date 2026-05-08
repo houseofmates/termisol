@@ -170,39 +170,6 @@ class _EditTerminalState extends State<EditTerminal> {
     
     // Start auto-save
     _autoSaveManager.startAutoSave(_saveEditorState);
-    
-    // Initialize collaboration listeners
-    _collaborationManager.connectionStream.listen((connected) {
-      setState(() {
-        _collaborationEnabled = connected;
-        _collaborationStatus = connected ? 'Connected' : 'Disconnected';
-      });
-    });
-    
-    _collaborationManager.operationStream.listen((operation) {
-      _handleRemoteOperation(operation);
-    });
-    
-    _collaborationManager.clientUpdateStream.listen((update) {
-      _handleClientUpdate(update);
-    });
-    
-    _collaborationManager.sessionJoinedStream.listen((event) {
-      setState(() {
-        _collaborationStatus = 'Session Active';
-        // Update content with server version if different
-        if (event.fileContent != _controller.text) {
-          _controller.text = event.fileContent;
-        }
-      });
-    });
-    
-    _collaborationManager.errorStream.listen((error) {
-      setState(() {
-        _collaborationStatus = 'Error: $error';
-      });
-      debugPrint('Collaboration error: $error');
-    });
   }
 
   @override

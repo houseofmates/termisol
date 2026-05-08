@@ -449,20 +449,64 @@ class GraphicsProtocolHandler {
     int? targetHeight,
     bool enableAlpha,
   ) {
-    // Sixel to RGBA conversion implementation
-    // This is a simplified version - full implementation would be more complex
     final width = targetWidth ?? image.width;
     final height = targetHeight ?? image.height;
     final data = Uint8List(width * height * 4);
-    
-    // Fill with placeholder data
-    for (int i = 0; i < data.length; i += 4) {
-      data[i] = 255;     // R
-      data[i + 1] = 255; // G
-      data[i + 2] = 255; // B
-      data[i + 3] = enableAlpha ? 255 : 0; // A
+
+    // Parse Sixel data and render to RGBA
+    final lines = image.data.split('\n');
+    int y = 0;
+
+    for (final line in lines) {
+      if (line.isEmpty) continue;
+
+      int x = 0;
+      final chars = line.runes.toList();
+
+      for (int i = 0; i < chars.length; i++) {
+        final char = chars[i];
+        if (char < 63 || char > 126) continue; // Not a SIXEL character
+
+        // Each SIXEL character represents 6 vertical pixels
+        final sixelValue = char - 63; // SIXEL values start at 63 ('?')
+
+        for (int bit = 0; bit < 6; bit++) {
+          if (y + bit >= height) break;
+
+          final pixelY = y + (5 - bit); // SIXEL bits are ordered top to bottom
+          if (pixelY >= height) continue;
+
+          final pixelIndex = ((pixelY * width) + x) * 4;
+
+          if (pixelIndex + 3 < data.length) {
+            // Check if bit is set in sixel value
+            final bitSet = (sixelValue & (1 << bit)) != 0;
+
+            if (bitSet) {
+              // Use current color or default white
+              final color = _protocolState.currentColor ?? Colors.white;
+              data[pixelIndex] = color.red;
+              data[pixelIndex + 1] = color.green;
+              data[pixelIndex + 2] = color.blue;
+              data[pixelIndex + 3] = enableAlpha ? (color.alpha) : 255;
+            } else {
+              // Transparent or background
+              data[pixelIndex] = 0;
+              data[pixelIndex + 1] = 0;
+              data[pixelIndex + 2] = 0;
+              data[pixelIndex + 3] = 0;
+            }
+          }
+        }
+
+        x++;
+        if (x >= width) break;
+      }
+
+      y += 6; // Each SIXEL line represents 6 rows
+      if (y >= height) break;
     }
-    
+
     return data;
   }
   
@@ -473,19 +517,44 @@ class GraphicsProtocolHandler {
     int? targetHeight,
     bool enableAlpha,
   ) {
-    // Kitty to RGBA conversion implementation
     final width = targetWidth ?? image.width;
     final height = targetHeight ?? image.height;
     final data = Uint8List(width * height * 4);
-    
-    // Fill with placeholder data
-    for (int i = 0; i < data.length; i += 4) {
-      data[i] = 128;     // R
-      data[i + 1] = 128; // G
-      data[i + 2] = 128; // B
-      data[i + 3] = enableAlpha ? 255 : 0; // A
+
+    try {
+      // Decode base64 image data
+      final imageBytes = base64.decode(image.data);
+
+      // For now, create a simple gradient pattern based on image dimensions
+      // Full implementation would decode the actual Kitty format
+      for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+          final pixelIndex = ((y * width) + x) * 4;
+
+          if (pixelIndex + 3 < data.length) {
+            // Create a pattern based on position
+            final r = ((x / width) * 255).toInt();
+            final g = ((y / height) * 255).toInt();
+            final b = 128;
+
+            data[pixelIndex] = r;
+            data[pixelIndex + 1] = g;
+            data[pixelIndex + 2] = b;
+            data[pixelIndex + 3] = enableAlpha ? 255 : 0;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to decode Kitty image: $e');
+      // Fill with gray on error
+      for (int i = 0; i < data.length; i += 4) {
+        data[i] = 128;
+        data[i + 1] = 128;
+        data[i + 2] = 128;
+        data[i + 3] = enableAlpha ? 255 : 0;
+      }
     }
-    
+
     return data;
   }
   

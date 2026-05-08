@@ -588,6 +588,11 @@ class GraphicsProtocolHandler {
   GraphicsImage? getCachedImage(String imageId) {
     return _imageCache[imageId];
   }
+
+  /// Get all cached images
+  Map<String, GraphicsImage> getCachedImages() {
+    return Map.unmodifiable(_imageCache);
+  }
   
   /// Toggle graphics features
   void setTrueColorEnabled(bool enabled) {
@@ -672,6 +677,10 @@ class GraphicsProtocolHandler {
   void dispose() {
     clearImageCache();
     _colorPalette.clear();
+    _pendingImages.clear();
+    _animations.clear();
+    _pictureCache.clear();
+    _damageRegions.clear();
     _isInitialized = false;
   }
 }

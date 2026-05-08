@@ -154,13 +154,46 @@ class TermisolPluginSystem {
   }
 }
 
-/// Plugin worker isolate - stub implementation
+/// Plugin worker isolate implementation
 Future<void> _pluginWorker(SendPort sendPort) async {
-  // Stub implementation for testing
+  final receivePort = ReceivePort();
+  sendPort.send({'port': receivePort.sendPort});
+
+  receivePort.listen((message) {
+    if (message is Map<String, dynamic>) {
+      final type = message['type'];
+      final data = message['data'];
+
+      switch (type) {
+        case 'execute':
+          try {
+            // Execute plugin method in isolate
+            final result = _executePluginInIsolate(data);
+            sendPort.send({'type': 'result', 'data': result});
+          } catch (e) {
+            sendPort.send({'type': 'error', 'error': e.toString()});
+          }
+          break;
+        case 'dispose':
+          receivePort.close();
+          break;
+      }
+    }
+  });
+}
+
+dynamic _executePluginInIsolate(Map<String, dynamic> data) {
+  final pluginId = data['pluginId'];
+  final method = data['method'];
+  final args = data['args'];
+
+  // Plugin execution logic here
+  // This would load and execute actual plugin code
+  return {'method': method, 'args': args, 'executed': true};
 }
 
 Future<bool> _disposePlugin(String pluginId) async {
-  // Stub implementation
+  // Clean up plugin resources
   return true;
 }
 

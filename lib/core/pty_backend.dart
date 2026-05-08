@@ -23,7 +23,14 @@ abstract class TermisolPtyBackend {
     if (Platform.isAndroid) {
       return AndroidShellBackend(workingDirectory: workingDirectory);
     }
-    return _PtyBackend(workingDirectory: workingDirectory);
+    
+    // Prefer FFI backend for desktop platforms for maximum performance
+    try {
+      return FfiPtyBackend(workingDirectory: workingDirectory);
+    } catch (e) {
+      debugPrint('[pty] FFI backend failed, falling back to PTY package: $e');
+      return _PtyBackend(workingDirectory: workingDirectory);
+    }
   }
 }
 

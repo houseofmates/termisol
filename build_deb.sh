@@ -29,7 +29,7 @@ Section: utils
 Priority: optional
 Architecture: ${ARCH}
 Depends: libgtk-3-0, libglib2.0-0, libfontconfig1, libepoxy0, libharfbuzz0b, libpango-1.0-0, libcairo2, libgdk-pixbuf-2.0-0, libegl1, libgl1-mesa-dri
-Maintainer: termisol <house@local>
+Maintainer: termisol <maintainer@termisol.dev>
 Description: gpu-accelerated cross-platform terminal emulator
  termisol is a config-driven terminal emulator with ai assistance,
  hardware acceleration, and sub-16ms rendering performance.

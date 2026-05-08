@@ -735,7 +735,10 @@ class AnimationGroup {
       if (from != null) {
         // Would need to set controller value
       }
-      await _controllers[config.id]?.forward() ?? Future.value();
+      final controller = _controllers[config.id];
+      if (controller != null) {
+        await controller.forward();
+      }
     }
   }
   
@@ -750,7 +753,10 @@ class AnimationGroup {
       if (from != null) {
         // Would need to set controller value
       }
-      await _controllers[config.id]?.forward() ?? Future.value();
+      final controller = _controllers[config.id];
+      if (controller != null) {
+        await controller.forward();
+      }
     }
   }
   
@@ -766,7 +772,10 @@ class AnimationGroup {
   
   Future<void> _reverseSequential() async {
     for (final config in animations) {
-      await _controllers[config.id]?.reverse() ?? Future.value();
+      final controller = _controllers[config.id];
+      if (controller != null) {
+        await controller.reverse();
+      }
     }
   }
   
@@ -778,7 +787,10 @@ class AnimationGroup {
         await Future.delayed(staggerDelay!);
       }
       
-      await _controllers[config.id]?.reverse() ?? Future.value();
+      final controller = _controllers[config.id];
+      if (controller != null) {
+        await controller.reverse();
+      }
     }
   }
 }
@@ -904,7 +916,7 @@ class PhysicsAnimation {
   
   bool get isRunning => _isRunning;
   double get value => _animation.value;
-  Duration get duration => _controller.duration;
+  Duration get duration => _controller.duration ?? Duration.zero;
 }
 
 /// Supporting enums and classes

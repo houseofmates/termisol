@@ -209,7 +209,7 @@ class ConfigurableHotkeys {
   Set<HotkeyModifier> _getCurrentModifiers() {
     final modifiers = <HotkeyModifier>{};
     
-    if (HardwareKeyboard.instance.isCtrlPressed) {
+    if (HardwareKeyboard.instance.isControlPressed) {
       modifiers.add(HotkeyModifier.ctrl);
     }
     if (HardwareKeyboard.instance.isShiftPressed) {

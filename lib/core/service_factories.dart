@@ -23,7 +23,6 @@ import '../ai/conversational_ai.dart';
 import '../core/automated_workflow_system.dart';
 import '../core/github_integration.dart';
 import '../core/neural_processing_system.dart';
-import '../ui/terminal_pane_manager.dart';
 import '../core/plugin_manager.dart';
 import '../core/audio_alert_service.dart';
 import '../core/keyboard_macro_reader.dart';
@@ -141,11 +140,6 @@ class ServiceFactories {
   /// Create neural processing system.
   static NeuralProcessingSystem createNeuralProcessingSystem() {
     return NeuralProcessingSystem();
-  }
-
-  /// Create terminal pane manager.
-  static TerminalPaneManager createPaneManager() {
-    return TerminalPaneManager();
   }
 
   /// Create plugin manager.

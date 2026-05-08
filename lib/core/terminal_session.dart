@@ -12,6 +12,8 @@ import 'long_command_notifier.dart';
 import 'termisol_plugin_system.dart';
 import 'smart_auto_complete.dart';
 import 'session_persistence.dart';
+import 'optimized_text_buffer.dart';
+import 'lazy_terminal_output.dart';
 
 // Session data for saving/loading
 class TerminalSessionData {

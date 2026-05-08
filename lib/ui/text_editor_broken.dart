@@ -137,6 +137,8 @@ class _TextEditorState extends State<TextEditor> {
   // Persistent Search
   String _lastSearch = '';
   List<int> _persistentSearchMatches = [];
+  bool _showSearchHighlights = true;
+  Color _searchHighlightColor = Colors.yellow.withOpacity(0.3);
 
   @override
   void initState() {
@@ -545,6 +547,8 @@ class _TextEditorState extends State<TextEditor> {
       setState(() {
         _searchMatches.clear();
         _currentSearchIndex = 0;
+        _persistentSearchMatches.clear();
+        _lastSearch = '';
       });
       return;
     }
@@ -574,6 +578,9 @@ class _TextEditorState extends State<TextEditor> {
     setState(() {
       _searchMatches = matches;
       _currentSearchIndex = 0;
+      // Update persistent search
+      _lastSearch = query;
+      _persistentSearchMatches = List.from(matches);
     });
     
     if (matches.isNotEmpty) {

@@ -132,33 +132,24 @@ Termisol is built with a modular, extensible architecture:
 ```
 lib/
 ├── core/                      # Terminal engine and performance
-│   ├── terminal_engine.dart   # Core terminal emulation
-│   ├── pty_handler.dart       # PTY process management
-│   ├── performance_monitor.dart # Real-time performance tracking
-│   ├── adaptive_renderer.dart  # GPU-accelerated rendering
-│   └── smart_memory_manager.dart # Memory optimization
+│   ├── terminal_session.dart  # Core terminal session management
+│   ├── production_gpu_renderer.dart # Texture cache helper
+│   ├── high_performance_terminal_renderer.dart # CustomPainter renderer
+│   ├── termisol_core_integration.dart # Core integration with frame timing
+│   └── service_registry.dart  # Lazy-loading service registry
 ├── ui/                        # User interface components
-│   ├── terminal_view.dart     # Main terminal widget
-│   ├── tab_manager.dart       # Tab system management
-│   ├── file_manager.dart      # File browser interface
-│   ├── video_player.dart      # Media playback controls
+│   ├── terminal_view.dart     # Main terminal widget (xterm-based)
+│   ├── home_screen.dart       # Home screen with tabs
+│   ├── command_palette.dart   # Command palette overlay
+│   ├── search_overlay.dart    # Terminal search
 │   └── settings_sheet.dart    # Configuration interface
 ├── ai/                        # AI integration
-│   ├── ai_assistant.dart      # Main AI coordinator
 │   ├── nvidia_ai_client.dart  # NVIDIA NIM integration
-│   └── local_ai_fallback.dart # Offline AI support
+│   └── ai_terminal_assistant.dart # Terminal AI assistant
 ├── backends/                  # Connection backends
 │   ├── local_backend.dart     # Local PTY connections
 │   ├── ssh_backend.dart       # Remote SSH connections
-│   └── android_shell.dart    # Android shell integration
-├── multimedia/                # Media handling
-│   ├── image_viewer.dart      # Image display and manipulation
-│   ├── video_renderer.dart    # Video playback engine
-│   ├── audio_visualizer.dart  # Audio visualization
-│   └── model_3d_viewer.dart   # 3D model rendering
-└── vr/                        # Virtual reality support
-    ├── vr_terminal.dart       # VR terminal environment
-    └── hand_tracking.dart     # VR interaction system
+│   └── android_shell_backend.dart # Android shell integration
 ```
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

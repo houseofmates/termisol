@@ -407,7 +407,11 @@ class KittyGraphicsRenderer {
       
       // Convert to RGBA
       final byteData = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
-      return byteData!.buffer.asUint8List();
+      if (byteData == null) return null;
+      
+      final result = byteData.buffer.asUint8List();
+      image.dispose();
+      return result;
     } catch (e) {
       debugPrint('⚠️ Failed to decode PNG: $e');
       return null;

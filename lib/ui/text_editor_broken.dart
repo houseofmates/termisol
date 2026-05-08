@@ -1018,24 +1018,10 @@ class _TextEditorState extends State<TextEditor> {
                     onChanged: (_) => _onTextChanged(),
                     onKey: (event) {
                       if (event is RawKeyDownEvent) {
-                        // Multi-cursor shortcuts
-                        if (HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlLeft) ||
-                            HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlRight)) {
-                          
-                          if (event.logicalKey == LogicalKeyboardKey.keyD && _multiCursorMode) {
-                            _addCursorAtPosition(_contextMenuPosition);
-                            return KeyEventResult.handled;
-                          }
-                          
-                          if (event.logicalKey == LogicalKeyboardKey.keyU) {
-                            _removeAllCursors();
-                            return KeyEventResult.handled;
-                          }
-                          
-                          if (event.logicalKey == LogicalKeyboardKey.keyAlt) {
-                            _toggleMultiCursorMode();
-                            return KeyEventResult.handled;
-                          }
+                        // Clear all cursors with Escape
+                        if (event.logicalKey == LogicalKeyboardKey.escape && _multiCursorMode) {
+                          _removeAllCursors();
+                          return KeyEventResult.handled;
                         }
                         
                         if (event.logicalKey == LogicalKeyboardKey.tab && _showCompletion) {

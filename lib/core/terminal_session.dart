@@ -131,6 +131,10 @@ class TerminalSession extends ChangeNotifier {
       // Setup focus management
       focusManager = FocusManager(terminal, controller, onFocusChanged, onFocusEvent);
       focusManager.enableFocusEvents();
+      
+      // Setup TrueColor support
+      trueColor = TrueColorManager(terminal, controller);
+      trueColor.enable();
   }
 
   /// rename this session and notify listeners.

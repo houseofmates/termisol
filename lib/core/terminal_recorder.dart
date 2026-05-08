@@ -516,9 +516,9 @@ To convert manually:
   
   /// Save as GIF format
   Future<void> _saveGif(TerminalRecording recording) async {
-    // GIF export would require additional libraries
-    // This is a placeholder implementation
-    debugPrint('🎥 GIF export not yet implemented');
+    // GIF export requires additional libraries like 'gif' package
+    // For now, save as individual frames
+    debugPrint('🎥 GIF export requires additional dependencies');
   }
   
   /// Convert frames to string

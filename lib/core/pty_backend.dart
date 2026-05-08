@@ -6,16 +6,18 @@ import 'package:flutter/foundation.dart';
 import 'package:pty/pty.dart';
 import '../backends/android_shell_backend.dart';
 
-/// cross-platform pty backend for termisol.
+/// Cross-platform PTY backend interface for termisol.
 abstract class TermisolPtyBackend {
+  String get name;
   Stream<List<int>> get output;
-  Future<void> start({int cols, int rows});
+  bool get isConnected;
+  Future<void> start({int cols, int rows, String? workingDirectory});
   void write(List<int> data);
   void resize(int cols, int rows);
   Future<void> stop();
   Future<void> terminate();
 
-  /// auto-detect the best backend for the current platform.
+  /// Auto-detect the best backend for the current platform.
   factory TermisolPtyBackend.autoDetect({String? workingDirectory}) {
     if (Platform.isAndroid) {
       return AndroidShellBackend(workingDirectory: workingDirectory);
@@ -25,10 +27,13 @@ abstract class TermisolPtyBackend {
 }
 
 class _PtyBackend implements TermisolPtyBackend {
+  @override
+  final String name = 'PTY Backend';
   final String? workingDirectory;
   PseudoTerminal? _pty;
   final _outputController = StreamController<List<int>>.broadcast();
   bool _isRunning = false;
+  bool _isDisposed = false;
 
   @override
   Stream<List<int>> get output => _outputController.stream;
@@ -36,7 +41,7 @@ class _PtyBackend implements TermisolPtyBackend {
   _PtyBackend({this.workingDirectory});
 
   @override
-  Future<void> start({int cols = 80, int rows = 24}) async {
+  Future<void> start({int cols = 80, int rows = 24, String? workingDirectory}) async {
     String shell;
 
     if (Platform.isLinux) {
@@ -59,7 +64,7 @@ class _PtyBackend implements TermisolPtyBackend {
     _pty = PseudoTerminal.start(
       shell,
       [],
-      workingDirectory: workingDirectory ?? _resolveHome('~'),
+      workingDirectory: workingDirectory ?? this.workingDirectory ?? _resolveHome('~'),
       environment: env,
     );
 
@@ -68,28 +73,22 @@ class _PtyBackend implements TermisolPtyBackend {
 
     _pty!.out.listen(
       (data) {
-        if (!_outputController.isClosed) {
-          _outputController.add(utf8.encode(data));
-        }
+        _safeAdd(utf8.encode(data));
       },
       onError: (Object e) {
-        debugPrint('[pty] out error: $e');
+        if (kDebugMode) debugPrint('[pty] out error: $e');
       },
       onDone: () {
         _isRunning = false;
       },
     );
 
-    unawaited(_pty!.exitCode.then((code) {
+    _pty!.exitCode.then((code) {
       _isRunning = false;
-      if (!_outputController.isClosed) {
-        _outputController.add(
-          utf8.encode('\r\n[process exited with code $code]\r\n'),
-        );
-      }
-    }));
+      _safeAdd(utf8.encode('\r\n[process exited with code $code]\r\n'));
+    });
 
-    debugPrint('[pty] started pty: $shell');
+    if (kDebugMode) debugPrint('[pty] started pty: $shell');
   }
 
   @override
@@ -98,7 +97,7 @@ class _PtyBackend implements TermisolPtyBackend {
       try {
         _pty!.write(utf8.decode(data));
       } catch (e) {
-        debugPrint('[pty] write error: $e');
+        if (kDebugMode) debugPrint('[pty] write error: $e');
       }
     }
   }
@@ -109,7 +108,7 @@ class _PtyBackend implements TermisolPtyBackend {
       try {
         _pty!.resize(cols, rows);
       } catch (e) {
-        debugPrint('[pty] resize error: $e');
+        if (kDebugMode) debugPrint('[pty] resize error: $e');
       }
     }
   }
@@ -118,14 +117,31 @@ class _PtyBackend implements TermisolPtyBackend {
   Future<void> stop() async {
     _isRunning = false;
     _pty?.kill();
+    await _closeController();
   }
 
   @override
   Future<void> terminate() async {
     _isRunning = false;
     _pty?.kill();
-    await _outputController.close();
+    await _closeController();
   }
+
+  Future<void> _closeController() async {
+    if (!_outputController.isClosed && !_isDisposed) {
+      await _outputController.close();
+    }
+    _isDisposed = true;
+  }
+
+  void _safeAdd(List<int> data) {
+    if (!_outputController.isClosed && !_isDisposed) {
+      _outputController.add(data);
+    }
+  }
+
+  @override
+  bool get isConnected => _isRunning && _pty != null;
 }
 
 String _resolveHome(String path) {

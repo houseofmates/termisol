@@ -121,20 +121,49 @@ class GlobalConfig extends ChangeNotifier {
     }
   }
 
-  /// Set a nested value using dot notation.
+  /// Set a nested value using dot notation with validation.
   void set(String path, dynamic value) {
-    final parts = path.split('.');
-    dynamic current = _data;
-    for (int i = 0; i < parts.length - 1; i++) {
-      final part = parts[i];
-      if (current[part] is! Map) {
-        current[part] = <String, dynamic>{};
-      }
-      current = current[part];
+    if (path.isEmpty) {
+      debugPrint('[CONFIG] Cannot set value with empty path');
+      return;
     }
-    current[parts.last] = value;
-    save();
-    notifyListeners();
+    
+    if (value == null) {
+      debugPrint('[CONFIG] Cannot set null value for path: $path');
+      return;
+    }
+    
+    try {
+      final parts = path.split('.');
+      dynamic current = _data;
+      
+      for (int i = 0; i < parts.length - 1; i++) {
+        final part = parts[i];
+        if (part.isEmpty) {
+          debugPrint('[CONFIG] Empty path segment in: $path');
+          return;
+        }
+        
+        if (current[part] is! Map) {
+          current[part] = <String, dynamic>{};
+        }
+        current = current[part];
+      }
+      
+      final lastPart = parts.last;
+      if (lastPart.isEmpty) {
+        debugPrint('[CONFIG] Empty final path segment in: $path');
+        return;
+      }
+      
+      current[lastPart] = value;
+      save();
+      notifyListeners();
+      
+      debugPrint('[CONFIG] Set $path = $value');
+    } catch (e) {
+      debugPrint('[CONFIG] Error setting $path: $e');
+    }
   }
 
   void _startWatcher(File file) {

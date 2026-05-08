@@ -357,9 +357,10 @@ class LLMProvider {
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
         final choices = data['choices'] as List?;
-        final text = choices?.isNotEmpty == true
-            ? (choices!.first as Map<String, dynamic>)['message']?['content'] ?? ''
-            : '';
+        final message = choices?.isNotEmpty == true
+            ? (choices!.first as Map<String, dynamic>)['message'] as Map<String, dynamic>?
+            : null;
+        final text = message?['content'] ?? '';
         final tokens = data['usage']?['total_tokens'] ?? text.toString().length ~/ 4;
         return CompletionResult(text: text.toString(), tokens: tokens as int);
       }

@@ -14,6 +14,7 @@ import 'search_overlay.dart';
 import 'edit.dart';
 import '../vr/quest2_vr_terminal.dart';
 import 'command_history_search.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Home screen with core terminal functionality.
 /// Services are pulled lazily from the registry on first use.
@@ -365,6 +366,26 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: Icons.settings,
         keywords: ['config', 'preferences', 'settings'],
         onExecute: _showSettings,
+      ),
+      PaletteAction(
+        id: 'open_url',
+        title: 'open last detected url',
+        subtitle: 'open the most recently detected link in browser',
+        icon: Icons.open_in_browser,
+        keywords: ['url', 'link', 'open', 'browser'],
+        onExecute: () async {
+          final session = _activeSession;
+          if (session != null && session.detectedUrls.isNotEmpty) {
+            final url = session.detectedUrls.last.url;
+            final uri = Uri.parse(url);
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            } else {
+              debugPrint('cannot launch url: $url');
+            }
+          }
+        },
+        enabled: _activeSession?.detectedUrls.isNotEmpty ?? false,
       ),
       PaletteAction(
         id: 'copy_url',

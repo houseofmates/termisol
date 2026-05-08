@@ -284,11 +284,11 @@ class TermisolPluginSystem {
       }
 
       return PluginManifest(
-        id: manifest['id'],
-        name: manifest['name'],
-        version: manifest['version'] ?? '1.0.0',
-        description: manifest['description'] ?? '',
-        author: manifest['author'] ?? 'Unknown',
+        id: manifest['id']?.toString() ?? '',
+        name: manifest['name']?.toString() ?? '',
+        version: manifest['version']?.toString() ?? '1.0.0',
+        description: manifest['description']?.toString() ?? '',
+        author: manifest['author']?.toString() ?? 'Unknown',
         dependencies: (manifest['dependencies'] as String?)?.split(',') ?? [],
         capabilities: (manifest['capabilities'] as String?)?.split(',') ?? [],
       );

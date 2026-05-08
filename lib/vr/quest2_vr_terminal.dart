@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:xterm/xterm.dart';
 import '../core/terminal_session.dart';
+import 'vr_enhancements.dart';
 
 /// Quest 2 VR-optimized terminal mode.
 ///
@@ -31,10 +32,13 @@ class _Quest2VrTerminalState extends State<Quest2VrTerminal> {
   final _focusNode = FocusNode();
   double _fontSize = 28.0;
   bool _showControls = true;
+  bool _is3DEnabled = false;
+  bool _isParallaxEnabled = false;
 
   @override
   void initState() {
     super.initState();
+    VrEnhancements.set3DEnabled(false);
   }
 
   void _handleControllerScroll(double delta) {
@@ -121,22 +125,25 @@ class _Quest2VrTerminalState extends State<Quest2VrTerminal> {
   }
 
   Widget _buildVrTerminalView() {
-    return Container(
-      color: Colors.black,
-      child: TerminalView(
-        widget.session.terminal,
-        controller: widget.session.controller,
-        focusNode: _focusNode,
-        autofocus: true,
-        theme: _vrTerminalTheme,
-        textStyle: TerminalStyle(
-          fontFamily: 'DroidSansMono',
-          fontSize: _fontSize,
-          height: 1.4,
-        ),
-        onKeyEvent: _handleTerminalKey,
-        padding: const EdgeInsets.all(16),
+    final terminal = TerminalView(
+      widget.session.terminal,
+      controller: widget.session.controller,
+      focusNode: _focusNode,
+      autofocus: true,
+      theme: _is3DEnabled ? VrEnhancements.vrEnhancedTheme : _vrTerminalTheme,
+      textStyle: TerminalStyle(
+        fontFamily: 'DroidSansMono',
+        fontSize: _fontSize,
+        height: 1.4,
       ),
+      onKeyEvent: _handleTerminalKey,
+      padding: const EdgeInsets.all(16),
+    );
+
+    return VrEnhancements.enhanceTerminal(
+      child: terminal,
+      vrMode: true,
+      fontSize: _fontSize,
     );
   }
 
@@ -156,6 +163,25 @@ class _Quest2VrTerminalState extends State<Quest2VrTerminal> {
               icon: Icons.exit_to_app,
               label: 'Exit VR',
               onPressed: () => widget.onExitVr?.call(),
+            ),
+            const SizedBox(width: 16),
+            // 3D toggle
+            _VrButton(
+              icon: Icons.view_in_ar,
+              label: '3D',
+              onPressed: () => setState(() {
+                _is3DEnabled = !_is3DEnabled;
+                VrEnhancements.set3DEnabled(_is3DEnabled);
+              }),
+            ),
+            const SizedBox(width: 16),
+            // Parallax toggle
+            _VrButton(
+              icon: Icons.panorama_horizontal,
+              label: 'Parallax',
+              onPressed: () => setState(() {
+                _isParallaxEnabled = !_isParallaxEnabled;
+              }),
             ),
             const SizedBox(width: 16),
 

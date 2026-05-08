@@ -417,6 +417,14 @@ class _EditTerminalState extends State<EditTerminal> {
   static const int _maxCursors = 50; // Limit cursors for performance
   bool _isAIEnabled = false; // Add AI enable/disable flag
   bool _isApplyingRemoteOperation = false; // Prevent operation loops
+
+  // Public getters for testing
+  TextEditingController get controller => _controller;
+  List<TextSelection> get cursors => _cursors;
+  bool get multiCursorMode => _multiCursorMode;
+  TextEditingController get aiChatController => _aiChatController;
+  bool get showAIChat => _showAIChat;
+  String get selectedModel => _selectedModel;
   
   // Search
   bool _showSearch = false;
@@ -556,6 +564,11 @@ class _EditTerminalState extends State<EditTerminal> {
   bool _canRedo() {
     return _redoStack.isNotEmpty || _currentUndoIndex < _undoStack.length - 1;
   }
+
+  // Public methods for testing
+  bool canUndo() => _canUndo();
+  bool canRedo() => _canRedo();
+  Future<void> saveContent() => _saveContent();
 
   void _restoreCursorPosition() {
     // Simple cursor restoration - place at end of text

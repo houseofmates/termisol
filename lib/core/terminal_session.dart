@@ -18,6 +18,7 @@ import 'session_persistence.dart';
 import 'crash_recovery.dart';
 import 'long_command_notifier.dart';
 import 'termisol_plugin_system.dart';
+import 'ring_buffer_scrollback.dart';
 
 /// Called when the user types `/ai <query>` and presses Enter.
 /// If null, `/ai` commands are passed through to shell normally.

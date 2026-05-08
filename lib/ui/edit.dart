@@ -2867,4 +2867,219 @@ Once configured, I'll provide intelligent assistance based on your file context.
       // This would need more sophisticated implementation for accurate scrolling
     }
   }
+
+  // Collaboration methods
+  void _toggleCollaboration() async {
+    if (_collaborationEnabled) {
+      await _collaborationManager.disconnect();
+      setState(() {
+        _showCollaborationPanel = false;
+      });
+    } else {
+      final success = await _collaborationManager.connect(widget.filePath);
+      if (success) {
+        setState(() {
+          _showCollaborationPanel = true;
+        });
+      }
+    }
+  }
+
+  void _handleRemoteOperation(EditOperation operation) {
+    _isApplyingRemoteOperation = true;
+    
+    try {
+      final currentText = _controller.text;
+      final position = operation.position.clamp(0, currentText.length);
+      
+      switch (operation.type) {
+        case 'insert':
+          final newText = currentText.substring(0, position) + 
+                         operation.content + 
+                         currentText.substring(position);
+          _controller.text = newText;
+          break;
+          
+        case 'delete':
+          final endPos = (position + operation.length).clamp(0, currentText.length);
+          final newText = currentText.substring(0, position) + 
+                         currentText.substring(endPos);
+          _controller.text = newText;
+          break;
+          
+        case 'replace':
+          final endPos = (position + operation.length).clamp(0, currentText.length);
+          final newText = currentText.substring(0, position) + 
+                         operation.content + 
+                         currentText.substring(endPos);
+          _controller.text = newText;
+          break;
+      }
+      
+      // Update cursor to show where remote edit happened
+      _controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: position),
+      );
+      
+      _onTextChanged();
+    } catch (e) {
+      debugPrint('Error applying remote operation: $e');
+    } finally {
+      _isApplyingRemoteOperation = false;
+    }
+  }
+
+  void _handleClientUpdate(ClientUpdate update) {
+    setState(() {
+      // Update active collaborators list
+      final existingIndex = _activeCollaborators.indexWhere(
+        (collaborator) => collaborator.clientId == update.clientId,
+      );
+      
+      if (existingIndex >= 0) {
+        _activeCollaborators[existingIndex] = update;
+      } else {
+        _activeCollaborators.add(update);
+      }
+    });
+  }
+
+  void _broadcastTextChange() {
+    if (!_collaborationEnabled || _sessionId == null) return;
+    
+    // This is a simplified implementation - in practice you'd want to track
+    // the exact operation (insert/delete/replace) rather than just position
+    final position = _controller.selection.baseOffset;
+    
+    final operation = EditOperation.insert(position, _controller.text);
+    _collaborationManager.sendOperation(operation);
+  }
+
+  void _broadcastCursorPosition() {
+    if (_collaborationEnabled) {
+      _collaborationManager.sendCursorPosition(
+        _controller.selection.baseOffset,
+        selection: _controller.selection,
+      );
+    }
+  }
+
+  Widget _buildCollaborationPanel() {
+    if (!_showCollaborationPanel) return const SizedBox.shrink();
+    
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+        color: const Color(0xFF2d2d2d),
+        border: Border(
+          top: BorderSide(color: Colors.grey[600]!),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF3c3c3c),
+              border: Border(
+                bottom: BorderSide(color: Colors.grey[600]!),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.people,
+                  color: _collaborationEnabled ? Colors.green : Colors.grey,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Collaboration',
+                  style: TextStyle(
+                    color: Colors.grey[300],
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  _collaborationStatus ?? 'Unknown',
+                  style: TextStyle(
+                    color: _collaborationEnabled ? Colors.green : Colors.grey,
+                    fontSize: 10,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () => setState(() => _showCollaborationPanel = false),
+                  child: Icon(
+                    Icons.close,
+                    color: Colors.grey[400],
+                    size: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Active collaborators
+          Expanded(
+            child: _activeCollaborators.isEmpty
+                ? Center(
+                    child: Text(
+                      'No active collaborators',
+                      style: TextStyle(
+                        color: Colors.grey[500],
+                        fontSize: 12,
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: _activeCollaborators.length,
+                    itemBuilder: (context, index) {
+                      final collaborator = _activeCollaborators[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Colors.blue,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                collaborator.clientId,
+                                style: TextStyle(
+                                  color: Colors.grey[300],
+                                  fontSize: 11,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Text(
+                              'Line ${collaborator.position}',
+                              style: TextStyle(
+                                color: Colors.grey[500],
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
 }

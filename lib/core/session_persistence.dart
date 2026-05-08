@@ -793,7 +793,7 @@ class SessionBackup {
       id: json['id'] as String,
       timestamp: DateTime.parse(json['timestamp'] as String),
       deviceId: json['device_id'] as String,
-      sessions: Map<String, Map<String, dynamic>>.from(json['sessions'] ?? {}),
+      sessions: (json['sessions'] as Map<dynamic, dynamic>? ?? {}).cast<String, Map<String, dynamic>>(),
       metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
     );
   }
@@ -834,6 +834,7 @@ class CrashReport {
       deviceId: json['device_id'] as String,
       activeSessions: json['active_sessions'] as int? ?? 0,
       lastKnownState: Map<String, dynamic>.from(json['last_known_state'] ?? {}),
+      // Line 836 fixed above
       error: json['error'] as String?,
     );
   }

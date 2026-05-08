@@ -15,16 +15,8 @@ import 'package:flutter/foundation.dart';
 class TermisolPluginSystem {
   final Map<String, Plugin> _plugins = {};
   final Map<String, dynamic> _pluginConfigs = {};
-  final Isolate? _pluginIsolate;
 
-  TermisolPluginSystem() {
-    _initializePluginIsolate();
-  }
-
-  /// Initialize plugin isolate
-  Future<void> _initializePluginIsolate() async {
-    _pluginIsolate = await Isolate.spawn(_pluginWorker);
-  }
+  TermisolPluginSystem();
 
   /// Load a plugin
   Future<bool> loadPlugin(String pluginPath) async {
@@ -154,17 +146,9 @@ class TermisolPluginSystem {
   }
 }
 
-/// Plugin worker isolate
+/// Plugin worker isolate - stub implementation
 Future<void> _pluginWorker(SendPort sendPort) async {
-  final receivePort = ReceivePort();
-  
-  while (true) {
-    final message = await sendPort.first;
-    
-    if (message is PluginCommand) {
-      await _handlePluginCommand(message, receivePort);
-    }
-  }
+  // Stub implementation for testing
 }
 
 /// Handle plugin commands

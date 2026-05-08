@@ -658,7 +658,7 @@ class DockerImage {
   final String id;
   final List<String> repoTags;
   final DateTime createdAt;
-  final long size;
+  final int size;
   final Map<String, String> labels;
   
   DockerImage({
@@ -674,7 +674,7 @@ class DockerImage {
       id: json['Id'] as String,
       repoTags: List<String>.from(json['RepoTags'] ?? []),
       createdAt: DateTime.parse(json['Created'] ?? DateTime.now().toIso8601String()),
-      size: json['Size'] as long? ?? 0,
+      size: json['Size'] as int? ?? 0,
       labels: Map<String, String>.from(json['Labels'] ?? {}),
     );
   }
@@ -741,8 +741,8 @@ class DockerNetwork {
 class ContainerStats {
   final String id;
   final double cpuUsage;
-  final long memoryUsage;
-  final long memoryLimit;
+  final int memoryUsage;
+  final int memoryLimit;
   final double networkRx;
   final double networkTx;
   final double blockRead;
@@ -770,8 +770,8 @@ class ContainerStats {
     
     // Parse memory stats
     final memoryStats = json['memory_stats'] as Map<String, dynamic>? ?? {};
-    final memoryUsage = memoryStats['usage'] as long? ?? 0;
-    final memoryLimit = memoryStats['limit'] as long? ?? 0;
+    final memoryUsage = memoryStats['usage'] as int? ?? 0;
+    final memoryLimit = memoryStats['limit'] as int? ?? 0;
     
     // Parse network stats
     final networks = json['networks'] as Map<String, dynamic>? ?? {};

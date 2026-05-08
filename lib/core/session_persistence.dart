@@ -790,9 +790,9 @@ class SessionBackup {
   
   factory SessionBackup.fromJson(Map<String, dynamic> json) {
     return SessionBackup(
-      id: json['id'],
-      timestamp: DateTime.parse(json['timestamp']),
-      deviceId: json['device_id'],
+      id: json['id'] as String,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      deviceId: json['device_id'] as String,
       sessions: Map<String, Map<String, dynamic>>.from(json['sessions'] ?? {}),
       metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
     );
@@ -829,12 +829,12 @@ class CrashReport {
   
   factory CrashReport.fromJson(Map<String, dynamic> json) {
     return CrashReport(
-      id: json['id'],
-      timestamp: DateTime.parse(json['timestamp']),
-      deviceId: json['device_id'],
-      activeSessions: json['active_sessions'],
+      id: json['id'] as String,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      deviceId: json['device_id'] as String,
+      activeSessions: json['active_sessions'] as int? ?? 0,
       lastKnownState: Map<String, dynamic>.from(json['last_known_state'] ?? {}),
-      error: json['error'],
+      error: json['error'] as String?,
     );
   }
 }

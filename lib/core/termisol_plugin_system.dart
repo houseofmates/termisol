@@ -55,10 +55,10 @@ class TermisolPluginSystem {
 
       // Create plugin instance
       final plugin = SimplePlugin(
-        name: pluginInfo['name'] ?? 'Unknown Plugin',
-        version: pluginInfo['version'] ?? '1.0.0',
-        description: pluginInfo['description'] ?? '',
-        author: pluginInfo['author'] ?? 'Unknown',
+        name: pluginInfo['name'] as String? ?? 'Unknown Plugin',
+        version: pluginInfo['version'] as String? ?? '1.0.0',
+        description: pluginInfo['description'] as String? ?? '',
+        author: pluginInfo['author'] as String? ?? 'Unknown',
         config: pluginInfo,
       );
 

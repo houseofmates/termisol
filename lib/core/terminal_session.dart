@@ -83,14 +83,12 @@ class TerminalSession extends ChangeNotifier {
 
   /// Get command suggestions based on current input
   List<String> getCommandSuggestions(String currentInput, {int maxSuggestions = 5}) {
-    final suggestions = _commandChaining.suggestNext(currentInput, maxSuggestions: maxSuggestions);
-    return suggestions.map((s) => s.command).toList();
+    return _autoComplete.getSuggestions(currentInput, maxSuggestions: maxSuggestions);
   }
 
-  /// Search terminal output semantically
+  /// Search terminal output semantically (placeholder — returns empty list)
   List<String> searchTerminalOutput(String query, {int maxResults = 10}) {
-    final results = _semanticSearch.search('terminal_output_$id', query, maxResults: maxResults);
-    return results.map((r) => r.content).toList();
+    return [];
   }
 
   final List<DetectedUrl> detectedUrls = [];
@@ -188,8 +186,7 @@ class TerminalSession extends ChangeNotifier {
       // Initialize async subsystems
       unawaited(_pluginSystem.initialize());
       unawaited(graphicsHandler.initialize());
-      unawaited(_commandChaining.initialize());
-      unawaited(_semanticSearch.initialize());
+
 
       // Enable terminal features
       terminal.write('\x1b[?2004h'); // bracketed paste
@@ -214,8 +211,7 @@ class TerminalSession extends ChangeNotifier {
            throttledRenderer.write(processedText);
            _directoryTracker.processOutput(text);
            _extractUrls(text);
-           // Index output for semantic search
-           _semanticSearch.indexDocument('terminal_output_$id', DateTime.now().millisecondsSinceEpoch.toString(), text);
+           // Semantic search indexing removed (feature not yet implemented)
            onOutputReceived?.call(text);
         },
         onError: (Object e) {

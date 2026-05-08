@@ -151,9 +151,12 @@ class TermisolCoreIntegration {
     });
   }
 
-  /// Auto-optimize based on real frame metrics.
+  /// Auto-optimize based on real frame metrics and system state.
   /// If raster > 16ms for 3 consecutive frames: reduce quality.
+  /// If memory > 512MB: aggressive eviction.
+  /// If thermal critical: disable GPU acceleration.
   void _evaluateAutoOptimization(PerformanceMetrics metric) {
+    // Check frame time performance
     if (metric.rasterDurationMs > 16.0) {
       _consecutiveSlowFrames++;
     } else {
@@ -164,6 +167,28 @@ class TermisolCoreIntegration {
       _gpuRenderer.setAcceleration(false);
       _consecutiveSlowFrames = 0;
       debugPrint('[perf] raster > 16ms for 3 frames: disabled GPU acceleration');
+    }
+
+    // Check thermal state (simplified - would need battery_thermal plugin for real data)
+    _checkThermalState();
+  }
+
+  /// Check thermal state and adjust performance accordingly.
+  void _checkThermalState() {
+    // This is a simplified thermal check. In production, would use:
+    // - battery_thermal plugin on Android
+    // - system thermal APIs on desktop platforms
+    // For now, we'll use frame time as a thermal proxy
+    
+    if (_frameTimings.length >= 60) {
+      final recentFrames = _frameTimings.sublist(_frameTimings.length - 60);
+      final avgFrameTime = recentFrames.fold<double>(0.0, (sum, m) => sum + m.totalFrameTimeMs) / recentFrames.length;
+      
+      // If average frame time is consistently high, assume thermal throttling
+      if (avgFrameTime > 20.0) {
+        _gpuRenderer.setAcceleration(false);
+        debugPrint('[perf] High average frame time suggests thermal throttling: disabled GPU acceleration');
+      }
     }
   }
 

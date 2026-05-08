@@ -683,7 +683,7 @@ class DialogueState {
   Map<String, dynamic> entities;
   Map<String, dynamic> contextSlots;
   double confidence;
-  DialogueState state;
+  DialogueStatus state;
   
   DialogueState({
     required this.sessionId,

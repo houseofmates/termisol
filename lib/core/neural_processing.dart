@@ -404,7 +404,7 @@ class NeuralProcessingSystem {
     final suggestions = <String>[];
 
     if (directory.contains('src') || directory.contains('lib')) {
-      suggestions.addAll(['grep "TODO"', 'find . -name "*.test.*"', 'ls -la']);
+      suggestions.addAll(['grep "TODO|FIXME"', 'find . -name "*.test.*"', 'ls -la']);
     }
 
     if (directory.contains('test') || directory.contains('spec')) {

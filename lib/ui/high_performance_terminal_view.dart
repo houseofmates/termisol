@@ -1,18 +1,16 @@
 import 'dart:async';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/high_performance_terminal_renderer.dart';
 import '../core/terminal_session.dart';
 import '../core/production_gpu_renderer.dart';
-import '../core/pty_backend.dart';
 import '../config/pkm_theme.dart';
 import 'clipboard_manager.dart';
 
-/// High-performance terminal view using CustomPainter with damage tracking
-/// 
-/// This replaces the slow xterm package widget-based approach with a
-/// retained rendering system that only redraws changed regions.
+/// High-performance terminal view using CustomPainter with damage tracking.
+///
+/// Uses [HighPerformanceTerminalRenderer] directly as a [CustomPainter]
+/// to paint terminal cells with cached paragraphs and dirty-region tracking.
 class HighPerformanceTerminalView extends StatefulWidget {
   final TerminalSession session;
   final bool autofocus;

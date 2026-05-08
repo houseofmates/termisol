@@ -111,7 +111,6 @@ class _TerminalSearchOverlayState extends State<TerminalSearchOverlay> {
       right: 16,
       child: Material(
         color: PkmTheme.popup,
-        elevation: 0,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(

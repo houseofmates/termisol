@@ -85,7 +85,7 @@ class AndroidShellBackend implements TermisolPtyBackend {
     try {
       String? shell;
       List<String> args = [];
-      String? workDir = workingDirectory ?? env['HOME'];
+      final String? workDir = workingDirectory ?? env['HOME'];
 
       final probes = [
         ('/system/bin/sh', <String>[]),
@@ -114,8 +114,6 @@ class AndroidShellBackend implements TermisolPtyBackend {
         args,
         environment: env,
         workingDirectory: workDir,
-        runInShell: false,
-        mode: ProcessStartMode.normal,
       );
 
       _isRunning = true;
@@ -264,7 +262,7 @@ class AndroidShellBackend implements TermisolPtyBackend {
     _isRunning = false;
     if (_process != null) {
       try {
-        _process!.kill(ProcessSignal.sigterm);
+        _process!.kill();
         await Future.delayed(const Duration(milliseconds: 100));
         if (_process != null) {
           _process!.kill(ProcessSignal.sigkill);
@@ -282,7 +280,7 @@ class AndroidShellBackend implements TermisolPtyBackend {
 
     if (_process != null) {
       try {
-        _process!.kill(ProcessSignal.sigterm);
+        _process!.kill();
         await _process!.exitCode.timeout(
           const Duration(seconds: 2),
           onTimeout: () {

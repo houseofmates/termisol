@@ -27,6 +27,11 @@ dependencies:
     path: packages/pty
   stack_trace: ^1.11.1
 
+  logging: any
+  collection: any
+  postgres: any
+  crypto: any
+  ffi: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

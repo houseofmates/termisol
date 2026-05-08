@@ -101,7 +101,7 @@ class AutoBackupSystem {
         name: backupName,
         timestamp: timestamp,
         size: await _calculateBackupSize(backupDir),
-        files: List<String>.from(metadata['files'] ?? []),
+        files: List<String>.from((metadata['files'] as List?) ?? []),
         hasData: metadata['hasData'] == true,
       );
 

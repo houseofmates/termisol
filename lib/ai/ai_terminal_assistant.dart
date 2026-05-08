@@ -294,9 +294,9 @@ class NvidiaAITerminalAssistant {
         try {
           final data = jsonDecode(response.output);
           return AnalysisResult(
-            errors: List<String>.from(data['errors'] ?? []),
-            warnings: List<String>.from(data['warnings'] ?? []),
-            suggestions: List<String>.from(data['suggestions'] ?? []),
+            errors: (data['errors'] as List<dynamic>?)?.cast<String>() ?? [],
+            warnings: (data['warnings'] as List<dynamic>?)?.cast<String>() ?? [],
+            suggestions: (data['suggestions'] as List<dynamic>?)?.cast<String>() ?? [],
             summary: data['summary'] ?? '',
           );
         } catch (e) {

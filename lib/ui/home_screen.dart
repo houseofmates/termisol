@@ -41,8 +41,23 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<String> _handleAiQuery(String query) async {
     debugPrint('AI query: $query');
-    // TODO: wire to real AI service via registry when available
-    return 'AI response not implemented';
+    try {
+      // Get AI service from registry
+      final aiService = widget.registry.getAIAssistant();
+      if (aiService != null) {
+        final response = await aiService.processText(
+          input: query,
+          capability: AICapability.text_generation,
+          contextId: 'terminal_${_activeTab}',
+          preferLocal: true,
+        );
+        return response.success ? response.output : 'AI service unavailable';
+      }
+      return 'AI service not configured';
+    } catch (e) {
+      debugPrint('AI query failed: $e');
+      return 'AI query failed: $e';
+    }
   }
 
   void _createInitialTab() {
@@ -164,12 +179,12 @@ class _HomeScreenState extends State<HomeScreen> {
         subtitle: 'copy the most recently detected link',
         icon: Icons.link,
         keywords: ['url', 'link', 'copy'],
-        onExecute: () {
+        onExecute: () async {
           final session = _activeSession;
           if (session != null && session.detectedUrls.isNotEmpty) {
             final url = session.detectedUrls.last.url;
-            // TODO: copy to clipboard
-            debugPrint('URL: $url');
+            await Clipboard.setData(ClipboardData(text: url));
+            debugPrint('URL copied to clipboard: $url');
           }
         },
         enabled: _activeSession?.detectedUrls.isNotEmpty ?? false,

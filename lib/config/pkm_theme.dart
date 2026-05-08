@@ -148,7 +148,6 @@ class PkmTheme {
         primary: Color(0xFF333333),
         secondary: Color(0xFF3c9fdd),
         surface: Colors.white,
-        surfaceContainerHighest: Color(0xFFF0F0F0),
       ),
       scaffoldBackgroundColor: const Color(0xFFF5F5F5),
       bottomSheetTheme: const BottomSheetThemeData(

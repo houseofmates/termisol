@@ -1796,35 +1796,154 @@ class _EditTerminalState extends State<EditTerminal> {
   }
 
   void _replaceDialog() {
-    // Show find and replace dialog
+    final findController = TextEditingController();
+    final replaceController = TextEditingController();
+    bool caseSensitive = false;
+    bool wholeWord = false;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Find and Replace'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              decoration: const InputDecoration(labelText: 'Find:'),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Find and Replace'),
+          content: SizedBox(
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: findController,
+                  decoration: const InputDecoration(
+                    labelText: 'Find:',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: replaceController,
+                  decoration: const InputDecoration(
+                    labelText: 'Replace with:',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: caseSensitive,
+                      onChanged: (value) => setState(() => caseSensitive = value ?? false),
+                    ),
+                    const Text('Case sensitive'),
+                    const SizedBox(width: 16),
+                    Checkbox(
+                      value: wholeWord,
+                      onChanged: (value) => setState(() => wholeWord = value ?? false),
+                    ),
+                    const Text('Whole word'),
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Replace with:'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _findNext(findController.text, caseSensitive, wholeWord);
+              },
+              child: const Text('Find Next'),
+            ),
+            TextButton(
+              onPressed: () {
+                _replaceOne(findController.text, replaceController.text, caseSensitive, wholeWord);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Replace'),
+            ),
+            TextButton(
+              onPressed: () {
+                _replaceAll(findController.text, replaceController.text, caseSensitive, wholeWord);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Replace All'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Replace'),
-          ),
-        ],
       ),
     );
+  }
+
+  void _findNext(String searchText, bool caseSensitive, bool wholeWord) {
+    if (searchText.isEmpty) return;
+
+    final text = _controller.text;
+    final currentSelection = _controller.selection;
+    final startIndex = currentSelection.isValid ? currentSelection.end : 0;
+
+    final pattern = _buildSearchPattern(searchText, caseSensitive, wholeWord);
+    final match = pattern.firstMatch(text.substring(startIndex));
+
+    if (match != null) {
+      final matchStart = startIndex + match.start;
+      final matchEnd = startIndex + match.end;
+      _controller.selection = TextSelection(baseOffset: matchStart, extentOffset: matchEnd);
+      _controller.highlightRange = TextRange(start: matchStart, end: matchEnd);
+    } else {
+      // Wrap around to beginning
+      final wrapMatch = pattern.firstMatch(text);
+      if (wrapMatch != null) {
+        _controller.selection = TextSelection(baseOffset: wrapMatch.start, extentOffset: wrapMatch.end);
+        _controller.highlightRange = TextRange(start: wrapMatch.start, end: wrapMatch.end);
+      }
+    }
+  }
+
+  void _replaceOne(String searchText, String replaceText, bool caseSensitive, bool wholeWord) {
+    if (searchText.isEmpty) return;
+
+    final currentSelection = _controller.selection;
+    if (!currentSelection.isValid) return;
+
+    final text = _controller.text;
+    final selectedText = text.substring(currentSelection.start, currentSelection.end);
+
+    final pattern = _buildSearchPattern(searchText, caseSensitive, wholeWord);
+    if (pattern.hasMatch(selectedText)) {
+      final newText = text.replaceRange(currentSelection.start, currentSelection.end, replaceText);
+      _controller.text = newText;
+      _controller.selection = TextSelection.collapsed(offset: currentSelection.start + replaceText.length);
+      _onTextChanged();
+    }
+  }
+
+  void _replaceAll(String searchText, String replaceText, bool caseSensitive, bool wholeWord) {
+    if (searchText.isEmpty) return;
+
+    final text = _controller.text;
+    final pattern = _buildSearchPattern(searchText, caseSensitive, wholeWord);
+    final newText = text.replaceAllMapped(pattern, (match) => replaceText);
+    
+    if (newText != text) {
+      _controller.text = newText;
+      _controller.selection = const TextSelection.collapsed(offset: 0);
+      _onTextChanged();
+      
+      final matchCount = pattern.allMatches(text).length;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Replaced $matchCount occurrence${matchCount == 1 ? '' : 's'}')),
+      );
+    }
+  }
+
+  RegExp _buildSearchPattern(String searchText, bool caseSensitive, bool wholeWord) {
+    var pattern = RegExp.escape(searchText);
+    if (wholeWord) {
+      pattern = r'\b' + pattern + r'\b';
+    }
+    return RegExp(pattern, caseSensitive: caseSensitive);
   }
 
   void _goToLine() {

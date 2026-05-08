@@ -157,6 +157,95 @@ Future<bool> _disposePlugin(String pluginId) async {
   return true;
 }
 
+/// Simple plugin implementation
+class SimplePlugin implements Plugin {
+  @override
+  final String name;
+  @override
+  final String version;
+  @override
+  final String description;
+  @override
+  final String author;
+  @override
+  final Map<String, dynamic> config;
+
+  SimplePlugin({
+    required this.name,
+    required this.version,
+    required this.description,
+    required this.author,
+    required this.config,
+  });
+
+  @override
+  Future<void> initialize() async {
+    // Plugin initialization logic
+    debugPrint('Plugin $name initialized');
+  }
+
+  @override
+  Future<void> dispose() async {
+    // Plugin cleanup logic
+    debugPrint('Plugin $name disposed');
+  }
+
+  @override
+  Future<dynamic> execute(String method, [List<dynamic>? args]) async {
+    return await callMethod(method, args);
+  }
+
+  @override
+  Future<dynamic> callMethod(String method, [List<dynamic>? args]) async {
+    // Simple method dispatch
+    switch (method) {
+      case 'getInfo':
+        return {
+          'name': name,
+          'version': version,
+          'description': description,
+          'author': author,
+        };
+      case 'getCapabilities':
+        return config['capabilities'] ?? [];
+      case 'execute':
+        return _executeCustomMethod(args);
+      default:
+        throw Exception('Unknown method: $method');
+    }
+  }
+
+  Future<dynamic> _executeCustomMethod(List<dynamic>? args) async {
+    if (args == null || args.isEmpty) return null;
+
+    final methodName = args[0] as String?;
+    final methodArgs = args.length > 1 ? args.sublist(1) : [];
+
+    // Execute custom plugin methods based on config
+    final methods = config['methods'] as Map<String, dynamic>? ?? {};
+    final methodConfig = methods[methodName];
+
+    if (methodConfig == null) {
+      throw Exception('Method not found: $methodName');
+    }
+
+    // Simple execution - in a real implementation, this would involve
+    // compiling and running actual plugin code
+    return {'method': methodName, 'args': methodArgs, 'result': 'executed'};
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'version': version,
+      'description': description,
+      'author': author,
+      'config': config,
+    };
+  }
+}
+
 /// Plugin interface
 abstract class Plugin {
   String get name;
@@ -164,7 +253,7 @@ abstract class Plugin {
   String get description;
   String get author;
   Map<String, dynamic> get config;
-  
+
   Future<void> initialize();
   Future<void> dispose();
   Future<dynamic> execute(String method, [List<dynamic>? args]);

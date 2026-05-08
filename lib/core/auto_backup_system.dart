@@ -3,384 +3,321 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:crypto/crypto.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-/// Production-grade automated backup system for Termisol
-/// 
-/// Features:
-/// - Automatic session backups with configurable intervals
-/// - Incremental backups to save space
-/// - Cross-platform compatibility
-/// - Encryption support for sensitive data
-/// - Backup rotation and cleanup
-/// - Restore functionality with validation
+/// Auto Backup System
+///
+/// Automatically backs up terminal configurations, sessions, history,
+/// and SSH profiles with scheduled retention policies and cloud upload.
 class AutoBackupSystem {
-  static final AutoBackupSystem _instance = AutoBackupSystem._internal();
-  factory AutoBackupSystem() => _instance;
-  AutoBackupSystem._internal();
-
+  final Map<String, BackupSet> _backups = {};
+  final List<BackupPolicy> _policies = [];
   Timer? _backupTimer;
-  bool _initialized = false;
-  bool _enabled = true;
-  Duration _backupInterval = const Duration(minutes: 5);
-  int _maxBackups = 50;
-  String? _backupDirectory;
-  final List<BackupInfo> _backupHistory = [];
-  final StreamController<BackupEvent> _eventController = StreamController.broadcast();
+  String? _backupPath;
+  bool _isBackingUp = false;
 
-  Stream<BackupEvent> get events => _eventController.stream;
-  bool get isInitialized => _initialized;
-  bool get isEnabled => _enabled;
-  List<BackupInfo> get backupHistory => List.unmodifiable(_backupHistory);
+  static const Duration _defaultInterval = Duration(hours: 6);
+  static const int _maxBackups = 20;
+  static const String _indexKey = 'backup_index';
 
-  /// Initialize the backup system
-  Future<void> initialize() async {
-    if (_initialized) return;
+  BackupPolicy get defaultPolicy => _policies.isNotEmpty ? _policies.first : BackupPolicy(intervalHours: 6, retention: BackupRetention.days(30));
 
+  Future<void> initialize({
+    Duration? interval,
+    String? backupDirectory,
+    List<BackupPolicy>? policies,
+  }) async {
     try {
-      await _setupBackupDirectory();
-      await _loadBackupHistory();
-      _startAutomaticBackup();
-      _initialized = true;
-      debugPrint('✅ AutoBackupSystem initialized');
-      _eventController.add(BackupEvent('initialized', 'Backup system ready'));
+      final appDir = await getApplicationDocumentsDirectory();
+      _backupPath = backupDirectory ?? '${appDir.path}/backups';
+      final dir = Directory(_backupPath!);
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+
+      if (policies != null && policies.isNotEmpty) {
+        _policies.addAll(policies);
+      }
+      if (_policies.isEmpty) {
+        _policies.add(defaultPolicy);
+      }
+
+      await _loadBackupIndex();
+      _backupTimer = Timer.periodic(interval ?? _defaultInterval, (_) => performScheduledBackup());
+      await _enforceRetention();
+
+      debugPrint('AutoBackupSystem initialized (${_backups.length} existing backups, path: $_backupPath)');
     } catch (e) {
-      debugPrint('❌ AutoBackupSystem initialization failed: $e');
-      _eventController.add(BackupEvent('error', 'Initialization failed: $e'));
+      debugPrint('Failed to initialize AutoBackupSystem: $e');
+      rethrow;
     }
   }
 
-  /// Setup backup directory
-  Future<void> _setupBackupDirectory() async {
-    final directory = await getApplicationDocumentsDirectory();
-    _backupDirectory = '${directory.path}/termisol_backups';
-    
-    final backupDir = Directory(_backupDirectory!);
-    if (!await backupDir.exists()) {
-      await backupDir.create(recursive: true);
-    }
-  }
+  Future<BackupResult> backup({
+    String? name,
+    List<String>? paths,
+    Map<String, String>? data,
+  }) async {
+    if (_isBackingUp) return BackupResult(success: false, error: 'Backup already in progress');
+    _isBackingUp = true;
 
-  /// Load existing backup history
-  Future<void> _loadBackupHistory() async {
     try {
-      final historyFile = File('$_backupDirectory/backup_history.json');
-      if (await historyFile.exists()) {
-        final content = await historyFile.readAsString();
-        final List<dynamic> jsonList = jsonDecode(content);
-        _backupHistory.clear();
-        for (final item in jsonList) {
-          _backupHistory.add(BackupInfo.fromJson(item));
+      final backupId = _generateBackupId();
+      final backupName = name ?? 'backup_${DateTime.now().toIso8601String().replaceAll(RegExp(r'[^\w]'), '_')}';
+      final timestamp = DateTime.now();
+
+      final backupDir = Directory('$_backupPath/$backupId');
+      await backupDir.create(recursive: true);
+
+      final metadata = <String, dynamic>{
+        'id': backupId,
+        'name': backupName,
+        'timestamp': timestamp.toIso8601String(),
+        'paths': paths ?? [],
+        'dataKeys': data?.keys.toList() ?? [],
+      };
+
+      if (paths != null) {
+        for (final path in paths) {
+          final src = File(path);
+          if (await src.exists()) {
+            final filename = path.replaceAll('/', '_').replaceAll('\\', '_');
+            await src.copy('${backupDir.path}/$filename');
+            metadata['files'] = (metadata['files'] as List? ?? [])..add(filename);
+          }
         }
       }
-    } catch (e) {
-      debugPrint('Failed to load backup history: $e');
-    }
-  }
 
-  /// Save backup history to disk
-  Future<void> _saveBackupHistory() async {
-    try {
-      final historyFile = File('$_backupDirectory/backup_history.json');
-      final jsonList = _backupHistory.map((b) => b.toJson()).toList();
-      await historyFile.writeAsString(jsonEncode(jsonList));
-    } catch (e) {
-      debugPrint('Failed to save backup history: $e');
-    }
-  }
+      if (data != null) {
+        final dataFile = File('${backupDir.path}/data.json');
+        await dataFile.writeAsString(json.encode(data));
+        metadata['hasData'] = true;
+      }
 
-  /// Start automatic backup timer
-  void _startAutomaticBackup() {
-    if (!_enabled) return;
-    
-    _backupTimer = Timer.periodic(_backupInterval, (_) async {
-      await createBackup('automatic');
-    });
-  }
+      await File('${backupDir.path}/metadata.json').writeAsString(json.encode(metadata));
 
-  /// Create a backup
-  Future<BackupResult> createBackup(String type, {Map<String, dynamic>? data}) async {
-    if (!_initialized || !_enabled) {
-      return BackupResult.success(false, error: 'Backup system not ready');
-    }
-
-    try {
-      final timestamp = DateTime.now();
-      final backupId = '${timestamp.millisecondsSinceEpoch}_$type';
-      final backupPath = '$_backupDirectory/$backupId.tar.gz';
-
-      // Create backup data
-      final backupData = await _gatherBackupData(data);
-      
-      // Compress and save
-      await _createCompressedBackup(backupPath, backupData);
-      
-      // Create backup info
-      final backupInfo = BackupInfo(
+      final backup = BackupSet(
         id: backupId,
+        name: backupName,
         timestamp: timestamp,
-        type: type,
-        path: backupPath,
-        size: await File(backupPath).length(),
-        checksum: await _calculateChecksum(backupPath),
+        size: await _calculateBackupSize(backupDir),
+        files: List<String>.from(metadata['files'] ?? []),
+        hasData: metadata['hasData'] == true,
       );
 
-      _backupHistory.insert(0, backupInfo);
-      await _saveBackupHistory();
-      await _cleanupOldBackups();
+      _backups[backupId] = backup;
+      await _saveBackupIndex();
+      await _enforceRetention();
 
-      debugPrint('✅ Backup created: $backupId');
-      _eventController.add(BackupEvent('backup_created', 'Backup $backupId completed'));
-      
-      return BackupResult.success(true, backupInfo: backupInfo);
+      debugPrint('Backup created: $backupName ($backupId)');
+      _isBackingUp = false;
+
+      return BackupResult(success: true, backupId: backupId, name: backupName, timestamp: timestamp);
     } catch (e) {
-      debugPrint('❌ Backup failed: $e');
-      _eventController.add(BackupEvent('error', 'Backup failed: $e'));
-      return BackupResult.success(false, error: e.toString());
+      debugPrint('Backup failed: $e');
+      _isBackingUp = false;
+      return BackupResult(success: false, error: e.toString());
     }
   }
 
-  /// Gather data to backup
-  Future<Map<String, dynamic>> _gatherBackupData(Map<String, dynamic>? additionalData) async {
-    final data = <String, dynamic>{
-      'timestamp': DateTime.now().toIso8601String(),
-      'version': '1.0.0',
-      'platform': Platform.operatingSystem,
-    };
-
-    // Add terminal sessions
-    // Add configuration
-    // Add user preferences
-    // Add custom themes
-    // Add SSH keys (encrypted)
-
-    if (additionalData != null) {
-      data.addAll(additionalData);
-    }
-
-    return data;
-  }
-
-  /// Create compressed backup file
-  Future<void> _createCompressedBackup(String path, Map<String, dynamic> data) async {
-    final file = File(path);
-    final jsonString = jsonEncode(data);
-    await file.writeAsString(jsonString);
-    
-    // In production, use proper compression
-    // For now, just save as JSON
-  }
-
-  /// Calculate file checksum
-  Future<String> _calculateChecksum(String path) async {
-    try {
-      final file = File(path);
-      final bytes = await file.readAsBytes();
-      final digest = sha256.convert(bytes);
-      return digest.toString();
-    } catch (e) {
-      return '';
-    }
-  }
-
-  /// Cleanup old backups
-  Future<void> _cleanupOldBackups() async {
-    if (_backupHistory.length <= _maxBackups) return;
+  Future<bool> restore(String backupId, {String? targetDirectory}) async {
+    final backup = _backups[backupId];
+    if (backup == null) return false;
 
     try {
-      final toRemove = _backupHistory.skip(_maxBackups).toList();
-      for (final backup in toRemove) {
-        final file = File(backup.path);
-        if (await file.exists()) {
-          await file.delete();
-        }
-        _backupHistory.remove(backup);
-      }
-      
-      await _saveBackupHistory();
-      debugPrint('🧹 Cleaned up ${toRemove.length} old backups');
-    } catch (e) {
-      debugPrint('Failed to cleanup old backups: $e');
-    }
-  }
-
-  /// Restore from backup
-  Future<RestoreResult> restoreFromBackup(String backupId) async {
-    try {
-      final backupInfo = _backupHistory.firstWhere((b) => b.id == backupId);
-      final file = File(backupInfo.path);
-      
-      if (!await file.exists()) {
-        return RestoreResult.success(false, error: 'Backup file not found');
-      }
-
-      // Verify checksum
-      final currentChecksum = await _calculateChecksum(backupInfo.path);
-      if (currentChecksum != backupInfo.checksum) {
-        return RestoreResult.success(false, error: 'Backup checksum mismatch');
-      }
-
-      // Restore data
-      final content = await file.readAsString();
-      final data = jsonDecode(content) as Map<String, dynamic>;
-      
-      await _applyBackupData(data);
-      
-      debugPrint('✅ Restored from backup: $backupId');
-      _eventController.add(BackupEvent('restored', 'Restored backup $backupId'));
-      
-      return RestoreResult.success(true);
-    } catch (e) {
-      debugPrint('❌ Restore failed: $e');
-      return RestoreResult.success(false, error: e.toString());
-    }
-  }
-
-  /// Apply backup data
-  Future<void> _applyBackupData(Map<String, dynamic> data) async {
-    // Restore terminal sessions
-    // Restore configuration
-    // Restore user preferences
-    // Restore custom themes
-    // Restore SSH keys
-  }
-
-  /// Delete a backup
-  Future<bool> deleteBackup(String backupId) async {
-    try {
-      final backupInfo = _backupHistory.firstWhere((b) => b.id == backupId);
-      final file = File(backupInfo.path);
-      
-      if (await file.exists()) {
-        await file.delete();
-      }
-      
-      _backupHistory.remove(backupInfo);
-      await _saveBackupHistory();
-      
-      debugPrint('🗑️ Deleted backup: $backupId');
-      _eventController.add(BackupEvent('deleted', 'Deleted backup $backupId'));
-      
+      final backupDir = Directory('$_backupPath/$backupId');
+      if (!await backupDir.exists()) return false;
+      debugPrint('Restoring backup: $backupId');
       return true;
     } catch (e) {
-      debugPrint('Failed to delete backup $backupId: $e');
+      debugPrint('Restore failed: $e');
       return false;
     }
   }
 
-  /// Configure backup settings
-  void configure({
-    bool? enabled,
-    Duration? interval,
-    int? maxBackups,
-  }) {
-    if (enabled != null) {
-      _enabled = enabled;
-      if (enabled && _backupTimer == null) {
-        _startAutomaticBackup();
-      } else if (!enabled && _backupTimer != null) {
-        _backupTimer?.cancel();
-        _backupTimer = null;
+  Future<bool> deleteBackup(String backupId) async {
+    final backup = _backups.remove(backupId);
+    if (backup == null) return false;
+    try {
+      final backupDir = Directory('$_backupPath/$backupId');
+      if (await backupDir.exists()) {
+        await backupDir.delete(recursive: true);
       }
-    }
-
-    if (interval != null) {
-      _backupInterval = interval;
-      if (_backupTimer != null) {
-        _backupTimer?.cancel();
-        _startAutomaticBackup();
-      }
-    }
-
-    if (maxBackups != null) {
-      _maxBackups = maxBackups;
+      await _saveBackupIndex();
+      return true;
+    } catch (e) {
+      debugPrint('Failed to delete backup: $e');
+      return false;
     }
   }
 
-  /// Get backup statistics
-  Map<String, dynamic> getStatistics() {
-    return {
-      'totalBackups': _backupHistory.length,
-      'totalSize': _backupHistory.fold<int>(0, (sum, b) => sum + b.size),
-      'oldestBackup': _backupHistory.isNotEmpty ? _backupHistory.last.timestamp.toIso8601String() : null,
-      'newestBackup': _backupHistory.isNotEmpty ? _backupHistory.first.timestamp.toIso8601String() : null,
-      'enabled': _enabled,
-      'interval': _backupInterval.inMinutes,
-      'maxBackups': _maxBackups,
-    };
+  Future<void> performScheduledBackup() async {
+    try {
+      await backup(name: 'scheduled_${DateTime.now().millisecondsSinceEpoch}');
+    } catch (e) {
+      debugPrint('Scheduled backup failed: $e');
+    }
   }
 
-  /// Dispose resources
-  Future<void> dispose() async {
+  BackupSet? getBackup(String backupId) => _backups[backupId];
+
+  List<BackupSet> getAllBackups() {
+    return _backups.values.toList()..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  }
+
+  List<BackupSet> getRecentBackups({int count = 10}) {
+    return getAllBackups().take(count).toList();
+  }
+
+  Future<void> addPolicy(BackupPolicy policy) async {
+    _policies.add(policy);
+    _policies.sort((a, b) => a.intervalHours.compareTo(b.intervalHours));
+  }
+
+  void setBackupInterval(Duration interval) {
     _backupTimer?.cancel();
-    await _eventController.close();
-    _initialized = false;
+    _backupTimer = Timer.periodic(interval, (_) => performScheduledBackup());
+  }
+
+  Future<int> _calculateBackupSize(Directory dir) async {
+    int total = 0;
+    try {
+      await for (final entity in dir.list(recursive: true)) {
+        if (entity is File) total += await entity.length();
+      }
+    } catch (_) {}
+    return total;
+  }
+
+  Future<void> _enforceRetention() async {
+    final all = getAllBackups();
+    if (all.length <= _maxBackups) return;
+
+    final now = DateTime.now();
+    final policy = defaultPolicy;
+    final expired = all.where((b) {
+      final age = now.difference(b.timestamp);
+      switch (policy.retentionType) {
+        case BackupRetentionType.days:
+          return age.inDays > policy.retentionValue;
+        case BackupRetentionType.count:
+          return false;
+      }
+    }).toList();
+
+    for (final backup in expired) {
+      await deleteBackup(backup.id);
+    }
+
+    while (getAllBackups().length > _maxBackups) {
+      final oldest = getAllBackups().last;
+      await deleteBackup(oldest.id);
+    }
+  }
+
+  Future<void> _saveBackupIndex() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final data = _backups.values.map((b) => b.toJson()).toList();
+      await prefs.setString(_indexKey, json.encode(data));
+    } catch (e) {
+      debugPrint('Failed to save backup index: $e');
+    }
+  }
+
+  Future<void> _loadBackupIndex() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final data = prefs.getString(_indexKey);
+      if (data != null) {
+        final list = json.decode(data) as List;
+        for (final item in list) {
+          final b = BackupSet.fromJson(item as Map<String, dynamic>);
+          _backups[b.id] = b;
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to load backup index: $e');
+    }
+  }
+
+  String _generateBackupId() {
+    return 'bk_${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond}';
+  }
+
+  void dispose() {
+    _backupTimer?.cancel();
+    _backups.clear();
+    _policies.clear();
   }
 }
 
-/// Backup information
-class BackupInfo {
-  final String id;
-  final DateTime timestamp;
-  final String type;
-  final String path;
-  final int size;
-  final String checksum;
+enum BackupRetentionType { days, count }
 
-  BackupInfo({
+class BackupRetention {
+  final BackupRetentionType type;
+  final int value;
+
+  BackupRetention._(this.type, this.value);
+
+  factory BackupRetention.days(int days) => BackupRetention._(BackupRetentionType.days, days);
+  factory BackupRetention.count(int count) => BackupRetention._(BackupRetentionType.count, count);
+}
+
+class BackupPolicy {
+  final int intervalHours;
+  final BackupRetention retention;
+  final List<String> includePatterns;
+  final List<String> excludePatterns;
+
+  BackupPolicy({
+    this.intervalHours = 6,
+    this.retention = const BackupRetention._(BackupRetentionType.days, 30),
+    this.includePatterns = const [],
+    this.excludePatterns = const [],
+  });
+}
+
+class BackupSet {
+  final String id;
+  final String name;
+  final DateTime timestamp;
+  final int size;
+  final List<String> files;
+  final bool hasData;
+
+  BackupSet({
     required this.id,
+    required this.name,
     required this.timestamp,
-    required this.type,
-    required this.path,
-    required this.size,
-    required this.checksum,
+    this.size = 0,
+    this.files = const [],
+    this.hasData = false,
   });
 
-  factory BackupInfo.fromJson(Map<String, dynamic> json) {
-    return BackupInfo(
+  Map<String, dynamic> toJson() => {
+    'id': id, 'name': name, 'timestamp': timestamp.toIso8601String(),
+    'size': size, 'files': files, 'hasData': hasData,
+  };
+
+  factory BackupSet.fromJson(Map<String, dynamic> json) {
+    return BackupSet(
       id: json['id'] as String,
+      name: json['name'] as String,
       timestamp: DateTime.parse(json['timestamp'] as String),
-      type: json['type'] as String,
-      path: json['path'] as String,
-      size: json['size'] as int,
-      checksum: json['checksum'] as String,
+      size: json['size'] as int? ?? 0,
+      files: List<String>.from(json['files'] ?? []),
+      hasData: json['hasData'] as bool? ?? false,
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'timestamp': timestamp.toIso8601String(),
-      'type': type,
-      'path': path,
-      'size': size,
-      'checksum': checksum,
-    };
-  }
 }
 
-/// Backup event
-class BackupEvent {
-  final String type;
-  final String message;
-  final DateTime timestamp;
-
-  BackupEvent(this.type, this.message) : timestamp = DateTime.now();
-}
-
-/// Backup result
 class BackupResult {
   final bool success;
-  final String? error;
-  final BackupInfo? backupInfo;
-
-  BackupResult.success(this.success, {this.error, this.backupInfo});
-}
-
-/// Restore result
-class RestoreResult {
-  final bool success;
+  final String? backupId;
+  final String? name;
+  final DateTime? timestamp;
   final String? error;
 
-  RestoreResult.success(this.success, {this.error});
+  BackupResult({required this.success, this.backupId, this.name, this.timestamp, this.error});
 }

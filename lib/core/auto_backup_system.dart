@@ -232,7 +232,7 @@ class AutoBackupSystem {
       final prefs = await SharedPreferences.getInstance();
       final data = prefs.getString(_indexKey);
       if (data != null) {
-        final list = json.decode(data) as List;
+        final list = (json.decode(data) as List?)?.cast<Map<String, dynamic>>() ?? [];
         for (final item in list) {
           final b = BackupSet.fromJson(item as Map<String, dynamic>);
           _backups[b.id] = b;

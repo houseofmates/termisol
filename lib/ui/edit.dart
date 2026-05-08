@@ -2764,7 +2764,7 @@ Once configured, I'll provide intelligent assistance based on your file context.
                                   const SizedBox(width: 8),
                                   DropdownButton<String>(
                                     value: _selectedModel,
-                                    items: const [
+                                    items: [
                                       DropdownMenuItem(value: 'kimi-k2.6', child: Text('Kimi K2.6')),
                                       DropdownMenuItem(value: 'deepseek-v4-flash', child: Text('DeepSeek V4 Flash')),
                                     ],

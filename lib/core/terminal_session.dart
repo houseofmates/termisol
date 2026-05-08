@@ -85,6 +85,12 @@ class TerminalSession extends ChangeNotifier {
     return suggestions.map((s) => s.command).toList();
   }
 
+  /// Search terminal output semantically
+  List<String> searchTerminalOutput(String query, {int maxResults = 10}) {
+    final results = _semanticSearch.search('terminal_output_$id', query, maxResults: maxResults);
+    return results.map((r) => r.content).toList();
+  }
+
   final List<DetectedUrl> detectedUrls = [];
   final _urlRegex = RegExp(
     r'''https?://[^\s<>"'`\)\]\}]+''',

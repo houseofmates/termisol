@@ -64,7 +64,7 @@ class _EditTerminalState extends State<EditTerminal> {
   String _selectedModel = 'kimi-k2.6'; // Default to Kimi K2.6
 
   Widget _buildSettingToggle({
-    required String title,
+    required IconData title,
     required String value,
     required VoidCallback onTap,
     required bool currentValue,

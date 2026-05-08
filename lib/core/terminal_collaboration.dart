@@ -270,8 +270,9 @@ class TerminalCollaboration {
         break;
         
       case CollaborationNotificationType.userJoined:
-        final user = CollaborationUser.fromJson(notification.data);
-        _onUserJoined.forEach((callback) => callback(user));
+        final collaborator = Collaborator.fromJson(notification.data);
+        _activeCollaborators.add(collaborator);
+        _onUserJoined.forEach((callback) => callback(collaborator));
         break;
         
       case CollaborationNotificationType.userLeft:

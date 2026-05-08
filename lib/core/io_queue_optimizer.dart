@@ -786,7 +786,4 @@ class PriorityQueue<T> {
   }
 }
 
-/// Helper function to fire and forget futures
-void unawaited(Future<void> future) {
-  // Intentionally empty - just prevents "unawaited_future" lint
-}
+

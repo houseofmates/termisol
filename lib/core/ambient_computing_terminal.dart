@@ -572,7 +572,7 @@ class AmbientComputingTerminal {
       
       return result;
     } catch (e) {
-      debugPrint('⚠️ Failed to process gesture: $e');
+      _logger.warning('Failed to process gesture: $e');
       
       return GestureResult(
         success: false,

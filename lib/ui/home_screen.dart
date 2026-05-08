@@ -13,6 +13,7 @@ import 'command_palette.dart';
 import 'search_overlay.dart';
 import 'edit.dart';
 import '../vr/quest2_vr_terminal.dart';
+import 'command_history_search.dart';
 
 /// Home screen with core terminal functionality.
 /// Services are pulled lazily from the registry on first use.
@@ -31,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _activeTab = '0';
   bool _showCommandPalette = false;
   bool _showSearch = false;
+  bool _showHistorySearch = false;
   bool _vrMode = false;
 
   @override
@@ -315,6 +317,10 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _vrMode = !_vrMode);
   }
 
+  void _toggleHistorySearch() {
+    setState(() => _showHistorySearch = !_showHistorySearch);
+  }
+
   List<PaletteAction> _buildPaletteActions() {
     return [
       PaletteAction(
@@ -343,6 +349,14 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: Icons.search,
         keywords: ['find', 'search', 'grep'],
         onExecute: _toggleSearch,
+      ),
+      PaletteAction(
+        id: 'history',
+        title: 'command history',
+        subtitle: 'search and replay previous commands',
+        icon: Icons.history,
+        keywords: ['history', 'commands', 'previous', 'search'],
+        onExecute: _toggleHistorySearch,
       ),
       PaletteAction(
         id: 'settings',
@@ -597,6 +611,12 @@ class _HomeScreenState extends State<HomeScreen> {
             TerminalSearchOverlay(
               terminal: _activeSession!.terminal,
               onClose: () => setState(() => _showSearch = false),
+            ),
+          // Command history search overlay
+          if (_showHistorySearch && _activeSession != null)
+            CommandHistorySearch(
+              session: _activeSession!,
+              onClose: () => setState(() => _showHistorySearch = false),
             ),
           // VR Mode overlay
           if (_vrMode && _activeSession != null)

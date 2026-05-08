@@ -251,6 +251,9 @@ class _EditTerminalState extends State<EditTerminal> {
         // Use debounced auto-save instead of timer
         _autoSaveManager.debouncedSave(_saveEditorState);
         
+        // Trigger auto-completion update with debounce
+        _updateCompletionsDebounced();
+        
         // Broadcast collaboration operation if enabled
         if (_collaborationEnabled && !_isApplyingRemoteOperation) {
           _broadcastTextChange();

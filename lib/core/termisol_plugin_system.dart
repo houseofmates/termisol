@@ -32,7 +32,7 @@ class TermisolPluginSystem {
       }
       return false;
     } catch (e) {
-      TermisolLogger().severe('Failed to load plugin', error: e);
+      TermisolLogger().severe('Failed to load plugin', null, e);
       return false;
     }
   }
@@ -120,7 +120,7 @@ class TermisolPluginSystem {
       try {
         await plugin.dispose();
       } catch (e) {
-        TermisolLogger().severe('Failed to dispose plugin ${plugin.name}', error: e);
+        TermisolLogger().severe('Failed to dispose plugin ${plugin.name}', null, e);
       }
     }
     

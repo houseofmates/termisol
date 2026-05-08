@@ -56,7 +56,7 @@ class LongCommandNotifier {
             await _audioPlayer?.setSourceAsset('assets/notif.mp3');
             await _audioPlayer?.resume();
         } catch (e) {
-          TermisolLogger().severe('Failed to play notification sound', error: e);
+          TermisolLogger().severe('Failed to play notification sound', null, e);
         }
       });
       
@@ -66,7 +66,7 @@ class LongCommandNotifier {
         await _audioPlayer?.resume();
       });
     } catch (e) {
-      TermisolLogger().severe('Failed to log long command', error: e);
+      TermisolLogger().severe('Failed to log long command', null, e);
     }
   }
 

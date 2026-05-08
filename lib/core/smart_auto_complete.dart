@@ -46,7 +46,7 @@ class CommandSuggestion {
 class SmartAutoComplete {
   static const String _historyKey = 'command_history';
   static const String _frequencyKey = 'command_frequency';
-  static const String _maxHistorySize = 1000;
+  static const int _maxHistorySize = 1000;
   static const String _customCommandsKey = 'custom_commands';
 
   final List<String> _recentCommands = [];

@@ -47,6 +47,11 @@ class AdvancedPerformanceOptimizer {
   // Performance thresholds
   static const double _memoryThreshold = 0.8; // 80% memory usage
   static const double _cpuThreshold = 0.9; // 90% CPU usage
+  
+  // Connection pool and monitoring state
+  final List<dynamic> _connectionPool = [];
+  Duration? _originalMonitoringInterval;
+  bool _isThrottled = false;
   static const int _maxFPS = 120;
   static const Duration _monitoringInterval = Duration(seconds: 1);
   static const Duration _cleanupInterval = Duration(minutes: 5);

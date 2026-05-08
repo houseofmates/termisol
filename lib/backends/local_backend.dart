@@ -4,19 +4,21 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../core/pty_backend.dart';
 
-/// Robust local backend for terminal sessions using native PTY
+/// Robust local backend for terminal sessions using native process
 class LocalBackend implements TermisolPtyBackend {
+  @override
   final String name = 'Local Backend';
   final String workingDirectory;
   final Map<String, String> environment;
-  
+
   Process? _process;
   final _outputController = StreamController<List<int>>.broadcast();
   bool _isRunning = false;
+  bool _isDisposed = false;
   late String _shellPath;
-  
+
   LocalBackend({
-    this.workingDirectory = Platform.environment['HOME'] ?? '/tmp',
+    this.workingDirectory = '/tmp',
     this.environment = const {},
   });
 
@@ -24,72 +26,69 @@ class LocalBackend implements TermisolPtyBackend {
   Stream<List<int>> get output => _outputController.stream;
 
   @override
-  Future<void> start({int cols = 80, int rows = 24}) async {
+  Future<void> start({int cols = 80, int rows = 24, String? workingDirectory}) async {
+    final wd = workingDirectory ?? this.workingDirectory;
     try {
-      // Validate working directory
-      final dir = Directory(workingDirectory);
+      final dir = Directory(wd);
       if (!await dir.exists()) {
-        throw Exception('Working directory does not exist: $workingDirectory');
+        throw Exception('Working directory does not exist: $wd');
       }
 
-      // Detect appropriate shell
       _shellPath = await _detectShell();
-      
-      // Set up environment
+
       final env = Map<String, String>.from(Platform.environment);
       env.addAll(environment);
       env['TERM'] = 'xterm-256color';
       env['COLUMNS'] = cols.toString();
       env['LINES'] = rows.toString();
 
-      // Start shell process
       _process = await Process.start(
         _shellPath,
         ['-l'],
-        workingDirectory: workingDirectory,
+        workingDirectory: wd,
         environment: env,
       );
 
       _isRunning = true;
 
-      // Handle stdout
       _process!.stdout.listen(
-        (data) => _outputController.add(data),
+        (data) => _safeAdd(data),
         onDone: () => _isRunning = false,
         onError: (e) {
-          debugPrint('[LOCAL] stdout error: $e');
+          if (kDebugMode) debugPrint('[LOCAL] stdout error: $e');
           _isRunning = false;
         },
       );
 
-      // Handle stderr
       _process!.stderr.listen(
-        (data) => _outputController.add(data),
-        onError: (e) => debugPrint('[LOCAL] stderr error: $e'),
+        (data) => _safeAdd(data),
+        onError: (e) {
+          if (kDebugMode) debugPrint('[LOCAL] stderr error: $e');
+        },
       );
 
-      // Handle process exit
       _process!.exitCode.then((code) {
-        debugPrint('[LOCAL] Process exited with code: $code');
+        if (kDebugMode) debugPrint('[LOCAL] Process exited with code: $code');
         _isRunning = false;
+        _safeAdd(utf8.encode('\r\n[process exited: $code]\r\n'));
       });
 
-      debugPrint('[LOCAL] Started shell: $_shellPath in $workingDirectory');
+      if (kDebugMode) debugPrint('[LOCAL] Started shell: $_shellPath in $wd');
     } catch (e) {
-      final errorMessage = e is ProcessException 
+      final errorMessage = e is ProcessException
           ? 'Failed to start shell "${e.executable}": ${e.message}'
           : 'Failed to start local backend: $e';
-      
-      _outputController.add(utf8.encode('\r\n[local error: $errorMessage]\r\n'));
+
+      _safeAdd(utf8.encode('\r\n[local error: $errorMessage]\r\n'));
       _isRunning = false;
-      
+
       // Attempt recovery with fallback shell
       if (_shellPath != fallbackShell) {
-        debugPrint('[LOCAL] Attempting fallback to $fallbackShell');
+        if (kDebugMode) debugPrint('[LOCAL] Attempting fallback to $fallbackShell');
         _shellPath = fallbackShell;
-        await start(); // Retry with fallback
+        await start(cols: cols, rows: rows, workingDirectory: wd);
       } else {
-        debugPrint('[LOCAL] All shell startup attempts failed');
+        if (kDebugMode) debugPrint('[LOCAL] All shell startup attempts failed');
         rethrow;
       }
     }
@@ -98,28 +97,34 @@ class LocalBackend implements TermisolPtyBackend {
   @override
   Future<void> write(List<int> data) async {
     if (_process == null || !_isRunning) {
-      debugPrint('[LOCAL] Cannot write: process not running');
+      if (kDebugMode) debugPrint('[LOCAL] Cannot write: process not running');
       return;
     }
-    
+
     try {
       _process!.stdin.add(data);
     } catch (e) {
-      debugPrint('[LOCAL] Write error: $e');
-      
+      if (kDebugMode) debugPrint('[LOCAL] Write error: $e');
+
       // Check if process died and attempt recovery
-      if (_process != null && await _process!.exitCode != null) {
-        debugPrint('[LOCAL] Process died, attempting restart...');
-        _isRunning = false;
-        await start();
-        
-        // Retry the write if restart succeeded
-        if (_isRunning && _process != null) {
-          try {
-            _process!.stdin.add(data);
-          } catch (retryError) {
-            debugPrint('[LOCAL] Retry write failed: $retryError');
+      if (_process != null) {
+        try {
+          // Use a short timeout to avoid blocking indefinitely
+          final exited = await _process!.exitCode.timeout(const Duration(milliseconds: 100), onTimeout: () => -1);
+          if (exited != -1) {
+            if (kDebugMode) debugPrint('[LOCAL] Process died, attempting restart...');
+            _isRunning = false;
+            await start();
+            if (_isRunning && _process != null) {
+              try {
+                _process!.stdin.add(data);
+              } catch (retryError) {
+                if (kDebugMode) debugPrint('[LOCAL] Retry write failed: $retryError');
+              }
+            }
           }
+        } catch (_) {
+          // Process is still running but stdin failed for another reason
         }
       }
     }
@@ -127,9 +132,9 @@ class LocalBackend implements TermisolPtyBackend {
 
   @override
   void resize(int cols, int rows) {
-    // Local terminal resize would need to signal the process
-    // This is a simplified implementation
-    debugPrint('[LOCAL] Resize requested: ${cols}x${rows}');
+    if (kDebugMode) debugPrint('[LOCAL] Resize requested: ${cols}x${rows}');
+    // On POSIX systems we'd send SIGWINCH, but dart:io doesn't expose this directly.
+    // The shell should pick up COLUMNS/LINES from environment on next prompt.
   }
 
   @override
@@ -138,10 +143,15 @@ class LocalBackend implements TermisolPtyBackend {
     try {
       if (_process != null) {
         _process!.kill(ProcessSignal.sigterm);
-        await _process!.exitCode.timeout(Duration(seconds: 5));
+        await _process!.exitCode.timeout(const Duration(seconds: 5), onTimeout: () {
+          _process?.kill(ProcessSignal.sigkill);
+          return -1;
+        });
       }
     } catch (e) {
-      debugPrint('[LOCAL] Stop error: $e');
+      if (kDebugMode) debugPrint('[LOCAL] Stop error: $e');
+    } finally {
+      await _closeController();
     }
   }
 
@@ -152,19 +162,32 @@ class LocalBackend implements TermisolPtyBackend {
       _process?.kill(ProcessSignal.sigkill);
       _process = null;
     } catch (e) {
-      debugPrint('[LOCAL] Terminate error: $e');
+      if (kDebugMode) debugPrint('[LOCAL] Terminate error: $e');
+    } finally {
+      await _closeController();
     }
-    await _outputController.close();
+  }
+
+  Future<void> _closeController() async {
+    if (!_outputController.isClosed) {
+      await _outputController.close();
+    }
+    _isDisposed = true;
+  }
+
+  void _safeAdd(List<int> data) {
+    if (!_outputController.isClosed && !_isDisposed) {
+      _outputController.add(data);
+    }
   }
 
   Future<String> _detectShell() async {
-    // Check for common shells in order of preference
     final shells = [
       Platform.isWindows ? 'powershell.exe' : '/bin/bash',
       Platform.isWindows ? 'cmd.exe' : '/bin/zsh',
       '/bin/sh',
     ];
-    
+
     for (final shell in shells) {
       try {
         final result = await Process.run('which', [shell]);
@@ -172,11 +195,10 @@ class LocalBackend implements TermisolPtyBackend {
           return shell;
         }
       } catch (e) {
-        // Continue to next shell
+        if (kDebugMode) debugPrint('[LOCAL] Shell detection error for $shell: $e');
       }
     }
-    
-    // Fallback to default
+
     return Platform.isWindows ? 'cmd.exe' : '/bin/sh';
   }
 
@@ -192,5 +214,8 @@ class LocalBackend implements TermisolPtyBackend {
     }
   }
 
+  @override
   bool get isConnected => _isRunning && _process != null;
 }
+
+String get fallbackShell => Platform.isWindows ? 'cmd.exe' : '/bin/sh';

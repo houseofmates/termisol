@@ -65,9 +65,6 @@ class _VrTerminalState extends State<VrTerminal> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
-    );
   }
 
   Future<void> _initializeVr() async {

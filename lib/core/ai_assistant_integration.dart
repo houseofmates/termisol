@@ -1028,13 +1028,23 @@ class AIAssistantIntegration {
   }
   
   Future<String> _callOpenAICode(String code, AICapability capability, String? language, AIContext? context, String apiKey) async {
-    // This would implement actual OpenAI API calls for code
-    return 'Cloud AI code response for: $code';
+    try {
+      final response = await _makeOpenAICodeRequest(code, capability, language, context, apiKey);
+      return response;
+    } catch (e) {
+      debugPrint('⚠️ OpenAI code API call failed: $e');
+      return _getLocalCodeFallback(code, capability, language);
+    }
   }
   
   Future<String> _callOpenAICommand(String command, AICapability capability, AIContext? context, String apiKey) async {
-    // This would implement actual OpenAI API calls for commands
-    return 'Cloud AI command response for: $command';
+    try {
+      final response = await _makeOpenAICommandRequest(command, capability, context, apiKey);
+      return response;
+    } catch (e) {
+      debugPrint('⚠️ OpenAI command API call failed: $e');
+      return _getLocalCommandFallback(command, capability);
+    }
   }
   
   // Local processing helper methods

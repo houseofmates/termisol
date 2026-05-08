@@ -27,7 +27,6 @@ class AdvancedTerminalProtocol {
 
   // Bracketed paste
   bool _bracketedPasteMode = false;
-  final StringBuffer _pasteBuffer = StringBuffer();
 
   // Focus tracking
   bool _focusTrackingEnabled = false;
@@ -450,11 +449,7 @@ class AdvancedTerminalProtocol {
     _terminal.write('\x1b[${top};${bottom}r');
   }
 
-  void _handleDeviceStatus(List<int> params) {
-    if (params.isNotEmpty && params[0] == 6) {
-      // Cursor Position Report (CPR) - simplified
-      _terminal.write('\x1b[1;1R'); // Report cursor at 1,1 for simplicity
-    }
+
   }
 
   void _handleDeviceAttributes(List<int> params) {
@@ -603,62 +598,7 @@ class AdvancedTerminalProtocol {
     }
   }
   
-  void _handleTerminalParameters(List<int> params) {
-    if (params.isEmpty) return;
-    
-    switch (params[0]) {
-      case 0:
-        // Report terminal parameters
-        _sendResponse('\x1b[?1;2c');
-        break;
-      case 1:
-        // Report DECID parameters
-        break;
-      default:
-        debugPrint('🔍 Unknown terminal parameters: ${params[0]}');
-    }
-  }
-  
-  void _handleCharacterPosition(List<int> params) {
-    final position = params.isNotEmpty ? params[0] : 1;
-    // Implementation would set character position
-  }
-  
-  void _handleTabulation(String command, List<int> params) {
-    if (command == 'I') {
-      // Forward tab
-    } else if (command == 'G') {
-      // Horizontal tab set
-    }
-  }
-  
-  void _handleBackTab() {
-    // Backward tab
-  }
-  
-  void _handleRepeat(String command, List<int> params) {
-    final count = params.isNotEmpty ? params[0] : 1;
-    // Implementation would repeat character or line
-  }
-  
-  void _handleLineCharacter(String command, List<int> params) {
-    final count = params.isNotEmpty ? params[0] : 1;
-    
-    switch (command) {
-      case 'L':
-        // Insert lines
-        break;
-      case 'M':
-        // Delete lines
-        break;
-      case '@':
-        // Insert characters
-        break;
-      case 'P':
-        // Delete characters
-        break;
-    }
-    }
+
   }
   
   void _handleHyperlink(String data) {

@@ -234,7 +234,8 @@ class AutoBackupSystem {
       if (data != null) {
         final list = (json.decode(data) as List?)?.cast<Map<String, dynamic>>() ?? [];
         for (final item in list) {
-          final b = BackupSet.fromJson(item as Map<String, dynamic>);
+          final itemMap = item;
+          final b = BackupSet.fromJson(itemMap);
           _backups[b.id] = b;
         }
       }

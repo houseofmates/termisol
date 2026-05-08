@@ -37,8 +37,6 @@ class _VrTerminalState extends State<VrTerminal> with TickerProviderStateMixin {
   // Terminal state
   Offset _gazePosition = Offset.zero;
   HandTrackingData? _handData;
-  EyeTrackingData? _eyeData;
-
   // UI State
   double _terminalScale = 1.0;
   double _terminalDistance = 2.0;

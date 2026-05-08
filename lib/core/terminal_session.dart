@@ -163,6 +163,10 @@ class TerminalSession extends ChangeNotifier {
       _connected = true;
       _error = null;
 
+      // Initialize async subsystems
+      unawaited(_pluginSystem.initialize());
+      unawaited(graphicsHandler.initialize());
+
       // Enable terminal features
       terminal.write('\x1b[?2004h'); // bracketed paste
       terminal.write('\x1b[?1004h'); // focus tracking

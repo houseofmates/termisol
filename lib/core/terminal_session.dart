@@ -1,66 +1,46 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
-import 'pty_backend.dart';
-import '../backends/local_backend.dart';
-import '../backends/ssh_backend.dart';
-import '../backends/android_shell_backend.dart';
-import 'crash_recovery.dart';
-import 'long_command_notifier.dart';
-import 'termisol_plugin_system.dart';
-import 'smart_auto_complete.dart';
-import 'session_persistence.dart';
-import 'optimized_text_buffer.dart';
-import 'lazy_terminal_output.dart';
+import '../backends/pty_backend.dart';
+import '../ai/ai_terminal_assistant.dart';
+import '../core/advanced_terminal_protocol.dart';
+import '../config/pkm_theme.dart';
+import 'bracketed_paste_manager.dart';
+import 'focus_manager.dart';
+import 'truecolor_manager.dart';
 
-// Session data for saving/loading
-class TerminalSessionData {
-  final String id;
-  final String name;
-  final String type;
-  final Map<String, dynamic> state;
-  final DateTime timestamp;
-
-  TerminalSessionData({
-    required this.id,
-    required this.name,
-    required this.type,
-    required this.state,
-    required this.timestamp,
-  });
-}
-
-/// Callback signature for AI queries intercepted from the terminal.
-///
-/// The [query] contains everything after `/ai ` and may include any
-/// characters or symbols. The callback should return the AI response
-/// which will be printed into the terminal.
+/// Called when the user types `/ai <query>` and presses Enter.
+/// If null, `/ai` commands are passed through to shell normally.
 typedef AiQueryHandler = Future<String> Function(String query);
 
-/// Callback signature for edit commands intercepted from the terminal.
-///
-/// The [filename] contains the filename specified in the edit command.
-typedef EditCommandHandler = Future<void> Function(String filename);
+/// Called when the user types `edit <filename>` and presses Enter.
+/// If null, edit commands are passed through to the shell normally.
+typedef EditCommandHandler = Future<void> Function(String filePath);
 
-/// A single terminal session that couples a [Terminal] with a [TermisolPtyBackend].
-///
-/// This is the rxvt-inspired daemon-client unit: lightweight, isolated,
-/// and disposable without affecting other sessions.
+/// A URL detected in terminal output.
+class DetectedUrl {
+  final String url;
+  final DateTime detectedAt;
+
+  DetectedUrl({required this.url, required this.detectedAt});
+}
+
+/// Encapsulates a single terminal instance with its backend, controller,
+/// and various optimization managers. Handles input/output, AI queries, edit commands,
+/// and session persistence.
 class TerminalSession extends ChangeNotifier {
   final String id;
   String name;
   late final Terminal terminal;
   late final TerminalController controller;
   TermisolPtyBackend? _backend;
-  StreamSubscription? _outputSub;
-
   bool _connected = false;
   String? _error;
+  StreamSubscription? _outputSub;
 
   /// Called when the user types `/ai <query>` and presses Enter.
-  /// If null, `/ai` commands are passed through to the shell normally.
+  /// If null, `/ai` commands are passed through to shell normally.
   AiQueryHandler? onAiQuery;
 
   /// Called when the user types `edit <filename>` and presses Enter.
@@ -70,7 +50,7 @@ class TerminalSession extends ChangeNotifier {
   /// Called when the terminal widget gains or loses focus.
   void Function(bool)? onFocusChanged;
 
-  /// Called when terminal receives focus events (bracketed paste mode).
+  /// Called when the terminal receives focus events (bracketed paste mode).
   void Function(bool)? onFocusEvent;
 
   /// Focus manager for bracketed paste integration.
@@ -145,27 +125,47 @@ class TerminalSession extends ChangeNotifier {
 
   /// Start the session with an auto-detected shell.
   Future<void> start({String? workingDirectory}) async {
-    _backend = TermisolPtyBackend.autoDetect(workingDirectory: workingDirectory);
-    await _wireBackend();
-  }
-
-  /// Start with a custom backend (e.g. SSH).
-  Future<void> startWithBackend(TermisolPtyBackend backend) async {
-    _backend = backend;
-    await _wireBackend();
-  }
-
-  Future<void> _wireBackend() async {
-    terminal.onOutput = _handleTerminalOutput;
-    terminal.onResize = (w, h, pw, ph) => _backend?.resize(w, h);
+    if (_connected) return;
 
     try {
-      await _backend!.start(
-        cols: terminal.viewWidth,
-        rows: terminal.viewHeight,
-      );
-      _connected = true;
+      // Detect platform and create appropriate backend
+      if (Platform.isAndroid) {
+        _backend = AndroidShellBackend();
+      } else if (Platform.isLinux || Platform.isMacOS) {
+        _backend = LocalPtyBackend();
+      } else if (Platform.isWindows) {
+        _backend = WindowsPtyBackend();
+      } else {
+        throw UnsupportedError('Unsupported platform: ${Platform.operatingSystem}');
+      }
 
+      // Start the backend
+      await _backend!.start(workingDirectory: workingDirectory);
+      _connected = true;
+      _error = null;
+
+      // Enable bracketed paste mode
+      terminal.write('\x1b[?2004h');
+
+      // Enable focus tracking
+      terminal.write('\x1b[?1004h');
+
+      // Enable TrueColor (24-bit)
+      terminal.write('\x1b[?1;2c');
+
+      // Enable mouse protocol
+      terminal.write('\x1b[?1000h');
+
+      // Enable extended keyboard
+      terminal.write('\x1b[?1002h');
+
+      // Enable Unicode
+      terminal.write('\x1b[?1005h');
+
+      // Enable bracketed paste
+      bracketedPaste.enable();
+
+      // Start listening for output
       _outputSub = _backend!.output.listen(
         (data) {
           final text = utf8.decode(data, allowMalformed: true);
@@ -188,166 +188,52 @@ class TerminalSession extends ChangeNotifier {
           notifyListeners();
         },
       );
+
+      notifyListeners();
     } catch (e) {
       _error = e.toString();
-      terminal.write('\r\n[connection failed: $e]\r\n');
       notifyListeners();
     }
   }
 
-  /// Intercept terminal output to detect `/ai` commands.
-  void _handleTerminalOutput(String data) {
-    final bytes = utf8.encode(data);
+  /// Write input to the backend. Intercepts `/ai` and `edit` commands.
+  void writeInput(String input) {
+    if (_backend == null || !_connected) return;
 
-    // Check if this looks like a newline (Enter pressed).
-    final isNewline = bytes.isNotEmpty &&
-        (bytes.last == 0x0D || // \r
-            bytes.last == 0x0A); // \n
+    // Accumulate input for AI command detection
+    _inputBuffer.write(input);
 
-    if (isNewline) {
-      _inputBuffer.write(data);
-      final line = _inputBuffer.toString().trim();
+    // Check for AI query command
+    if (input.contains('\n') || input.contains('\r')) {
+      final bufferText = _inputBuffer.toString().trim();
       _inputBuffer.clear();
 
-      // Add to auto-complete history
-      _autoComplete.addToHistory(line);
-
-      if (onAiQuery != null && line.startsWith('/ai ')) {
-        final query = line.substring(4);
-        _processAiQuery(query);
-        return; // Do not send to shell.
-      }
-      
-      if (onEditCommand != null && line.startsWith('edit ')) {
-        final filename = line.substring(5).trim();
-        _processEditCommand(filename);
-        return; // Do not send to shell.
+      if (bufferText.startsWith('/ai ')) {
+        final query = bufferText.substring(4).trim();
+        onAiQuery?.call(query).then((response) {
+          terminal.write('\r\n[AI Response]\r\n$response\r\n');
+        });
+        return; // Don't send to shell
       }
 
-      // Check for long-running commands
-      _checkForLongCommand(line);
-    } else {
-      _inputBuffer.write(data);
-    }
-
-    // Add to optimized text buffer
-    _textBuffer.append(data);
-    _lazyOutput.addContent([data]);
-
-    _backend?.write(bytes);
-  }
-
-  /// Check if command should trigger long-running notification
-  void _checkForLongCommand(String command) {
-    final longCommands = [
-      'apt-get install', 'apt install', 'dnf install', 'yum install',
-      'make', 'cmake', 'cargo build', 'npm install', 'yarn install',
-      'pip install', 'pip3 install', 'docker build', 'docker-compose up',
-      'git clone', 'wget', 'curl', 'rsync', 'scp', 'ffmpeg',
-    ];
-
-    for (final longCmd in longCommands) {
-      if (command.startsWith(longCmd)) {
-        _commandNotifier.notifyLongCommand(command);
-        break;
+      if (bufferText.startsWith('edit ')) {
+        final filePath = bufferText.substring(5).trim();
+        onEditCommand?.call(filePath);
+        return; // Don't send to shell
       }
     }
+
+    _backend!.writeInput(utf8.encode(input));
   }
 
-  /// Send the AI query and display the response in the terminal.
-  Future<void> _processAiQuery(String query) async {
-    terminal.write('\r\n');
-    terminal.write('\x1b[36m[AI] Processing: $query...\x1b[0m\r\n');
-
-    try {
-      final response = await onAiQuery!(query);
-      terminal.write('\x1b[36m[AI] $response\x1b[0m\r\n');
-    } catch (e) {
-      terminal.write('\x1b[31m[AI] Error: $e\x1b[0m\r\n');
-    }
+  /// Resize the terminal.
+  void resize(int width, int height) {
+    _backend?.resize(width, height);
+    terminal.resize(width, height);
   }
 
-  /// Launch the edit command with the specified filename.
-  Future<void> _processEditCommand(String filename) async {
-    terminal.write('\r\n');
-    terminal.write('\x1b[33m[EDIT] Opening editor: $filename\x1b[0m\r\n');
-
-    try {
-      await onEditCommand!(filename);
-      terminal.write('\x1b[33m[EDIT] Editor closed\x1b[0m\r\n');
-    } catch (e) {
-      terminal.write('\x1b[31m[EDIT] Error: $e\x1b[0m\r\n');
-    }
-  }
-
-  /// Write text directly into the terminal buffer (e.g. for AI responses).
-  void writeInput(String text) {
-    terminal.write(text);
-  }
-
-  /// Send raw data to the backend without interception.
-  void sendToBackend(List<int> data) {
-    _backend?.write(data);
-  }
-
-  /// Save current session state
-  Future<void> _saveSessionState() async {
-    try {
-      final sessionData = TerminalSessionData(
-        id: id,
-        name: name,
-        type: _backend?.runtimeType.toString() ?? 'local',
-        state: {
-          'terminal_content': _textBuffer.getVisibleText(1000),
-            'cursor_position': _textBuffer.cursorPosition,
-            'history': _autoComplete.recentCommands,
-          'timestamp': DateTime.now().toIso8601String(),
-        },
-        timestamp: DateTime.now(),
-      );
-      
-      await _sessionPersistence.saveSessions([sessionData]);
-    } catch (e) {
-      print('Failed to save session state: $e');
-    }
-  }
-
-  /// Get auto-complete suggestions for current input
-  Future<List<CommandSuggestion>> getAutoCompleteSuggestions(String partialCommand) async {
-    return await _autoComplete.getSuggestions(partialCommand);
-  }
-
-  /// Get session statistics
-  Map<String, dynamic> getSessionStats() {
-    return {
-      'buffer_stats': _textBuffer.stats,
-      'lazy_output_stats': {
-        'total_lines': _lazyOutput.totalLineCount,
-        'visible_lines': _lazyOutput.visibleLineCount,
-        'is_loading': _lazyOutput.isLoading,
-      },
-      'auto_complete_stats': {
-          'history_size': _autoComplete.recentCommands.length,
-          'command_frequency': _autoComplete.commandFrequency,
-      },
-      'active_plugins': _pluginSystem.loadedPlugins.map((p) => p.name).toList(),
-      'active_long_commands': _commandNotifier.activeCommands,
-    };
-  }
-
+  /// Stop the session and clean up resources.
   Future<void> disposeSession() async {
-    // Save session state before disposal
-    await _saveSessionState();
-    
-    // Cancel long command notifications
-    for (final command in _commandNotifier.activeCommands.keys) {
-      _commandNotifier.cancelNotification(command);
-    }
-    
-    // Dispose optimization managers
-    _textBuffer.clear();
-    _lazyOutput.dispose();
-    _autoComplete.clearHistory();
     _sessionPersistence.stopAutoSave();
     _crashRecovery.dispose();
     _commandNotifier.dispose();
@@ -381,12 +267,4 @@ class TerminalSession extends ChangeNotifier {
     disposeSession();
     super.dispose();
   }
-}
-
-/// A URL detected in terminal output.
-class DetectedUrl {
-  final String url;
-  final DateTime detectedAt;
-
-  DetectedUrl({required this.url, required this.detectedAt});
 }

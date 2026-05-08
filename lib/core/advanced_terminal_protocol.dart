@@ -776,23 +776,7 @@ class AdvancedTerminalProtocol {
     }
   }
   
-  void _handleColorPalette(String data) {
-    final parts = data.split(';');
-    if (parts.length >= 2) {
-      final index = int.parse(parts[0]);
-      final color = parts[1];
-      
-      if (color.startsWith('rgb:')) {
-        // RGB color format: rgb:RR/GG/BB
-        final rgbParts = color.substring(4).split('/');
-        if (rgbParts.length == 3) {
-          final r = int.parse(rgbParts[0], radix: 16);
-          final g = int.parse(rgbParts[1], radix: 16);
-          final b = int.parse(rgbParts[2], radix: 16);
-          
-          if (index < 256) {
-            _colorPalette[index] = Color.fromARGB(255, r, g, b);
-          }
+
         }
       } else if (color.startsWith('#')) {
         // Hex color format: #RRGGBB

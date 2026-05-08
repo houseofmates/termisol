@@ -98,7 +98,14 @@ class TerminalSession extends ChangeNotifier {
     required this.name,
     int maxLines = 50000,
   }) {
-    terminal = Terminal(maxLines: maxLines);
+    // Initialize ring buffer scrollback with memory optimization
+    scrollback = RingBufferScrollback(
+      maxLines: maxLines,
+      compressionThreshold: maxLines ~/ 5, // Compress after 20% capacity
+      gcThreshold: maxLines ~/ 2, // GC at 50% capacity
+    );
+    
+    terminal = Terminal(maxLines: 1000); // Keep terminal buffer small for performance
     controller = TerminalController();
 
     // Initialize optimization managers

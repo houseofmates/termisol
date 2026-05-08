@@ -379,14 +379,36 @@ class _TerminalFileManagerState extends State<TerminalFileManager>
   
   Future<void> _copyFile(FileSystemEntity file) async {
     try {
-      final result = await FilePicker.platform.saveFile(
-        dialogTitle: 'Save copy as...',
-        fileName: path.basename(file.path),
+      final newName = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Copy File'),
+          content: TextField(
+            controller: TextEditingController(text: '${path.basenameWithoutExtension(file.path)}_copy${path.extension(file.path)}'),
+            decoration: const InputDecoration(
+              hintText: 'Enter new file name...',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Copy'),
+            ),
+          ],
+        ),
       );
-      
-      if (result != null && file is File) {
-        await file.copy(result.files.single.path!);
-        
+
+      if (newName != null && newName.isNotEmpty && file is File) {
+        final newPath = path.join(path.dirname(file.path), newName);
+        await file.copy(newPath);
+
+        await _loadDirectory();
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('File copied successfully'),

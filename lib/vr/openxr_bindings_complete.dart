@@ -517,7 +517,7 @@ typedef XrDestroySpace = void Function(Pointer<XrSpace> space);
 typedef XrAttachSessionActionSetsNative = Int32 Function(Pointer<XrSession> session, Pointer<XrSessionActionSetsAttachInfo> attachInfo);
 typedef XrAttachSessionActionSets = int Function(Pointer<XrSession> session, Pointer<XrSessionActionSetsAttachInfo> attachInfo);
 
-typedef XrEnumerateViewConfigurationViewsNative = Int32 Function(Pointer<XrInstance> instance, XrSystemId systemId, XrViewConfigurationType viewConfigurationType, Uint32 viewConfigurationTypeCapacityInput, Pointer<Uint32> viewConfigurationTypeCountOutput, Pointer<XrViewConfigurationView> viewConfigurationViews);
+typedef XrEnumerateViewConfigurationViewsNative = Int32 Function(Pointer<XrInstance> instance, Uint64 systemId, Uint32 viewConfigurationType, Uint32 viewConfigurationTypeCapacityInput, Pointer<Uint32> viewConfigurationTypeCountOutput, Pointer<XrViewConfigurationView> viewConfigurationViews);
 typedef XrEnumerateViewConfigurationViews = int Function(Pointer<XrInstance> instance, XrSystemId systemId, XrViewConfigurationType viewConfigurationType, Uint32 viewConfigurationTypeCapacityInput, Pointer<Uint32> viewConfigurationTypeCountOutput, Pointer<XrViewConfigurationView> viewConfigurationViews);
 
 // OpenXR library interface

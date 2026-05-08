@@ -233,33 +233,35 @@ class PersonalIntegrationManager {
     );
     
     // Initialize N8N integration
+    // Hardcoded personal infrastructure URLs have been replaced with
+    // environment variable lookups to avoid leaking private infrastructure.
     _toolIntegrations['n8n'] = ToolIntegration(
       name: 'N8N Workflow Automation',
       description: 'Self-hosted N8N integration',
       type: ToolType.workflow_automation,
-      enabled: false, // Requires API key
+      enabled: false, // Requires API key and configured URL
       config: {
-        'base_url': 'https://n8n.houseofmates.space',
+        'base_url': Platform.environment['N8N_BASE_URL'] ?? '',
         'api_version': 'v1',
         'timeout': Duration(seconds: 45),
         'webhook_timeout': Duration(seconds: 10),
       },
     );
-    
+
     // Initialize Nextcloud integration
     _toolIntegrations['nextcloud'] = ToolIntegration(
       name: 'Nextcloud',
       description: 'Self-hosted Nextcloud integration',
       type: ToolType.cloud_storage,
-      enabled: true,
+      enabled: false, // Requires API key and configured URL
       config: {
-        'base_url': 'https://cloud.houseofmates.space',
-        'username': 'house',
+        'base_url': Platform.environment['NEXTCLOUD_BASE_URL'] ?? '',
+        'username': Platform.environment['NEXTCLOUD_USERNAME'] ?? '',
         'sync_interval': Duration(minutes: 15),
         'max_file_size': 100 * 1024 * 1024, // 100MB
       },
     );
-    
+
     // Initialize Docker integration (from stack)
     _toolIntegrations['docker_stack'] = ToolIntegration(
       name: 'Docker Stack',
@@ -267,7 +269,7 @@ class PersonalIntegrationManager {
       type: ToolType.container_management,
       enabled: true,
       config: {
-        'stack_path': '/home/house/Documents/docker/main-stack',
+        'stack_path': Platform.environment['DOCKER_STACK_PATH'] ?? '/var/lib/docker/stacks/default',
         'auto_restart': true,
         'health_check_interval': Duration(minutes: 5),
       },

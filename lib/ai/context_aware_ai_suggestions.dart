@@ -37,7 +37,7 @@ class ContextAwareAISuggestions {
     try {
       // Validate API key format
       if (apiKey.isEmpty) {
-        throw AISuggestionException('API key cannot be empty');
+        throw const AISuggestionException('API key cannot be empty');
       }
       
       if (!apiKey.startsWith('nvapi-')) {

@@ -1570,6 +1570,108 @@ class AIFileGenerator {
     return buffer.toString();
   }
 
+  /// Generate meaningful file content based on description
+  String _generateFileContent(String description, String filename, String language) {
+    final lowerDescription = description.toLowerCase();
+    
+    if (lowerDescription.contains('hello') || lowerDescription.contains('greeting')) {
+      switch (language) {
+        case 'dart':
+          return '''void main() {
+  print('Hello from $filename!');
+}''';
+        case 'python':
+          return '''def main():
+    print("Hello from $filename!")
+
+if __name__ == "__main__":
+    main()''';
+        case 'javascript':
+          return '''console.log("Hello from $filename!");''';
+        default:
+          return '// Hello from $filename\nprint("Hello!");';
+      }
+    } else if (lowerDescription.contains('config') || lowerDescription.contains('configuration')) {
+      switch (language) {
+        case 'json':
+          return '''{
+  "name": "$filename",
+  "version": "1.0.0",
+  "description": "$description"
+}''';
+        case 'yaml':
+          return '''name: $filename
+version: 1.0.0
+description: $description''';
+        default:
+          return '// Configuration for $filename\n// TODO: Add config options';
+      }
+    } else if (lowerDescription.contains('test') || lowerDescription.contains('spec')) {
+      switch (language) {
+        case 'dart':
+          return '''import 'package:test/test.dart';
+
+void main() {
+  test('$filename test', () {
+    // TODO: Add test implementation
+    expect(true, isTrue);
+  });
+}''';
+        case 'python':
+          return '''import unittest
+
+class Test${filename.replaceAll('.', '')}(unittest.TestCase):
+    def test_something(self):
+        # TODO: Add test implementation
+        self.assertTrue(True)
+
+if __name__ == '__main__':
+    unittest.main()''';
+        default:
+          return '// Test file for $filename\n// TODO: Add test cases';
+      }
+    } else {
+      // Generic implementation based on language
+      switch (language) {
+        case 'dart':
+          return '''class $filename {
+  // TODO: Implement class functionality
+  
+  $filename();
+  
+  void method() {
+    // TODO: Add method implementation
+  }
+}''';
+        case 'python':
+          return '''class ${filename.replaceAll('.py', '')}:
+    """TODO: Add class documentation"""
+    
+    def __init__(self):
+        # TODO: Add initialization
+        pass
+    
+    def method(self):
+        # TODO: Add method implementation
+        pass''';
+        case 'javascript':
+          return '''class ${filename.replaceAll('.js', '')} {
+  // TODO: Implement class functionality
+  
+  constructor() {
+    // TODO: Add initialization
+  }
+  
+  method() {
+    // TODO: Add method implementation
+  }
+}''';
+        default:
+          return '// Implementation for $filename\n// Based on: $description\n// TODO: Add specific logic';
+      }
+    }
+  }
+
   Future<void> dispose() async {
     _fileTemplates.clear();
     _isInitialized = false;

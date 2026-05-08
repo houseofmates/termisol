@@ -35,12 +35,7 @@ class AdvancedTerminalProtocol {
   String _windowTitle = '';
 
   // Color management
-  final List<Color> _colorPalette = List.generate(256, (i) => Color.fromARGB(255, 0, 0, 0));
   bool _trueColorSupported = true;
-
-  // Keyboard protocol
-  KeyboardProtocol _keyboardProtocol = KeyboardProtocol.none;
-  final Map<String, String> _keyMappings = {};
 
   AdvancedTerminalProtocol(this._terminal, this._controller);
 

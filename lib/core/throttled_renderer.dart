@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
 
 /// Throttles terminal rendering to maintain 60fps (16ms per frame).

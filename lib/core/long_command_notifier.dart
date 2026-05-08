@@ -15,7 +15,7 @@ class LongCommandNotifier {
   static const String _notificationFile = 'termisol_long_commands.log';
   
   final Map<String, Timer> _activeCommands = {};
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  AudioPlayer? _audioPlayer;
   bool _isInitialized = false;
 
   LongCommandNotifier() {

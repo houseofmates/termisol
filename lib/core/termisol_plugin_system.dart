@@ -136,7 +136,6 @@ Future<bool> _disposePlugin(String pluginId) async {
   // Stub implementation
   return true;
 }
-}
 
 /// Plugin interface
 abstract class Plugin {

@@ -109,6 +109,11 @@ class _TextEditorState extends State<TextEditor> {
   final List<TextSelection> _cursors = [];
   bool _multiCursorMode = false;
   int _activeCursorIndex = 0;
+  
+  // Smart Indentation
+  bool _autoIndent = true;
+  int _indentSize = 2;
+  bool _useSpaces = true;
 
   @override
   void initState() {
@@ -450,6 +455,31 @@ class _TextEditorState extends State<TextEditor> {
                   ),
                 
                 const Spacer(),
+                
+                // Multi-cursor indicator
+                if (_multiCursorMode)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.purple[700],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.control_point, color: Colors.white, size: 12),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${_cursors.length} Cursors',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 
                 // Search
                 if (_showSearch)

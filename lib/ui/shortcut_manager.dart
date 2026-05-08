@@ -16,13 +16,46 @@ class ShortcutManager {
 
   /// Load shortcuts from persistent storage or use defaults.
   Future<void> load() async {
-    // TODO: implement persistent storage via shared_preferences
-    _loadDefaults();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final shortcutsJson = prefs.getString('user_shortcuts');
+      
+      if (shortcutsJson != null) {
+        final Map<String, dynamic> shortcutsMap = jsonDecode(shortcutsJson);
+        _shortcuts.clear();
+        shortcutsMap.forEach((key, value) {
+          _shortcuts[key] = ShortcutConfig(
+            id: key,
+            description: value['description'] ?? '',
+            shortcut: value['shortcut'] ?? '',
+          );
+        });
+      } else {
+        _loadDefaults();
+      }
+    } catch (e) {
+      // Fallback to defaults if loading fails
+      _loadDefaults();
+    }
   }
 
   /// Save shortcuts to persistent storage.
   Future<void> save() async {
-    // TODO: implement persistent storage
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final shortcutsMap = <String, dynamic>{};
+      
+      _shortcuts.forEach((key, config) {
+        shortcutsMap[key] = {
+          'description': config.description,
+          'shortcut': config.shortcut,
+        };
+      });
+      
+      await prefs.setString('user_shortcuts', jsonEncode(shortcutsMap));
+    } catch (e) {
+      // Silently fail for now - could add retry logic or user notification
+    }
   }
 
   /// Apply a preset (standard, emacs, vim).

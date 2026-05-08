@@ -16,16 +16,17 @@ import 'package:process_run/process_run.dart';
 /// - Learning from error patterns and fixes
 class SmartErrorDetectionAI {
   static const String _nimEndpoint = 'https://integrate.api.nvidia.com/v1/chat/completions';
-  static const String _apiKey = 'YOUR_NVIDIA_API_KEY'; // Should be configured
   static const Duration _requestTimeout = Duration(seconds: 15);
   static const int _maxTokens = 4096;
   static const double _temperature = 0.3;
-  
+
+  String? _apiKey;
+
   final Map<String, ErrorPattern> _errorPatterns = {};
   final Queue<ErrorHistory> _errorHistory = Queue();
   final Map<String, List<FixSuggestion>> _fixCache = {};
   final List<ErrorDetector> _detectors = [];
-  
+
   bool _isInitialized = false;
   int _totalDetections = 0;
   int _totalFixes = 0;
@@ -33,8 +34,21 @@ class SmartErrorDetectionAI {
   double _totalDetectionTime = 0.0;
 
   SmartErrorDetectionAI() {
+    _loadApiKey();
     _initializeErrorDetection();
   }
+
+  /// Load API key from environment variables.
+  /// Hardcoded placeholders are a security risk and have been removed.
+  void _loadApiKey() {
+    _apiKey = Platform.environment['NVIDIA_NIM_API_KEY'] ??
+              Platform.environment['NVIDIA_API_KEY'];
+    if (_apiKey == null || _apiKey!.isEmpty) {
+      debugPrint('⚠️ NVIDIA NIM API key not configured. Set NVIDIA_NIM_API_KEY or NVIDIA_API_KEY environment variable.');
+    }
+  }
+
+  bool get _apiKeyConfigured => _apiKey != null && _apiKey!.isNotEmpty;
 
   /// Initialize the error detection system
   Future<void> _initializeErrorDetection() async {
@@ -179,7 +193,9 @@ class SmartErrorDetectionAI {
 
       if (detection == null) {
         // Use AI for unknown errors
+      if (_apiKeyConfigured) {
         detection = await _analyzeErrorWithAI(errorOutput, command, workingDirectory);
+      }
       }
 
       if (detection != null) {
@@ -589,6 +605,10 @@ Be precise and accurate in your analysis.''';
     ErrorDetection detection,
     String workingDirectory,
   ) async {
+    if (!_apiKeyConfigured) {
+      debugPrint('⚠️ AI fix generation skipped: NVIDIA NIM API key not configured');
+      return [];
+    }
     try {
       final response = await http.post(
         Uri.parse(_nimEndpoint),

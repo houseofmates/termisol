@@ -129,9 +129,9 @@ class _HomeScreenState extends State<HomeScreen> {
           input: query,
           capability: AICapability.text_generation,
           contextId: 'terminal_$_activeTab',
-        );
-        final success = response.success as bool? ?? false;
-        final output = response.output as String? ?? '';
+        ) as AIResponse;
+        final success = response.success;
+        final output = response.output;
         return success && output.isNotEmpty
             ? output
             : 'AI service unavailable';

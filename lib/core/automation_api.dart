@@ -1501,7 +1501,7 @@ class AIFileGenerator {
       extensions: ['.dart'],
       structure: {
         'class': 'class {Name} {\n  // Properties\n  \n  // Constructor\n  {Name}();\n  \n  // Methods\n}',
-        'widget': 'import \'package:flutter/material.dart\';\n\nclass {Name} extends StatelessWidget {\n  const {Name}({super.key});\n\n  @override\n  Widget build(BuildContext context) {\n    return const Placeholder();\n  }\n}',
+        'widget': 'import \'package:flutter/material.dart\';\n\nclass {Name} extends StatelessWidget {\n  const {Name}({super.key});\n\n  @override\n  Widget build(BuildContext context) {\n    return const Scaffold(\n      body: Center(\n        child: Text(\'{Name} Widget\'),\n      ),\n    );\n  }\n}',
       },
     );
 

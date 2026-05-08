@@ -1589,10 +1589,309 @@ class Plugin {
 }
 
 class ExtensionRegistry {
-  Future<void> initialize(AdvancedConfig config) async {}
-  Map<String, dynamic> getStatistics() => {};
-  Future<void> cleanup() async {}
-  Future<void> dispose() async {}
+  AdvancedConfig? _config;
+  bool _isInitialized = false;
+  final Map<String, Extension> _extensions = {};
+  final Map<String, ExtensionMetadata> _extensionMetadata = {};
+  final Map<String, int> _extensionStats = {};
+  final List<String> _activeExtensions = [];
+  Timer? _cleanupTimer;
+  
+  static const Duration _cleanupInterval = Duration(minutes: 15);
+  static const int _maxExtensions = 50;
+  
+  Future<void> initialize(AdvancedConfig config) async {
+    if (_isInitialized) return;
+    
+    try {
+      _config = config;
+      
+      // Load built-in extensions
+      await _loadBuiltinExtensions();
+      
+      // Start cleanup timer
+      _cleanupTimer = Timer.periodic(_cleanupInterval, (_) => _performCleanup());
+      
+      _isInitialized = true;
+      debugPrint('🔧 ExtensionRegistry initialized with ${_extensions.length} extensions');
+    } catch (e) {
+      debugPrint('❌ Failed to initialize ExtensionRegistry: $e');
+      rethrow;
+    }
+  }
+  
+  Future<void> _loadBuiltinExtensions() async {
+    // Load built-in extensions
+    final builtinExtensions = [
+      Extension(
+        id: 'terminal_themes',
+        name: 'Terminal Themes',
+        version: '1.0.0',
+        description: 'Provides various terminal themes',
+        author: 'Termisol Team',
+        enabled: true,
+        type: ExtensionType.ui,
+      ),
+      Extension(
+        id: 'command_history',
+        name: 'Command History',
+        version: '1.0.0',
+        description: 'Enhanced command history with search',
+        author: 'Termisol Team',
+        enabled: true,
+        type: ExtensionType.feature,
+      ),
+      Extension(
+        id: 'file_preview',
+        name: 'File Preview',
+        version: '1.0.0',
+        description: 'Preview files directly in terminal',
+        author: 'Termisol Team',
+        enabled: true,
+        type: ExtensionType.feature,
+      ),
+    ];
+    
+    for (final extension in builtinExtensions) {
+      _extensions[extension.id] = extension;
+      _extensionMetadata[extension.id] = ExtensionMetadata(
+        id: extension.id,
+        installedAt: DateTime.now(),
+        lastUsed: DateTime.now(),
+        usageCount: 0,
+      );
+      
+      if (extension.enabled) {
+        await _activateExtension(extension.id);
+      }
+    }
+  }
+  
+  Future<void> _activateExtension(String extensionId) async {
+    final extension = _extensions[extensionId];
+    if (extension == null) {
+      throw ArgumentError('Extension not found: $extensionId');
+    }
+    
+    if (!extension.enabled) {
+      extension.enabled = true;
+      _activeExtensions.add(extensionId);
+      _extensionStats['activated_$extensionId'] = DateTime.now().millisecondsSinceEpoch;
+      debugPrint('🔧 Activated extension: ${extension.name}');
+    }
+  }
+  
+  Future<void> deactivateExtension(String extensionId) async {
+    final extension = _extensions[extensionId];
+    if (extension == null) {
+      throw ArgumentError('Extension not found: $extensionId');
+    }
+    
+    if (extension.enabled) {
+      extension.enabled = false;
+      _activeExtensions.remove(extensionId);
+      _extensionStats['deactivated_$extensionId'] = DateTime.now().millisecondsSinceEpoch;
+      debugPrint('🔧 Deactivated extension: ${extension.name}');
+    }
+  }
+  
+  Future<Extension?> installExtension(String extensionPath) async {
+    try {
+      // Simulate extension installation
+      await Future.delayed(Duration(milliseconds: 150));
+      
+      final extension = Extension(
+        id: 'extension_${DateTime.now().millisecondsSinceEpoch}',
+        name: 'External Extension',
+        version: '1.0.0',
+        description: 'External extension installed from $extensionPath',
+        author: 'External',
+        enabled: false,
+        type: ExtensionType.feature,
+        path: extensionPath,
+      );
+      
+      if (_extensions.length >= _maxExtensions) {
+        throw StateError('Maximum number of extensions reached');
+      }
+      
+      _extensions[extension.id] = extension;
+      _extensionMetadata[extension.id] = ExtensionMetadata(
+        id: extension.id,
+        installedAt: DateTime.now(),
+        lastUsed: DateTime.now(),
+        usageCount: 0,
+      );
+      
+      _extensionStats['installed_${extension.id}'] = DateTime.now().millisecondsSinceEpoch;
+      
+      debugPrint('🔧 Installed extension: ${extension.name}');
+      return extension;
+    } catch (e) {
+      debugPrint('❌ Failed to install extension: $e');
+      return null;
+    }
+  }
+  
+  Future<bool> uninstallExtension(String extensionId) async {
+    try {
+      final extension = _extensions[extensionId];
+      if (extension == null) {
+        return false;
+      }
+      
+      // Deactivate extension first
+      if (extension.enabled) {
+        await deactivateExtension(extensionId);
+      }
+      
+      // Remove extension
+      _extensions.remove(extensionId);
+      _extensionMetadata.remove(extensionId);
+      _extensionStats['uninstalled_$extensionId'] = DateTime.now().millisecondsSinceEpoch;
+      
+      debugPrint('🔧 Uninstalled extension: ${extension.name}');
+      return true;
+    } catch (e) {
+      debugPrint('❌ Failed to uninstall extension: $e');
+      return false;
+    }
+  }
+  
+  void recordExtensionUsage(String extensionId) {
+    final metadata = _extensionMetadata[extensionId];
+    if (metadata != null) {
+      metadata.lastUsed = DateTime.now();
+      metadata.usageCount++;
+      _extensionStats['usage_$extensionId'] = metadata.usageCount;
+    }
+  }
+  
+  List<Extension> getActiveExtensions() {
+    return _extensions.values.where((extension) => extension.enabled).toList();
+  }
+  
+  List<Extension> getAllExtensions() {
+    return _extensions.values.toList();
+  }
+  
+  Extension? getExtension(String extensionId) {
+    return _extensions[extensionId];
+  }
+  
+  ExtensionMetadata? getExtensionMetadata(String extensionId) {
+    return _extensionMetadata[extensionId];
+  }
+  
+  Map<String, dynamic> getStatistics() {
+    return {
+      'is_initialized': _isInitialized,
+      'total_extensions': _extensions.length,
+      'active_extensions': _activeExtensions.length,
+      'extension_stats': Map.from(_extensionStats),
+      'usage_stats': _extensionMetadata.map((key, value) => MapEntry(key, {
+        'usage_count': value.usageCount,
+        'last_used': value.lastUsed.toIso8601String(),
+        'installed_at': value.installedAt.toIso8601String(),
+      })),
+    };
+  }
+  
+  Future<void> cleanup() async {
+    try {
+      // Remove inactive extensions that haven't been used recently
+      final now = DateTime.now();
+      final extensionsToRemove = <String>[];
+      
+      for (final entry in _extensions.entries) {
+        final extension = entry.value;
+        if (!extension.enabled) {
+          final metadata = _extensionMetadata[extension.id];
+          if (metadata != null && now.difference(metadata.lastUsed) > Duration(days: 14)) {
+            extensionsToRemove.add(extension.id);
+          }
+        }
+      }
+      
+      for (final extensionId in extensionsToRemove) {
+        await uninstallExtension(extensionId);
+      }
+      
+      _extensionStats['last_cleanup'] = now.millisecondsSinceEpoch;
+      debugPrint('🧹 ExtensionRegistry cleanup completed');
+    } catch (e) {
+      debugPrint('❌ ExtensionRegistry cleanup failed: $e');
+    }
+  }
+  
+  void _performCleanup() {
+    cleanup();
+  }
+  
+  Future<void> dispose() async {
+    try {
+      _cleanupTimer?.cancel();
+      
+      // Deactivate all extensions
+      for (final extensionId in List.from(_activeExtensions)) {
+        await deactivateExtension(extensionId);
+      }
+      
+      _extensions.clear();
+      _extensionMetadata.clear();
+      _extensionStats.clear();
+      _activeExtensions.clear();
+      _isInitialized = false;
+      
+      debugPrint('🔧 ExtensionRegistry disposed');
+    } catch (e) {
+      debugPrint('❌ Error disposing ExtensionRegistry: $e');
+    }
+  }
+}
+
+enum ExtensionType {
+  ui,
+  feature,
+  integration,
+  theme,
+}
+
+class Extension {
+  final String id;
+  final String name;
+  final String version;
+  final String description;
+  final String author;
+  bool enabled;
+  final ExtensionType type;
+  final String? path;
+  final DateTime installedAt;
+  
+  Extension({
+    required this.id,
+    required this.name,
+    required this.version,
+    required this.description,
+    required this.author,
+    required this.enabled,
+    required this.type,
+    this.path,
+  }) : installedAt = DateTime.now();
+}
+
+class ExtensionMetadata {
+  final String id;
+  final DateTime installedAt;
+  DateTime lastUsed;
+  int usageCount;
+  
+  ExtensionMetadata({
+    required this.id,
+    required this.installedAt,
+    required this.lastUsed,
+    required this.usageCount,
+  });
 }
 
 class SystemIntegrator {

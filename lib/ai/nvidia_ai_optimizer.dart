@@ -236,7 +236,7 @@ Focus on:
       
       // Add new recommendations to the list
       for (final recommendation in recommendations) {
-        if (!_recommendations.any((r) => r.description == recommendation.description)) {
+        if (!_recommendations.any((r) => r.id == recommendation.id)) {
           _recommendations.add(recommendation);
           _optimizerController.add(OptimizerEvent(
           type: OptimizerEventType.recommendationGenerated,

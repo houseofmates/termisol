@@ -263,10 +263,10 @@ class CodeIntelligence {
 
   RegExp _importPatterns(String ext) {
     switch (ext) {
-      case '.dart': return [RegExp(r"import\s+['\"](.+?)['\"];", multiLine: true)];
-      case '.py': return [RegExp(r'(?:from|import)\s+(\S+)', multiLine: true)];
-      case '.js': case '.ts': return [RegExp(r"(?:import|require)\s*\(?['\"](.+?)['\"]\)?", multiLine: true)];
-      default: return [RegExp(r"(?:import|use|require)\s+['\"](.+?)['\"]", multiLine: true)];
+      case '.dart': return RegExp(r"""import\s+['"](.+?)['"];""", multiLine: true);
+      case '.py': return RegExp(r'(?:from|import)\s+(\S+)', multiLine: true);
+      case '.js': case '.ts': return RegExp(r"""(?:import|require)\s*\(?['"](.+?)['"]\)?""", multiLine: true);
+      default: return RegExp(r"""(?:import|use|require)\s+['"](.+?)['"]""", multiLine: true);
     }
   }
 

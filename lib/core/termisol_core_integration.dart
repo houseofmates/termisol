@@ -106,7 +106,8 @@ class TermisolCoreIntegration {
         final response = await _cloudAi.chatCompletion(
           messages: [ChatMessage(role: 'user', content: query)],
         );
-        if (response.success) return response.content;
+        final content = response.content;
+        if (content.isNotEmpty) return content;
       }
       return 'AI services unavailable: no cloud AI configured';
     } catch (e) {

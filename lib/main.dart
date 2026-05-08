@@ -8,6 +8,7 @@ import 'package:window_manager/window_manager.dart';
 import 'package:path_provider/path_provider.dart';
 import 'app.dart';
 import 'core/service_registry.dart';
+import 'core/service_factories.dart';
 
 /// Setup global error handling and crash reporting
 Future<void> _setupErrorHandling() async {

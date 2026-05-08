@@ -1208,6 +1208,16 @@ class _TextEditorState extends State<TextEditor> {
                             
                             const Divider(height: 1, color: Colors.grey),
                             
+                            // Format Document
+                            _buildContextMenuItem(
+                              icon: Icons.format_align_left,
+                              label: 'Format Document',
+                              onPressed: () {
+                                _hideContextMenu();
+                                _formatDocument();
+                              },
+                            ),
+                            
                             // Select All
                             _buildContextMenuItem(
                               icon: Icons.select_all,

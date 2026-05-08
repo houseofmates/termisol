@@ -17,8 +17,6 @@ class SettingsSheet extends StatefulWidget {
 }
 
 class _SettingsSheetState extends State<SettingsSheet> {
-  bool _showFps = false;
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -54,11 +52,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   ),
                   const SizedBox(height: 16),
                   
-                  // Performance section
-                  _buildPerformanceSection(),
-
-                  const SizedBox(height: 20),
-
                   // Diagnostics section
                   _buildDiagnosticsSection(),
 

@@ -102,31 +102,46 @@ class _BasicTestDashboardState extends State<BasicTestDashboard> {
     setState(() => _isRunning = false);
   }
 
-  void _addTestResult(String testName, Future<String> Function() test) {
+  Future<void> _addTestResult(String testName, Future<String> Function() test) async {
     _testResults.add(TestResult(
       name: testName,
       status: TestStatus.pending,
       result: null,
     ));
 
-    // Run test
-    test().then((result) {
+    setState(() {}); // Update UI to show pending status
+
+    try {
+      // Run the test
+      final result = await test();
+      
       setState(() {
-        _testResults.last = TestResult(
-          name: testName,
-          status: TestStatus.completed,
-          result: result,
-        );
+        final index = _testResults.indexWhere((t) => t.name == testName);
+        if (index != -1) {
+          _testResults[index] = TestResult(
+            name: testName,
+            status: TestStatus.completed,
+            result: result,
+          );
+        }
       });
-    }).catchError((error) {
+      
+      debugPrint('[TEST] $testName: PASSED');
+    } catch (error, stackTrace) {
       setState(() {
-        _testResults.last = TestResult(
-          name: testName,
-          status: TestStatus.failed,
-          result: 'Error: $error',
-        );
+        final index = _testResults.indexWhere((t) => t.name == testName);
+        if (index != -1) {
+          _testResults[index] = TestResult(
+            name: testName,
+            status: TestStatus.failed,
+            result: 'Error: $error',
+          );
+        }
       });
-    });
+      
+      debugPrint('[TEST] $testName: FAILED - $error');
+      debugPrint('[TEST] Stack trace: $stackTrace');
+    }
   }
 
   @override

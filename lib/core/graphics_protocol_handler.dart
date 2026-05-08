@@ -181,16 +181,16 @@ class GraphicsProtocolHandler {
   }
 
   /// Process terminal output for graphics protocol sequences
-  String processOutput(String output) {
+  String processOutput(String output, int cursorX, int cursorY) {
     if (!_isInitialized) return output;
 
     String processed = output;
 
     // Process Sixel sequences
-    processed = _processSixelSequences(processed);
+    processed = _processSixelSequences(processed, cursorX, cursorY);
 
     // Process Kitty graphics sequences
-    processed = _processKittySequences(processed);
+    processed = _processKittySequences(processed, cursorX, cursorY);
 
     return processed;
   }

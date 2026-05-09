@@ -335,7 +335,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Handle Kitty graphics actions
+  /// handle kitty graphics actions
   String _handleKittyAction(
     Map<String, String> params,
     int cursorX,

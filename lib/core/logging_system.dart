@@ -403,14 +403,14 @@ class FileSink implements LogSink {
   void _rotateLog() {
     _sink.close();
     
-    // Move current file to backup
+    // move current file to backup
     final backupFile = File('${_file.path}.1');
     if (backupFile.existsSync()) {
       backupFile.deleteSync();
     }
     _file.renameSync(backupFile.path);
     
-    // Create new file
+    // create new file
     _file = File(_file.path);
     _currentSize = 0;
     _sink = _file.openWrite(mode: FileMode.append);

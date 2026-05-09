@@ -123,7 +123,7 @@ class CustomHotkeyManager {
     _showFeedback('Interrupt sent');
   }
   
-  /// Paste from clipboard
+  /// paste from clipboard
   void _handlePaste() {
     clipboard.paste();
     _showFeedback('Pasted from clipboard');

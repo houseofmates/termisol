@@ -144,7 +144,7 @@ class ProductionConfigSystem {
     };
   }
 
-  /// Initialize the configuration system
+  /// initialize the configuration system
   Future<void> initialize() async {
     if (_initialized) return;
 
@@ -271,7 +271,7 @@ class ProductionConfigSystem {
     }
   }
   
-  /// Check Android VR features
+  /// check android vr features
   bool _checkAndroidVRFeatures() {
     try {
       // Check for VR-related system properties

@@ -24,9 +24,11 @@ class _SettingsPageState extends State<SettingsPage>
 
   // appearance state
   double _fontSize = 14.0;
+  String _fontFamily = 'DroidSansMono';
   bool _useSystemTheme = false;
   bool _transparentBackground = false;
   double _transparency = 1.0;
+  double _bgOpacity = 1.0;
   TermisolThemeMode _themeMode = TermisolThemeMode.dark;
 
   // terminal state
@@ -77,6 +79,15 @@ class _SettingsPageState extends State<SettingsPage>
     if (overlay != null) {
       setState(() => _showPerformanceOverlay = overlay);
     }
+    final savedFontFamily = prefs.getString('termisol_font_family');
+    if (savedFontFamily != null) {
+      setState(() => _fontFamily = savedFontFamily);
+    }
+    final savedBgOpacity = prefs.getDouble('termisol_bg_opacity');
+    if (savedBgOpacity != null) {
+      setState(() => _bgOpacity = savedBgOpacity.clamp(0.5, 1.0));
+      PkmTheme.bgOpacity.value = _bgOpacity;
+    }
   }
 
   Future<void> _savePerformanceOverlay(bool value) async {
@@ -87,6 +98,16 @@ class _SettingsPageState extends State<SettingsPage>
   Future<void> _saveTheme(TermisolThemeMode mode) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('termisol_theme_mode', mode.name);
+  }
+
+  Future<void> _saveFontFamily(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('termisol_font_family', value);
+  }
+
+  Future<void> _saveBgOpacity(double value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('termisol_bg_opacity', value);
   }
 
   @override
@@ -365,7 +386,20 @@ class _SettingsPageState extends State<SettingsPage>
             onChanged: (v) => setState(() => _fontSize = v),
           ),
           const SizedBox(height: 8),
-          _infoRow('font family', 'Droid Sans Mono'),
+          _buildFontFamilyDropdown(),
+          const SizedBox(height: 8),
+          SettingsSlider(
+            label: 'background opacity',
+            value: _bgOpacity,
+            min: 0.5,
+            max: 1.0,
+            divisions: 10,
+            onChanged: (v) {
+              setState(() => _bgOpacity = v);
+              PkmTheme.bgOpacity.value = v;
+              _saveBgOpacity(v);
+            },
+          ),
           const SizedBox(height: 24),
 
           _sectionTitle('colors'),

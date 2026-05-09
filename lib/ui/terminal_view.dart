@@ -240,19 +240,25 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
                   shift: true,
                 ): () => _clipboard.pasteBracketed(),
               },
-              child: TerminalView(
-                widget.session.terminal,
-                controller: widget.session.controller,
-                focusNode: widget.focusNode,
-                autofocus: widget.autofocus,
-                theme: termisolTerminalTheme,
-                textStyle: TerminalStyle(
-                  fontFamily: _fontFamily,
-                  fontSize: _fontSize,
+              child: MouseRegion(
+                onHover: _handleHover,
+                cursor: _mouseCursor,
+                child: TerminalView(
+                  key: _terminalViewKey,
+                  widget.session.terminal,
+                  controller: widget.session.controller,
+                  focusNode: widget.focusNode,
+                  autofocus: widget.autofocus,
+                  theme: termisolTerminalTheme,
+                  textStyle: TerminalStyle(
+                    fontFamily: _fontFamily,
+                    fontSize: _fontSize,
+                  ),
+                  onKeyEvent: _handleKeyEvent,
+                  padding: EdgeInsets.zero,
+                  onTapUp: _handleTapUp,
+                  onSecondaryTapUp: (details, offset) => _showContextMenu(context, details.globalPosition),
                 ),
-                onKeyEvent: _handleKeyEvent,
-                padding: EdgeInsets.zero,
-                onSecondaryTapUp: (details, offset) => _showContextMenu(context, details.globalPosition),
               ),
             ),
             // Graphics overlay positioned over terminal

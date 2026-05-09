@@ -4,9 +4,9 @@ After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/home/house/termisol/scripts/auto_commit.sh
-User=house
-WorkingDirectory=/home/house/termisol
+ExecStart=/path/to/termisol/scripts/auto_commit.sh
+User=your_username
+WorkingDirectory=/path/to/termisol
 Environment=PATH=/usr/local/bin:/usr/bin:/bin
 
 [Install]

@@ -133,7 +133,7 @@ class TermisolLogger {
     debug('Debug Event: $eventName', data);
   }
   
-  /// Log terminal protocol event
+  /// log terminal protocol event
   void logProtocolEvent(String sequence, String type, [Map<String, dynamic>? context]) {
     debug('Protocol Event: $type', {
       'sequence': sequence.length > 100 ? '${sequence.substring(0, 100)}...' : sequence,

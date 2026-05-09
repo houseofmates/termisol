@@ -432,6 +432,65 @@ class _SettingsPageState extends State<SettingsPage>
     );
   }
 
+  Widget _buildFontFamilyDropdown() {
+    const fontOptions = [
+      'DroidSansMono',
+      'Fira Code',
+      'JetBrains Mono',
+      'Cascadia Code',
+      'Source Code Pro',
+    ];
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'font family',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontFamily: 'monospace',
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: PkmTheme.tabInactiveBg,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade800),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _fontFamily,
+                dropdownColor: PkmTheme.tabInactiveBg,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontFamily: PkmTheme.fontTerminal,
+                ),
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => _fontFamily = value);
+                    _saveFontFamily(value);
+                  }
+                },
+                items: fontOptions.map((font) {
+                  return DropdownMenuItem<String>(
+                    value: font,
+                    child: Text(font),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTerminalTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),

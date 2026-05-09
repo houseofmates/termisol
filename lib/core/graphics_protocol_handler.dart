@@ -608,6 +608,61 @@ class GraphicsProtocolHandler {
     }
   }
 
+  ({int value, int next}) _parseSixelInt(List<int> runes, int start) {
+    int v = 0;
+    int i = start;
+    while (i < runes.length) {
+      final c = runes[i];
+      if (c >= 0x30 && c <= 0x39) {
+        v = v * 10 + (c - 0x30);
+        i++;
+      } else {
+        break;
+      }
+    }
+    return (value: v, next: i);
+  }
+
+  List<int> _readSixelSemicolonNumbers(List<int> runes, int start) {
+    final vals = <int>[];
+    int i = start;
+    while (i < runes.length) {
+      final c = runes[i];
+      if (c >= 0x30 && c <= 0x39) {
+        final res = _parseSixelInt(runes, i);
+        vals.add(res.value);
+        i = res.next;
+      } else if (c == 0x3B) {
+        i++;
+      } else {
+        break;
+      }
+    }
+    return vals;
+  }
+
+  Color _hlsToRgb(double h, double l, double s) {
+    double r, g, b;
+    if (s == 0) {
+      r = g = b = l;
+    } else {
+      double hue2rgb(double p, double q, double t) {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1 / 6) return p + (q - p) * 6 * t;
+        if (t < 1 / 2) return q;
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+        return p;
+      }
+      final q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      final p = 2 * l - q;
+      r = hue2rgb(p, q, h + 1 / 3);
+      g = hue2rgb(p, q, h);
+      b = hue2rgb(p, q, h - 1 / 3);
+    }
+    return Color.fromARGB(255, (r * 255).round(), (g * 255).round(), (b * 255).round());
+  }
+
   /// Convert Sixel to RGBA format
   Uint8List _convertSixelToRGBA(
     GraphicsImage image,
@@ -615,92 +670,284 @@ class GraphicsProtocolHandler {
     int? targetHeight,
     bool enableAlpha,
   ) {
-    final width = targetWidth ?? image.width;
-    final height = targetHeight ?? image.height;
-    final data = Uint8List(width * height * 4);
+    final runes = image.data.runes.toList();
+    int idx = 0;
+    while (idx < runes.length && (runes[idx] <= 0x20 || runes[idx] == 0x71)) {
+      idx++;
+    }
 
-    // Parse Sixel data and render to RGBA
-    final lines = image.data.split('\n');
-    int y = 0;
+    int x = 0, y = 0;
+    int maxX = 0, maxY = 0;
+    int? rasterW, rasterH;
+    final colors = <int, Color>{};
 
-    for (final line in lines) {
-      if (line.isEmpty) continue;
-
-      int x = 0;
-      final chars = line.runes.toList();
-
-      for (int i = 0; i < chars.length; i++) {
-        final char = chars[i];
-        if (char < 63 || char > 126) continue; // Not a SIXEL character
-
-        // Each SIXEL character represents 6 vertical pixels
-        final sixelValue = char - 63; // SIXEL values start at 63 ('?')
-
-        for (int bit = 0; bit < 6; bit++) {
-          if (y + bit >= height) break;
-
-          final pixelIndex = ((y + bit) * width + x) * 4;
-
-          if (pixelIndex + 3 < data.length) {
-            // Check if bit is set in sixel value
-            final bitSet = (sixelValue & (1 << bit)) != 0;
-
-            if (bitSet) {
-              // Use current color or default white
-              final color = _protocolState.currentColor ?? Colors.white;
-              data[pixelIndex] = color.red;
-              data[pixelIndex + 1] = color.green;
-              data[pixelIndex + 2] = color.blue;
-              data[pixelIndex + 3] = enableAlpha ? color.alpha : 255;
-            } else {
-              // Transparent or background
-              data[pixelIndex] = 0;
-              data[pixelIndex + 1] = 0;
-              data[pixelIndex + 2] = 0;
-              data[pixelIndex + 3] = enableAlpha ? 0 : 255;
+    // first pass: determine dimensions and build palette
+    for (int i = idx; i < runes.length;) {
+      final c = runes[i];
+      if (c == 0x22) {
+        i++;
+        final vals = _readSixelSemicolonNumbers(runes, i);
+        i = _skipSixelNumbers(runes, i);
+        if (vals.length >= 3 && vals[2] > 0) rasterW = vals[2];
+        if (vals.length >= 4 && vals[3] > 0) rasterH = vals[3];
+        continue;
+      }
+      if (c == 0x21) {
+        i++;
+        final res = _parseSixelInt(runes, i);
+        final count = res.value;
+        i = res.next;
+        if (i < runes.length && runes[i] >= 63 && runes[i] <= 126) {
+          x += count;
+          i++;
+        }
+        continue;
+      }
+      if (c == 0x2D) {
+        if (x > maxX) maxX = x;
+        x = 0;
+        y += 6;
+        i++;
+        continue;
+      }
+      if (c == 0x24) {
+        if (x > maxX) maxX = x;
+        x = 0;
+        i++;
+        continue;
+      }
+      if (c >= 63 && c <= 126) {
+        x++;
+        i++;
+        continue;
+      }
+      if (c == 0x23) {
+        i++;
+        final regRes = _parseSixelInt(runes, i);
+        int reg = regRes.value;
+        i = regRes.next;
+        if (i < runes.length && runes[i] == 0x3B) {
+          i++;
+          final modeRes = _parseSixelInt(runes, i);
+          int mode = modeRes.value;
+          i = modeRes.next;
+          if (i < runes.length && runes[i] == 0x3B) {
+            i++;
+            final nums = <int>[];
+            while (i < runes.length) {
+              final rc = runes[i];
+              if (rc >= 0x30 && rc <= 0x39) {
+                final nres = _parseSixelInt(runes, i);
+                nums.add(nres.value);
+                i = nres.next;
+              } else if (rc == 0x3B) {
+                i++;
+              } else {
+                break;
+              }
+            }
+            if (mode == 2 && nums.length >= 3) {
+              int r = nums[0], g = nums[1], b = nums[2];
+              if (r <= 100 && g <= 100 && b <= 100) {
+                r = (r * 255) ~/ 100;
+                g = (g * 255) ~/ 100;
+                b = (b * 255) ~/ 100;
+              }
+              colors[reg] = Color.fromARGB(255, r.clamp(0, 255), g.clamp(0, 255), b.clamp(0, 255));
+            } else if (mode == 1 && nums.length >= 3) {
+              colors[reg] = _hlsToRgb(nums[0] / 360.0, nums[1] / 100.0, nums[2] / 100.0);
             }
           }
         }
-
-        x++;
-        if (x >= width) break;
+        continue;
       }
+      i++;
+    }
+    if (x > maxX) maxX = x;
+    if (y + 6 > maxY) maxY = y + 6;
 
-      y += 6; // Each SIXEL line represents 6 rows
-      if (y >= height) break;
+    int width = targetWidth ?? rasterW ?? maxX;
+    if (width <= 0) width = image.width;
+    int height = targetHeight ?? rasterH ?? maxY;
+    if (height <= 0) height = image.height;
+
+    final pixels = Uint8List(width * height * 4);
+    for (int i = 3; i < pixels.length; i += 4) {
+      pixels[i] = enableAlpha ? 0 : 255;
     }
 
-    return data;
+    // second pass: render
+    x = 0;
+    y = 0;
+    Color currentColor = Colors.white;
+    for (int i = idx; i < runes.length;) {
+      final c = runes[i];
+      if (c == 0x22) {
+        i++;
+        while (i < runes.length && ((runes[i] >= 0x30 && runes[i] <= 0x39) || runes[i] == 0x3B)) {
+          i++;
+        }
+        continue;
+      }
+      if (c == 0x21) {
+        i++;
+        final res = _parseSixelInt(runes, i);
+        final count = res.value;
+        i = res.next;
+        if (i < runes.length && runes[i] >= 63 && runes[i] <= 126) {
+          final sixelVal = runes[i] - 63;
+          for (int r = 0; r < count; r++) {
+            for (int bit = 0; bit < 6; bit++) {
+              if ((sixelVal & (1 << bit)) != 0) {
+                final py = y + bit;
+                final px = x;
+                if (px < width && py < height) {
+                  final p = (py * width + px) * 4;
+                  pixels[p] = currentColor.red;
+                  pixels[p + 1] = currentColor.green;
+                  pixels[p + 2] = currentColor.blue;
+                  pixels[p + 3] = enableAlpha ? currentColor.alpha : 255;
+                }
+              }
+            }
+            x++;
+            if (x >= width) {
+              x = 0;
+              y += 6;
+            }
+          }
+          i++;
+        }
+        continue;
+      }
+      if (c == 0x2D) {
+        x = 0;
+        y += 6;
+        i++;
+        continue;
+      }
+      if (c == 0x24) {
+        x = 0;
+        i++;
+        continue;
+      }
+      if (c >= 63 && c <= 126) {
+        final sixelVal = c - 63;
+        for (int bit = 0; bit < 6; bit++) {
+          if ((sixelVal & (1 << bit)) != 0) {
+            final py = y + bit;
+            final px = x;
+            if (px < width && py < height) {
+              final p = (py * width + px) * 4;
+              pixels[p] = currentColor.red;
+              pixels[p + 1] = currentColor.green;
+              pixels[p + 2] = currentColor.blue;
+              pixels[p + 3] = enableAlpha ? currentColor.alpha : 255;
+            }
+          }
+        }
+        x++;
+        if (x >= width) {
+          x = 0;
+          y += 6;
+        }
+        i++;
+        continue;
+      }
+      if (c == 0x23) {
+        i++;
+        final regRes = _parseSixelInt(runes, i);
+        int reg = regRes.value;
+        i = regRes.next;
+        if (i < runes.length && runes[i] == 0x3B) {
+          i++;
+          final modeRes = _parseSixelInt(runes, i);
+          int mode = modeRes.value;
+          i = modeRes.next;
+          if (i < runes.length && runes[i] == 0x3B) {
+            i++;
+            final nums = <int>[];
+            while (i < runes.length) {
+              final rc = runes[i];
+              if (rc >= 0x30 && rc <= 0x39) {
+                final nres = _parseSixelInt(runes, i);
+                nums.add(nres.value);
+                i = nres.next;
+              } else if (rc == 0x3B) {
+                i++;
+              } else {
+                break;
+              }
+            }
+            if (mode == 2 && nums.length >= 3) {
+              int r = nums[0], g = nums[1], b = nums[2];
+              if (r <= 100 && g <= 100 && b <= 100) {
+                r = (r * 255) ~/ 100;
+                g = (g * 255) ~/ 100;
+                b = (b * 255) ~/ 100;
+              }
+              colors[reg] = Color.fromARGB(255, r.clamp(0, 255), g.clamp(0, 255), b.clamp(0, 255));
+            } else if (mode == 1 && nums.length >= 3) {
+              colors[reg] = _hlsToRgb(nums[0] / 360.0, nums[1] / 100.0, nums[2] / 100.0);
+            }
+          }
+          if (colors.containsKey(reg)) currentColor = colors[reg]!;
+        } else {
+          if (colors.containsKey(reg)) currentColor = colors[reg]!;
+        }
+        continue;
+      }
+      i++;
+    }
+
+    return pixels;
+  }
+
+  int _skipSixelNumbers(List<int> runes, int start) {
+    int i = start;
+    while (i < runes.length && ((runes[i] >= 0x30 && runes[i] <= 0x39) || runes[i] == 0x3B)) {
+      i++;
+    }
+    return i;
   }
 
   /// Convert Kitty image to RGBA format
-  Uint8List _convertKittyToRGBA(
+  Future<Uint8List> _convertKittyToRGBA(
     GraphicsImage image,
     int? targetWidth,
     int? targetHeight,
     bool enableAlpha,
-  ) {
+  ) async {
     final width = targetWidth ?? image.width;
     final height = targetHeight ?? image.height;
     final data = Uint8List(width * height * 4);
 
     try {
-      // Decode base64 image data to RGBA
       final imageBytes = base64.decode(image.data);
+      final codec = await ui.instantiateImageCodec(imageBytes);
+      final frame = await codec.getNextFrame();
+      final uiImage = frame.image;
+      final actualW = uiImage.width;
+      final actualH = uiImage.height;
+      final byteData = await uiImage.toByteData(format: ui.ImageByteFormat.rawRgba);
+      codec.dispose();
+      if (byteData == null) throw Exception('decode failed');
+      final raw = byteData.buffer.asUint8List();
 
-      // Simple RGBA conversion - in production, use proper image decoding
-      int srcIndex = 0;
-      for (int i = 0; i < data.length && srcIndex < imageBytes.length; i += 4) {
-        if (srcIndex + 2 < imageBytes.length) {
-          data[i] = imageBytes[srcIndex];     // R
-          data[i + 1] = imageBytes[srcIndex + 1]; // G
-          data[i + 2] = imageBytes[srcIndex + 2]; // B
-          data[i + 3] = enableAlpha ? 255 : 255; // A (opaque for now)
-          srcIndex += 3; // RGB format
+      for (int y = 0; y < height; y++) {
+        final srcY = (y * actualH) ~/ height;
+        for (int x = 0; x < width; x++) {
+          final srcX = (x * actualW) ~/ width;
+          final s = (srcY * actualW + srcX) * 4;
+          final d = (y * width + x) * 4;
+          data[d] = raw[s];
+          data[d + 1] = raw[s + 1];
+          data[d + 2] = raw[s + 2];
+          data[d + 3] = enableAlpha ? raw[s + 3] : 255;
         }
       }
     } catch (e) {
-      // Fallback to gray if decoding fails
+      debugPrint('Failed to decode Kitty image: $e');
       for (int i = 0; i < data.length; i += 4) {
         data[i] = 128;
         data[i + 1] = 128;

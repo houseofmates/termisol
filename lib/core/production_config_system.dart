@@ -298,7 +298,7 @@ class ProductionConfigSystem {
     }
   }
   
-  /// Check Windows VR support
+  /// check windows vr support
   bool _checkWindowsVRSupport() {
     try {
       // Check for Windows Mixed Reality runtime

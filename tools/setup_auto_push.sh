@@ -24,7 +24,7 @@ if ! command -v dart &> /dev/null; then
     exit 1
 fi
 
-# Check if jq is available (for JSON parsing in the starter script)
+# check if jq is available (for json parsing in the starter script)
 if ! command -v jq &> /dev/null; then
     echo "⚠️  Warning: jq is not installed, some features may not work"
     echo "   Install with: sudo apt-get install jq (Ubuntu/Debian)"

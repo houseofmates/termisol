@@ -125,20 +125,24 @@ class CustomHotkeyManager {
   }
   
   /// paste from clipboard
-  void _handlePaste() {
-    clipboard.paste();
-    _showFeedback('Pasted from clipboard');
+  void _handlePaste() async {
+    final result = await clipboard.paste();
+    if (result.success) {
+      _showFeedback(result.message);
+    } else {
+      _showFeedback('Paste failed: ${result.message}');
+    }
   }
   
   /// copy all terminal content
-  void _handleCopyAll() {
+  void _handleCopyAll() async {
     final buffer = session.terminal.buffer;
     final allText = buffer.getText(
       BufferPosition(0, 0),
       BufferPosition(buffer.columns - 1, buffer.height - 1),
     );
-    clipboard.copy(allText);
-    _showFeedback('All content copied to clipboard');
+    final success = await clipboard.copyAll();
+    _showFeedback(success ? 'All content copied to clipboard' : 'Copy all failed');
   }
   
   /// toggle transcript recording with whisper

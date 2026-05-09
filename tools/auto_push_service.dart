@@ -34,7 +34,7 @@ class AutoPushService {
     // start monitoring
     await _startMonitoring();
     
-    // Setup signal handlers for graceful shutdown
+    // setup signal handlers for graceful shutdown
     ProcessSignal.sigint.watch().listen((signal) => _shutdown());
     ProcessSignal.sigterm.watch().listen((signal) => _shutdown());
     

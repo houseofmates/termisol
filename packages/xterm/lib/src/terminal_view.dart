@@ -13,6 +13,7 @@ import 'package:xterm/src/ui/gesture/gesture_handler.dart';
 import 'package:xterm/src/ui/input_map.dart';
 import 'package:xterm/src/ui/keyboard_listener.dart';
 import 'package:xterm/src/ui/keyboard_visibility.dart';
+import 'package:xterm/src/ui/painter.dart';
 import 'package:xterm/src/ui/render.dart';
 import 'package:xterm/src/ui/scroll_handler.dart';
 import 'package:xterm/src/ui/shortcut/actions.dart';

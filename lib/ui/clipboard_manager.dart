@@ -96,12 +96,15 @@ class TerminalClipboardManager {
       final buffer = terminal.buffer;
       final lastLine = buffer.lines.length - 1;
       if (lastLine < 0) return;
-      final start = CellAnchor(0, 0);
-      final end = CellAnchor(
+      final startOffset = CellOffset(0, 0);
+      final endOffset = CellOffset(
         buffer.lines[lastLine].getText().length,
         lastLine,
       );
-      controller.setSelection(start, end);
+      controller.setSelection(
+        terminal.buffer.createAnchorFromOffset(startOffset),
+        terminal.buffer.createAnchorFromOffset(endOffset),
+      );
     } on Exception catch (e, stack) {
       debugPrint('selectAll failed: $e\n$stack');
     }

@@ -1168,7 +1168,7 @@ class GraphicsProtocolHandler {
     );
   }
 
-  /// Check if image format is supported
+  /// check if image format is supported
   bool isImageFormatSupported(String extension) {
     return _supportedImageFormats.contains(extension.toLowerCase());
   }

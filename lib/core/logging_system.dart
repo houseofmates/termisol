@@ -10,7 +10,7 @@ import 'package:flutter/foundation.dart';
 /// - structured logging with multiple levels
 /// - performance monitoring and profiling
 /// - debug event tracking
-/// - Log file rotation and compression
+/// - log file rotation and compression
 /// - Remote logging support
 /// - Debug mode with enhanced details
 class TermisolLogger {

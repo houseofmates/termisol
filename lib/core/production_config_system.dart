@@ -591,7 +591,7 @@ class ConfigValidationError implements Exception {
   String toString() => 'ConfigValidationError: $message';
 }
 
-/// Configuration import error
+/// configuration import error
 class ConfigImportError implements Exception {
   final String message;
   const ConfigImportError(this.message);

@@ -69,22 +69,26 @@ class _SettingsPageState extends State<SettingsPage>
     if (saved != null) {
       try {
         final mode = TermisolThemeMode.values.byName(saved);
+        if (!mounted) return;
         setState(() => _themeMode = mode);
         PkmTheme.themeMode.value = mode;
-      } catch (_) {
+      } on ArgumentError {
         // Invalid saved theme, ignore
       }
     }
     final overlay = prefs.getBool('show_performance_overlay');
     if (overlay != null) {
+      if (!mounted) return;
       setState(() => _showPerformanceOverlay = overlay);
     }
     final savedFontFamily = prefs.getString('termisol_font_family');
     if (savedFontFamily != null) {
+      if (!mounted) return;
       setState(() => _fontFamily = savedFontFamily);
     }
     final savedBgOpacity = prefs.getDouble('termisol_bg_opacity');
     if (savedBgOpacity != null) {
+      if (!mounted) return;
       setState(() => _bgOpacity = savedBgOpacity.clamp(0.5, 1.0));
       PkmTheme.bgOpacity.value = _bgOpacity;
     }
@@ -610,7 +614,9 @@ class _SettingsPageState extends State<SettingsPage>
                 ),
                 const SizedBox(height: 8),
                 ...healthReport.entries.map((entry) {
-                  final map = entry.value as Map<String, dynamic>;
+                  final map = entry.value is Map<String, dynamic>
+                      ? entry.value as Map<String, dynamic>
+                      : <String, dynamic>{};
                   final status = map['health'] as String?;
                   final enabled = map['enabled'] as bool?;
 

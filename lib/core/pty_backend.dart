@@ -32,9 +32,11 @@ class _PtyBackend implements TermisolPtyBackend {
   final String? workingDirectory;
   final Encoding encoding;
   PseudoTerminal? _pty;
-  final _outputController = StreamController<List<int>>.broadcast();
+  final _outputController = StreamController<List<int>>.broadcast(sync: false);
   bool _isRunning = false;
   bool _isDisposed = false;
+  StreamSubscription<dynamic>? _outSub;
+  Timer? _ps1Timer;
 
   @override
   Stream<List<int>> get output => _outputController.stream;
@@ -62,17 +64,19 @@ class _PtyBackend implements TermisolPtyBackend {
     env['COLUMNS'] = cols.toString();
     env['LINES'] = rows.toString();
 
+    final wd = workingDirectory ?? this.workingDirectory ?? _resolveHome('~');
+
     _pty = PseudoTerminal.start(
       shell,
       [],
-      workingDirectory: workingDirectory ?? this.workingDirectory ?? _resolveHome('~'),
+      workingDirectory: wd,
       environment: env,
     );
 
     _pty!.init();
     _isRunning = true;
 
-    _pty!.out.listen(
+    _outSub = _pty!.out.listen(
       (data) {
         _safeAdd(encoding.encode(data));
       },
@@ -91,10 +95,14 @@ class _PtyBackend implements TermisolPtyBackend {
 
     if (kDebugMode) debugPrint('[pty] started pty: $shell');
 
-    // inject termisol-colored PS1 after shell initializes
-    Future.delayed(const Duration(milliseconds: 200), () {
-      if (_isRunning && _pty != null) {
-        write(encoding.encode("export PS1='${PromptConfig.bashPs1}'\n"));
+    // Inject termisol-colored PS1 after shell initializes.
+    _ps1Timer = Timer(const Duration(milliseconds: 200), () {
+      if (_isRunning && _pty != null && !_isDisposed) {
+        try {
+          write(encoding.encode("export PS1='${PromptConfig.bashPs1}'\n"));
+        } catch (e) {
+          if (kDebugMode) debugPrint('[pty] ps1 injection error: $e');
+        }
       }
     });
   }
@@ -104,8 +112,8 @@ class _PtyBackend implements TermisolPtyBackend {
     if (_pty != null && _isRunning) {
       try {
         _pty!.write(encoding.decode(data));
-      } catch (e) {
-        if (kDebugMode) debugPrint('[pty] write error: $e');
+      } catch (e, stack) {
+        if (kDebugMode) debugPrint('[pty] write error: $e\n$stack');
       }
     }
   }
@@ -115,8 +123,8 @@ class _PtyBackend implements TermisolPtyBackend {
     if (_pty != null && _isRunning) {
       try {
         _pty!.resize(cols, rows);
-      } catch (e) {
-        if (kDebugMode) debugPrint('[pty] resize error: $e');
+      } catch (e, stack) {
+        if (kDebugMode) debugPrint('[pty] resize error: $e\n$stack');
       }
     }
   }
@@ -124,6 +132,8 @@ class _PtyBackend implements TermisolPtyBackend {
   @override
   Future<void> stop() async {
     _isRunning = false;
+    _ps1Timer?.cancel();
+    _outSub?.cancel();
     _pty?.kill();
     await _closeController();
   }
@@ -131,6 +141,8 @@ class _PtyBackend implements TermisolPtyBackend {
   @override
   Future<void> terminate() async {
     _isRunning = false;
+    _ps1Timer?.cancel();
+    _outSub?.cancel();
     _pty?.kill();
     await _closeController();
   }
@@ -144,7 +156,11 @@ class _PtyBackend implements TermisolPtyBackend {
 
   void _safeAdd(List<int> data) {
     if (!_outputController.isClosed && !_isDisposed) {
-      _outputController.add(data);
+      try {
+        _outputController.add(data);
+      } catch (e) {
+        // ignore add-after-close races
+      }
     }
   }
 

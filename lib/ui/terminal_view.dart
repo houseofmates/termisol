@@ -87,9 +87,13 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
       widget.session.terminal,
       widget.session.controller,
     );
+    _enhancedClipboard = EnhancedClipboardManager(
+      terminal: widget.session.terminal,
+      controller: widget.session.controller,
+    );
     _hotkeyManager = CustomHotkeyManager(
       session: widget.session,
-      clipboard: _clipboard,
+      clipboard: _enhancedClipboard,
       onNewTab: widget.onNewTab,
       onSaveFile: _saveCurrentFile,
       onSearch: _showSearchOverlay,

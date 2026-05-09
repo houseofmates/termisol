@@ -401,7 +401,7 @@ class ProductionConfigSystem {
       validator(value);
     }
 
-    // Set the value
+    // set the value
     final keys = key.split('.');
     _setNestedValue(_config, keys, value);
 

@@ -111,6 +111,12 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     markNeedsPaint();
   }
 
+  set customPainter(TerminalPainter? value) {
+    if (value == null || value == _painter) return;
+    _painter = value;
+    markNeedsPaint();
+  }
+
   FocusNode _focusNode;
   set focusNode(FocusNode value) {
     if (value == _focusNode) return;

@@ -14,7 +14,7 @@ import '../config/pkm_theme.dart';
 ///   - startVrSession() -> bool
 ///   - stopVrSession() -> bool
 ///   - triggerHapticFeedback(int durationMs) -> void
-///   - getBuildInfo() -> Map<String, String>  // returns {model, manufacturer}
+///   - getBuildInfo() -> `Map<String, String>`  // returns {model, manufacturer}
 class VrTerminalView extends StatefulWidget {
   final TerminalSession session;
 

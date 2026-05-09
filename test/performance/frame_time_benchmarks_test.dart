@@ -7,10 +7,6 @@ void main() {
   group('Performance Benchmarks', () {
     late ServiceRegistry registry;
 
-    void setStateUp() {
-      registry = ServiceRegistry.instance;
-    }
-
     testWidgets('Frame times under 16ms during normal typing', (WidgetTester tester) async {
       await tester.pumpWidget(TermisolApp(registry: registry));
       await tester.pumpAndSettle();

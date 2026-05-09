@@ -100,10 +100,13 @@ class _HomeScreenState extends State<HomeScreen> {
           _activeSession!.sendRawInput(recognizedWords + '\n');
         }
       },
-      listenFor: const Duration(seconds: 30),
-      pauseFor: const Duration(seconds: 5),
-      partialResults: false,
-      localeId: 'en_US', // Default to English, could be made configurable
+      listenOptions: SpeechListenOptions(
+        listenFor: const Duration(seconds: 30),
+        pauseFor: const Duration(seconds: 5),
+        partialResults: false,
+        localeId: 'en_US', // Default to English, could be made configurable
+        onDevice: false,
+      ),
       onSoundLevelChange: (level) {
         // Could add visual feedback here
       },

@@ -7,7 +7,7 @@ void main() {
   group('Performance Benchmarks', () {
     late ServiceRegistry registry;
 
-    setStateUp() {
+    void setStateUp() {
       registry = ServiceRegistry.instance;
     }
 
@@ -40,8 +40,6 @@ void main() {
       await tester.pumpAndSettle();
 
       // Simulate displaying a large file (10MB worth of text)
-      final largeText = 'x' * (10 * 1024 * 1024); // 10MB string
-
       final stopwatch = Stopwatch()..start();
       int frameCount = 0;
 

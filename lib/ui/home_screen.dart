@@ -40,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showHistorySearch = false;
   bool _isSplit = false;
   bool _showPerformanceOverlay = false;
+  bool _showHintsMode = false;
   bool _broadcastMode = false;
   Timer? _saveDebounceTimer;
 

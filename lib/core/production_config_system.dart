@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
-/// Production-ready configuration system with validation, defaults, and runtime updates.
-/// Supports hierarchical configuration with environment-specific overrides.
+/// production-ready configuration system with validation, defaults, and runtime updates.
+/// supports hierarchical configuration with environment-specific overrides.
 class ProductionConfigSystem {
   static const String configFileName = 'termisol_config.json';
   static const String backupFileName = 'termisol_config.backup.json';

@@ -422,7 +422,7 @@ class GraphicsProtocolHandler {
     final format = params['t'] ?? 'f';
     final id = params['i'] ?? _nextImageId.toString();
 
-    // Process image data based on format
+    // process image data based on format
     switch (format) {
       case 'f': // Direct transmission
         return _processDirectTransmission(params, id, cursorX, cursorY);

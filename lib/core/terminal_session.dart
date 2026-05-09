@@ -118,6 +118,7 @@ class TerminalSession extends ChangeNotifier {
 
   bool get connected => _connected;
   String? get error => _error;
+  LongCommandNotifier get longCommandNotifier => _commandNotifier;
 
   TerminalSession({
     required this.id,

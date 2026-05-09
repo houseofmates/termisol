@@ -418,7 +418,7 @@ class GraphicsProtocolHandler {
     int cursorX,
     int cursorY,
   ) {
-    // Handle image data transmission
+    // handle image data transmission
     final format = params['t'] ?? 'f';
     final id = params['i'] ?? _nextImageId.toString();
 

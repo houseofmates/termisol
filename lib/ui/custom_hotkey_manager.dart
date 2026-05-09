@@ -140,7 +140,7 @@ class CustomHotkeyManager {
     _showFeedback('All content copied to clipboard');
   }
   
-  /// Toggle transcript recording with Whisper
+  /// toggle transcript recording with whisper
   void _handleTranscriptToggle() {
     if (_isRecording) {
       _stopRecording();

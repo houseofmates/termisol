@@ -82,7 +82,7 @@ echo "⏰ Setting up crontab fallback..."
 TEMP_CRON=$(mktemp)
 crontab -l > "$TEMP_CRON" 2>/dev/null || echo "" > "$TEMP_CRON"
 
-# Check if entry already exists
+# check if entry already exists
 if ! grep -q "termisol-auto-push" "$TEMP_CRON"; then
     echo "*/5 * * * * $SCRIPT_DIR/start_auto_push.sh >> $REPO_DIR/.devin/cron.log 2>&1 # termisol-auto-push" >> "$TEMP_CRON"
     crontab "$TEMP_CRON"

@@ -10,6 +10,7 @@ environment:
 dependencies:
   audioplayers: ^6.1.0
   collection: any
+  convert: ^3.1.1
   crypto: any
   dartssh2: ^2.17.1
   ffi: any
@@ -21,6 +22,7 @@ dependencies:
   google_fonts: ^6.2.1
   http: ^1.3.0
   logging: any
+  mime: ^1.0.4
   path: ^1.9.0
   path_provider: ^2.1.5
   postgres: any

@@ -106,10 +106,11 @@ class GraphicsProtocolHandler {
 
   /// Set up output interception to handle graphics protocols
   void _setupOutputInterception() {
-    if (_terminal == null) return;
-    final original = _terminal!.onOutput;
-    _terminal!.onOutput = (data) {
-      final processed = processOutput(data, _terminal!.buffer.cursorX, _terminal!.buffer.cursorY);
+    final terminal = _terminal;
+    if (terminal == null) return;
+    final original = terminal.onOutput;
+    terminal.onOutput = (data) {
+      final processed = processOutput(data, terminal.buffer.cursorX, terminal.buffer.cursorY);
       original?.call(processed);
     };
   }

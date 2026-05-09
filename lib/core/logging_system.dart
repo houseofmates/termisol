@@ -76,7 +76,7 @@ class TermisolLogger {
     _log(LogLevel.debug, message, context);
   }
   
-  /// Log info message
+  /// log info message
   void info(String message, [Map<String, dynamic>? context]) {
     _log(LogLevel.info, message, context);
   }

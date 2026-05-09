@@ -261,7 +261,13 @@ class TermisolPluginSystem {
       await unloadPlugin(pluginId);
     }
 
-    _eventController.close();
+    // Close any orphaned receive ports.
+    for (final entry in _receivePorts.entries) {
+      entry.value.close();
+    }
+    _receivePorts.clear();
+
+    await _eventController.close();
     _isInitialized = false;
   }
 
@@ -329,8 +335,9 @@ class TermisolPluginSystem {
   }
 
   Future<Isolate?> _createPluginIsolate(PluginManifest manifest, String code) async {
+    ReceivePort? receivePort;
     try {
-      final receivePort = ReceivePort();
+      receivePort = ReceivePort();
       _receivePorts[manifest.id] = receivePort;
 
       final isolate = await Isolate.spawn(
@@ -356,10 +363,16 @@ class TermisolPluginSystem {
         return isolate;
       }
 
-      return null;
-    } catch (e) {
-      debugPrint('Failed to create plugin isolate: $e');
+      isolate.kill();
+      receivePort.close();
       _receivePorts.remove(manifest.id);
+      _isolates.remove(manifest.id);
+      return null;
+    } on Exception catch (e, stack) {
+      if (kDebugMode) debugPrint('Failed to create plugin isolate: \$e\n\$stack');
+      receivePort?.close();
+      _receivePorts.remove(manifest.id);
+      _isolates.remove(manifest.id);
       return null;
     }
   }
@@ -545,34 +558,13 @@ class SimplePlugin implements Plugin {
 
   @override
   Future<dynamic> execute(String method, [Map<String, dynamic>? args]) async {
-    try {
-      if (!capabilities.contains(method)) {
-        return {
-          'method': method,
-          'args': args,
-          'executed': false,
-          'error': 'Plugin does not support method: $method',
-          'availableCapabilities': capabilities,
-        };
-      }
-
-      final result = await _executeInIsolate(method, args ?? {});
-
-      return {
-        'method': method,
-        'args': args,
-        'executed': true,
-        'result': result,
-        'timestamp': DateTime.now().toIso8601String(),
-      };
-    } catch (e) {
-      return {
-        'method': method,
-        'args': args,
-        'executed': false,
-        'error': e.toString(),
-      };
+    if (!capabilities.contains(method)) {
+      throw UnsupportedError(
+        'Plugin does not support method: \$method. Available: \$capabilities',
+      );
     }
+    final result = await _executeInIsolate(method, args ?? {});
+    return result;
   }
 
   void _ensureListening() {

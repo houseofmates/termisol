@@ -90,7 +90,7 @@ class CustomHotkeyManager {
       return KeyEventResult.handled;
     }
     
-    // Ctrl+S: Save file
+    // ctrl+s: save file
     if (ctrl && !shift && event.logicalKey == LogicalKeyboardKey.keyS) {
       onSaveFile?.call();
       return KeyEventResult.handled;

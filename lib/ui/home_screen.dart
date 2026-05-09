@@ -102,9 +102,8 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       listenFor: const Duration(seconds: 30),
       pauseFor: const Duration(seconds: 5),
-      listenOptions: SpeechListenOptions(
+      listenOptions: const SpeechListenOptions(
         partialResults: false,
-        onDevice: false,
       ),
     );
 
@@ -215,10 +214,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   TerminalSession? get _activeSession {
-    return _tabs.firstWhere(
-      (t) => t.id == _activeTab,
-      orElse: () => _tabs.isNotEmpty ? _tabs.first : null! as TerminalSession,
-    );
+    try {
+      return _tabs.firstWhere((t) => t.id == _activeTab);
+    } on StateError {
+      return _tabs.isNotEmpty ? _tabs.first : null;
+    }
   }
 
   Future<String> _handleAiQuery(String query) async {

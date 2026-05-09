@@ -562,3 +562,5 @@
 ⏳ File .devin/auto_push.log is too recent (0s old)
 📝 Detected 1 changed files
 ⏳ File android/app/src/main/cpp/egl_context.cpp is too recent (4s old)
+📝 Detected 1 changed files
+⏳ File android/app/src/main/cpp/openxr_context.h is too recent (5s old)

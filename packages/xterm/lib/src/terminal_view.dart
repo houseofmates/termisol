@@ -472,6 +472,7 @@ class _TerminalView extends LeafRenderObjectWidget {
     required this.alwaysShowCursor,
     this.onEditableRect,
     this.composingText,
+    this.painter,
   });
 
   final Terminal terminal;

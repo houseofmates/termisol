@@ -26,8 +26,25 @@ class VrTerminalView extends StatefulWidget {
 
 class _VrTerminalViewState extends State<VrTerminalView> {
   static const _vrChannel = MethodChannel('com.termisol/vr');
-  Offset _pointerPosition = Offset.zero;
-  bool _pointerDown = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // document the platform channel interface for future native openxr integration
+    _vrChannel.setMethodCallHandler((call) async {
+      switch (call.method) {
+        case 'initializeVr':
+        case 'isVrSupported':
+        case 'startVrSession':
+        case 'stopVrSession':
+        case 'triggerHapticFeedback':
+        case 'getBuildInfo':
+          return null;
+        default:
+          throw MissingPluginException('not implemented: ${call.method}');
+      }
+    });
+  }
 
   CellOffset _getCellOffset(Offset localPosition) {
     final size = MediaQuery.of(context).size;

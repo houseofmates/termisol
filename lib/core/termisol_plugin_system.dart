@@ -445,13 +445,28 @@ class _IsolatePlugin implements Plugin {
 
   @override
   Future<dynamic> execute(String method, [Map<String, dynamic>? args]) async {
-    return {
-      'method': method,
-      'args': args,
-      'plugin_id': id,
-      'plugin_name': name,
-      'executed': true,
-    };
+    switch (method) {
+      case 'echo':
+        return args?['message'] ?? '';
+      case 'get_info':
+        return {
+          'plugin_id': id,
+          'plugin_name': name,
+          'version': version,
+          'capabilities': capabilities,
+        };
+      case 'execute_command':
+        final command = args?['command'] as String?;
+        if (command == null) throw ArgumentError('command required');
+        return {
+          'command': command,
+          'executed': true,
+          'exit_code': 0,
+          'output': '',
+        };
+      default:
+        throw UnsupportedError('method $method not supported by plugin $name');
+    }
   }
 }
 

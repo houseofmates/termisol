@@ -84,10 +84,10 @@ class _PtyBackend implements TermisolPtyBackend {
       },
     );
 
-    _pty!.exitCode.then((code) {
+    unawaited(_pty!.exitCode.then((code) {
       _isRunning = false;
       _safeAdd(encoding.encode('\r\n[process exited with code $code]\r\n'));
-    });
+    }));
 
     if (kDebugMode) debugPrint('[pty] started pty: $shell');
 

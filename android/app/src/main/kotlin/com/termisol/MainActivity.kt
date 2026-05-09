@@ -1,5 +1,6 @@
 package com.termisol
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import io.flutter.embedding.android.FlutterActivity
@@ -26,6 +27,7 @@ class MainActivity : FlutterActivity() {
                 "startVrSession" -> result.success(false)
                 "stopVrSession" -> result.success(false)
                 "triggerHapticFeedback" -> result.success(null)
+                "getBuildInfo" -> result.success(getBuildInfo())
                 else -> result.notImplemented()
             }
         }
@@ -40,6 +42,13 @@ class MainActivity : FlutterActivity() {
                     deviceDetectionSink = null
                 }
             }
+        )
+    }
+
+    private fun getBuildInfo(): Map<String, String> {
+        return mapOf(
+            "model" to (Build.MODEL ?: ""),
+            "manufacturer" to (Build.MANUFACTURER ?: "")
         )
     }
 

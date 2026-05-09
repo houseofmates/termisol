@@ -152,7 +152,7 @@ class ProductionConfigSystem {
       final configDir = await getApplicationDocumentsDirectory();
       _configFile = File('${configDir.path}/$configFileName');
 
-      // Load configuration
+      // load configuration
       await _loadConfiguration();
 
       _initialized = true;

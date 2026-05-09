@@ -485,7 +485,7 @@ class SimplePlugin implements Plugin {
 
   final Map<String, Completer<dynamic>> _pendingRequests = {};
   int _requestCounter = 0;
-  StreamSubscription? _responseSubscription;
+  StreamSubscription<dynamic>? _responseSubscription;
   bool _isDisposed = false;
 
   @override

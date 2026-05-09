@@ -390,7 +390,7 @@ class TerminalSession extends ChangeNotifier {
     _backend = null;
     _directoryTracker.dispose();
     _directoryNotifier.dispose();
-    _sessionPersistence.dispose();
+    await _sessionPersistence.dispose();
     _crashRecovery.dispose();
     _commandNotifier.dispose();
     _autoComplete.dispose();

@@ -9,6 +9,7 @@ import '../core/deep_l_service.dart';
 import '../core/graphics_protocol_handler.dart';
 import '../config/pkm_theme.dart';
 import 'clipboard_manager.dart';
+import 'copy_mode_overlay.dart';
 
 /// Active terminal theme based on the current [PkmTheme.themeMode].
 TerminalTheme get termisolTerminalTheme => PkmTheme.activeTerminalTheme;
@@ -48,6 +49,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   final _deepL = DeepLTranslationService();
   bool _isSummarizing = false;
   bool _isTranslating = false;
+  bool _isCopyMode = false;
   double _fontSize = _defaultTerminalFontSize;
 
   @override
@@ -160,26 +162,26 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     return GpuRenderer.wrapWithGpuBoundary(
       child: Container(
         color: PkmTheme.terminalBg,
-        child: CallbackShortcuts(
-          bindings: {
-            const SingleActivator(LogicalKeyboardKey.keyC, control: true):
-                () => _handleCtrlC(),
-            const SingleActivator(
-              LogicalKeyboardKey.keyC,
-              control: true,
-              shift: true,
-            ): () => _clipboard.sendSigInt(),
-            const SingleActivator(LogicalKeyboardKey.keyV, control: true):
-                () => _clipboard.paste(),
-            const SingleActivator(
-              LogicalKeyboardKey.keyV,
-              control: true,
-              shift: true,
-            ): () => _clipboard.pasteBracketed(),
-          },
-          child: Stack(
-            children: [
-              TerminalView(
+        child: Stack(
+          children: [
+            CallbackShortcuts(
+              bindings: {
+                const SingleActivator(LogicalKeyboardKey.keyC, control: true):
+                    () => _handleCtrlC(),
+                const SingleActivator(
+                  LogicalKeyboardKey.keyC,
+                  control: true,
+                  shift: true,
+                ): () => _handleCtrlShiftC(),
+                const SingleActivator(LogicalKeyboardKey.keyV, control: true):
+                    () => _clipboard.paste(),
+                const SingleActivator(
+                  LogicalKeyboardKey.keyV,
+                  control: true,
+                  shift: true,
+                ): () => _clipboard.pasteBracketed(),
+              },
+              child: TerminalView(
                 widget.session.terminal,
                 controller: widget.session.controller,
                 focusNode: widget.focusNode,
@@ -193,12 +195,19 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
                 padding: EdgeInsets.zero,
                 onSecondaryTapUp: (details, offset) => _showContextMenu(context, details.globalPosition),
               ),
-              // Graphics overlay positioned over terminal
+            ),
+            // Graphics overlay positioned over terminal
+            Positioned.fill(
+              child: _buildGraphicsOverlay(),
+            ),
+            if (_isCopyMode)
               Positioned.fill(
-                child: _buildGraphicsOverlay(),
+                child: CopyModeOverlay(
+                  terminal: widget.session.terminal,
+                  onClose: () => setState(() => _isCopyMode = false),
+                ),
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -268,6 +277,14 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     }
   }
 
+  Future<void> _handleCtrlShiftC() async {
+    if (_clipboard.hasSelection) {
+      await _clipboard.copy();
+    } else {
+      setState(() => _isCopyMode = true);
+    }
+  }
+
   void _showContextMenu(BuildContext context, Offset position) {
     final hasSel = _clipboard.hasSelection;
     final items = <PopupMenuEntry<void>>[];
@@ -303,6 +320,13 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
       items.add(const PopupMenuDivider());
       items.add(
         _menuItem(
+          label: 'enter copy mode',
+          onTap: () => setState(() => _isCopyMode = true),
+        ),
+      );
+      items.add(const PopupMenuDivider());
+      items.add(
+        _menuItem(
           label: 'new tab',
           onTap: () => widget.onNewTab?.call(),
         ),
@@ -314,6 +338,12 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
         ),
       );
     } else {
+      items.add(
+        _menuItem(
+          label: 'enter copy mode',
+          onTap: () => setState(() => _isCopyMode = true),
+        ),
+      );
       items.add(
         _menuItem(
           label: 'new tab',

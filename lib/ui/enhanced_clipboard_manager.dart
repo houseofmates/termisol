@@ -144,17 +144,22 @@ class EnhancedClipboardManager {
           end tell
         ''';
         
-        final result = await Process.run('osascript', ['-e', script]);
-        if (result.exitCode == 0) {
-          final output = result.stdout as String;
-          final filePath = output.trim();
-          if (filePath.isNotEmpty && File(filePath).existsSync()) {
-            return ClipboardContent(
-              type: ClipboardContentType.file,
-              filePath: filePath,
-              size: await _getFileSize(filePath),
-            );
+        try {
+          final result = await Process.run('osascript', ['-e', script]);
+          if (result.exitCode == 0) {
+            final output = result.stdout as String;
+            final filePath = output.trim();
+            if (filePath.isNotEmpty && File(filePath).existsSync()) {
+              return ClipboardContent(
+                type: ClipboardContentType.file,
+                filePath: filePath,
+                size: await _getFileSize(filePath),
+              );
+            }
           }
+        } catch (e) {
+          debugPrint('macOS file clipboard access failed: $e');
+          return null;
         }
       }
       

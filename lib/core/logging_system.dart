@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart';
 /// 
 /// features:
 /// - structured logging with multiple levels
-/// - Performance monitoring and profiling
+/// - performance monitoring and profiling
 /// - Debug event tracking
 /// - Log file rotation and compression
 /// - Remote logging support

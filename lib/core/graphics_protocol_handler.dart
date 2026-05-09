@@ -1118,7 +1118,7 @@ class GraphicsProtocolHandler {
     return _imageCache[imageId];
   }
 
-  /// Get all cached images
+  /// get all cached images
   Map<String, GraphicsImage> getCachedImages() {
     return Map.unmodifiable(_imageCache);
   }

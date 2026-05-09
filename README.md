@@ -120,7 +120,8 @@ ai:
 | `Ctrl+Tab` | next tab |
 | `Ctrl+C` | copy selected text |
 | `Ctrl+Shift+C` | interrupt (original Ctrl+C behavior) |
-| `Ctrl+Z` | paste |
+| `Ctrl+V` | paste |
+| `Ctrl+Z` | undo (standard behavior) |
 | `Ctrl+A` | copy all terminal content |
 | `Ctrl+F` | find in terminal |
 | `Ctrl+S` | save current file (in edit/nano) |

@@ -16,7 +16,7 @@ import 'package:xterm/xterm.dart';
 /// - alpha channel support
 /// - Inline Images with proper rendering
 class GraphicsProtocolHandler {
-  // Terminal reference for output interception
+  // terminal reference for output interception
   final Terminal? _terminal;
   final TerminalController? _controller;
 

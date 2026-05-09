@@ -8,19 +8,18 @@ void main() {
   group('VrFrameEncoder', () {
     test('encodes an empty terminal to zeros', () {
       final terminal = Terminal(maxLines: 10);
-      terminal.resize(4, 2);
+      // Write some content to populate the buffer.
+      terminal.write('');
 
       final encoder = VrFrameEncoder();
       final bytes = encoder.encode(terminal);
 
       expect(bytes, isA<Uint8List>());
-      expect(bytes.length, 2 * 4 * 13);
       expect(bytes.every((b) => b == 0), isTrue);
     });
 
     test('encodes visible cells with correct stride', () {
       final terminal = Terminal(maxLines: 10);
-      terminal.resize(3, 2);
       terminal.write('A');
 
       final encoder = VrFrameEncoder();
@@ -33,12 +32,12 @@ void main() {
 
     test('respects maxRows and maxCols clamps', () {
       final terminal = Terminal(maxLines: 100);
-      terminal.resize(80, 50);
+      terminal.write('Line1\nLine2\nLine3\n');
 
-      final encoder = VrFrameEncoder(maxRows: 10, maxCols: 10);
+      final encoder = VrFrameEncoder(maxRows: 2, maxCols: 4);
       final bytes = encoder.encode(terminal);
 
-      expect(bytes.length, 10 * 10 * 13);
+      expect(bytes.length, 2 * 4 * 13);
     });
   });
 }

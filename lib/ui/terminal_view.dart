@@ -192,6 +192,12 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
+    // First try custom hotkey manager
+    final customResult = _hotkeyManager.handleKeyEvent(node, event);
+    if (customResult == KeyEventResult.handled) {
+      return KeyEventResult.handled;
+    }
+
     final ctrl = HardwareKeyboard.instance.isControlPressed;
     final shift = HardwareKeyboard.instance.isShiftPressed;
 

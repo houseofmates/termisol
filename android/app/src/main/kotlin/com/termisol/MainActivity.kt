@@ -7,30 +7,25 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
+import com.termisol.vr.OpenXrBridge
 
 class MainActivity : FlutterActivity() {
     companion object {
         private const val TAG = "Termisol"
-        private const val CHANNEL = "com.termisol/vr"
+        private const val VR_CHANNEL = "com.termisol/vr"
+        private const val VR_EVENT_CHANNEL = "com.termisol/vr/events"
         private const val DEVICE_DETECTION_CHANNEL = "com.termisol/vr/device_detection"
     }
 
     private var deviceDetectionSink: EventChannel.EventSink? = null
+    private var openXrBridge: OpenXrBridge? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
-            when (call.method) {
-                "initializeVr" -> result.success(mapOf("success" to false, "error" to "VR not supported on this build"))
-                "isVrSupported" -> result.success(false)
-                "startVrSession" -> result.success(false)
-                "stopVrSession" -> result.success(false)
-                "triggerHapticFeedback" -> result.success(null)
-                "getBuildInfo" -> result.success(getBuildInfo())
-                else -> result.notImplemented()
-            }
-        }
+        val methodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, VR_CHANNEL)
+        val eventChannel = EventChannel(flutterEngine.dartExecutor.binaryMessenger, VR_EVENT_CHANNEL)
+        openXrBridge = OpenXrBridge(this, methodChannel, eventChannel)
 
         EventChannel(flutterEngine.dartExecutor.binaryMessenger, DEVICE_DETECTION_CHANNEL).setStreamHandler(
             object : EventChannel.StreamHandler {

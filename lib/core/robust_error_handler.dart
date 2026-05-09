@@ -242,7 +242,7 @@ class RobustErrorHandler {
       // clear performance metrics
       _performanceMetrics.clear();
       
-      // Force garbage collection
+      // force garbage collection
       for (int i = 0; i < 3; i++) {
         await Future.delayed(const Duration(milliseconds: 50));
       }

@@ -313,7 +313,7 @@ abstract class LogSink {
   void dispose();
 }
 
-/// Console log sink
+/// console log sink
 class ConsoleSink implements LogSink {
   @override
   void write(LogEntry entry) {

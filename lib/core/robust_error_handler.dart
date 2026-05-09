@@ -136,7 +136,7 @@ class RobustErrorHandler {
     _lastErrorTime[key] = report.timestamp;
   }
   
-  /// Check for error patterns and thresholds
+  /// check for error patterns and thresholds
   void _checkErrorPatterns(ErrorReport report) {
     final key = '${report.error}_${report.context ?? ''}';
     final count = _errorCounts[key] ?? 0;

@@ -239,7 +239,7 @@ class TermisolLogger {
   }
 }
 
-/// Log levels
+/// log levels
 enum LogLevel {
   debug(0),
   info(1),

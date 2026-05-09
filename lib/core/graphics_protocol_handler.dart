@@ -574,7 +574,7 @@ class GraphicsProtocolHandler {
     if (!_sixelEnabled) return '';
 
     try {
-      // Parse Sixel DCS sequences: ESC P ... ESC \
+      // parse sixel dcs sequences: esc p ... esc \
       final match = RegExp(r'\x1bP([0-9;]*)(.*?)\x1b\\').firstMatch(sequence);
       if (match != null) {
         return _processSixel(

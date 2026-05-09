@@ -6,13 +6,13 @@ import '../core/termisol_core_integration.dart';
 class TermisolPerformanceOverlay extends StatefulWidget {
   final VoidCallback onDismiss;
 
-  const PerformanceOverlay({
+  const TermisolPerformanceOverlay({
     super.key,
     required this.onDismiss,
   });
 
   @override
-  State<PerformanceOverlay> createState() => _PerformanceOverlayState();
+  State<TermisolPerformanceOverlay> createState() => _TermisolPerformanceOverlayState();
 }
 
 class _TermisolPerformanceOverlayState extends State<TermisolPerformanceOverlay> {

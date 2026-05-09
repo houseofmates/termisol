@@ -71,7 +71,7 @@ class WhisperService {
         Uri.parse('$serverUrl/transcribe'),
       );
       
-      // Add audio bytes
+      // add audio bytes
       final audioFile = http.MultipartFile.fromBytes(
         'audio',
         audioBytes,

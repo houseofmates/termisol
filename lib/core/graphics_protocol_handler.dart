@@ -559,7 +559,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Get Kitty protocol status
+  /// get kitty protocol status
   String _getKittyStatus() {
     return '\x1b_GOK\x1b\\';
   }

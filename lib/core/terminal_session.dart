@@ -447,7 +447,7 @@ class TerminalSession extends ChangeNotifier {
     mouseProtocol.dispose();
     ligatureFont.dispose();
     throttledRenderer.dispose();
-    graphicsHandler.dispose();
+    unawaited(graphicsHandler.dispose());
     bracketedPaste.disable();
     await _pluginSystem.dispose();
     _hyperlinkHandler.dispose();

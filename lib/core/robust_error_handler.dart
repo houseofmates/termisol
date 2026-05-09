@@ -705,7 +705,7 @@ enum ErrorSeverity {
   critical,
 }
 
-/// Alert types
+/// alert types
 enum AlertType {
   highFrequencyError,
   memoryThreshold,

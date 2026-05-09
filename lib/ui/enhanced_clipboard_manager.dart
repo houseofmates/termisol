@@ -78,20 +78,69 @@ class EnhancedClipboardManager {
   /// Get files from clipboard (Windows/Linux/MacOS)
   Future<ClipboardContent?> _getClipboardFiles() async {
     try {
-      // This is a simplified implementation
-      // In a real app, you'd use platform-specific APIs
-      // For now, we'll simulate file detection
-      
-      // On Linux, check for file paths in clipboard
-      if (Platform.isLinux) {
-        final result = await Process.run('xclip', ['-selection', 'clipboard', '-o']);
+      // Windows: Use clipboard file API
+      if (Platform.isWindows) {
+        final result = await Process.run('powershell', [
+          '-Command', 
+          'Get-Clipboard -Format FileDropList'
+        ]);
         if (result.exitCode == 0) {
           final output = result.stdout as String;
-          if (output.startsWith('file://') || File(output.trim()).existsSync()) {
+          final paths = output.split('\n').where((p) => p.isNotEmpty).toList();
+          if (paths.isNotEmpty) {
+            final firstPath = paths.first.trim();
+            if (File(firstPath).existsSync()) {
+              return ClipboardContent(
+                type: ClipboardContentType.file,
+                filePath: firstPath,
+                size: await _getFileSize(firstPath),
+              );
+            }
+          }
+        }
+      }
+      
+      // Linux: Use xclip to get file list
+      if (Platform.isLinux) {
+        final result = await Process.run('xclip', ['-selection', 'clipboard', '-t', 'text/uri-list', '-o']);
+        if (result.exitCode == 0) {
+          final output = result.stdout as String;
+          final uris = output.split('\n').where((uri) => uri.isNotEmpty).toList();
+          if (uris.isNotEmpty) {
+            final firstUri = uris.first.trim();
+            final filePath = firstUri.replaceFirst('file://', '');
+            if (File(filePath).existsSync()) {
+              return ClipboardContent(
+                type: ClipboardContentType.file,
+                filePath: filePath,
+                size: await _getFileSize(filePath),
+              );
+            }
+          }
+        }
+      }
+      
+      // macOS: Use applescript to get file paths
+      if (Platform.isMacOS) {
+        final script = '''
+          tell application "Finder"
+            set theItems to (get the clipboard as «class furl»)
+            if theItems is not {} then
+              set firstItem to first item of theItems
+              return POSIX path of firstItem
+            end if
+          end tell
+        ''';
+        
+        final result = await Process.run('osascript', ['-e', script]);
+        if (result.exitCode == 0) {
+          final output = result.stdout as String;
+          final filePath = output.trim();
+          if (filePath.isNotEmpty && File(filePath).existsSync()) {
             return ClipboardContent(
               type: ClipboardContentType.file,
-              filePath: output.trim(),
-              size: await _getFileSize(output.trim()),
+              filePath: filePath,
+              size: await _getFileSize(filePath),
             );
           }
         }

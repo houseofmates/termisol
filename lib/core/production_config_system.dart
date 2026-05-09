@@ -252,7 +252,7 @@ class ProductionConfigSystem {
         final isOculus = Platform.environment['OCULUS_VR']?.isNotEmpty ?? false;
         final isQuest = Platform.environment['QUEST_VR']?.isNotEmpty ?? false;
         
-        // Check for VR-specific system properties
+        // check for vr-specific system properties
         final hasVrFeature = _checkAndroidVRFeatures();
         
         return isOculus || isQuest || hasVrFeature;

@@ -212,8 +212,8 @@ DOCKER_STACK_PATH=/path/to/your/docker/stack
 
 # Personal Preferences
 PERSONAL_NAME=your_name
-DEFAULT_PROJECT_SERVER=.233
-BACKUP_SERVER=.250
+DEFAULT_PROJECT_SERVER=.xxx
+BACKUP_SERVER=.xxx
 
 # Hardware Configuration
 MAIN_GPU_MODEL=RTX_3080

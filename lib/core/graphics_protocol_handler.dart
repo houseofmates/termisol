@@ -569,7 +569,7 @@ class GraphicsProtocolHandler {
     return '\x1b_Ga=T,f=32,s=1,v=1,c=1\x1b\\';
   }
 
-  /// Handle Sixel graphics
+  /// handle sixel graphics
   String handleSixel(String sequence, int cursorX, int cursorY) {
     if (!_sixelEnabled) return '';
 

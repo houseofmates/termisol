@@ -153,7 +153,7 @@ class RobustErrorHandler {
   
   /// handle error threshold exceeded
   void _handleErrorThreshold(ErrorReport report, int count) {
-    // Create alert for high-frequency errors
+    // create alert for high-frequency errors
     final alert = ErrorAlert(
       id: _generateErrorId(),
       timestamp: DateTime.now(),
@@ -172,7 +172,7 @@ class RobustErrorHandler {
     try {
       switch (report.severity) {
         case ErrorSeverity.info:
-          // No recovery needed for info
+          // no recovery needed for info
           break;
           
         case ErrorSeverity.warning:

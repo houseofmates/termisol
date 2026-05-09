@@ -16,7 +16,7 @@ import 'hints_mode.dart';
 import 'search_overlay.dart';
 import 'edit.dart';
 import 'command_history_search.dart';
-import 'split_pane.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 

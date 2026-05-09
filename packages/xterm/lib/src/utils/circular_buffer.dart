@@ -1,4 +1,4 @@
-/// A circular buffer in which elements know their index in the buffer.
+/// a circular buffer in which elements know their index in the buffer.
 class IndexAwareCircularBuffer<T extends IndexedItem> {
   /// Creates a new circular list with the specified [maxLength].
   IndexAwareCircularBuffer(int maxLength)

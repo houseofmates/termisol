@@ -402,7 +402,7 @@ class GraphicsProtocolHandler {
     return '\x1b_GOK\x1b\\';
   }
 
-  /// Query image via Kitty protocol
+  /// query image via kitty protocol
   String _queryKittyImage(Map<String, String> params) {
     final id = params['i'];
     if (id != null && _imageCache.containsKey(id)) {

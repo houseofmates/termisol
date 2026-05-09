@@ -206,7 +206,7 @@ class ProductionConfigSystem {
   }
 
   void _applyPlatformOverrides() {
-    // Ubuntu optimizations
+    // ubuntu optimizations
     if (Platform.isLinux) {
       _config['performance'] ??= {};
       _config['performance']['gpu_acceleration'] = true;

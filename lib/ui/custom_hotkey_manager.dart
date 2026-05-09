@@ -238,10 +238,3 @@ class CustomHotkeyManager {
   }
 }
 
-/// Extension to make TerminalPosition accessible if not already available
-class TerminalPosition {
-  final int column;
-  final int row;
-  
-  const TerminalPosition(this.column, this.row);
-}

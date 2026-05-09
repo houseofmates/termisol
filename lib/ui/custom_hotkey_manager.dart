@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:xterm/xterm.dart' show Terminal, BufferPosition;
+import 'package:xterm/xterm.dart' show Terminal;
 import '../core/terminal_session.dart';
 import '../core/whisper_service.dart';
 import 'clipboard_manager.dart';

@@ -441,3 +441,5 @@
 ⏳ File lib/core/graphics_protocol_handler.dart is too recent (1s old)
 📝 Detected 1 changed files
 ⏳ File .devin/auto_push_state.json is too recent (5s old)
+📝 Detected 1 changed files
+⏳ File lib/core/gpu/gpu_terminal_painter.dart is too recent (1s old)

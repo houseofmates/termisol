@@ -106,8 +106,12 @@ class GraphicsProtocolHandler {
 
   /// Set up output interception to handle graphics protocols
   void _setupOutputInterception() {
-    // The terminal output is handled in the session, we'll intercept there
-    debugPrint('Graphics protocol output interception ready');
+    if (_terminal == null) return;
+    final original = _terminal!.onOutput;
+    _terminal!.onOutput = (data) {
+      final processed = processOutput(data, _terminal!.buffer.cursorX, _terminal!.buffer.cursorY);
+      original?.call(processed);
+    };
   }
 
   /// Initialize default color palette (256 colors + true color support)

@@ -32,7 +32,7 @@ class TermisolLogger {
   bool _debugMode = false;
   String? _sessionId;
   
-  /// Initialize the logging system
+  /// initialize the logging system
   Future<void> initialize({bool debugMode = false}) async {
     _debugMode = debugMode;
     _sessionId = _generateSessionId();

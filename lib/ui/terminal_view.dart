@@ -28,6 +28,7 @@ class TermisolTerminalView extends StatefulWidget {
   final VoidCallback? onNewWindow;
   final VoidCallback? onCloseTab;
   final Future<String> Function(String text)? onSummarize;
+  final ScrollController? scrollController;
 
   const TermisolTerminalView({
     super.key,
@@ -38,6 +39,7 @@ class TermisolTerminalView extends StatefulWidget {
     this.onNewWindow,
     this.onCloseTab,
     this.onSummarize,
+    this.scrollController,
   });
 
   @override
@@ -56,6 +58,16 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   MouseCursor _mouseCursor = SystemMouseCursors.text;
   String _fontFamily = 'DroidSansMono';
 
+  // Autocomplete state
+  List<String> _suggestions = [];
+  bool _showSuggestions = false;
+  String? _currentInput;
+
+  // Command chaining state
+  List<String> _chainSuggestions = [];
+  bool _showChainSuggestions = false;
+  void Function(String)? _originalOnOutput;
+
   @override
   void initState() {
     super.initState();
@@ -73,9 +85,32 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     );
     widget.session.addListener(_onSessionChanged);
     _loadTerminalStyle();
+    _hookOutputForChaining();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.focusNode?.requestFocus();
     });
+  }
+
+  void _hookOutputForChaining() {
+    _originalOnOutput = widget.session.onOutputReceived;
+    widget.session.onOutputReceived = (output) {
+      _originalOnOutput?.call(output);
+      _updateChainSuggestions();
+    };
+  }
+
+  void _updateChainSuggestions() {
+    final lastCommand = widget.session.commandHistory.commands.isNotEmpty
+        ? widget.session.commandHistory.commands.first
+        : null;
+    if (lastCommand == null) return;
+    final suggestions = widget.session.getChainedSuggestions(lastCommand);
+    if (mounted) {
+      setState(() {
+        _chainSuggestions = suggestions;
+        _showChainSuggestions = suggestions.isNotEmpty;
+      });
+    }
   }
 
   @override
@@ -83,6 +118,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     PkmTheme.themeMode.removeListener(_onThemeChanged);
     PkmTheme.bgOpacity.removeListener(_onBgOpacityChanged);
     widget.session.removeListener(_onSessionChanged);
+    widget.session.onOutputReceived = _originalOnOutput;
     super.dispose();
   }
 
@@ -146,7 +182,6 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     final ctrl = HardwareKeyboard.instance.isControlPressed;
     final shift = HardwareKeyboard.instance.isShiftPressed;
 
-    // zoom: ctrl + (or ctrl shift + on us layouts)
     if (ctrl &&
         (event.logicalKey == LogicalKeyboardKey.equal ||
          event.logicalKey == LogicalKeyboardKey.numpadAdd ||
@@ -155,7 +190,6 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
       return KeyEventResult.handled;
     }
 
-    // zoom out: ctrl -
     if (ctrl &&
         (event.logicalKey == LogicalKeyboardKey.minus ||
          event.logicalKey == LogicalKeyboardKey.numpadSubtract)) {
@@ -163,7 +197,6 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
       return KeyEventResult.handled;
     }
 
-    // reset zoom: ctrl 0
     if (ctrl &&
         !shift &&
         (event.logicalKey == LogicalKeyboardKey.digit0 ||
@@ -172,7 +205,56 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
       return KeyEventResult.handled;
     }
 
+    if (event.logicalKey == LogicalKeyboardKey.tab && !ctrl) {
+      _triggerAutocomplete();
+      return KeyEventResult.handled;
+    }
+
+    // Hide suggestion popups on any other key
+    if (_showSuggestions || _showChainSuggestions) {
+      setState(() {
+        _showSuggestions = false;
+      });
+    }
+
     return KeyEventResult.ignored;
+  }
+
+  String _extractCurrentInput() {
+    final buffer = widget.session.terminal.buffer;
+    if (buffer.height == 0) return '';
+    final lastLine = buffer.lines[buffer.height - 1].getText();
+    // heuristic: split on common prompt separators and take the last part
+    final separators = RegExp(r'[\$>#%]\s*');
+    final parts = lastLine.split(separators);
+    return parts.isNotEmpty ? parts.last.trim() : lastLine.trim();
+  }
+
+  Future<void> _triggerAutocomplete() async {
+    final input = _extractCurrentInput();
+    if (input.isEmpty) return;
+    final suggestions = await widget.session.getCommandSuggestions(input);
+    if (!mounted) return;
+    setState(() {
+      _currentInput = input;
+      _suggestions = suggestions;
+      _showSuggestions = suggestions.isNotEmpty;
+    });
+  }
+
+  void _insertSuggestion(String suggestion) {
+    final input = _currentInput ?? '';
+    // Send backspaces to clear current input
+    if (input.isNotEmpty) {
+      widget.session.sendRawInput('\x7f' * input.length);
+    }
+    widget.session.sendRawInput('$suggestion\r');
+    setState(() => _showSuggestions = false);
+  }
+
+  void _sendChainCommand(String command) {
+    widget.session.sendRawInput('$command\r');
+    setState(() => _showChainSuggestions = false);
   }
 
   void _handleTapUp(TapUpDetails details, CellOffset cellOffset) {
@@ -250,6 +332,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
                   focusNode: widget.focusNode,
                   autofocus: widget.autofocus,
                   theme: termisolTerminalTheme,
+                  scrollController: widget.scrollController,
                   textStyle: TerminalStyle(
                     fontFamily: _fontFamily,
                     fontSize: _fontSize,
@@ -272,6 +355,63 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
                   onClose: () => setState(() => _isCopyMode = false),
                 ),
               ),
+            // Autocomplete popup
+            if (_showSuggestions)
+              Positioned(
+                left: 8,
+                bottom: 8,
+                child: Material(
+                  color: PkmTheme.popup,
+                  borderRadius: BorderRadius.circular(4),
+                  elevation: 4,
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 300, maxHeight: 200),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: _suggestions.length,
+                      itemBuilder: (context, index) {
+                        final suggestion = _suggestions[index];
+                        return ListTile(
+                          dense: true,
+                          title: Text(
+                            suggestion,
+                            style: const TextStyle(
+                              color: PkmTheme.text,
+                              fontFamily: PkmTheme.fontTerminal,
+                              fontSize: 13,
+                            ),
+                          ),
+                          onTap: () => _insertSuggestion(suggestion),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            // Command chaining chips
+            if (_showChainSuggestions)
+              Positioned(
+                left: 8,
+                top: 8,
+                right: 8,
+                child: Wrap(
+                  spacing: 6,
+                  children: _chainSuggestions.map((cmd) {
+                    return ActionChip(
+                      backgroundColor: PkmTheme.tabActiveBg,
+                      label: Text(
+                        cmd,
+                        style: const TextStyle(
+                          color: PkmTheme.primary,
+                          fontFamily: PkmTheme.fontUi,
+                          fontSize: 12,
+                        ),
+                      ),
+                      onPressed: () => _sendChainCommand(cmd),
+                    );
+                  }).toList(),
+                ),
+              ),
           ],
         ),
       ),
@@ -279,7 +419,6 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   }
 
   Widget _buildGraphicsOverlay() {
-    // Build overlay for inline graphics from GraphicsProtocolHandler
     final graphicsImages = _graphicsHandler.getCachedImages();
     final imagePositions = _graphicsHandler.imagePositions;
     if (graphicsImages.isEmpty) return const SizedBox.shrink();
@@ -289,10 +428,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
         final imageId = entry.key;
         final image = entry.value;
 
-        // Get stored position in characters
         final charPosition = imagePositions[imageId] ?? Offset.zero;
-
-        // Convert character position to pixel position
         final pixelPosition = _convertCharToPixel(charPosition);
 
         return Positioned(
@@ -323,10 +459,8 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   }
 
   Offset _convertCharToPixel(Offset charPosition) {
-    // Convert character coordinates to pixel coordinates
-    // Assuming monospace font, approximate character width as fontSize * 0.6
     final charWidth = _fontSize * 0.6;
-    final charHeight = _fontSize * 1.2; // Line height
+    final charHeight = _fontSize * 1.2;
 
     return Offset(
       charPosition.dx * charWidth,
@@ -378,8 +512,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
       items.add(
         _menuItem(
           label: 'translate',
-          onTap: () async => _runTranslate(),
-          enabled: _deepL.isAvailable,
+          onTap: () async => _runTranslate(context),
         ),
       );
       items.add(const PopupMenuDivider());
@@ -488,8 +621,12 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     }
   }
 
-  Future<void> _runTranslate() async {
+  Future<void> _runTranslate(BuildContext context) async {
     if (_isTranslating) return;
+    if (!_deepL.isAvailable) {
+      await _deepL.promptForApiKey(context);
+      if (!_deepL.isAvailable) return;
+    }
     setState(() => _isTranslating = true);
 
     try {

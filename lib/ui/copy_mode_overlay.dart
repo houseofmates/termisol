@@ -115,7 +115,7 @@ class _CopyModeOverlayState extends State<CopyModeOverlay> {
                 children: [
                   Text(
                     'copy mode — press q to exit',
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: PkmTheme.text,
                       fontFamily: PkmTheme.fontUi,
                       fontSize: 13,
@@ -155,14 +155,14 @@ class _CopyModeOverlayState extends State<CopyModeOverlay> {
               padding: const EdgeInsets.all(8.0),
               child: TextField(
                 controller: _searchController,
-                style: TextStyle(
+                style: const TextStyle(
                   color: PkmTheme.text,
                   fontFamily: PkmTheme.fontTerminal,
                   fontSize: 14,
                 ),
                 decoration: InputDecoration(
                   hintText: 'search...',
-                  hintStyle: TextStyle(
+                  hintStyle: const TextStyle(
                     color: PkmTheme.secondary,
                     fontFamily: PkmTheme.fontTerminal,
                     fontSize: 14,
@@ -191,7 +191,7 @@ class _CopyModeOverlayState extends State<CopyModeOverlay> {
                 padding: const EdgeInsets.all(12),
                 child: SelectableText(
                   displayText,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: PkmTheme.fontTerminal,
                     fontSize: 14,
                     color: PkmTheme.text,

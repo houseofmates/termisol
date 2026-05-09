@@ -691,7 +691,7 @@ class RobustErrorHandler {
     };
   }
   
-  /// Dispose resources
+  /// dispose resources
   void dispose() {
     _errorController.close();
   }

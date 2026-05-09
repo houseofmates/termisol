@@ -37,6 +37,9 @@ class _SettingsPageState extends State<SettingsPage>
   // keyboard state
   bool _useHardwareKeyboard = false;
 
+  // advanced state
+  bool _showPerformanceOverlay = false;
+
   @override
   void initState() {
     super.initState();
@@ -62,6 +65,15 @@ class _SettingsPageState extends State<SettingsPage>
         // Invalid saved theme, ignore
       }
     }
+    final overlay = prefs.getBool('show_performance_overlay');
+    if (overlay != null) {
+      setState(() => _showPerformanceOverlay = overlay);
+    }
+  }
+
+  Future<void> _savePerformanceOverlay(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('show_performance_overlay', value);
   }
 
   Future<void> _saveTheme(TermisolThemeMode mode) async {
@@ -277,6 +289,15 @@ class _SettingsPageState extends State<SettingsPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SettingsToggle(
+            label: 'show performance overlay',
+            value: _showPerformanceOverlay,
+            onChanged: (v) {
+              setState(() => _showPerformanceOverlay = v);
+              _savePerformanceOverlay(v);
+            },
+          ),
+          const SizedBox(height: 24),
           _sectionTitle('diagnostics'),
           const SizedBox(height: 8),
           Container(

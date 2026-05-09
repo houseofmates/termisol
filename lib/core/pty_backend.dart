@@ -133,7 +133,8 @@ class _PtyBackend implements TermisolPtyBackend {
   Future<void> stop() async {
     _isRunning = false;
     _ps1Timer?.cancel();
-    _outSub?.cancel();
+    await _outSub?.cancel();
+    _outSub = null;
     _pty?.kill();
     await _closeController();
   }
@@ -142,7 +143,8 @@ class _PtyBackend implements TermisolPtyBackend {
   Future<void> terminate() async {
     _isRunning = false;
     _ps1Timer?.cancel();
-    _outSub?.cancel();
+    await _outSub?.cancel();
+    _outSub = null;
     _pty?.kill();
     await _closeController();
   }

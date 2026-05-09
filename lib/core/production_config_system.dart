@@ -405,7 +405,7 @@ class ProductionConfigSystem {
     final keys = key.split('.');
     _setNestedValue(_config, keys, value);
 
-    // Emit change event
+    // emit change event
     _changeController.add(ConfigChangeEvent(
       key: key,
       oldValue: oldValue,

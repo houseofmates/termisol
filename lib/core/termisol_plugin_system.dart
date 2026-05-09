@@ -329,7 +329,7 @@ class TermisolPluginSystem {
           return false;
         }
       }
-      // System dependencies would be validated here
+      // system dependencies would be validated here
     }
     return true;
   }

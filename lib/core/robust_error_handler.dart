@@ -619,7 +619,7 @@ class RobustErrorHandler {
     // Implementation would notify monitoring systems
   }
   
-  /// Persist error to disk
+  /// persist error to disk
   Future<void> _persistError(ErrorReport report) async {
     try {
       final directory = await getApplicationDocumentsDirectory();

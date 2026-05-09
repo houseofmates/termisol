@@ -119,8 +119,8 @@ class CustomHotkeyManager {
   void _handleCopyAll() {
     final buffer = session.terminal.buffer;
     final allText = buffer.getText(
-      TerminalPosition(0, 0),
-      TerminalPosition(buffer.columns - 1, buffer.height - 1),
+      BufferPosition(0, 0),
+      BufferPosition(buffer.columns - 1, buffer.height - 1),
     );
     clipboard.copy(allText);
     _showFeedback('All content copied to clipboard');

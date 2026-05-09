@@ -640,7 +640,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Convert image to display format
+  /// convert image to display format
   Future<Uint8List?> convertImageForDisplay(
     String imageId, {
     int? targetWidth,

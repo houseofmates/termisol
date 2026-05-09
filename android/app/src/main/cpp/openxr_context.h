@@ -2,6 +2,7 @@
 #define TERMISOL_OPENXR_CONTEXT_H
 
 #include <EGL/egl.h>
+#include <GLES3/gl3.h>
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 #include <vector>
@@ -15,6 +16,13 @@ struct Swapchain {
   std::vector<XrSwapchainImageOpenGLESKHR> images;
 };
 
+struct FrameView {
+  XrCompositionLayerProjectionView projectionView;
+  GLuint framebufferTexture = 0;
+  int32_t width = 0;
+  int32_t height = 0;
+};
+
 /** Encapsulates OpenXR instance, session, reference space and swapchains. */
 class OpenXrContext {
  public:
@@ -24,10 +32,8 @@ class OpenXrContext {
   bool IsSessionRunning() const { return session_running_; }
   bool PollEvents();
 
-  bool BeginFrame(XrTime& out_display_time,
-                  std::vector<XrCompositionLayerProjectionView>& out_views);
-  bool EndFrame(XrTime display_time,
-                const std::vector<XrCompositionLayerProjectionView>& views);
+  bool BeginFrame(XrTime& out_display_time, std::vector<FrameView>& out_views);
+  bool EndFrame(XrTime display_time, const std::vector<FrameView>& views);
 
  private:
   bool CreateInstance();

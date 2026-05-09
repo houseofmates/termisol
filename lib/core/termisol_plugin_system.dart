@@ -31,7 +31,7 @@ class PluginMessage {
 /// - plugin dependency resolution
 /// - event-driven communication
 /// - performance monitoring
-/// - Hot-reload capability
+/// - hot-reload capability
 class TermisolPluginSystem {
   final Map<String, Plugin> _plugins = {};
   final Map<String, Isolate> _isolates = {};
@@ -79,7 +79,7 @@ class TermisolPluginSystem {
     }
   }
 
-  /// Load a plugin from file path
+  /// load a plugin from file path
   Future<bool> loadPlugin(String pluginPath) async {
     try {
       final file = File(pluginPath);

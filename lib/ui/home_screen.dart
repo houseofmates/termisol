@@ -39,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showHistorySearch = false;
   bool _isSplit = false;
   bool _showPerformanceOverlay = false;
+  bool _broadcastMode = false;
   Timer? _saveDebounceTimer;
 
   @override
@@ -201,6 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     session.onAiQuery = _handleAiQuery;
     session.onEditCommand = _handleEditCommand;
+    session.onInputIntercepted = (input) => _broadcastToOtherTabs(input);
     session.directory.addListener(_onDirectoryChanged);
     session.start();
 
@@ -224,6 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
       name: 'Terminal ${_tabs.length + 1}',
     );
     newTab.onAiQuery = _handleAiQuery;
+    newTab.onInputIntercepted = (input) => _broadcastToOtherTabs(input);
     newTab.directory.addListener(_onDirectoryChanged);
     newTab.start();
 
@@ -286,6 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     newTab.onAiQuery = _handleAiQuery;
     newTab.onEditCommand = _handleEditCommand;
+    newTab.onInputIntercepted = (input) => _broadcastToOtherTabs(input);
     newTab.directory.addListener(_onDirectoryChanged);
     newTab.start(workingDirectory: source.directory.value);
 
@@ -519,6 +523,7 @@ class _HomeScreenState extends State<HomeScreen> {
         );
         session.onAiQuery = _handleAiQuery;
         session.onEditCommand = _handleEditCommand;
+        session.onInputIntercepted = (input) => _broadcastToOtherTabs(input);
         session.directory.addListener(_onDirectoryChanged);
         await session.start(workingDirectory: workingDirectory);
 
@@ -562,6 +567,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _togglePerformanceOverlay() {
     setState(() => _showPerformanceOverlay = !_showPerformanceOverlay);
+  }
+
+  void _toggleBroadcastMode() {
+    setState(() => _broadcastMode = !_broadcastMode);
+  }
+
+  void _broadcastToOtherTabs(String input) {
+    if (!_broadcastMode) return;
+    for (final tab in _tabs) {
+      if (tab.id != _activeTab) {
+        tab.sendRawInput(input);
+      }
+    }
   }
 
   List<PaletteAction> _buildPaletteActions() {
@@ -653,6 +671,14 @@ class _HomeScreenState extends State<HomeScreen> {
         keywords: ['fps', 'performance', 'overlay', 'timing', 'frame'],
         onExecute: _togglePerformanceOverlay,
       ),
+      PaletteAction(
+        id: 'toggle_broadcast',
+        title: 'toggle broadcast input',
+        subtitle: 'send keystrokes to all open tabs simultaneously',
+        icon: Icons.campaign,
+        keywords: ['broadcast', 'input', 'sync', 'all tabs'],
+        onExecute: _toggleBroadcastMode,
+      ),
     ];
   }
 
@@ -677,6 +703,11 @@ class _HomeScreenState extends State<HomeScreen> {
             control: true,
             shift: true,
           ): _closeOthersActive,
+          const SingleActivator(
+            LogicalKeyboardKey.keyB,
+            control: true,
+            shift: true,
+          ): _toggleBroadcastMode,
         },
         child: Stack(
           children: [
@@ -692,6 +723,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       onPressed: _addTab,
                       icon: const Icon(Icons.add, color: PkmTheme.primary),
                       tooltip: 'New Tab',
+                    ),
+                    IconButton(
+                      onPressed: _toggleBroadcastMode,
+                      icon: Icon(
+                        Icons.campaign,
+                        color: _broadcastMode ? Colors.orange : PkmTheme.primary,
+                      ),
+                      tooltip: 'Toggle Broadcast Input (Ctrl+Shift+B)',
                     ),
                     IconButton(
                       onPressed: _showSettings,
@@ -729,7 +768,9 @@ class _HomeScreenState extends State<HomeScreen> {
               // Tab bar
               Container(
                 height: PkmTheme.tabBarHeight,
-                color: PkmTheme.background,
+                color: _broadcastMode
+                    ? const Color(0xFF1a0f00)
+                    : PkmTheme.background,
                 child: Row(
                   children: [
                     Expanded(
@@ -877,6 +918,27 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
+              if (_broadcastMode)
+                Container(
+                  height: 24,
+                  color: Colors.orange.withValues(alpha: 0.9),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.campaign, size: 14, color: Colors.black),
+                      const SizedBox(width: 6),
+                      Text(
+                        'BROADCASTING TO ${_tabs.length} TAB${_tabs.length == 1 ? '' : 'S'}',
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          fontFamily: PkmTheme.fontUi,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 // Terminal area
               Expanded(
                 child: _isSplit && _tabs.length >= 2

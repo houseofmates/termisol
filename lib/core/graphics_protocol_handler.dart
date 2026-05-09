@@ -1279,7 +1279,7 @@ class GraphicsAnimation {
   });
 }
 
-/// Graphics protocol state
+/// graphics protocol state
 class GraphicsProtocolState {
   Color? currentColor;
   Color? backgroundColor;
@@ -1292,7 +1292,7 @@ class GraphicsProtocolState {
   });
 }
 
-/// Graphics event types
+/// graphics event types
 enum GraphicsEventType {
   initialized,
   imageReceived,
@@ -1305,7 +1305,7 @@ enum GraphicsEventType {
   error,
 }
 
-/// Graphics event
+/// graphics event
 class GraphicsEvent {
   final GraphicsEventType type;
   final String message;

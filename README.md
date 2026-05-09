@@ -28,10 +28,8 @@ a terminal emulator built with flutter. it uses the real `xterm.dart` package fo
 
 ## what it does not do
 
-- **no vr**: the `lib/vr/` openxr implementation was removed. it was incomplete fiction with compile errors
-- **no custom gpu renderer**: rendering is handled by `xterm.dart`'s built-in `terminalview`, wrapped in a `repaintboundary` for paint isolation
-- **no offline ai on desktop**: desktop builds are cloud-only. no quantized model is bundled
-- **no sixel/kitty/iterm2 graphics in the terminal grid**: `graphicsprotocolhandler` exists but is not wired into the active `terminalview`
+- **no offline AI on desktop**: desktop builds are cloud-only. no quantized model is bundled
+- **no sixel/kitty/iterm2 graphics in the terminal grid**: `GraphicsProtocolHandler` exists but is not wired into the active `TerminalView`
 
 ## recent fixes (2026-05-08)
 

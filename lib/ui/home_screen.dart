@@ -175,13 +175,13 @@ class _HomeScreenState extends State<HomeScreen> {
         _startDictation();
         break;
       case 'copy':
-        _activeSession?.clipboardManager.copy();
+        unawaited(_activeSession?.clipboardManager.copy() ?? Future<void>.value());
         break;
       case 'paste':
-        _activeSession?.clipboardManager.paste();
+        unawaited(_activeSession?.clipboardManager.paste() ?? Future<void>.value());
         break;
       case 'selectAll':
-        _activeSession?.clipboardManager.selectAll();
+        unawaited(_activeSession?.clipboardManager.selectAll() ?? Future<void>.value());
         break;
     }
   }
@@ -213,22 +213,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   TerminalSession? get _activeSession {
-    try {
-      return _tabs.firstWhere((t) => t.id == _activeTab);
-    } catch (_) {
-      return _tabs.isNotEmpty ? _tabs.first : null;
-    }
+    return _tabs.firstWhere(
+      (t) => t.id == _activeTab,
+      orElse: () => _tabs.isNotEmpty ? _tabs.first : null as TerminalSession,
+    );
   }
 
   Future<String> _handleAiQuery(String query) async {
     debugPrint('AI query: $query');
     try {
-      // Get AI service from registry
-      final aiService = widget.registry.getAIAssistant() as NvidiaAITerminalAssistant?;
-      if (aiService != null) {
+      final aiService = widget.registry.getAIAssistant();
+      if (aiService is NvidiaAITerminalAssistant) {
         final response = await aiService.processText(
           input: query,
-          capability: AICapability.text_generation,
+          capability: AICapability.textGeneration,
           contextId: 'terminal_$_activeTab',
         );
         final success = response.success;
@@ -238,7 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
             : 'AI service unavailable';
       }
       return 'AI service not configured';
-    } catch (e, stack) {
+    } on Exception catch (e, stack) {
       debugPrint('AI query failed: $e\n$stack');
       return 'AI query failed: $e';
     }
@@ -606,7 +604,13 @@ class _HomeScreenState extends State<HomeScreen> {
           session.terminal.write(scrollback);
         }
 
-        if (!mounted) return;
+        if (!mounted) {
+          session.directory.removeListener(_onDirectoryChanged);
+          unawaited(session.disposeSession().catchError((e) {
+            debugPrint('restore dispose error: $e');
+          }));
+          return;
+        }
 
         _tabs.add(session);
         _tabFocusNodes[id] = FocusNode();
@@ -715,11 +719,15 @@ class _HomeScreenState extends State<HomeScreen> {
           final session = _activeSession;
           if (session != null && session.detectedUrls.isNotEmpty) {
             final url = session.detectedUrls.last.url;
-            final uri = Uri.parse(url);
-            if (await canLaunchUrl(uri)) {
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-            } else {
-              debugPrint('cannot launch url: $url');
+            try {
+              final uri = Uri.parse(url);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              } else {
+                debugPrint('cannot launch url: $url');
+              }
+            } on Exception catch (e, stack) {
+              debugPrint('launch url failed: $e\n$stack');
             }
           }
         },
@@ -735,8 +743,12 @@ class _HomeScreenState extends State<HomeScreen> {
           final session = _activeSession;
           if (session != null && session.detectedUrls.isNotEmpty) {
             final url = session.detectedUrls.last.url;
-            await Clipboard.setData(ClipboardData(text: url));
-            debugPrint('URL copied to clipboard: $url');
+            try {
+              await Clipboard.setData(ClipboardData(text: url));
+              debugPrint('URL copied to clipboard: $url');
+            } on Exception catch (e, stack) {
+              debugPrint('copy url failed: $e\n$stack');
+            }
           }
         },
         enabled: _activeSession?.detectedUrls.isNotEmpty ?? false,

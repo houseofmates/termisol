@@ -1044,7 +1044,7 @@ class GraphicsProtocolHandler {
     return i;
   }
 
-  /// Convert Kitty image to RGBA format
+  /// convert kitty image to rgba format
   Future<Uint8List> _convertKittyToRGBA(
     GraphicsImage image,
     int? targetWidth,

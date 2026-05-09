@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 
-/// Comprehensive Logging and Debugging System for Termisol
+/// comprehensive logging and debugging system for termisol
 /// 
 /// Features:
 /// - Structured logging with multiple levels

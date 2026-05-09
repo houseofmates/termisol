@@ -291,7 +291,7 @@ class GraphicsProtocolHandler {
     });
   }
 
-  /// Handle Kitty Graphics Protocol
+  /// handle kitty graphics protocol
   String handleKittyProtocol(String sequence, int cursorX, int cursorY) {
     if (!_kittyProtocolEnabled) return '';
 

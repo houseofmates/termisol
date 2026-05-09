@@ -24,7 +24,7 @@ class ProductionConfigSystem {
   /// stream of configuration changes
   Stream<ConfigChangeEvent> get changes => _changeController.stream;
 
-  /// Whether the system is initialized
+  /// whether the system is initialized
   bool get initialized => _initialized;
 
   /// Whether auto-save is enabled

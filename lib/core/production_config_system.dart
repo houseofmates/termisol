@@ -395,7 +395,7 @@ class ProductionConfigSystem {
   Future<void> set(String key, dynamic value) async {
     final oldValue = get(key);
 
-    // Validate if validator exists
+    // validate if validator exists
     final validator = _validators[key];
     if (validator != null) {
       validator(value);

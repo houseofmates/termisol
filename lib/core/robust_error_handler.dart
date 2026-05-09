@@ -697,7 +697,7 @@ class RobustErrorHandler {
   }
 }
 
-/// Error severity levels
+/// error severity levels
 enum ErrorSeverity {
   info,
   warning,

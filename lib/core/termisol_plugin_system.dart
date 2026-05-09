@@ -261,7 +261,7 @@ class TermisolPluginSystem {
       await unloadPlugin(pluginId);
     }
 
-    // Close any orphaned receive ports.
+    // close any orphaned receive ports.
     for (final entry in _receivePorts.entries) {
       entry.value.close();
     }

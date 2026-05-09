@@ -14,6 +14,7 @@ analyzer:
     - "**/generated_plugin_registrant.dart"
     - "unused/**"
     - "scripts/**"
+    - "packages/xterm/example/**"
 
 linter:
   rules:

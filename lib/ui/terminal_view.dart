@@ -50,6 +50,7 @@ class TermisolTerminalView extends StatefulWidget {
 
 class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   late final TerminalClipboardManager _clipboard;
+  late final EnhancedClipboardManager _enhancedClipboard;
   late final GraphicsProtocolHandler _graphicsHandler;
   late final CustomHotkeyManager _hotkeyManager;
   final _deepL = DeepLTranslationService();

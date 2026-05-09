@@ -102,7 +102,7 @@ class TermisolPluginSystem {
         return false;
       }
 
-      // Check for conflicts
+      // check for conflicts
       if (_plugins.containsKey(manifest.id)) {
         _eventController.add(PluginSystemEvent(
           PluginSystemEventType.loadFailed,

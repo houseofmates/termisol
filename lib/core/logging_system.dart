@@ -165,7 +165,7 @@ class TermisolLogger {
   /// get log stream for real-time monitoring
   Stream<LogEntry> get logStream => _logStream.stream;
   
-  /// Get debug events
+  /// get debug events
   Map<String, DebugEvent> get debugEvents => Map.unmodifiable(_debugEvents);
   
   /// Get performance summary

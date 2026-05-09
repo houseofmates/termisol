@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:xterm/xterm.dart' show Terminal, BufferPosition;
 import 'dart:convert';
 import '../core/terminal_session.dart';
 import 'clipboard_manager.dart';

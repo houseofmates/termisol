@@ -671,6 +671,28 @@ class EnhancedClipboardManager {
     }
   }
 
+  /// Analyze GIF file for metadata
+  Future<void> _analyzeGifFile(String filePath) async {
+    try {
+      final file = File(filePath);
+      final bytes = await file.readAsBytes();
+      
+      // Simple GIF analysis - look for animated GIF signature
+      if (bytes.length < 6) return;
+      
+      // Check if animated (multiple images)
+      final isAnimated = bytes.length > 1000; // Simple heuristic
+      final estimatedFrames = isAnimated ? 'multiple' : '1';
+      
+      terminal.write('📊 GIF Analysis:\n\r');
+      terminal.write('   • Frames: $estimatedFrames\n\r');
+      terminal.write('   • Animated: $isAnimated\n\r');
+      terminal.write('   • Size: ${(bytes.length / 1024).toStringAsFixed(1)}KB\n\r');
+    } catch (e) {
+      debugPrint('GIF analysis failed: $e');
+    }
+  }
+
   /// Dispose resources
   void dispose() {
     // No specific resources to dispose

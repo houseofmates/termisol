@@ -235,7 +235,7 @@ class ProductionConfigSystem {
       _config['features']['vr_support'] = true;
     }
 
-    // Windows optimizations
+    // windows optimizations
     else if (Platform.isWindows) {
       _config['performance'] ??= {};
       _config['performance']['gpu_acceleration'] = true;

@@ -455,9 +455,63 @@ class SimplePlugin implements Plugin {
 
   @override
   Future<dynamic> execute(String method, [Map<String, dynamic>? args]) async {
-    // This would communicate with the isolate to execute methods
-    // For now, return a placeholder response
-    return {'method': method, 'args': args, 'executed': true};
+    try {
+      // Check if this plugin supports the requested capability
+      if (!capabilities.contains(method)) {
+        return {
+          'method': method,
+          'args': args,
+          'executed': false,
+          'error': 'Plugin does not support method: $method',
+          'availableCapabilities': capabilities,
+        };
+      }
+
+      // Simulate plugin execution with basic validation
+      // In a real implementation, this would communicate with the isolate
+      final result = await _executeInIsolate(method, args ?? {});
+
+      return {
+        'method': method,
+        'args': args,
+        'executed': true,
+        'result': result,
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+    } catch (e) {
+      return {
+        'method': method,
+        'args': args,
+        'executed': false,
+        'error': e.toString(),
+      };
+    }
+  }
+
+  Future<dynamic> _executeInIsolate(String method, Map<String, dynamic> args) async {
+    // Placeholder for actual isolate communication
+    // This would send a message to the isolate and wait for response
+    switch (method) {
+      case 'echo':
+        return args['message'] ?? 'echo';
+      case 'get_info':
+        return {
+          'plugin_id': id,
+          'plugin_name': name,
+          'version': version,
+          'capabilities': capabilities,
+        };
+      case 'execute_command':
+        // Simulate command execution
+        return {
+          'command': args['command'],
+          'simulated': true,
+          'exit_code': 0,
+          'output': 'Command executed successfully (simulated)',
+        };
+      default:
+        throw UnsupportedError('Method $method not implemented in plugin $name');
+    }
   }
 }
 

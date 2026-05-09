@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:xterm/xterm.dart';
+import 'package:xterm/xterm.dart' show Terminal, TerminalTheme, TerminalView, TerminalViewState, BufferPosition;
 import '../core/terminal_session.dart';
 import '../core/gpu_renderer.dart';
 import '../core/deep_l_service.dart';
@@ -11,15 +11,17 @@ import '../core/graphics_protocol_handler.dart';
 import '../config/pkm_theme.dart';
 import 'clipboard_manager.dart';
 import 'copy_mode_overlay.dart';
+import 'custom_hotkey_manager.dart';
+import 'enhanced_clipboard_manager.dart';
 
-/// Active terminal theme based on the current [PkmTheme.themeMode].
+/// active terminal theme based on the current [pkmtheme.thememode].
 TerminalTheme get termisolTerminalTheme => PkmTheme.activeTerminalTheme;
 
 const _defaultTerminalFontSize = 14.0;
 const _minFontSize = 8.0;
 const _maxFontSize = 32.0;
 
-/// gpu-optimized terminal widget for termisol.
+/// gpu-optimized terminal widget for termisol
 class TermisolTerminalView extends StatefulWidget {
   final TerminalSession session;
   final bool autofocus;
@@ -48,7 +50,9 @@ class TermisolTerminalView extends StatefulWidget {
 
 class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   late final TerminalClipboardManager _clipboard;
+  late final EnhancedClipboardManager _enhancedClipboard;
   late final GraphicsProtocolHandler _graphicsHandler;
+  late final CustomHotkeyManager _hotkeyManager;
   final _deepL = DeepLTranslationService();
   final _terminalViewKey = GlobalKey<TerminalViewState>();
   bool _isSummarizing = false;
@@ -58,12 +62,12 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   MouseCursor _mouseCursor = SystemMouseCursors.text;
   String _fontFamily = 'DroidSansMono';
 
-  // Autocomplete state
+  // autocomplete state
   List<String> _suggestions = [];
   bool _showSuggestions = false;
   String? _currentInput;
 
-  // Command chaining state
+  // command chaining state
   List<String> _chainSuggestions = [];
   bool _showChainSuggestions = false;
   void Function(String)? _originalOnOutput;
@@ -82,6 +86,18 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     _clipboard = TerminalClipboardManager(
       widget.session.terminal,
       widget.session.controller,
+    );
+    _enhancedClipboard = EnhancedClipboardManager(
+      terminal: widget.session.terminal,
+      controller: widget.session.controller,
+    );
+    _hotkeyManager = CustomHotkeyManager(
+      session: widget.session,
+      clipboard: _enhancedClipboard,
+      onNewTab: widget.onNewTab,
+      onSaveFile: _saveCurrentFile,
+      onSearch: _showSearchOverlay,
+      onCopyAll: _copyAllContent,
     );
     widget.session.addListener(_onSessionChanged);
     _loadTerminalStyle();
@@ -121,6 +137,8 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     widget.session.onOutputReceived = _originalOnOutput;
     _graphicsHandler.dispose();
     _clipboard.dispose();
+    _enhancedClipboard.dispose();
+    _hotkeyManager.dispose();
     super.dispose();
   }
 
@@ -180,6 +198,12 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+    // First try custom hotkey manager
+    final customResult = _hotkeyManager.handleKeyEvent(node, event);
+    if (customResult == KeyEventResult.handled) {
+      return KeyEventResult.handled;
+    }
 
     final ctrl = HardwareKeyboard.instance.isControlPressed;
     final shift = HardwareKeyboard.instance.isShiftPressed;
@@ -262,6 +286,50 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     }
     widget.session.sendRawInput('$suggestion\r');
     setState(() => _showSuggestions = false);
+  }
+
+  /// Save the currently opened file (for edit or nano)
+  Future<void> _saveCurrentFile() async {
+    // Check if we're in an editor session
+    final buffer = widget.session.terminal.buffer;
+    if (buffer.height == 0) return;
+    
+    final lastLine = buffer.lines[buffer.height - 1].getText();
+    
+    // Try to detect if we're in an editor by checking common editor patterns
+    final isInEditor = RegExp(r'(nano|vi|vim|edit|emacs|code)\s+').hasMatch(lastLine) ||
+                      lastLine.contains('-- INSERT --') ||
+                      lastLine.contains('Normal mode');
+    
+    if (isInEditor) {
+      // Send Ctrl+S to save in most editors
+      widget.session.sendRawInput('\x13'); // Ctrl+S
+      debugPrint('Termisol: Save command sent to editor');
+    } else {
+      debugPrint('Termisol: Not in an editor session');
+    }
+  }
+
+  /// Show search overlay
+  void _showSearchOverlay() {
+    // This would integrate with the existing search functionality
+    // For now, we'll send Ctrl+F to the terminal which many apps support
+    widget.session.sendRawInput('\x06'); // Ctrl+F
+    debugPrint('Termisol: Search command sent');
+  }
+
+  /// Copy all terminal content
+  void _copyAllContent() {
+    final buffer = widget.session.terminal.buffer;
+    if (buffer.height == 0) return;
+    
+    final allText = buffer.getText(
+      BufferPosition(0, 0),
+      BufferPosition(buffer.columns - 1, buffer.height - 1),
+    );
+    
+    Clipboard.setData(ClipboardData(text: allText));
+    debugPrint('Termisol: All content copied to clipboard');
   }
 
   void _sendChainCommand(String command) {

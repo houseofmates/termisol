@@ -111,20 +111,25 @@ ai:
 
 | shortcut | action |
 |----------|--------|
-| `ctrl+T` | new tab |
-| `ctrl+shift+T` | duplicate tab |
-| `ctrl+W` | close tab |
-| `ctrl+shift+W` | close all other tabs |
-| `ctrl+Tab` | next tab |
-| `ctrl+shift+C` | copy (or enter copy mode if no selection) |
-| `ctrl+shift+V` | paste |
-| `ctrl+F` | find in terminal |
-| `ctrl+shift+P` | command palette |
-| `ctrl+shift+O` | toggle performance overlay |
-| `ctrl+shift+B` | toggle broadcast input |
-| `ctrl+shift+H` | hints mode |
-| `ctrl+=` / `Ctrl+-` | zoom in / out |
-| `ctrl+0` | reset zoom |
+| `Ctrl+N` | new tab |
+| `Ctrl+T` | duplicate tab |
+| `Ctrl+W` | close tab |
+| `Ctrl+Shift+W` | close all other tabs |
+| `Ctrl+Tab` | next tab |
+| `Ctrl+C` | copy selected text |
+| `Ctrl+Shift+C` | interrupt (original Ctrl+C behavior) |
+| `Ctrl+V` | paste |
+| `Ctrl+Z` | undo (standard behavior) |
+| `Ctrl+A` | copy all terminal content |
+| `Ctrl+F` | find in terminal |
+| `Ctrl+S` | save current file (in edit/nano) |
+| `Ctrl+B` | toggle transcript recording with Whisper |
+| `Ctrl+Shift+P` | command palette |
+| `Ctrl+Shift+O` | toggle performance overlay |
+| `Ctrl+Shift+B` | toggle broadcast input |
+| `Ctrl+Shift+H` | hints mode |
+| `Ctrl+=` / `Ctrl+-` | zoom in / out |
+| `Ctrl+0` | reset zoom |
 
 ## AI usage
 

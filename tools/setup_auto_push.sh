@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Setup script for amnesia-proof, restart-proof AutoPush system
-# This script installs the necessary components and sets up automatic restart
+# setup script for amnesia-proof, restart-proof autopush system
+# this script installs the necessary components and sets up automatic restart
 
 set -e
 
@@ -11,42 +11,42 @@ REPO_DIR="$(dirname "$SCRIPT_DIR")"
 echo "🔧 Setting up Termisol AutoPush System"
 echo "📍 Repository: $REPO_DIR"
 
-# Check if we're in a git repository
+# check if we're in a git repository
 cd "$REPO_DIR"
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
     echo "❌ Error: Not in a git repository"
     exit 1
 fi
 
-# Check if dart is available
+# check if dart is available
 if ! command -v dart &> /dev/null; then
     echo "❌ Error: Dart is not installed or not in PATH"
     exit 1
 fi
 
-# Check if jq is available (for JSON parsing in the starter script)
+# check if jq is available (for json parsing in the starter script)
 if ! command -v jq &> /dev/null; then
     echo "⚠️  Warning: jq is not installed, some features may not work"
     echo "   Install with: sudo apt-get install jq (Ubuntu/Debian)"
 fi
 
-# Create necessary directories
+# create necessary directories
 echo "📁 Creating directories..."
 mkdir -p "$REPO_DIR/.devin"
 mkdir -p "$REPO_DIR/tools"
 
-# Make scripts executable
+# make scripts executable
 echo "🔐 Making scripts executable..."
 chmod +x "$SCRIPT_DIR/start_auto_push.sh"
 chmod +x "$SCRIPT_DIR/setup_auto_push.sh"
 
-# Create systemd service (if systemd is available and sudo works)
+# create systemd service (if systemd is available and sudo works)
 if command -v systemctl &> /dev/null && [ -w "/etc/systemd/system" ]; then
     echo "🔧 Setting up systemd service..."
     
     SERVICE_FILE="/etc/systemd/system/termisol-autopush.service"
     
-    # Create systemd service file
+    # create systemd service file
     tee "$SERVICE_FILE" > /dev/null << EOF
 [Unit]
 Description=Termisol AutoPush Service
@@ -66,7 +66,7 @@ StandardError=append:$REPO_DIR/.devin/auto_push.log
 WantedBy=multi-user.target
 EOF
 
-    # Reload systemd and enable service
+    # reload systemd and enable service
     systemctl daemon-reload 2>/dev/null || echo "⚠️  Could not reload systemd (need sudo?)"
     systemctl enable termisol-autopush.service 2>/dev/null || echo "⚠️  Could not enable systemd service (need sudo?)"
     
@@ -77,12 +77,12 @@ else
     echo "⚠️  Systemd not available or no write access, using manual startup"
 fi
 
-# Create crontab entry for fallback (runs every 5 minutes to check if service is running)
+# create crontab entry for fallback (runs every 5 minutes to check if service is running)
 echo "⏰ Setting up crontab fallback..."
 TEMP_CRON=$(mktemp)
 crontab -l > "$TEMP_CRON" 2>/dev/null || echo "" > "$TEMP_CRON"
 
-# Check if entry already exists
+# check if entry already exists
 if ! grep -q "termisol-auto-push" "$TEMP_CRON"; then
     echo "*/5 * * * * $SCRIPT_DIR/start_auto_push.sh >> $REPO_DIR/.devin/cron.log 2>&1 # termisol-auto-push" >> "$TEMP_CRON"
     crontab "$TEMP_CRON"
@@ -93,7 +93,7 @@ fi
 
 rm -f "$TEMP_CRON"
 
-# Create startup script in user's shell profile
+# create startup script in user's shell profile
 echo "🖥️  Setting up shell startup..."
 SHELL_NAME=$(basename "$SHELL")
 PROFILE_FILE=""
@@ -110,7 +110,7 @@ case "$SHELL_NAME" in
         ;;
 esac
 
-# Add startup command if not already present
+# add startup command if not already present
 if ! grep -q "termisol-auto-push" "$PROFILE_FILE" 2>/dev/null; then
     echo "" >> "$PROFILE_FILE"
     echo "# Termisol AutoPush Service" >> "$PROFILE_FILE"
@@ -122,7 +122,7 @@ else
     echo "✅ Shell startup already configured"
 fi
 
-# Start the service immediately
+# start the service immediately
 echo "🚀 Starting AutoPush service..."
 "$SCRIPT_DIR/start_auto_push.sh"
 

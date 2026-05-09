@@ -4,18 +4,18 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 
-/// Comprehensive Logging and Debugging System for Termisol
+/// comprehensive logging and debugging system for termisol
 /// 
-/// Features:
-/// - Structured logging with multiple levels
-/// - Performance monitoring and profiling
-/// - Debug event tracking
-/// - Log file rotation and compression
-/// - Remote logging support
-/// - Debug mode with enhanced details
+/// features:
+/// - structured logging with multiple levels
+/// - performance monitoring and profiling
+/// - debug event tracking
+/// - log file rotation and compression
+/// - remote logging support
+/// - debug mode with enhanced details
 class TermisolLogger {
   static const String _logDirectory = 'logs';
-  static const int _maxLogFileSize = 10 * 1024 * 1024; // 10MB
+  static const int _maxLogFileSize = 10 * 1024 * 1024; // 10mb
 
   static const Duration _flushInterval = Duration(seconds: 5);
   

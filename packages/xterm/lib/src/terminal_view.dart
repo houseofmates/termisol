@@ -48,6 +48,7 @@ class TerminalView extends StatefulWidget {
     this.onKeyEvent,
     this.readOnly = false,
     this.hardwareKeyboardOnly = false,
+    this.painter,
     this.simulateScroll = true,
   });
 
@@ -134,6 +135,10 @@ class TerminalView extends StatefulWidget {
   /// True if only hardware keyboard events should be used as input. This will
   /// also prevent any on-screen keyboard to be shown.
   final bool hardwareKeyboardOnly;
+
+  /// Optional custom painter. When provided it replaces the default
+  /// [TerminalPainter] used by the internal [RenderTerminal].
+  final TerminalPainter? painter;
 
   /// If true, when the terminal is in alternate buffer (for example running
   /// vim, man, etc), if the application does not declare that it can handle
@@ -237,6 +242,7 @@ class TerminalViewState extends State<TerminalView> {
           alwaysShowCursor: widget.alwaysShowCursor,
           onEditableRect: _onEditableRect,
           composingText: _composingText,
+          painter: widget.painter,
         );
       },
     );
@@ -466,6 +472,7 @@ class _TerminalView extends LeafRenderObjectWidget {
     required this.alwaysShowCursor,
     this.onEditableRect,
     this.composingText,
+    this.painter,
   });
 
   final Terminal terminal;
@@ -494,6 +501,8 @@ class _TerminalView extends LeafRenderObjectWidget {
 
   final String? composingText;
 
+  final TerminalPainter? painter;
+
   @override
   RenderTerminal createRenderObject(BuildContext context) {
     return RenderTerminal(
@@ -510,6 +519,7 @@ class _TerminalView extends LeafRenderObjectWidget {
       alwaysShowCursor: alwaysShowCursor,
       onEditableRect: onEditableRect,
       composingText: composingText,
+      customPainter: painter,
     );
   }
 
@@ -526,6 +536,7 @@ class _TerminalView extends LeafRenderObjectWidget {
       ..theme = theme
       ..focusNode = focusNode
       ..cursorType = cursorType
+      ..customPainter = painter
       ..alwaysShowCursor = alwaysShowCursor
       ..onEditableRect = onEditableRect
       ..composingText = composingText;

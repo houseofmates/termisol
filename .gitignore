@@ -67,3 +67,7 @@ AppDir/
 *.idsig
 # Local env
 .env
+
+# Devin and Windsurf
+.devin/
+.windsurf/

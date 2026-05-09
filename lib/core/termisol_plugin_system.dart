@@ -22,16 +22,16 @@ class PluginMessage {
       };
 }
 
-/// Termisol Plugin System
+/// termisol plugin system
 ///
-/// Features:
-/// - Dynamic plugin loading from file system
-/// - Plugin lifecycle management (load, unload, reload)
-/// - Secure isolate-based execution
-/// - Plugin dependency resolution
-/// - Event-driven communication
-/// - Performance monitoring
-/// - Hot-reload capability
+/// features:
+/// - dynamic plugin loading from file system
+/// - plugin lifecycle management (load, unload, reload)
+/// - secure isolate-based execution
+/// - plugin dependency resolution
+/// - event-driven communication
+/// - performance monitoring
+/// - hot-reload capability
 class TermisolPluginSystem {
   final Map<String, Plugin> _plugins = {};
   final Map<String, Isolate> _isolates = {};
@@ -49,18 +49,18 @@ class TermisolPluginSystem {
   List<String> get loadedPluginIds => _plugins.keys.toList();
   Map<String, PluginManifest> get loadedPlugins => Map.unmodifiable(_manifests);
 
-  /// Initialize the plugin system
+  /// initialize the plugin system
   Future<void> initialize() async {
     if (_isInitialized) return;
 
     try {
-      // Create plugins directory
+      // create plugins directory
       final pluginsDir = Directory(_pluginsDirectory);
       if (!await pluginsDir.exists()) {
         await pluginsDir.create(recursive: true);
       }
 
-      // Load all plugins from directory
+      // load all plugins from directory
       await _loadAllPlugins();
 
       _isInitialized = true;
@@ -79,7 +79,7 @@ class TermisolPluginSystem {
     }
   }
 
-  /// Load a plugin from file path
+  /// load a plugin from file path
   Future<bool> loadPlugin(String pluginPath) async {
     try {
       final file = File(pluginPath);
@@ -102,7 +102,7 @@ class TermisolPluginSystem {
         return false;
       }
 
-      // Check for conflicts
+      // check for conflicts
       if (_plugins.containsKey(manifest.id)) {
         _eventController.add(PluginSystemEvent(
           PluginSystemEventType.loadFailed,
@@ -111,7 +111,7 @@ class TermisolPluginSystem {
         return false;
       }
 
-      // Validate dependencies
+      // validate dependencies
       if (!await _validateDependencies(manifest)) {
         _eventController.add(PluginSystemEvent(
           PluginSystemEventType.loadFailed,
@@ -121,7 +121,7 @@ class TermisolPluginSystem {
         return false;
       }
 
-      // Create plugin isolate
+      // create plugin isolate
       final isolate = await _createPluginIsolate(manifest, content);
       if (isolate == null) {
         _eventController.add(PluginSystemEvent(
@@ -131,7 +131,7 @@ class TermisolPluginSystem {
         return false;
       }
 
-      // Create plugin instance
+      // create plugin instance
       final plugin = SimplePlugin(
         manifest: manifest,
         isolate: isolate,
@@ -143,7 +143,7 @@ class TermisolPluginSystem {
       _manifests[manifest.id] = manifest;
       _isolates[manifest.id] = isolate;
 
-      // Initialize plugin
+      // initialize plugin
       await plugin.initialize();
 
       _eventController.add(PluginSystemEvent(
@@ -163,7 +163,7 @@ class TermisolPluginSystem {
     }
   }
 
-  /// Unload a plugin
+  /// unload a plugin
   Future<void> unloadPlugin(String pluginId) async {
     final plugin = _plugins[pluginId];
     final isolate = _isolates[pluginId];
@@ -197,14 +197,14 @@ class TermisolPluginSystem {
     ));
   }
 
-  /// Reload a plugin
+  /// reload a plugin
   Future<bool> reloadPlugin(String pluginId) async {
     final manifest = _manifests[pluginId];
     if (manifest == null) return false;
 
     await unloadPlugin(pluginId);
 
-    // Find plugin file
+    // find plugin file
     final pluginFile = File('$_pluginsDirectory/$pluginId.plugin');
     if (!await pluginFile.exists()) {
       return false;
@@ -213,7 +213,7 @@ class TermisolPluginSystem {
     return await loadPlugin(pluginFile.path);
   }
 
-  /// Execute plugin method
+  /// execute plugin method
   Future<dynamic> executePlugin(String pluginId, String method, [Map<String, dynamic>? args]) async {
     final plugin = _plugins[pluginId];
     if (plugin == null) {
@@ -223,19 +223,19 @@ class TermisolPluginSystem {
     return await plugin.execute(method, args ?? {});
   }
 
-  /// Get plugin information
+  /// get plugin information
   PluginManifest? getPluginManifest(String pluginId) => _manifests[pluginId];
 
-  /// Check if plugin is loaded
+  /// check if plugin is loaded
   bool isPluginLoaded(String pluginId) => _plugins.containsKey(pluginId);
 
-  /// Get plugin capabilities
+  /// get plugin capabilities
   List<String> getPluginCapabilities(String pluginId) {
     final manifest = _manifests[pluginId];
     return manifest?.capabilities ?? [];
   }
 
-  /// List all available plugin files
+  /// list all available plugin files
   Future<List<String>> listAvailablePlugins() async {
     try {
       final pluginsDir = Directory(_pluginsDirectory);
@@ -254,14 +254,14 @@ class TermisolPluginSystem {
     }
   }
 
-  /// Dispose all resources
+  /// dispose all resources
   Future<void> dispose() async {
     final pluginIds = List<String>.from(_plugins.keys);
     for (final pluginId in pluginIds) {
       await unloadPlugin(pluginId);
     }
 
-    // Close any orphaned receive ports.
+    // close any orphaned receive ports.
     for (final entry in _receivePorts.entries) {
       entry.value.close();
     }
@@ -271,7 +271,7 @@ class TermisolPluginSystem {
     _isInitialized = false;
   }
 
-  // Private methods
+  // private methods
 
   Future<void> _loadAllPlugins() async {
     final pluginFiles = await listAvailablePlugins();
@@ -329,7 +329,7 @@ class TermisolPluginSystem {
           return false;
         }
       }
-      // System dependencies would be validated here
+      // system dependencies would be validated here
     }
     return true;
   }
@@ -353,7 +353,7 @@ class TermisolPluginSystem {
 
       _isolates[manifest.id] = isolate;
 
-      // Wait for plugin initialization
+      // wait for plugin initialization
       final initMessage = await receivePort.firstWhere((message) {
         return message is Map && message['type'] == 'initialized';
       }).timeout(_isolateTimeout);
@@ -487,7 +487,7 @@ class _IsolatePlugin implements Plugin {
   }
 }
 
-/// Plugin interface
+/// plugin interface
 abstract class Plugin {
   String get id;
   String get name;
@@ -501,7 +501,7 @@ abstract class Plugin {
   Future<dynamic> execute(String method, [Map<String, dynamic>? args]);
 }
 
-/// Simple plugin implementation
+/// simple plugin implementation
 class SimplePlugin implements Plugin {
   final PluginManifest manifest;
   final Isolate isolate;
@@ -634,7 +634,7 @@ class SimplePlugin implements Plugin {
   }
 }
 
-/// Plugin manifest
+/// plugin manifest
 class PluginManifest {
   final String id;
   final String name;
@@ -682,7 +682,7 @@ class PluginManifest {
   String toString() => '$name ($version) by $author';
 }
 
-/// Plugin system events
+/// plugin system events
 class PluginSystemEvent {
   final PluginSystemEventType type;
   final String message;

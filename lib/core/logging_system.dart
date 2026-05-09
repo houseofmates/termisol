@@ -225,7 +225,7 @@ class TermisolLogger {
     return '${DateTime.now().millisecondsSinceEpoch}-${_randomString(8)}';
   }
   
-  /// Generate random string
+  /// generate random string
   String _randomString(int length) {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     final random = DateTime.now().millisecondsSinceEpoch;

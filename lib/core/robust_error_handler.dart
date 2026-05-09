@@ -94,7 +94,7 @@ class RobustErrorHandler {
       // update error statistics
       _updateErrorStats(errorReport);
       
-      // Add to history
+      // add to history
       _errorHistory.add(errorReport);
       if (_errorHistory.length > _maxErrorHistory) {
         _errorHistory.removeAt(0);

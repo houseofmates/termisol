@@ -68,7 +68,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Handle an error with full context
+  /// handle an error with full context
   Future<void> handleError(
     dynamic error,
     StackTrace? stackTrace, {
@@ -122,14 +122,14 @@ class RobustErrorHandler {
     }
   }
   
-  /// Generate unique error ID
+  /// generate unique error id
   String _generateErrorId() {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final random = timestamp % 1000000;
     return 'err_${timestamp}_$random';
   }
   
-  /// Update error statistics
+  /// update error statistics
   void _updateErrorStats(ErrorReport report) {
     final key = '${report.error}_${report.context ?? ''}';
     _errorCounts[key] = (_errorCounts[key] ?? 0) + 1;

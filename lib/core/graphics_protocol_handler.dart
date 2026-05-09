@@ -176,7 +176,7 @@ class GraphicsProtocolHandler {
       }
     }
 
-    // Grayscale ramp
+    // grayscale ramp
     for (int i = 0; i < 24; i++) {
       final gray = 8 + 10 * i;
       final index = 232 + i;

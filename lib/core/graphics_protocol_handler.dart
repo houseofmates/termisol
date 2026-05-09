@@ -28,12 +28,24 @@ class GraphicsProtocolHandler {
 
   // Extended image format support
   final Set<String> _supportedImageFormats = {
-    'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'avif', 'heic', 'heif', 'tiff', 'ico', 'svg'
+    'png',
+    'jpg',
+    'jpeg',
+    'gif',
+    'bmp',
+    'webp',
+    'avif',
+    'heic',
+    'heif',
+    'tiff',
+    'ico',
+    'svg',
   };
 
   // Graphics state
   final Map<String, GraphicsImage> _imageCache = {};
-  final Map<String, Offset> _imagePositions = {}; // imageId -> character position (x,y)
+  final Map<String, Offset> _imagePositions =
+      {}; // imageId -> character position (x,y)
   final Map<int, Color> _colorPalette = {};
   final Map<String, GraphicsOverlay> _overlays = {};
   final List<GraphicsAnimation> _animations = [];
@@ -55,7 +67,8 @@ class GraphicsProtocolHandler {
   // Performance monitoring
   int _totalImagesProcessed = 0;
   int _totalRenderTime = 0;
-  final StreamController<GraphicsEvent> _eventController = StreamController.broadcast();
+  final StreamController<GraphicsEvent> _eventController =
+      StreamController.broadcast();
 
   GraphicsProtocolHandler([this._terminal, this._controller]);
 
@@ -90,16 +103,20 @@ class GraphicsProtocolHandler {
       }
 
       _isInitialized = true;
-      _eventController.add(GraphicsEvent(
-        GraphicsEventType.initialized,
-        'Graphics Protocol Handler initialized with True Color support',
-      ));
+      _eventController.add(
+        GraphicsEvent(
+          GraphicsEventType.initialized,
+          'Graphics Protocol Handler initialized with True Color support',
+        ),
+      );
     } catch (e) {
-      _eventController.add(GraphicsEvent(
-        GraphicsEventType.error,
-        'Failed to initialize Graphics Protocol Handler: $e',
-        data: {'error': e.toString()},
-      ));
+      _eventController.add(
+        GraphicsEvent(
+          GraphicsEventType.error,
+          'Failed to initialize Graphics Protocol Handler: $e',
+          data: {'error': e.toString()},
+        ),
+      );
       rethrow;
     }
   }
@@ -110,7 +127,11 @@ class GraphicsProtocolHandler {
     if (terminal == null) return;
     final original = terminal.onOutput;
     terminal.onOutput = (data) {
-      final processed = processOutput(data, terminal.buffer.cursorX, terminal.buffer.cursorY);
+      final processed = processOutput(
+        data,
+        terminal.buffer.cursorX,
+        terminal.buffer.cursorY,
+      );
       original?.call(processed);
     };
   }
@@ -119,8 +140,22 @@ class GraphicsProtocolHandler {
   void _initializeColorPalette() {
     // ANSI 16-color palette
     final standardColors = [
-      0x000000, 0x800000, 0x008000, 0x808000, 0x000080, 0x800080, 0x008080, 0xc0c0c0,
-      0x808080, 0xff0000, 0x00ff00, 0xffff00, 0x0000ff, 0xff00ff, 0x00ffff, 0xffffff,
+      0x000000,
+      0x800000,
+      0x008000,
+      0x808000,
+      0x000080,
+      0x800080,
+      0x008080,
+      0xc0c0c0,
+      0x808080,
+      0xff0000,
+      0x00ff00,
+      0xffff00,
+      0x0000ff,
+      0xff00ff,
+      0x00ffff,
+      0xffffff,
     ];
 
     for (int i = 0; i < standardColors.length; i++) {
@@ -159,7 +194,9 @@ class GraphicsProtocolHandler {
 
     try {
       // Parse True Color (RGB) sequences: ESC[38;2;r;g;b or ESC[48;2;r;g;b
-      final rgbMatch = RegExp(r'\x1b\[(38|48);2;(\d+);(\d+);(\d+)m').firstMatch(sequence);
+      final rgbMatch = RegExp(
+        r'\x1b\[(38|48);2;(\d+);(\d+);(\d+)m',
+      ).firstMatch(sequence);
       if (rgbMatch != null) {
         final r = int.parse(rgbMatch.group(2)!);
         final g = int.parse(rgbMatch.group(3)!);
@@ -188,10 +225,22 @@ class GraphicsProtocolHandler {
     if (match != null) {
       final code = int.parse(match.group(1)!);
       final colorMap = {
-        30: Colors.black, 31: Colors.red, 32: Colors.green, 33: Colors.yellow,
-        34: Colors.blue, 35: const Color(0xFFFF00FF), 36: Colors.cyan, 37: Colors.white,
-        40: Colors.black, 41: Colors.red, 42: Colors.green, 43: Colors.yellow,
-        44: Colors.blue, 45: const Color(0xFFFF00FF), 46: Colors.cyan, 47: Colors.white,
+        30: Colors.black,
+        31: Colors.red,
+        32: Colors.green,
+        33: Colors.yellow,
+        34: Colors.blue,
+        35: const Color(0xFFFF00FF),
+        36: Colors.cyan,
+        37: Colors.white,
+        40: Colors.black,
+        41: Colors.red,
+        42: Colors.green,
+        43: Colors.yellow,
+        44: Colors.blue,
+        45: const Color(0xFFFF00FF),
+        46: Colors.cyan,
+        47: Colors.white,
       };
       return colorMap[code] ?? Colors.white;
     }
@@ -235,7 +284,11 @@ class GraphicsProtocolHandler {
     final kittyRegex = RegExp(r'\x1b_G([^\\]*)\x1b\\', dotAll: true);
     return output.replaceAllMapped(kittyRegex, (match) {
       final data = match.group(1) ?? '';
-      final response = handleKittyProtocol('\x1b_G$data\x1b\\', cursorX, cursorY);
+      final response = handleKittyProtocol(
+        '\x1b_G$data\x1b\\',
+        cursorX,
+        cursorY,
+      );
       return response.isNotEmpty ? response : '';
     });
   }
@@ -285,7 +338,11 @@ class GraphicsProtocolHandler {
   }
 
   /// Handle Kitty graphics actions
-  String _handleKittyAction(Map<String, String> params, int cursorX, int cursorY) {
+  String _handleKittyAction(
+    Map<String, String> params,
+    int cursorX,
+    int cursorY,
+  ) {
     final action = params['a'];
 
     switch (action) {
@@ -318,11 +375,13 @@ class GraphicsProtocolHandler {
     // Store position
     _imagePositions[id] = Offset(cursorX.toDouble(), cursorY.toDouble());
 
-    _eventController.add(GraphicsEvent(
-      GraphicsEventType.imageReceived,
-      'Kitty image received',
-      data: {'id': id, 'width': width, 'height': height},
-    ));
+    _eventController.add(
+      GraphicsEvent(
+        GraphicsEventType.imageReceived,
+        'Kitty image received',
+        data: {'id': id, 'width': width, 'height': height},
+      ),
+    );
 
     // Return acknowledgment
     return '\x1b_Gi=$id;OK\x1b\\';
@@ -334,11 +393,13 @@ class GraphicsProtocolHandler {
     if (id != null) {
       _imageCache.remove(id);
       _imagePositions.remove(id);
-      _eventController.add(GraphicsEvent(
-        GraphicsEventType.imageDeleted,
-        'Kitty image deleted',
-        data: {'id': id},
-      ));
+      _eventController.add(
+        GraphicsEvent(
+          GraphicsEventType.imageDeleted,
+          'Kitty image deleted',
+          data: {'id': id},
+        ),
+      );
     }
     return '\x1b_GOK\x1b\\';
   }
@@ -354,7 +415,11 @@ class GraphicsProtocolHandler {
   }
 
   /// Handle Kitty graphics transmission
-  String _handleKittyTransmission(Map<String, String> params, int cursorX, int cursorY) {
+  String _handleKittyTransmission(
+    Map<String, String> params,
+    int cursorX,
+    int cursorY,
+  ) {
     // Handle image data transmission
     final format = params['t'] ?? 'f';
     final id = params['i'] ?? _nextImageId.toString();
@@ -371,7 +436,12 @@ class GraphicsProtocolHandler {
   }
 
   /// Process direct image transmission
-  String _processDirectTransmission(Map<String, String> params, String id, int cursorX, int cursorY) {
+  String _processDirectTransmission(
+    Map<String, String> params,
+    String id,
+    int cursorX,
+    int cursorY,
+  ) {
     try {
       final data = params['d'];
       final format = params['f'] ?? '100';
@@ -403,11 +473,13 @@ class GraphicsProtocolHandler {
       }
 
       _totalImagesProcessed++;
-      _eventController.add(GraphicsEvent(
-        GraphicsEventType.imageProcessed,
-        'Kitty image processed',
-        data: {'id': id, 'size': data.length},
-      ));
+      _eventController.add(
+        GraphicsEvent(
+          GraphicsEventType.imageProcessed,
+          'Kitty image processed',
+          data: {'id': id, 'size': data.length},
+        ),
+      );
 
       return '\x1b_Gi=$id,f=$format\x1b\\';
     } catch (e) {
@@ -417,7 +489,12 @@ class GraphicsProtocolHandler {
   }
 
   /// Process temporary file transmission
-  String _processTemporaryFileTransmission(Map<String, String> params, String id, int cursorX, int cursorY) {
+  String _processTemporaryFileTransmission(
+    Map<String, String> params,
+    String id,
+    int cursorX,
+    int cursorY,
+  ) {
     try {
       final data = params['d'];
       final format = params['f'] ?? '100';
@@ -455,11 +532,13 @@ class GraphicsProtocolHandler {
       }
 
       _totalImagesProcessed++;
-      _eventController.add(GraphicsEvent(
-        GraphicsEventType.imageProcessed,
-        'Kitty temp file processed',
-        data: {'id': id, 'path': filePath, 'size': bytes.length},
-      ));
+      _eventController.add(
+        GraphicsEvent(
+          GraphicsEventType.imageProcessed,
+          'Kitty temp file processed',
+          data: {'id': id, 'path': filePath, 'size': bytes.length},
+        ),
+      );
 
       return '\x1b_Gi=$id,f=$format\x1b\\';
     } catch (e) {
@@ -500,7 +579,12 @@ class GraphicsProtocolHandler {
       // Parse Sixel DCS sequences: ESC P ... ESC \
       final match = RegExp(r'\x1bP([0-9;]*)(.*?)\x1b\\').firstMatch(sequence);
       if (match != null) {
-        return _processSixel(match.group(1)!, match.group(2)!, cursorX, cursorY);
+        return _processSixel(
+          match.group(1)!,
+          match.group(2)!,
+          cursorX,
+          cursorY,
+        );
       }
     } catch (e) {
       debugPrint('Failed to handle Sixel: $e');
@@ -543,11 +627,13 @@ class GraphicsProtocolHandler {
       _imagePositions[idStr] = Offset(cursorX.toDouble(), cursorY.toDouble());
 
       _totalImagesProcessed++;
-      _eventController.add(GraphicsEvent(
-        GraphicsEventType.imageProcessed,
-        'Sixel image processed',
-        data: {'id': imageId, 'width': width, 'height': height},
-      ));
+      _eventController.add(
+        GraphicsEvent(
+          GraphicsEventType.imageProcessed,
+          'Sixel image processed',
+          data: {'id': imageId, 'width': width, 'height': height},
+        ),
+      );
 
       return '\x1b_Gi=$imageId;OK\x1b\\';
     } catch (e) {
@@ -573,10 +659,20 @@ class GraphicsProtocolHandler {
       Uint8List? result;
       switch (image.format) {
         case 'sixel':
-          result = _convertSixelToRGBA(image, targetWidth, targetHeight, enableAlpha);
+          result = _convertSixelToRGBA(
+            image,
+            targetWidth,
+            targetHeight,
+            enableAlpha,
+          );
           break;
         case 'kitty':
-          result = await _convertKittyToRGBA(image, targetWidth, targetHeight, enableAlpha);
+          result = await _convertKittyToRGBA(
+            image,
+            targetWidth,
+            targetHeight,
+            enableAlpha,
+          );
           break;
         default:
           result = null;
@@ -586,25 +682,29 @@ class GraphicsProtocolHandler {
       final renderTime = endTime.difference(startTime).inMilliseconds;
       _totalRenderTime += renderTime;
 
-      _eventController.add(GraphicsEvent(
-        GraphicsEventType.imageRendered,
-        'Image converted for display',
-        data: {
-          'id': imageId,
-          'format': image.format,
-          'renderTime': renderTime,
-          'size': result?.length ?? 0,
-        },
-      ));
+      _eventController.add(
+        GraphicsEvent(
+          GraphicsEventType.imageRendered,
+          'Image converted for display',
+          data: {
+            'id': imageId,
+            'format': image.format,
+            'renderTime': renderTime,
+            'size': result?.length ?? 0,
+          },
+        ),
+      );
 
       return result;
     } catch (e) {
       debugPrint('Failed to convert image: $e');
-      _eventController.add(GraphicsEvent(
-        GraphicsEventType.renderError,
-        'Image conversion failed',
-        data: {'id': imageId, 'error': e.toString()},
-      ));
+      _eventController.add(
+        GraphicsEvent(
+          GraphicsEventType.renderError,
+          'Image conversion failed',
+          data: {'id': imageId, 'error': e.toString()},
+        ),
+      );
       return null;
     }
   }
@@ -655,13 +755,19 @@ class GraphicsProtocolHandler {
         if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
         return p;
       }
+
       final q = l < 0.5 ? l * (1 + s) : l + s - l * s;
       final p = 2 * l - q;
       r = hue2rgb(p, q, h + 1 / 3);
       g = hue2rgb(p, q, h);
       b = hue2rgb(p, q, h - 1 / 3);
     }
-    return Color.fromARGB(255, (r * 255).round(), (g * 255).round(), (b * 255).round());
+    return Color.fromARGB(
+      255,
+      (r * 255).round(),
+      (g * 255).round(),
+      (b * 255).round(),
+    );
   }
 
   /// Convert Sixel to RGBA format
@@ -759,9 +865,18 @@ class GraphicsProtocolHandler {
                 g = (g * 255) ~/ 100;
                 b = (b * 255) ~/ 100;
               }
-              colors[reg] = Color.fromARGB(255, r.clamp(0, 255), g.clamp(0, 255), b.clamp(0, 255));
+              colors[reg] = Color.fromARGB(
+                255,
+                r.clamp(0, 255),
+                g.clamp(0, 255),
+                b.clamp(0, 255),
+              );
             } else if (mode == 1 && nums.length >= 3) {
-              colors[reg] = _hlsToRgb(nums[0] / 360.0, nums[1] / 100.0, nums[2] / 100.0);
+              colors[reg] = _hlsToRgb(
+                nums[0] / 360.0,
+                nums[1] / 100.0,
+                nums[2] / 100.0,
+              );
             }
           }
         }
@@ -795,7 +910,8 @@ class GraphicsProtocolHandler {
       }
       if (c == 0x22) {
         i++;
-        while (i < runes.length && ((runes[i] >= 0x30 && runes[i] <= 0x39) || runes[i] == 0x3B)) {
+        while (i < runes.length &&
+            ((runes[i] >= 0x30 && runes[i] <= 0x39) || runes[i] == 0x3B)) {
           i++;
         }
         continue;
@@ -897,9 +1013,18 @@ class GraphicsProtocolHandler {
                 g = (g * 255) ~/ 100;
                 b = (b * 255) ~/ 100;
               }
-              colors[reg] = Color.fromARGB(255, r.clamp(0, 255), g.clamp(0, 255), b.clamp(0, 255));
+              colors[reg] = Color.fromARGB(
+                255,
+                r.clamp(0, 255),
+                g.clamp(0, 255),
+                b.clamp(0, 255),
+              );
             } else if (mode == 1 && nums.length >= 3) {
-              colors[reg] = _hlsToRgb(nums[0] / 360.0, nums[1] / 100.0, nums[2] / 100.0);
+              colors[reg] = _hlsToRgb(
+                nums[0] / 360.0,
+                nums[1] / 100.0,
+                nums[2] / 100.0,
+              );
             }
           }
           if (colors.containsKey(reg)) currentColor = colors[reg]!;
@@ -916,7 +1041,8 @@ class GraphicsProtocolHandler {
 
   int _skipSixelNumbers(List<int> runes, int start) {
     int i = start;
-    while (i < runes.length && ((runes[i] >= 0x30 && runes[i] <= 0x39) || runes[i] == 0x3B)) {
+    while (i < runes.length &&
+        ((runes[i] >= 0x30 && runes[i] <= 0x39) || runes[i] == 0x3B)) {
       i++;
     }
     return i;
@@ -940,7 +1066,9 @@ class GraphicsProtocolHandler {
       final uiImage = frame.image;
       final actualW = uiImage.width;
       final actualH = uiImage.height;
-      final byteData = await uiImage.toByteData(format: ui.ImageByteFormat.rawRgba);
+      final byteData = await uiImage.toByteData(
+        format: ui.ImageByteFormat.rawRgba,
+      );
       codec.dispose();
       if (byteData == null) throw Exception('decode failed');
       final raw = byteData.buffer.asUint8List();
@@ -983,10 +1111,9 @@ class GraphicsProtocolHandler {
     _pendingImages.clear();
     _pictureCache.clear();
     _damageRegions.clear();
-    _eventController.add(GraphicsEvent(
-      GraphicsEventType.cacheCleared,
-      'Graphics cache cleared',
-    ));
+    _eventController.add(
+      GraphicsEvent(GraphicsEventType.cacheCleared, 'Graphics cache cleared'),
+    );
   }
 
   /// Get cached image
@@ -1002,38 +1129,46 @@ class GraphicsProtocolHandler {
   /// Toggle graphics features
   void setTrueColorEnabled(bool enabled) {
     _trueColorEnabled = enabled;
-    _eventController.add(GraphicsEvent(
-      GraphicsEventType.settingChanged,
-      'True Color ${enabled ? 'enabled' : 'disabled'}',
-      data: {'feature': 'trueColor', 'enabled': enabled},
-    ));
+    _eventController.add(
+      GraphicsEvent(
+        GraphicsEventType.settingChanged,
+        'True Color ${enabled ? 'enabled' : 'disabled'}',
+        data: {'feature': 'trueColor', 'enabled': enabled},
+      ),
+    );
   }
 
   void setKittyProtocolEnabled(bool enabled) {
     _kittyProtocolEnabled = enabled;
-    _eventController.add(GraphicsEvent(
-      GraphicsEventType.settingChanged,
-      'Kitty Protocol ${enabled ? 'enabled' : 'disabled'}',
-      data: {'feature': 'kitty', 'enabled': enabled},
-    ));
+    _eventController.add(
+      GraphicsEvent(
+        GraphicsEventType.settingChanged,
+        'Kitty Protocol ${enabled ? 'enabled' : 'disabled'}',
+        data: {'feature': 'kitty', 'enabled': enabled},
+      ),
+    );
   }
 
   void setSixelEnabled(bool enabled) {
     _sixelEnabled = enabled;
-    _eventController.add(GraphicsEvent(
-      GraphicsEventType.settingChanged,
-      'Sixel ${enabled ? 'enabled' : 'disabled'}',
-      data: {'feature': 'sixel', 'enabled': enabled},
-    ));
+    _eventController.add(
+      GraphicsEvent(
+        GraphicsEventType.settingChanged,
+        'Sixel ${enabled ? 'enabled' : 'disabled'}',
+        data: {'feature': 'sixel', 'enabled': enabled},
+      ),
+    );
   }
 
   void setAlphaChannelEnabled(bool enabled) {
     _alphaChannelEnabled = enabled;
-    _eventController.add(GraphicsEvent(
-      GraphicsEventType.settingChanged,
-      'Alpha Channel ${enabled ? 'enabled' : 'disabled'}',
-      data: {'feature': 'alpha', 'enabled': enabled},
-    ));
+    _eventController.add(
+      GraphicsEvent(
+        GraphicsEventType.settingChanged,
+        'Alpha Channel ${enabled ? 'enabled' : 'disabled'}',
+        data: {'feature': 'alpha', 'enabled': enabled},
+      ),
+    );
   }
 
   /// Check if image format is supported
@@ -1180,11 +1315,8 @@ class GraphicsEvent {
   final Map<String, dynamic>? data;
   final DateTime timestamp;
 
-  GraphicsEvent(
-    this.type,
-    this.message, {
-    this.data,
-  }) : timestamp = DateTime.now();
+  GraphicsEvent(this.type, this.message, {this.data})
+    : timestamp = DateTime.now();
 
   @override
   String toString() => '[$timestamp] $type: $message';

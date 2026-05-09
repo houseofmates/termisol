@@ -455,7 +455,7 @@ class GraphicsProtocolHandler {
         return '\x1b_Gi=$id,f=32\x1b\\'; // error: invalid base64
       }
 
-      // Store image data
+      // store image data
       if (_imageCache.containsKey(id)) {
         final image = _imageCache[id]!;
         _imageCache[id] = GraphicsImage(
@@ -466,7 +466,7 @@ class GraphicsProtocolHandler {
           format: 'kitty',
         );
 
-        // Ensure position is set
+        // ensure position is set
         _imagePositions[id] ??= Offset(cursorX.toDouble(), cursorY.toDouble());
       }
 

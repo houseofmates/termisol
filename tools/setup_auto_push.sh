@@ -40,14 +40,14 @@ echo "🔐 Making scripts executable..."
 chmod +x "$SCRIPT_DIR/start_auto_push.sh"
 chmod +x "$SCRIPT_DIR/setup_auto_push.sh"
 
-# Create systemd service (if systemd is available)
-if command -v systemctl &> /dev/null; then
+# Create systemd service (if systemd is available and sudo works)
+if command -v systemctl &> /dev/null && [ -w "/etc/systemd/system" ]; then
     echo "🔧 Setting up systemd service..."
     
     SERVICE_FILE="/etc/systemd/system/termisol-autopush.service"
     
     # Create systemd service file
-    sudo tee "$SERVICE_FILE" > /dev/null << EOF
+    tee "$SERVICE_FILE" > /dev/null << EOF
 [Unit]
 Description=Termisol AutoPush Service
 After=network.target
@@ -67,14 +67,14 @@ WantedBy=multi-user.target
 EOF
 
     # Reload systemd and enable service
-    sudo systemctl daemon-reload
-    sudo systemctl enable termisol-autopush.service
+    systemctl daemon-reload 2>/dev/null || echo "⚠️  Could not reload systemd (need sudo?)"
+    systemctl enable termisol-autopush.service 2>/dev/null || echo "⚠️  Could not enable systemd service (need sudo?)"
     
-    echo "✅ Systemd service created and enabled"
+    echo "✅ Systemd service created"
     echo "   Start with: sudo systemctl start termisol-autopush"
     echo "   Status with: sudo systemctl status termisol-autopush"
 else
-    echo "⚠️  Systemd not available, using manual startup"
+    echo "⚠️  Systemd not available or no write access, using manual startup"
 fi
 
 # Create crontab entry for fallback (runs every 5 minutes to check if service is running)

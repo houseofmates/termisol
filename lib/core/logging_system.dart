@@ -354,7 +354,7 @@ class ConsoleSink implements LogSink {
   static const String ansiMagenta = '\x1b[95m';
 }
 
-/// File log sink with rotation
+/// file log sink with rotation
 class FileSink implements LogSink {
   late File _file;
   late IOSink _sink;

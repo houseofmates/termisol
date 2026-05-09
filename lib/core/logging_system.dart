@@ -12,7 +12,7 @@ import 'package:flutter/foundation.dart';
 /// - debug event tracking
 /// - log file rotation and compression
 /// - remote logging support
-/// - Debug mode with enhanced details
+/// - debug mode with enhanced details
 class TermisolLogger {
   static const String _logDirectory = 'logs';
   static const int _maxLogFileSize = 10 * 1024 * 1024; // 10MB

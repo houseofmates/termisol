@@ -226,7 +226,7 @@ class TermisolPluginSystem {
   /// get plugin information
   PluginManifest? getPluginManifest(String pluginId) => _manifests[pluginId];
 
-  /// Check if plugin is loaded
+  /// check if plugin is loaded
   bool isPluginLoaded(String pluginId) => _plugins.containsKey(pluginId);
 
   /// Get plugin capabilities

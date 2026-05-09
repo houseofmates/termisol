@@ -74,6 +74,10 @@ class TerminalSession extends ChangeNotifier {
   /// Called when the terminal receives focus events (bracketed paste mode).
   void Function(bool)? onFocusEvent;
 
+  /// Called whenever writeInput receives data, before processing.
+  /// Use this for input broadcasting/monitoring.
+  void Function(String)? onInputIntercepted;
+
   late final FocusManager focusManager;
   late final TrueColorManager trueColor;
   late final KittyGraphicsManager kittyGraphics;
@@ -259,6 +263,8 @@ class TerminalSession extends ChangeNotifier {
 
   /// Write input to the backend. Intercepts `/ai` and `edit` commands.
   void writeInput(String input) {
+    onInputIntercepted?.call(input);
+
     if (_backend == null || !_connected) return;
 
     _inputBuffer.write(input);
@@ -304,6 +310,18 @@ class TerminalSession extends ChangeNotifier {
       _backend!.write(utf8.encode(input));
     } catch (e, stack) {
       if (kDebugMode) debugPrint('writeInput error: $e\n$stack');
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// Send raw input directly to the backend, bypassing /ai and edit: interception.
+  void sendRawInput(String input) {
+    if (_backend == null || !_connected) return;
+    try {
+      _backend!.write(utf8.encode(input));
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('sendRawInput error: $e\n$stack');
       _error = e.toString();
       notifyListeners();
     }

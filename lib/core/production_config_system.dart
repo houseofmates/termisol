@@ -37,7 +37,7 @@ class ProductionConfigSystem {
 
   void _setupDefaults() {
     _defaults.addAll({
-      // Performance settings
+      // performance settings
       'performance': {
         'gpu_acceleration': true,
         'adaptive_frame_pacing': true,

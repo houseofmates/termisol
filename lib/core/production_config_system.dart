@@ -450,7 +450,7 @@ class ProductionConfigSystem {
         await _configFile!.copy(backupFile.path);
       }
 
-      // Save new config
+      // save new config
       final jsonString = const JsonEncoder.withIndent('  ').convert(_config);
       await _configFile!.writeAsString(jsonString);
 

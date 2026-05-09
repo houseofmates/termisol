@@ -186,8 +186,8 @@ class CustomHotkeyManager {
   
   /// show feedback message (could be implemented as toast, status bar, etc.)
   void _showFeedback(String message) {
-    // This would show a toast or status message
-    // For now, we'll print to debug
+    // this would show a toast or status message
+    // for now, we'll print to debug
     debugPrint('Termisol Hotkey: $message');
     
     // In a real implementation, you could use:

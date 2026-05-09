@@ -29,8 +29,8 @@ class PluginMessage {
 /// - plugin lifecycle management (load, unload, reload)
 /// - secure isolate-based execution
 /// - plugin dependency resolution
-/// - Event-driven communication
-/// - Performance monitoring
+/// - event-driven communication
+/// - performance monitoring
 /// - Hot-reload capability
 class TermisolPluginSystem {
   final Map<String, Plugin> _plugins = {};

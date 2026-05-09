@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Command suggestion with enhanced metadata
+/// command suggestion with enhanced metadata
 class CommandSuggestion {
   final String command;
   final String description;
@@ -42,7 +42,7 @@ class CommandSuggestion {
   );
 }
 
-/// Professional smart auto-complete system with persistence and intelligence
+/// professional smart auto-complete system with persistence and intelligence
 class SmartAutoComplete {
   static const String _historyKey = 'command_history';
   static const String _frequencyKey = 'command_frequency';

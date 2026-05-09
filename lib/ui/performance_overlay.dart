@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../config/pkm_theme.dart';
 import '../core/termisol_core_integration.dart';
 
-/// A small overlay that shows FPS and frame timing in the top-right corner.
+/// a small overlay that shows fps and frame timing in the top-right corner.
 class TermisolPerformanceOverlay extends StatefulWidget {
   final VoidCallback onDismiss;
 

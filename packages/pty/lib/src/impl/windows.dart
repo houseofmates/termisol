@@ -307,12 +307,12 @@ class PtyCoreWindows implements PtyCore {
   }
 }
 
-// void rawWait(int hProcess) {
-//   // final status = allocate<Int32>();
+// void rawwait(int hprocess) {
+//   // final status = allocate<int32>();
 //   // unistd.waitpid(pid, status, 0);
 //   final count = 1;
-//   final pids = calloc<IntPtr>(count);
-//   final infinite = 0xFFFFFFFF;
-//   pids.elementAt(0).value = hProcess;
-//   win32.MsgWaitForMultipleObjects(count, pids, 1, infinite, win32.QS_ALLEVENTS);
+//   final pids = calloc<intptr>(count);
+//   final infinite = 0xffffffff;
+//   pids.elementat(0).value = hprocess;
+//   win32.msgwaitformultipleobjects(count, pids, 1, infinite, win32.qs_allevents);
 // }

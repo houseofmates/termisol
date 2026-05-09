@@ -55,11 +55,12 @@ commit_changes() {
         if git commit -m "$commit_msg"; then
             log_message "Committed: $commit_msg"
             
-            # Push to main branch
-            if git push origin main; then
-                log_message "Pushed to remote"
+            # Push to current branch
+            local current_branch=$(git branch --show-current)
+            if git push origin "$current_branch"; then
+                log_message "Pushed to remote ($current_branch)"
             else
-                log_message "Failed to push to remote"
+                log_message "Failed to push to remote ($current_branch)"
             fi
         else
             log_message "Failed to commit changes"

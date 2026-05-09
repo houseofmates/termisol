@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/widgets.dart';
 import 'package:quiver/collection.dart';
 
-/// A cache of laid out [Paragraph]s. This is used to avoid laying out the same
+/// a cache of laid out [paragraph]s. this is used to avoid laying out the same
 /// text multiple times, which is expensive.
 class ParagraphCache {
   ParagraphCache(int maximumSize)

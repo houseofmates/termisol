@@ -2,7 +2,7 @@ import 'dart:math' show min;
 
 const _kMaxColumns = 1024;
 
-/// Manages the tab stop state for a terminal.
+/// manages the tab stop state for a terminal.
 class TabStops {
   final _stops = List<bool>.filled(_kMaxColumns, false);
 

@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:xterm/xterm.dart';
 
-/// Manages ligature-enabled fonts for better code readability.
+/// manages ligature-enabled fonts for better code readability.
 class LigatureFontManager {
   final Terminal terminal;
   final TerminalController controller;

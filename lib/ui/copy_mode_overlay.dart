@@ -3,10 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:xterm/xterm.dart';
 import '../config/pkm_theme.dart';
 
-/// A full-screen overlay for browsing and copying terminal scrollback.
+/// a full-screen overlay for browsing and copying terminal scrollback.
 ///
-/// Press `q` or click the close button to exit. Type in the search box to
-/// filter lines. Select text and tap "copy selection" to copy to the system
+/// press `q` or click the close button to exit. type in the search box to
+/// filter lines. select text and tap "copy selection" to copy to the system
 /// clipboard.
 class CopyModeOverlay extends StatefulWidget {
   final Terminal terminal;

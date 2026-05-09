@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:xterm/src/core/cell.dart' show CellColor;
-import 'package:xterm/src/ui/palette_builder.dart';
-import 'package:xterm/xterm.dart' show TerminalTheme;
+import 'package:xterm/xterm.dart' show CellColor, PaletteBuilder, TerminalTheme;
 
-/// Resolves terminal cell colors into Flutter [Color] values.
+/// resolves terminal cell colors into flutter [color] values.
 ///
-/// Maintains a 256-color palette built from the active [TerminalTheme] and
-/// handles the four CellColor encoding types: normal, named, palette, and rgb.
+/// maintains a 256-color palette built from the active [terminaltheme] and
+/// handles the four cellcolor encoding types: normal, named, palette, and rgb.
 class TerminalColorResolver {
   TerminalColorResolver(this._theme) : _palette = PaletteBuilder(_theme).build();
 

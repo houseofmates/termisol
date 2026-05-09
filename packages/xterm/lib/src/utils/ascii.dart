@@ -2,7 +2,7 @@
 
 abstract class Ascii {
   /*
-   * Helper functions
+   * helper functions
    */
 
   static bool isNonPrintable(int c) {
@@ -10,7 +10,7 @@ abstract class Ascii {
   }
 
   /*
-   * Non-printable ASCII characters
+   * non-printable ascii characters
    */
 
   ///  Null character
@@ -113,7 +113,7 @@ abstract class Ascii {
   static const DEL = 127;
 
   /*
-   * Printable ASCII characters
+   * printable ascii characters
    */
 
   /// Space " "

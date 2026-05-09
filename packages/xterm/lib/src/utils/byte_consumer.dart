@@ -85,23 +85,23 @@ class ByteConsumer {
 }
 
 // void main() {
-//   final consumer = ByteConsumer();
-//   consumer.add(Uint8List.fromList([1, 2, 3]));
-//   consumer.add(Uint8List.fromList([4, 5, 6]));
+//   final consumer = byteconsumer();
+//   consumer.add(uint8list.fromlist([1, 2, 3]));
+//   consumer.add(uint8list.fromlist([4, 5, 6]));
 
-//   while (consumer.isNotEmpty) {
+//   while (consumer.isnotempty) {
 //     print(consumer.consume());
 //   }
 
 //   consumer.rollback(5);
 
-//   while (consumer.isNotEmpty) {
+//   while (consumer.isnotempty) {
 //     print(consumer.consume());
 //   }
 
-//   consumer.rollbackTo(3);
+//   consumer.rollbackto(3);
 
-//   while (consumer.isNotEmpty) {
+//   while (consumer.isnotempty) {
 //     print(consumer.consume());
 //   }
 // }

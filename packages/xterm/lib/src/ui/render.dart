@@ -111,6 +111,12 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     markNeedsPaint();
   }
 
+  set customPainter(TerminalPainter? value) {
+    if (value == null || value == _painter) return;
+    _painter = value;
+    markNeedsPaint();
+  }
+
   FocusNode _focusNode;
   set focusNode(FocusNode value) {
     if (value == _focusNode) return;
@@ -150,7 +156,7 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
 
   TerminalSize? _viewportSize;
 
-  final TerminalPainter _painter;
+  TerminalPainter _painter;
 
   var _stickToBottom = true;
 

@@ -1,14 +1,14 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:xterm/xterm.dart' show TerminalStyle, TerminalTheme, TextScaler;
+import 'package:xterm/xterm.dart' show TerminalStyle, TerminalTheme;
 
 import 'gpu/gpu_terminal_painter.dart';
 
-/// Coordinates GPU-accelerated terminal rendering for Termisol.
+/// coordinates gpu-accelerated terminal rendering for termisol.
 ///
-/// The renderer uses a [GpuTerminalPainter] which batches background fills
-/// into single [Vertices] calls and caches static lines as [Picture] objects
+/// the renderer uses a [gputerminalpainter] which batches background fills
+/// into single [vertices] calls and caches static lines as [picture] objects
 /// for near-zero-cost replay on subsequent frames.
 class GpuRenderer {
   static final GpuRenderer instance = GpuRenderer._();
@@ -77,7 +77,7 @@ class GpuRenderer {
   }
 }
 
-/// Simple background painter for custom terminal backgrounds.
+/// simple background painter for custom terminal backgrounds.
 class TerminalBackgroundPainter extends CustomPainter {
   final Color color;
 

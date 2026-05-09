@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:xterm/xterm.dart';
 
-/// Manages terminal focus events using Flutter's FocusNode.
-/// Emits ANSI focus in (\x1b[I) and focus out (\x1b[O) sequences
-/// to the PTY when focus changes, per xterm focus-event protocol.
+/// manages terminal focus events using flutter's focusnode.
+/// emits ansi focus in (\x1b[i) and focus out (\x1b[o) sequences
+/// to the pty when focus changes, per xterm focus-event protocol.
 class FocusManager {
   final Terminal terminal;
   final TerminalController controller;

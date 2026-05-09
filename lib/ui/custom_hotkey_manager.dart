@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:xterm/xterm.dart' show Terminal, BufferPosition;
+import 'package:xterm/xterm.dart' show Terminal;
 import '../core/terminal_session.dart';
 import '../core/whisper_service.dart';
 import 'clipboard_manager.dart';
@@ -108,14 +108,8 @@ class CustomHotkeyManager {
   
   /// copy selected text to clipboard
   void _handleCopy() async {
-    final selection = session.terminal.selection;
-    if (selection != null) {
-      final text = session.terminal.buffer.getText(selection.start, selection.end);
-      final success = await clipboard.copy();
-      _showFeedback(success ? 'Copied to clipboard' : 'Copy failed');
-    } else {
-      _showFeedback('No text selected');
-    }
+    final success = await clipboard.copy();
+    _showFeedback(success ? 'Copied to clipboard' : 'Copy failed');
   }
   
   /// send interrupt signal (ctrl+c original behavior)
@@ -136,11 +130,6 @@ class CustomHotkeyManager {
   
   /// copy all terminal content
   void _handleCopyAll() async {
-    final buffer = session.terminal.buffer;
-    final allText = buffer.getText(
-      BufferPosition(0, 0),
-      BufferPosition(buffer.columns - 1, buffer.height - 1),
-    );
     final success = await clipboard.copyAll();
     _showFeedback(success ? 'All content copied to clipboard' : 'Copy all failed');
   }

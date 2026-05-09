@@ -21,8 +21,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
-/// Home screen with core terminal functionality.
-/// Services are pulled lazily from the registry on first use.
+/// home screen with core terminal functionality.
+/// services are pulled lazily from the registry on first use.
 class HomeScreen extends StatefulWidget {
   final ServiceRegistry registry;
 
@@ -1039,7 +1039,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-// Terminal area
+// terminal area
               Expanded(
                 child: IndexedStack(
                         index: _tabs.indexWhere((tab) => tab.id == _activeTab),

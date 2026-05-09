@@ -20,9 +20,9 @@ import 'package:xterm/src/core/tabs.dart';
 import 'package:xterm/src/utils/ascii.dart';
 import 'package:xterm/src/utils/circular_buffer.dart';
 
-/// [Terminal] is an interface to interact with command line applications. It
+/// [terminal] is an interface to interact with command line applications. it
 /// translates escape sequences from the application into updates to the
-/// [buffer] and events such as [onTitleChange] or [onBell], as well as
+/// [buffer] and events such as [ontitlechange] or [onbell], as well as
 /// translating user input into escape sequences that the application can
 /// understand.
 class Terminal with Observable implements TerminalState, EscapeHandler {
@@ -111,7 +111,7 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
   /// sequences that repeat the last character.
   var _precedingCodepoint = 0;
 
-  /* TerminalState */
+  /* terminalstate */
 
   int _viewWidth = 80;
 
@@ -147,7 +147,7 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
 
   bool _bracketedPasteMode = false;
 
-  /* State getters */
+  /* state getters */
 
   /// Number of cells in a terminal row.
   @override
@@ -381,7 +381,7 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
     return 'Terminal(#$hashCode, $_viewWidth x $_viewHeight, ${_buffer.height} lines)';
   }
 
-  /* Handlers */
+  /* handlers */
 
   @override
   void writeChar(int char) {
@@ -389,7 +389,7 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
     _buffer.writeChar(char);
   }
 
-  /* SBC */
+  /* sbc */
 
   @override
   void bell() {
@@ -438,7 +438,7 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
     // no-op
   }
 
-  /* ANSI sequence */
+  /* ansi sequence */
 
   @override
   void saveCursor() {
@@ -481,7 +481,7 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
     // no-op
   }
 
-  /* CSI */
+  /* csi */
 
   @override
   void repeatPreviousCharacter(int count) {
@@ -651,7 +651,7 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
     // no-op
   }
 
-  /* Modes */
+  /* modes */
 
   @override
   void setInsertMode(bool enabled) {
@@ -668,7 +668,7 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
     // no-op
   }
 
-  /* DEC Private modes */
+  /* dec private modes */
 
   @override
   void setCursorKeysMode(bool enabled) {
@@ -755,7 +755,7 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
     // no-op
   }
 
-  /* Select Graphic Rendition (SGR) */
+  /* select graphic rendition (sgr) */
 
   @override
   void resetCursorStyle() {
@@ -887,7 +887,7 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
     // no-op
   }
 
-  /* OSC */
+  /* osc */
 
   @override
   void setTitle(String name) {

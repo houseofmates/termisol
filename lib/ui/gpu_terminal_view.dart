@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:xterm/xterm.dart' show TerminalView, TerminalStyle, TerminalTheme, TerminalController;
+import 'package:xterm/xterm.dart' show TerminalCursorType, TerminalStyle, TerminalTheme, TerminalView;
 import '../core/terminal_session.dart';
 import '../core/gpu_renderer.dart';
 import '../config/pkm_theme.dart';
 
-/// GPU-accelerated terminal view that replaces the stock xterm renderer with
-/// [GpuTerminalPainter].
+/// gpu-accelerated terminal view that replaces the stock xterm renderer with
+/// [gputerminalpainter].
 ///
-/// All input, scrolling, and selection behaviour is inherited from the
-/// underlying [TerminalView]; only the rasterisation path is swapped.
+/// all input, scrolling, and selection behaviour is inherited from the
+/// underlying [terminalview]; only the rasterisation path is swapped.
 class GpuTerminalView extends StatelessWidget {
   final TerminalSession session;
   final TerminalTheme theme;

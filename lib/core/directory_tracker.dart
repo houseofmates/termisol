@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 
-/// Lightweight directory tracker that parses terminal output to detect the
+/// lightweight directory tracker that parses terminal output to detect the
 /// current working directory.
 ///
-/// Uses OSC 7 escape sequences when available, falling back to heuristic
+/// uses osc 7 escape sequences when available, falling back to heuristic
 /// prompt parsing for bash/zsh-style prompts.
 class DirectoryTracker {
   final ValueNotifier<String> directory = ValueNotifier<String>('');

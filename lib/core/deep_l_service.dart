@@ -6,9 +6,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import '../config/pkm_theme.dart';
 
-/// DeepL translation service for translating terminal text.
+/// deepl translation service for translating terminal text.
 ///
-/// Uses the DeepL API (free or pro tier). Set DEEPL_API_KEY in your .env file
+/// uses the deepl api (free or pro tier). set deepl_api_key in your .env file
 /// or enter it via the settings prompt.
 class DeepLTranslationService {
   static final _instance = DeepLTranslationService._internal();

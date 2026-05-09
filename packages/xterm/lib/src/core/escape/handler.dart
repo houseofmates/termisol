@@ -3,7 +3,7 @@ import 'package:xterm/src/core/mouse/mode.dart';
 abstract class EscapeHandler {
   void writeChar(int char);
 
-  /* SBC */
+  /* sbc */
 
   void bell();
 
@@ -21,7 +21,7 @@ abstract class EscapeHandler {
 
   void unknownSBC(int char);
 
-  /* ANSI sequence */
+  /* ansi sequence */
 
   void saveCursor();
 
@@ -39,7 +39,7 @@ abstract class EscapeHandler {
 
   void unkownEscape(int char);
 
-  /* CSI */
+  /* csi */
 
   void repeatPreviousCharacter(int n);
 
@@ -103,7 +103,7 @@ abstract class EscapeHandler {
 
   void unknownCSI(int finalByte);
 
-  /* Modes */
+  /* modes */
 
   void setInsertMode(bool enabled);
 
@@ -111,7 +111,7 @@ abstract class EscapeHandler {
 
   void setUnknownMode(int mode, bool enabled);
 
-  /* DEC Private modes */
+  /* dec private modes */
 
   void setCursorKeysMode(bool enabled);
 
@@ -151,7 +151,7 @@ abstract class EscapeHandler {
 
   void sendSize();
 
-  /* Select Graphic Rendition (SGR) */
+  /* select graphic rendition (sgr) */
 
   void resetCursorStyle();
 
@@ -205,7 +205,7 @@ abstract class EscapeHandler {
 
   void unsupportedStyle(int param);
 
-  /* OSC */
+  /* osc */
 
   void setTitle(String name);
 

@@ -203,17 +203,17 @@ All requested features have been implemented with **amnesia-proof persistence**,
 N8N_API_KEY=
 
 # Nextcloud Configuration (Self-hosted cloud storage)
-NEXTCLOUD_BASE_URL=https://n8n.houseofmates.space/nextcloud
-NEXTCLOUD_USERNAME=house
+NEXTCLOUD_BASE_URL=https://your-nextcloud-instance.com
+NEXTCLOUD_USERNAME=your_username
 NEXTCLOUD_PASSWORD=
 
 # Docker Stack Configuration
-DOCKER_STACK_PATH=/home/house/Documents/docker/main-stack
+DOCKER_STACK_PATH=/path/to/your/docker/stack
 
 # Personal Preferences
-PERSONAL_NAME=house
-DEFAULT_PROJECT_SERVER=.233
-BACKUP_SERVER=.250
+PERSONAL_NAME=your_name
+DEFAULT_PROJECT_SERVER=.xxx
+BACKUP_SERVER=.xxx
 
 # Hardware Configuration
 MAIN_GPU_MODEL=RTX_3080
@@ -299,7 +299,7 @@ All systems include comprehensive amnesia protection:
 ### Initial Setup:
 1. Copy `.env.example` to `.env`
 2. Add your NVIDIA API keys (NVIDIA_API_KEY_1 through NVIDIA_API_KEY_24)
-3. Add your N8N API key (from https://n8n.houseofmates.space)
+3. Add your N8N API key (from your N8N instance)
 4. Configure Nextcloud credentials
 5. Set your Docker stack path
 6. Customize personal preferences

@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import '../core/terminal_session.dart';
 import '../config/pkm_theme.dart';
 
-/// Overlay for searching and selecting commands from history.
-/// Triggered via keyboard shortcut or command palette.
+/// overlay for searching and selecting commands from history.
+/// triggered via keyboard shortcut or command palette.
 class CommandHistorySearch extends StatefulWidget {
   final TerminalSession session;
   final VoidCallback onClose;

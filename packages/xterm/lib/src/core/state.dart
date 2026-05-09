@@ -10,13 +10,13 @@ abstract class TerminalState {
 
   bool get reflowEnabled;
 
-  /* Modes */
+  /* modes */
 
   bool get insertMode;
 
   bool get lineFeedMode;
 
-  /* DEC Private modes */
+  /* dec private modes */
 
   bool get cursorKeysMode;
 

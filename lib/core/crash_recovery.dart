@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:collection';
 import 'package:flutter/foundation.dart';
 
-/// Crash recovery system for terminal sessions.
-/// Tracks command health, detects hangs, and can suggest recovery actions.
+/// crash recovery system for terminal sessions.
+/// tracks command health, detects hangs, and can suggest recovery actions.
 class CrashRecovery {
   final _commandHistory = Queue<_CommandRecord>();
   static const int _maxHistory = 100;

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:termisol/core/logging_system.dart';
 
-/// Long command notification system.
+/// long command notification system.
 class LongCommandNotifier extends ChangeNotifier {
   static const Duration _defaultTimeout = Duration(seconds: 40);
   static const String _notificationFile = 'termisol_long_commands.log';

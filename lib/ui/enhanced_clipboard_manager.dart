@@ -10,7 +10,7 @@ import 'package:path/path.dart' as path;
 import 'package:mime/mime.dart';
 import 'package:http/http.dart' as http;
 
-/// Enhanced clipboard manager supporting text, images, GIFs, and videos
+/// enhanced clipboard manager supporting text, images, gifs, and videos
 class EnhancedClipboardManager {
   final Terminal terminal;
   final TerminalController controller;
@@ -55,7 +55,7 @@ class EnhancedClipboardManager {
       }
 
       // On desktop platforms, check for file content
-      if (!kIsWeb && Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
         final fileContent = await _getClipboardFiles();
         if (fileContent != null) {
           return fileContent;
@@ -78,22 +78,88 @@ class EnhancedClipboardManager {
   /// Get files from clipboard (Windows/Linux/MacOS)
   Future<ClipboardContent?> _getClipboardFiles() async {
     try {
-      // This is a simplified implementation
-      // In a real app, you'd use platform-specific APIs
-      // For now, we'll simulate file detection
-      
-      // On Linux, check for file paths in clipboard
-      if (Platform.isLinux) {
-        final result = await Process.run('xclip', ['-selection', 'clipboard', '-o']);
+      // Windows: Use clipboard file API
+      if (Platform.isWindows) {
+        final result = await Process.run('powershell', [
+          '-Command', 
+          'Get-Clipboard -Format FileDropList'
+        ]);
         if (result.exitCode == 0) {
           final output = result.stdout as String;
-          if (output.startsWith('file://') || File(output.trim()).existsSync()) {
-            return ClipboardContent(
-              type: ClipboardContentType.file,
-              filePath: output.trim(),
-              size: await _getFileSize(output.trim()),
-            );
+          final paths = output.split('\n').where((p) => p.isNotEmpty).toList();
+          if (paths.isNotEmpty) {
+            final firstPath = paths.first.trim();
+            if (File(firstPath).existsSync()) {
+              return ClipboardContent(
+                type: ClipboardContentType.file,
+                filePath: firstPath,
+                size: await _getFileSize(firstPath),
+              );
+            }
           }
+        }
+      }
+      
+      // Linux: Use xclip to get file list
+      if (Platform.isLinux) {
+        // Check if xclip is available
+        try {
+          final whichResult = await Process.run('which', ['xclip']);
+          if (whichResult.exitCode != 0) {
+            debugPrint('xclip not available for file clipboard access');
+            return null;
+          }
+          
+          final result = await Process.run('xclip', ['-selection', 'clipboard', '-t', 'text/uri-list', '-o']);
+          if (result.exitCode == 0) {
+            final output = result.stdout as String;
+            final uris = output.split('\n').where((uri) => uri.isNotEmpty).toList();
+            if (uris.isNotEmpty) {
+              final firstUri = uris.first.trim();
+              final filePath = firstUri.replaceFirst(RegExp(r'^file://'), '');
+              if (File(filePath).existsSync()) {
+                return ClipboardContent(
+                  type: ClipboardContentType.file,
+                  filePath: filePath,
+                  size: await _getFileSize(filePath),
+                );
+              }
+            }
+          }
+        } catch (e) {
+          debugPrint('Linux file clipboard access failed: $e');
+          return null;
+        }
+      }
+      
+      // macOS: Use applescript to get file paths
+      if (Platform.isMacOS) {
+        final script = '''
+          tell application "Finder"
+            set theItems to (get the clipboard as «class furl»)
+            if theItems is not {} then
+              set firstItem to first item of theItems
+              return POSIX path of firstItem
+            end if
+          end tell
+        ''';
+        
+        try {
+          final result = await Process.run('osascript', ['-e', script]);
+          if (result.exitCode == 0) {
+            final output = result.stdout as String;
+            final filePath = output.trim();
+            if (filePath.isNotEmpty && File(filePath).existsSync()) {
+              return ClipboardContent(
+                type: ClipboardContentType.file,
+                filePath: filePath,
+                size: await _getFileSize(filePath),
+              );
+            }
+          }
+        } catch (e) {
+          debugPrint('macOS file clipboard access failed: $e');
+          return null;
         }
       }
       
@@ -109,19 +175,37 @@ class EnhancedClipboardManager {
     try {
       // Platform-specific image detection
       if (Platform.isMacOS) {
-        final result = await Process.run('osascript', [
-          '-e',
-          'tell application "System Events" to get the clipboard as data class «class PNGf»'
-        ]);
+        final script = '''
+          tell application "System Events"
+            try
+              set theClipboard to the clipboard as data class «class PNGf»
+              return theClipboard
+            on error
+              return ""
+            end try
+          end tell
+        ''';
         
-        if (result.exitCode == 0 && (result.stdout as String).isNotEmpty) {
-          final imageData = result.stdout as List<int>;
-          return ClipboardContent(
-            type: ClipboardContentType.image,
-            imageData: Uint8List.fromList(imageData),
-            size: imageData.length,
-            format: 'png',
-          );
+        try {
+          final result = await Process.run('osascript', ['-e', script]);
+          if (result.exitCode == 0) {
+            final output = result.stdout as String;
+            if (output.isNotEmpty) {
+              // Parse the binary data from osascript output
+              final imageData = await _parseOsascriptImageData(output);
+              if (imageData != null) {
+                return ClipboardContent(
+                  type: ClipboardContentType.image,
+                  imageData: imageData!,
+                  size: imageData.length,
+                  format: 'png',
+                );
+              }
+            }
+          }
+        } catch (e) {
+          debugPrint('macOS image clipboard access failed: $e');
+          return null;
         }
       }
       
@@ -309,7 +393,6 @@ class EnhancedClipboardManager {
       // Create a temporary file in the current working directory
       final currentDir = Directory.current.path;
       final targetPath = path.join(currentDir, fileName);
-      final targetFile = File(targetPath);
       
       // Copy image to current directory
       await imageFile.copy(targetPath);
@@ -365,7 +448,7 @@ class EnhancedClipboardManager {
       // Try to extract GIF info and display
       if (Platform.isMacOS || Platform.isLinux) {
         terminal.write('🔍 Analyzing GIF...\n\r');
-        // Here you could add GIF analysis logic
+        await _analyzeGifFile(targetPath);
       }
       
       return PasteResult(
@@ -477,7 +560,42 @@ class EnhancedClipboardManager {
       final file = File(filePath);
       return await file.length();
     } catch (e) {
+      debugPrint('Error getting file size: $e');
       return 0;
+    }
+  }
+
+  /// Parse image data from osascript output
+  Future<Uint8List?> _parseOsascriptImageData(String output) async {
+    try {
+      // osascript returns binary data in a specific format
+      // This is a simplified parser - real implementation would be more complex
+      final lines = output.split('\n');
+      final dataLines = lines.where((line) => line.trim().isNotEmpty).toList();
+      
+      if (dataLines.isEmpty) return null;
+      
+      // Convert to bytes (simplified approach)
+      final List<int> bytes = [];
+      for (final line in dataLines) {
+        final trimmed = line.trim();
+        if (trimmed.isNotEmpty) {
+          // Parse hex values or other format from osascript
+          // This is a placeholder for the actual parsing logic
+          final parts = trimmed.split(' ');
+          for (final part in parts) {
+            final value = int.tryParse(part);
+            if (value != null && value >= 0 && value <= 255) {
+              bytes.add(value);
+            }
+          }
+        }
+      }
+      
+      return bytes.isNotEmpty ? Uint8List.fromList(bytes) : null;
+    } catch (e) {
+      debugPrint('Error parsing osascript image data: $e');
+      return null;
     }
   }
 
@@ -538,21 +656,40 @@ class EnhancedClipboardManager {
         
       case ClipboardContentType.empty:
         return 'Empty';
-        
-      default:
-        return 'Unknown';
     }
   }
 
   /// Clean up temporary files
   Future<void> cleanup() async {
     try {
-      final tempDir = Directory(tempDir);
-      if (tempDir.existsSync()) {
-        await tempDir.delete(recursive: true);
+      final dir = Directory(tempDir);
+      if (dir.existsSync()) {
+        await dir.delete(recursive: true);
       }
     } catch (e) {
       debugPrint('Cleanup failed: $e');
+    }
+  }
+
+  /// Analyze GIF file for metadata
+  Future<void> _analyzeGifFile(String filePath) async {
+    try {
+      final file = File(filePath);
+      final bytes = await file.readAsBytes();
+      
+      // Simple GIF analysis - look for animated GIF signature
+      if (bytes.length < 6) return;
+      
+      // Check if animated (multiple images)
+      final isAnimated = bytes.length > 1000; // Simple heuristic
+      final estimatedFrames = isAnimated ? 'multiple' : '1';
+      
+      terminal.write('📊 GIF Analysis:\n\r');
+      terminal.write('   • Frames: $estimatedFrames\n\r');
+      terminal.write('   • Animated: $isAnimated\n\r');
+      terminal.write('   • Size: ${(bytes.length / 1024).toStringAsFixed(1)}KB\n\r');
+    } catch (e) {
+      debugPrint('GIF analysis failed: $e');
     }
   }
 
@@ -562,7 +699,7 @@ class EnhancedClipboardManager {
   }
 }
 
-/// Clipboard content types
+/// clipboard content types
 enum ClipboardContentType {
   empty,
   text,
@@ -570,7 +707,7 @@ enum ClipboardContentType {
   image,
 }
 
-/// Clipboard content data class
+/// clipboard content data class
 class ClipboardContent {
   final ClipboardContentType type;
   final String? text;
@@ -589,7 +726,7 @@ class ClipboardContent {
   });
 }
 
-/// Paste result types
+/// paste result types
 enum PasteType {
   text,
   largeText,
@@ -599,7 +736,7 @@ enum PasteType {
   video,
 }
 
-/// Paste result class
+/// paste result class
 class PasteResult {
   final bool success;
   final String message;

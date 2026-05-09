@@ -143,7 +143,7 @@ class TermisolLogger {
     });
   }
   
-  /// Log quantum engine event
+  /// log quantum engine event
   void logQuantumEvent(String operation, [Map<String, dynamic>? context]) {
     info('Quantum Event: $operation', {
       'operation': operation,

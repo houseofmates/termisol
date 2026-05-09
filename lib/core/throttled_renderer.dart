@@ -6,13 +6,18 @@ import 'package:xterm/xterm.dart';
 /// Prevents UI freezing during heavy output like `cat large.log`.
 class ThrottledRenderer {
   final Terminal terminal;
-  final Duration _frameInterval = const Duration(milliseconds: 16);
+  Duration _frameInterval = const Duration(milliseconds: 16);
   final List<String> _pendingOutput = [];
   Timer? _renderTimer;
   bool _isRendering = false;
   int _lastRenderTime = 0;
 
   ThrottledRenderer(this.terminal);
+
+  void setTargetFps(int fps) {
+    final ms = fps > 0 ? 1000 ~/ fps : 16;
+    _frameInterval = Duration(milliseconds: ms);
+  }
 
   /// Queue output for throttled rendering.
   void write(String data) {

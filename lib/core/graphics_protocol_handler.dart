@@ -788,6 +788,11 @@ class GraphicsProtocolHandler {
     Color currentColor = Colors.white;
     for (int i = idx; i < runes.length;) {
       final c = runes[i];
+      if (c == 0x1B) {
+        i++;
+        if (i < runes.length && runes[i] == 0x5C) i++;
+        continue;
+      }
       if (c == 0x22) {
         i++;
         while (i < runes.length && ((runes[i] >= 0x30 && runes[i] <= 0x39) || runes[i] == 0x3B)) {

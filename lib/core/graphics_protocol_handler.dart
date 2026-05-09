@@ -309,7 +309,7 @@ class GraphicsProtocolHandler {
     return '';
   }
 
-  /// Process Kitty graphics parameters
+  /// process kitty graphics parameters
   String _processKittyGraphics(String params, int cursorX, int cursorY) {
     final paramMap = <String, String>{};
     final pairs = params.substring(2, params.length - 1).split(',');

@@ -51,11 +51,13 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   bool _isTranslating = false;
   bool _isCopyMode = false;
   double _fontSize = _defaultTerminalFontSize;
+  String _fontFamily = 'DroidSansMono';
 
   @override
   void initState() {
     super.initState();
     PkmTheme.themeMode.addListener(_onThemeChanged);
+    PkmTheme.bgOpacity.addListener(_onBgOpacityChanged);
     _deepL.initialize();
     _graphicsHandler = GraphicsProtocolHandler(
       widget.session.terminal,
@@ -67,7 +69,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
       widget.session.controller,
     );
     widget.session.addListener(_onSessionChanged);
-    _loadFontSize();
+    _loadTerminalStyle();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.focusNode?.requestFocus();
     });
@@ -76,6 +78,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   @override
   void dispose() {
     PkmTheme.themeMode.removeListener(_onThemeChanged);
+    PkmTheme.bgOpacity.removeListener(_onBgOpacityChanged);
     widget.session.removeListener(_onSessionChanged);
     super.dispose();
   }
@@ -84,11 +87,23 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     if (mounted) setState(() {});
   }
 
-  Future<void> _loadFontSize() async {
+  void _onBgOpacityChanged() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _loadTerminalStyle() async {
     final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getDouble('termisol_font_size');
-    if (saved != null && mounted) {
-      setState(() => _fontSize = saved.clamp(_minFontSize, _maxFontSize));
+    final savedSize = prefs.getDouble('termisol_font_size');
+    if (savedSize != null && mounted) {
+      setState(() => _fontSize = savedSize.clamp(_minFontSize, _maxFontSize));
+    }
+    final savedFont = prefs.getString('termisol_font_family');
+    if (savedFont != null && mounted) {
+      setState(() => _fontFamily = savedFont);
+    }
+    final savedOpacity = prefs.getDouble('termisol_bg_opacity');
+    if (savedOpacity != null && mounted) {
+      PkmTheme.bgOpacity.value = savedOpacity.clamp(0.5, 1.0);
     }
   }
 
@@ -161,7 +176,9 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   Widget build(BuildContext context) {
     return GpuRenderer.wrapWithGpuBoundary(
       child: Container(
-        color: PkmTheme.terminalBg,
+        color: PkmTheme.terminalBg.withValues(
+          alpha: PkmTheme.bgOpacity.value,
+        ),
         child: Stack(
           children: [
             CallbackShortcuts(
@@ -188,8 +205,9 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
                 autofocus: widget.autofocus,
                 theme: termisolTerminalTheme,
                 textStyle: TerminalStyle(
-                  fontFamily: 'DroidSansMono',
+                  fontFamily: _fontFamily,
                   fontSize: _fontSize,
+                  height: 1.2,
                 ),
                 onKeyEvent: _handleKeyEvent,
                 padding: EdgeInsets.zero,

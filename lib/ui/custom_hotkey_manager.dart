@@ -63,11 +63,14 @@ class CustomHotkeyManager {
       return KeyEventResult.handled;
     }
     
-    // Ctrl+Z: Paste (instead of undo)
-    if (ctrl && !shift && event.logicalKey == LogicalKeyboardKey.keyZ) {
+    // Ctrl+V: Paste
+    if (ctrl && !shift && event.logicalKey == LogicalKeyboardKey.keyV) {
       _handlePaste();
       return KeyEventResult.handled;
     }
+    
+    // Ctrl+Z: Undo (let it pass through to terminal)
+    // We'll ignore this to let the terminal handle undo
     
     // Ctrl+A: Copy all
     if (ctrl && !shift && event.logicalKey == LogicalKeyboardKey.keyA) {

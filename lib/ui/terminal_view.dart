@@ -324,10 +324,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     final buffer = widget.session.terminal.buffer;
     if (buffer.height == 0) return;
     
-    final allText = buffer.getText(
-      BufferPosition(0, 0),
-      BufferPosition(buffer.columns - 1, buffer.height - 1),
-    );
+    final allText = buffer.getText();
     
     Clipboard.setData(ClipboardData(text: allText));
     debugPrint('Termisol: All content copied to clipboard');

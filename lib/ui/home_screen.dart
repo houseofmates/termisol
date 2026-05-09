@@ -353,7 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Offset.zero & renderBox.size,
       ),
       color: PkmTheme.popup,
-      items: [
+      items: <PopupMenuEntry>[
         PopupMenuItem(
           value: 'new',
           onTap: _addTab,

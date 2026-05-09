@@ -66,7 +66,7 @@ class ProductionConfigSystem {
         'true_color_support': true,
       },
 
-      // AI settings
+      // ai settings
       'ai': {
         'enabled': true,
         'model': 'nvidia-ai',

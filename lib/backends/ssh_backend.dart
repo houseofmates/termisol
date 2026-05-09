@@ -73,7 +73,7 @@ class SshBackend implements TermisolPtyBackend {
       );
 
       // Set terminal size
-      await resize(cols, rows);
+      resize(cols, rows);
 
       // Set working directory if specified
       if (workingDirectory != null || this.workingDirectory != null) {

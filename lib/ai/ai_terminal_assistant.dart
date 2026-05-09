@@ -34,7 +34,7 @@ class NvidiaAITerminalAssistant {
   /// whether the ai assistant is initialized and ready
   bool get isInitialized => _isInitialized;
 
-  /// success rate of AI requests
+  /// success rate of ai requests
   double get successRate {
     return _totalRequests > 0 ? _successfulRequests / _totalRequests : 0.0;
   }

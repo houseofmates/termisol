@@ -10,12 +10,15 @@ class FocusManager {
   final Function(bool)? onFocusChanged;
   final Function(bool)? onFocusEvent;
   final FocusNode focusNode = FocusNode();
+  bool _listening = false;
 
   FocusManager(this.terminal, this.controller, this.onFocusChanged, this.onFocusEvent);
 
-  /// Initialize focus management by wiring the FocusNode listener.
   void initialize() {
-    focusNode.addListener(_onFocusChanged);
+    if (!_listening) {
+      focusNode.addListener(_onFocusChanged);
+      _listening = true;
+    }
   }
 
   void _onFocusChanged() {
@@ -29,20 +32,19 @@ class FocusManager {
     }
   }
 
-  /// Enable focus events (idempotent; actual wiring happens in initialize).
   void enableFocusEvents() {
-    if (!focusNode.hasListeners) {
-      focusNode.addListener(_onFocusChanged);
+    initialize();
+  }
+
+  void disableFocusEvents() {
+    if (_listening) {
+      focusNode.removeListener(_onFocusChanged);
+      _listening = false;
     }
   }
 
-  /// Disable focus events.
-  void disableFocusEvents() {
-    focusNode.removeListener(_onFocusChanged);
-  }
-
   void dispose() {
-    focusNode.removeListener(_onFocusChanged);
+    disableFocusEvents();
     focusNode.dispose();
   }
 }

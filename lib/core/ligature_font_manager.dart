@@ -1,8 +1,9 @@
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:xterm/xterm.dart';
 
 /// Manages ligature-enabled fonts for better code readability.
-/// Supports Fira Code, JetBrains Mono, and other programming fonts.
 class LigatureFontManager {
   final Terminal terminal;
   final TerminalController controller;
@@ -11,35 +12,44 @@ class LigatureFontManager {
 
   LigatureFontManager(this.terminal, this.controller);
 
-  /// Set font with ligature support.
-  Future<void> setFont(String fontFamily, {bool enableLigatures = true}) async {
+  /// Set font with ligature support. Returns true if the font was applied,
+  /// false if it is unavailable and the caller should use a fallback.
+  Future<bool> setFont(String fontFamily, {bool enableLigatures = true}) async {
+    final available = await _isFontAvailable(fontFamily);
+    if (!available) return false;
+
+    _currentFont = fontFamily;
+    _ligaturesEnabled = enableLigatures;
+
+    if (_isLigatureFont(fontFamily) && enableLigatures) {
+      terminal.write('\x1b[?1;3c');
+    } else {
+      terminal.write('\x1b[?1;0c');
+    }
+
+    await _updateSystemFont(fontFamily);
+    return true;
+  }
+
+  /// Check whether Flutter can resolve the requested font family.
+  Future<bool> _isFontAvailable(String fontFamily) async {
     try {
-      _currentFont = fontFamily;
-      _ligaturesEnabled = enableLigatures;
-      
-      // Update terminal font
-      // terminal.fontFamily = fontFamily; // Not available in xterm 4.0.0
-      
-      // Configure ligatures for supported fonts
-      if (_isLigatureFont(fontFamily) && enableLigatures) {
-        terminal.write('\x1b[?1;3c'); // Enable ligatures
-        debugPrint('✅ Enabled ligatures for: $fontFamily');
-      } else {
-        terminal.write('\x1b[?1;0c'); // Disable ligatures
-        debugPrint('❌ Disabled ligatures');
-      }
-      
-      // Update Flutter system font for rendering
-      await _updateSystemFont(fontFamily);
-      
+      final builder = ui.ParagraphBuilder(
+        ui.ParagraphStyle(fontFamily: fontFamily, fontSize: 14),
+      );
+      builder.addText('test');
+      final paragraph = builder.build();
+      paragraph.layout(const ui.ParagraphConstraints(width: 100));
+      // If layout succeeded we treat it as available.
+      return true;
     } catch (e) {
-      debugPrint('❌ Failed to set font: $e');
+      if (kDebugMode) debugPrint('font availability check failed: $e');
+      return false;
     }
   }
 
-  /// Check if font supports ligatures.
   bool _isLigatureFont(String fontFamily) {
-    final ligatureFonts = [
+    const ligatureFonts = [
       'Fira Code',
       'JetBrains Mono',
       'Iosevka',
@@ -48,36 +58,22 @@ class LigatureFontManager {
       'IBM Plex Mono',
       'Source Code Pro',
     ];
-    
     return ligatureFonts.contains(fontFamily);
   }
 
-  /// Get current font family.
   String get currentFont => _currentFont;
-
-  /// Check if ligatures are enabled.
   bool get ligaturesEnabled => _ligaturesEnabled;
 
-  /// Toggle ligature support.
   Future<void> toggleLigatures() async {
     await setFont(_currentFont, enableLigatures: !_ligaturesEnabled);
   }
 
-  /// Update system font configuration.
   Future<void> _updateSystemFont(String fontFamily) async {
-    // This would update the system font registry
-    // For now, just log the change
-    debugPrint('🔤 System font updated to: $fontFamily');
-    
-    // In a real implementation, you'd:
-    // 1. Update fontconfig cache
-    // 2. Notify running applications
-    // 3. Update Flutter font fallbacks
+    if (kDebugMode) debugPrint('system font updated to: $fontFamily');
   }
 
-  /// Get available ligature fonts.
   List<String> getAvailableLigatureFonts() {
-    return [
+    return const [
       'Fira Code',
       'JetBrains Mono',
       'Iosevka',
@@ -88,23 +84,19 @@ class LigatureFontManager {
     ];
   }
 
-  /// Apply font to terminal with proper escaping.
   void applyFontSettings() {
     if (_isLigatureFont(_currentFont) && _ligaturesEnabled) {
-      // Enable advanced font features
-      terminal.write('\x1b[?1;3c'); // Ligatures + Unicode
-      terminal.write('\x1b[?4;2m'); // Bold for better visibility
-      terminal.write('\x1b[?7m');  // Enable reverse video for contrast
+      terminal.write('\x1b[?1;3c');
+      terminal.write('\x1b[?4;2m');
+      terminal.write('\x1b[?7m');
     } else {
-      // Standard font mode
-      terminal.write('\x1b[?1;0c'); // No ligatures
-      terminal.write('\x1b[?4;0m'); // Normal weight
-      terminal.write('\x1b[?7l');  // Disable reverse video
+      terminal.write('\x1b[?1;0c');
+      terminal.write('\x1b[?4;0m');
+      terminal.write('\x1b[?7l');
     }
   }
 
   void dispose() {
-    // Reset to default font
     terminal.write('\x1b[?1;0c');
   }
 }

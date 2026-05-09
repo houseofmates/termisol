@@ -11,7 +11,7 @@ import 'package:flutter/foundation.dart';
 /// - performance monitoring and profiling
 /// - debug event tracking
 /// - log file rotation and compression
-/// - Remote logging support
+/// - remote logging support
 /// - Debug mode with enhanced details
 class TermisolLogger {
   static const String _logDirectory = 'logs';

@@ -487,7 +487,7 @@ class _IsolatePlugin implements Plugin {
   }
 }
 
-/// Plugin interface
+/// plugin interface
 abstract class Plugin {
   String get id;
   String get name;

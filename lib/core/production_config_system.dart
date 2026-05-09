@@ -46,7 +46,7 @@ class ProductionConfigSystem {
         'performance_monitoring': true,
       },
 
-      // UI settings
+      // ui settings
       'ui': {
         'theme': 'dark',
         'font_family': 'Fira Code',

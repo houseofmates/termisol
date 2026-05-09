@@ -355,7 +355,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Put image via Kitty protocol
+  /// put image via kitty protocol
   String _putKittyImage(Map<String, String> params, int cursorX, int cursorY) {
     final id = params['i'] ?? _nextImageId.toString();
     final width = int.tryParse(params['s'] ?? '0') ?? 0;
@@ -385,7 +385,7 @@ class GraphicsProtocolHandler {
     return '\x1b_Gi=$id;OK\x1b\\';
   }
 
-  /// Delete image via Kitty protocol
+  /// delete image via kitty protocol
   String _deleteKittyImage(Map<String, String> params) {
     final id = params['i'];
     if (id != null) {

@@ -218,7 +218,7 @@ class RobustErrorHandler {
   
   /// recovery strategies for critical errors
   Future<void> _recoverFromCritical(ErrorReport report) async {
-    // Implement critical error recovery
+    // implement critical error recovery
     _logger.severe('Critical error detected, initiating emergency recovery');
     
     // Save current state

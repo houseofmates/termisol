@@ -550,7 +550,7 @@ class GraphicsProtocolHandler {
     final query = params['q'];
 
     switch (query) {
-      case 's': // Status
+      case 's': // status
         return _getKittyStatus();
       case 'c': // Capabilities
         return _getKittyCapabilities();
@@ -636,7 +636,7 @@ class GraphicsProtocolHandler {
       return '\x1b_Gi=$imageId;OK\x1b\\';
     } catch (e) {
       debugPrint('Error processing Sixel data: $e');
-      return '\x1b_Gi=1,f=32\x1b\\'; // Error response
+      return '\x1b_Gi=1,f=32\x1b\\'; // error response
     }
   }
 

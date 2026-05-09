@@ -9,12 +9,12 @@ import 'package:logging/logging.dart';
 /// production-grade error handling system for termisol
 /// 
 /// features:
-/// - Structured error logging with context
-/// - Automatic error recovery mechanisms
-/// - Performance monitoring and alerting
-/// - Cross-platform error reporting
-/// - Secure error data handling
-/// - Real-time error analytics
+/// - structured error logging with context
+/// - automatic error recovery mechanisms
+/// - performance monitoring and alerting
+/// - cross-platform error reporting
+/// - secure error data handling
+/// - real-time error analytics
 class RobustErrorHandler {
   static final RobustErrorHandler _instance = RobustErrorHandler._internal();
   factory RobustErrorHandler() => _instance;

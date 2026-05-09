@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Stores and searches terminal command history.
+/// stores and searches terminal command history.
 ///
-/// Commands are persisted via SharedPreferences and deduplicated.
-/// Provides fuzzy substring search for quick recall.
+/// commands are persisted via sharedpreferences and deduplicated.
+/// provides fuzzy substring search for quick recall.
 class CommandHistory {
   static const String _prefsKey = 'termisol_command_history';
   static const int _maxHistory = 500;

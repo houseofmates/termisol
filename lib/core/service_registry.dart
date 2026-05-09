@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:collection';
 import 'package:flutter/foundation.dart';
 
-/// Lazy-loading service registry with health checks and feature flags.
+/// lazy-loading service registry with health checks and feature flags.
 ///
-/// Reduces main.dart from 35 eager initializations to on-demand service
-/// creation. Services that fail to start are flagged but don't crash the app.
+/// reduces main.dart from 35 eager initializations to on-demand service
+/// creation. services that fail to start are flagged but don't crash the app.
 class ServiceRegistry {
   static ServiceRegistry? _instance;
   static ServiceRegistry get instance {
@@ -198,8 +198,8 @@ class _ServiceEntry<T> {
   });
 }
 
-/// Feature flag definitions for termisol.
-/// Only features that are actually implemented and used.
+/// feature flag definitions for termisol.
+/// only features that are actually implemented and used.
 class TermisolFeatures {
   static const String terminalCore = 'terminal_core';
   static const String aiAssistant = 'ai_assistant';

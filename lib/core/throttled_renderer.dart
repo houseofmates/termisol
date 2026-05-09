@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
 
-/// Throttles terminal rendering to maintain 60fps (16ms per frame).
-/// Prevents UI freezing during heavy output like `cat large.log`.
+/// throttles terminal rendering to maintain 60fps (16ms per frame).
+/// prevents ui freezing during heavy output like `cat large.log`.
 class ThrottledRenderer {
   final Terminal terminal;
   Duration _frameInterval = const Duration(milliseconds: 16);

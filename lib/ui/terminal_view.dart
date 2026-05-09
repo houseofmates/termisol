@@ -65,7 +65,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   bool _showSuggestions = false;
   String? _currentInput;
 
-  // Command chaining state
+  // command chaining state
   List<String> _chainSuggestions = [];
   bool _showChainSuggestions = false;
   void Function(String)? _originalOnOutput;

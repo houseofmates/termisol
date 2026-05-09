@@ -544,7 +544,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Log error with proper formatting
+  /// log error with proper formatting
   void _logError(ErrorReport report) {
     final level = _mapSeverityToLevel(report.severity);
     _logger.log(level, _formatErrorLog(report));

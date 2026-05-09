@@ -1,15 +1,15 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:xterm/xterm.dart' show TerminalStyle, TerminalTheme, TextScaler;
 
-/// GPU performance helper for Termisol.
+import 'gpu/gpu_terminal_painter.dart';
+
+/// Coordinates GPU-accelerated terminal rendering for Termisol.
 ///
-/// The primary optimization provided is [RepaintBoundary] wrapping, which
-/// isolates terminal paint costs from the rest of the widget tree. Flutter's
-/// Skia/Impeller backend handles the actual GPU rasterization.
-///
-/// Additional optimizations (e.g. texture atlases) would require extending
-/// xterm.dart's rendering pipeline and are left for future work.
+/// The renderer uses a [GpuTerminalPainter] which batches background fills
+/// into single [Vertices] calls and caches static lines as [Picture] objects
+/// for near-zero-cost replay on subsequent frames.
 class GpuRenderer {
   static final GpuRenderer instance = GpuRenderer._();
   GpuRenderer._();
@@ -17,8 +17,9 @@ class GpuRenderer {
   bool _initialized = false;
   bool get isInitialized => _initialized;
 
-  /// Verify that GPU acceleration is active by doing a small off-screen
-  /// render and checking that it completes without error.
+  GpuTerminalPainter? _painter;
+
+  /// Warm up the GPU backend and mark the renderer ready.
   void initialize() {
     if (_initialized) return;
     _warmUpGpu();
@@ -40,6 +41,34 @@ class GpuRenderer {
     } catch (e, stack) {
       debugPrint('[gpu] warm-up failed: $e\n$stack');
     }
+  }
+
+  /// Creates or updates a [GpuTerminalPainter] configured with the given
+  /// [theme], [textStyle] and [textScaler].
+  GpuTerminalPainter createPainter({
+    required TerminalTheme theme,
+    required TerminalStyle textStyle,
+    TextScaler? textScaler,
+  }) {
+    final scaler = textScaler ?? TextScaler.noScaling;
+    if (_painter == null) {
+      _painter = GpuTerminalPainter(
+        theme: theme,
+        textStyle: textStyle,
+        textScaler: scaler,
+      );
+    } else {
+      _painter!.theme = theme;
+      _painter!.textStyle = textStyle;
+      _painter!.textScaler = scaler;
+    }
+    return _painter!;
+  }
+
+  /// Dispose the cached painter and release native picture resources.
+  void dispose() {
+    _painter?.clearFontCache();
+    _painter = null;
   }
 
   /// Wrap a widget in a [RepaintBoundary] to isolate its paint cost.

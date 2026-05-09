@@ -426,7 +426,7 @@ class GraphicsProtocolHandler {
     switch (format) {
       case 'f': // direct transmission
         return _processDirectTransmission(params, id, cursorX, cursorY);
-      case 't': // Temporary file
+      case 't': // temporary file
         return _processTemporaryFileTransmission(params, id, cursorX, cursorY);
       default:
         return '';
@@ -446,7 +446,7 @@ class GraphicsProtocolHandler {
       final width = int.tryParse(params['w'] ?? '0') ?? 0;
       final height = int.tryParse(params['h'] ?? '0') ?? 0;
 
-      if (data == null) return '\x1b_Gi=$id,f=32\x1b\\'; // Error: no data
+      if (data == null) return '\x1b_Gi=$id,f=32\x1b\\'; // error: no data
 
       // Validate base64 data
       try {

@@ -151,7 +151,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Handle error threshold exceeded
+  /// handle error threshold exceeded
   void _handleErrorThreshold(ErrorReport report, int count) {
     // Create alert for high-frequency errors
     final alert = ErrorAlert(

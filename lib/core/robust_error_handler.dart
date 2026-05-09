@@ -221,7 +221,7 @@ class RobustErrorHandler {
     // implement critical error recovery
     _logger.severe('Critical error detected, initiating emergency recovery');
     
-    // Save current state
+    // save current state
     await _emergencyStateSave();
     
     // Clear caches

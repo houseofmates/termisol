@@ -48,16 +48,24 @@ class TermisolCoreIntegration {
   TermisolCoreIntegration._();
 
   late TermisolCoreConfig _config;
+  late TermisolCoreConfig _originalConfig;
 
   final List<PerformanceMetrics> _frameTimings = [];
   final _metricsController = StreamController<PerformanceMetrics>.broadcast();
   Timer? _metricsTimer;
   int _consecutiveSlowFrames = 0;
+  int _consecutiveFastFrames = 0;
   bool _isInitialized = false;
+  bool _optimized = false;
 
   /// notifier for the latest averaged frame metrics.
   final ValueNotifier<FrameMetrics> frameMetrics = ValueNotifier(
     const FrameMetrics(fps: 0, frameTimeMs: 0, buildTimeMs: 0, rasterTimeMs: 0),
+  );
+
+  /// notifier for the current active performance config.
+  final ValueNotifier<TermisolCoreConfig> activeConfig = ValueNotifier(
+    TermisolCoreConfig.highPerformance(),
   );
 
   /// stream of real frame timing metrics.
@@ -70,7 +78,9 @@ class TermisolCoreIntegration {
   Future<bool> initialize({TermisolCoreConfig? config}) async {
     if (_isInitialized) return true;
 
-    _config = config ?? TermisolCoreConfig.highPerformance();
+    _originalConfig = config ?? TermisolCoreConfig.highPerformance();
+    _config = _originalConfig;
+    activeConfig.value = _config;
     _startRealPerformanceMonitoring();
     _isInitialized = true;
     return true;
@@ -120,7 +130,6 @@ class TermisolCoreIntegration {
       }
     });
 
-    // periodic memory and health check
     _metricsTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       _checkMemoryPressure();
     });
@@ -128,18 +137,37 @@ class TermisolCoreIntegration {
 
   /// auto-optimize based on real frame metrics and system state.
   void _evaluateAutoOptimization(PerformanceMetrics metric) {
-    if (metric.rasterDurationMs > 16.0) {
+    if (metric.totalFrameTimeMs > 16.0) {
       _consecutiveSlowFrames++;
+      _consecutiveFastFrames = 0;
     } else {
+      _consecutiveFastFrames++;
       _consecutiveSlowFrames = 0;
     }
 
-    if (_consecutiveSlowFrames >= 3) {
-      _consecutiveSlowFrames = 0;
-      debugPrint('[perf] raster > 16ms for 3 frames: consider reducing terminal font size or scrollback');
+    if (_consecutiveSlowFrames >= 3 && !_optimized) {
+      _applyOptimization();
+    }
+
+    if (_consecutiveFastFrames >= 10 && _optimized) {
+      _restoreOptimization();
     }
 
     _checkThermalState();
+  }
+
+  void _applyOptimization() {
+    _optimized = true;
+    _config = TermisolCoreConfig.lowMemory();
+    activeConfig.value = _config;
+    debugPrint('[perf] applied low-memory optimization');
+  }
+
+  void _restoreOptimization() {
+    _optimized = false;
+    _config = _originalConfig;
+    activeConfig.value = _config;
+    debugPrint('[perf] restored high-performance config');
   }
 
   /// simplified thermal check using frame time as a proxy.
@@ -169,9 +197,7 @@ class TermisolCoreIntegration {
   }
 
   Map<String, dynamic> _getProcessInfo() {
-    // Flutter does not expose RSS directly; return empty on unsupported platforms.
     if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
-      // could parse /proc/self/status on Linux, but keep it simple.
       return {};
     }
     return {};

@@ -384,7 +384,7 @@ class FileSink implements LogSink {
     _sink.write(line);
     _currentSize += line.length;
     
-    // Rotate if needed
+    // rotate if needed
     if (_currentSize > TermisolLogger._maxLogFileSize) {
       _rotateLog();
     }

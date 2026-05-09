@@ -75,9 +75,9 @@ android {
     signingConfigs {
         release {
             storeFile file('termisol-release-key.jks')
-            storePassword 'termisol123'
+            storePassword System.getenv('TERMISOL_STORE_PASSWORD') ?: 'change_me'
             keyAlias 'termisol'
-            keyPassword 'termisol123'
+            keyPassword System.getenv('TERMISOL_KEY_PASSWORD') ?: 'change_me'
         }
     }
 

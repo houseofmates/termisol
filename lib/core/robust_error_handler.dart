@@ -52,7 +52,7 @@ class RobustErrorHandler {
   /// initialize the error handler
   Future<void> initialize() async {
     try {
-      // Setup logging hierarchy
+      // setup logging hierarchy
       Logger.root.level = Level.ALL;
       Logger.root.onRecord.listen(_handleLogRecord);
       

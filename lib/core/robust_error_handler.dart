@@ -91,7 +91,7 @@ class RobustErrorHandler {
         version: '1.0.0',
       );
       
-      // Update error statistics
+      // update error statistics
       _updateErrorStats(errorReport);
       
       // Add to history

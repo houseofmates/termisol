@@ -470,7 +470,7 @@ class PerformanceTracker {
   }
 }
 
-/// Debug event
+/// debug event
 class DebugEvent {
   final String name;
   final Map<String, dynamic>? data;

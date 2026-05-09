@@ -159,7 +159,7 @@ class ProductionConfigSystem {
       debugPrint('ProductionConfigSystem initialized');
     } catch (e) {
       debugPrint('Failed to initialize config system: $e');
-      // Continue with defaults
+      // continue with defaults
       _config.addAll(Map.from(_defaults));
       _initialized = true;
     }

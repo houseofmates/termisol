@@ -175,13 +175,13 @@ class _HomeScreenState extends State<HomeScreen> {
         _startDictation();
         break;
       case 'copy':
-        unawaited(_activeSession?.clipboardManager.copy() ?? Future<void>.value());
+        if (_activeSession != null) unawaited(_activeSession!.clipboardManager.copy());
         break;
       case 'paste':
-        unawaited(_activeSession?.clipboardManager.paste() ?? Future<void>.value());
+        if (_activeSession != null) unawaited(_activeSession!.clipboardManager.paste());
         break;
       case 'selectAll':
-        unawaited(_activeSession?.clipboardManager.selectAll() ?? Future<void>.value());
+        _activeSession?.clipboardManager.selectAll();
         break;
     }
   }
@@ -226,7 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (aiService is NvidiaAITerminalAssistant) {
         final response = await aiService.processText(
           input: query,
-          capability: AICapability.textGeneration,
+          capability: AICapability.text_generation,
           contextId: 'terminal_$_activeTab',
         );
         final success = response.success;

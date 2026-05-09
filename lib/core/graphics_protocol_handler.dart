@@ -417,8 +417,54 @@ class GraphicsProtocolHandler {
 
   /// Process temporary file transmission
   String _processTemporaryFileTransmission(Map<String, String> params, String id, int cursorX, int cursorY) {
-    // Temporary file transmission not implemented for security
-    return '\x1b_Gi=$id,f=32\x1b\\'; // Error: not supported
+    try {
+      final data = params['d'];
+      final format = params['f'] ?? '100';
+      final width = int.tryParse(params['w'] ?? '0') ?? 0;
+      final height = int.tryParse(params['h'] ?? '0') ?? 0;
+
+      if (data == null) return '\x1b_Gi=$id,f=32\x1b\\';
+
+      final bytes = base64.decode(data);
+      final cacheDir = _cacheDir ?? Directory.systemTemp.path;
+      final filePath = '$cacheDir/kitty_temp_$id.tmp';
+      final file = File(filePath);
+      file.writeAsBytesSync(bytes);
+      _tempFilePaths.add(filePath);
+
+      if (_imageCache.containsKey(id)) {
+        final image = _imageCache[id]!;
+        _imageCache[id] = GraphicsImage(
+          id: image.id,
+          width: width > 0 ? width : image.width,
+          height: height > 0 ? height : image.height,
+          data: data,
+          format: 'kitty',
+        );
+        _imagePositions[id] ??= Offset(cursorX.toDouble(), cursorY.toDouble());
+      } else {
+        _imageCache[id] = GraphicsImage(
+          id: _nextImageId++,
+          width: width,
+          height: height,
+          data: data,
+          format: 'kitty',
+        );
+        _imagePositions[id] = Offset(cursorX.toDouble(), cursorY.toDouble());
+      }
+
+      _totalImagesProcessed++;
+      _eventController.add(GraphicsEvent(
+        GraphicsEventType.imageProcessed,
+        'Kitty temp file processed',
+        data: {'id': id, 'path': filePath, 'size': bytes.length},
+      ));
+
+      return '\x1b_Gi=$id,f=$format\x1b\\';
+    } catch (e) {
+      debugPrint('Error processing temporary file transmission: $e');
+      return '\x1b_Gi=$id,f=32\x1b\\';
+    }
   }
 
   /// Handle Kitty graphics queries

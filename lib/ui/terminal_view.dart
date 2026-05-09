@@ -12,6 +12,7 @@ import '../config/pkm_theme.dart';
 import 'clipboard_manager.dart';
 import 'copy_mode_overlay.dart';
 import 'custom_hotkey_manager.dart';
+import 'enhanced_clipboard_manager.dart';
 
 /// active terminal theme based on the current [pkmtheme.thememode].
 TerminalTheme get termisolTerminalTheme => PkmTheme.activeTerminalTheme;

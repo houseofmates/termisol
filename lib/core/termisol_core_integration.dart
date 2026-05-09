@@ -232,7 +232,7 @@ class TermisolCoreIntegration {
   /// dispose all resources.
   Future<void> dispose() async {
     _metricsTimer?.cancel();
-    _metricsController.close();
+    await _metricsController.close();
     _frameTimings.clear();
     _isInitialized = false;
   }

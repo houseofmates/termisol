@@ -1113,7 +1113,7 @@ class GraphicsProtocolHandler {
     );
   }
 
-  /// Get cached image
+  /// get cached image
   GraphicsImage? getCachedImage(String imageId) {
     return _imageCache[imageId];
   }

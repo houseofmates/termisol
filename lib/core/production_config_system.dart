@@ -175,17 +175,17 @@ class ProductionConfigSystem {
         final content = await _configFile!.readAsString();
         final loadedConfig = jsonDecode(content) as Map<String, dynamic>;
 
-        // Deep merge loaded config with defaults
+        // deep merge loaded config with defaults
         _deepMerge(_config, loadedConfig);
         debugPrint('Configuration loaded from file');
       } catch (e) {
         debugPrint('Failed to load config file: $e');
-        // Try backup
+        // try backup
         await _loadBackupConfiguration();
       }
     }
 
-    // Apply platform-specific overrides
+    // apply platform-specific overrides
     _applyPlatformOverrides();
   }
 

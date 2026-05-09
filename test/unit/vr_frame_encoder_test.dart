@@ -7,8 +7,7 @@ import 'package:xterm/xterm.dart';
 void main() {
   group('VrFrameEncoder', () {
     test('encodes an empty terminal to zeros', () {
-      final terminal = Terminal(maxLines: 10);
-      // Write some content to populate the buffer.
+      final terminal = Terminal();
       terminal.write('');
 
       final encoder = VrFrameEncoder();
@@ -19,7 +18,7 @@ void main() {
     });
 
     test('encodes visible cells with correct stride', () {
-      final terminal = Terminal(maxLines: 10);
+      final terminal = Terminal();
       terminal.write('A');
 
       final encoder = VrFrameEncoder();
@@ -31,7 +30,7 @@ void main() {
     });
 
     test('respects maxRows and maxCols clamps', () {
-      final terminal = Terminal(maxLines: 100);
+      final terminal = Terminal();
       terminal.write('Line1\nLine2\nLine3\n');
 
       final encoder = VrFrameEncoder(maxRows: 2, maxCols: 4);

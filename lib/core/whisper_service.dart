@@ -10,7 +10,7 @@ class WhisperService {
   final Duration timeout;
   
   WhisperService({
-    this.serverUrl = 'http://192.168.4.250:9000',
+    this.serverUrl = 'http://192.168.x.x:9000',
     this.timeout = const Duration(seconds: 30),
   });
 

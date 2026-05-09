@@ -353,7 +353,7 @@ class TermisolPluginSystem {
 
       _isolates[manifest.id] = isolate;
 
-      // Wait for plugin initialization
+      // wait for plugin initialization
       final initMessage = await receivePort.firstWhere((message) {
         return message is Map && message['type'] == 'initialized';
       }).timeout(_isolateTimeout);

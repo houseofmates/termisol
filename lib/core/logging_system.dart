@@ -71,7 +71,7 @@ class TermisolLogger {
     _sinks.clear();
   }
   
-  /// Log debug message
+  /// log debug message
   void debug(String message, [Map<String, dynamic>? context]) {
     _log(LogLevel.debug, message, context);
   }

@@ -22,6 +22,7 @@ import 'termisol_plugin_system.dart';
 import 'graphics_protocol_handler.dart';
 import 'ring_buffer_scrollback.dart';
 import 'command_history.dart';
+import 'command_alias_system.dart';
 import 'directory_tracker.dart';
 import '../ui/clipboard_manager.dart';
 
@@ -55,6 +56,7 @@ class TerminalSession extends ChangeNotifier {
   String? _error;
   final CommandHistory commandHistory = CommandHistory();
   StreamSubscription<List<int>>? _outputSub;
+  late final CommandAliasSystem _aliasSystem;
   late final DirectoryTracker _directoryTracker;
   late final ValueNotifier<String?> _directoryNotifier;
   ValueNotifier<String?> get directory => _directoryNotifier;
@@ -131,6 +133,7 @@ class TerminalSession extends ChangeNotifier {
     
     terminal = Terminal(); // Keep terminal buffer small for performance
     controller = TerminalController();
+    terminal.onOutput = (data) => writeInput(data);
 
     // Initialize optimization managers
     _textBuffer = OptimizedTextBuffer(maxLines: maxLines);
@@ -152,6 +155,9 @@ class TerminalSession extends ChangeNotifier {
     throttledRenderer = ThrottledRenderer(terminal);
     clipboardManager = TerminalClipboardManager(terminal, controller);
     graphicsHandler = GraphicsProtocolHandler(terminal, controller);
+
+    _aliasSystem = CommandAliasSystem.instance;
+    unawaited(_aliasSystem.load());
 
     _directoryTracker = DirectoryTracker();
     _directoryNotifier = ValueNotifier<String?>(null);
@@ -254,6 +260,15 @@ class TerminalSession extends ChangeNotifier {
     if (input.contains('\n') || input.contains('\r')) {
       final bufferText = _inputBuffer.toString().trim();
       _inputBuffer.clear();
+
+      final expanded = _aliasSystem.expand(bufferText);
+      if (expanded != bufferText) {
+        terminal.write('\r\n[alias: $bufferText → $expanded]\r\n');
+        final backspaces = '\x7f' * bufferText.length;
+        _backend!.write(utf8.encode(backspaces));
+        _backend!.write(utf8.encode('$expanded\r'));
+        return;
+      }
 
       if (bufferText.startsWith('/ai ')) {
         final query = bufferText.substring(4).trim();

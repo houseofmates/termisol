@@ -43,7 +43,7 @@ class WhisperService {
       );
       request.files.add(audioFile);
       
-      // Add parameters
+      // add parameters
       request.fields['language'] = 'en';
       request.fields['task'] = 'transcribe';
       request.fields['temperature'] = '0.0';
@@ -79,7 +79,7 @@ class WhisperService {
       );
       request.files.add(audioFile);
       
-      // Add parameters
+      // add parameters
       request.fields['language'] = 'en';
       request.fields['task'] = 'transcribe';
       request.fields['temperature'] = '0.0';
@@ -99,7 +99,7 @@ class WhisperService {
     }
   }
 
-  /// Clean up transcription by removing filler words and normalizing
+  /// clean up transcription by removing filler words and normalizing
   static String cleanTranscription(String text) {
     if (text.isEmpty) return text;
     

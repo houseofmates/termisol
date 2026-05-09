@@ -119,7 +119,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Set up output interception to handle graphics protocols
+  /// set up output interception to handle graphics protocols
   void _setupOutputInterception() {
     final terminal = _terminal;
     if (terminal == null) return;

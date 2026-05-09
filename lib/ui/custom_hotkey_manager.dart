@@ -78,13 +78,13 @@ class CustomHotkeyManager {
       return KeyEventResult.handled;
     }
     
-    // Ctrl+F: Search
+    // ctrl+f: search
     if (ctrl && !shift && event.logicalKey == LogicalKeyboardKey.keyF) {
       onSearch?.call();
       return KeyEventResult.handled;
     }
     
-    // Ctrl+B: Toggle transcript recording
+    // ctrl+b: toggle transcript recording
     if (ctrl && !shift && event.logicalKey == LogicalKeyboardKey.keyB) {
       _handleTranscriptToggle();
       return KeyEventResult.handled;

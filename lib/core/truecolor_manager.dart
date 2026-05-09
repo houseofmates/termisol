@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
 
-/// Manages TrueColor (24-bit color) support for modern terminals.
-/// Parses OSC color sequences from terminal output and applies them
+/// manages truecolor (24-bit color) support for modern terminals.
+/// parses osc color sequences from terminal output and applies them
 /// to the active terminal theme when possible.
 class TrueColorManager {
   final Terminal terminal;

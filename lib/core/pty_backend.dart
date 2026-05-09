@@ -6,7 +6,7 @@ import 'package:pty/pty.dart';
 import '../backends/android_shell_backend.dart';
 import 'prompt_config.dart';
 
-/// Cross-platform PTY backend interface for termisol.
+/// cross-platform pty backend interface for termisol.
 abstract class TermisolPtyBackend {
   String get name;
   Stream<List<int>> get output;

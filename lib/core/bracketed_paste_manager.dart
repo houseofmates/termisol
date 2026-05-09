@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:xterm/xterm.dart';
 
-/// Manages bracketed paste mode (OSC 52) for secure paste operations.
-/// When enabled, terminal surrounds pasted text with \[200~ and \[201~
+/// manages bracketed paste mode (osc 52) for secure paste operations.
+/// when enabled, terminal surrounds pasted text with \[200~ and \[201~
 class BracketedPasteManager {
   final Terminal terminal;
   final TerminalController controller;

@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Stores and expands command aliases.
+/// stores and expands command aliases.
 ///
-/// Aliases are persisted via SharedPreferences and expand the first word
+/// aliases are persisted via sharedpreferences and expand the first word
 /// of user input into a longer command string.
 class CommandAliasSystem {
   static const String _prefsKey = 'termisol_command_aliases';

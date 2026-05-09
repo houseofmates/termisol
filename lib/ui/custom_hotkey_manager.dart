@@ -57,13 +57,13 @@ class CustomHotkeyManager {
       return KeyEventResult.handled;
     }
     
-    // Ctrl+Shift+C: Original interrupt behavior
+    // ctrl+shift+c: original interrupt behavior
     if (ctrl && shift && event.logicalKey == LogicalKeyboardKey.keyC) {
       _handleInterrupt();
       return KeyEventResult.handled;
     }
     
-    // Ctrl+V: Paste
+    // ctrl+v: paste
     if (ctrl && !shift && event.logicalKey == LogicalKeyboardKey.keyV) {
       _handlePaste();
       return KeyEventResult.handled;

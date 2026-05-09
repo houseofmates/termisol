@@ -48,6 +48,7 @@ class TerminalView extends StatefulWidget {
     this.onKeyEvent,
     this.readOnly = false,
     this.hardwareKeyboardOnly = false,
+    this.painter,
     this.simulateScroll = true,
   });
 

@@ -184,7 +184,7 @@ class CustomHotkeyManager {
   
   
   
-  /// Show feedback message (could be implemented as toast, status bar, etc.)
+  /// show feedback message (could be implemented as toast, status bar, etc.)
   void _showFeedback(String message) {
     // This would show a toast or status message
     // For now, we'll print to debug

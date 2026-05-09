@@ -253,7 +253,7 @@ enum LogLevel {
   String get name => toString().split('.').last.toUpperCase();
 }
 
-/// Log entry
+/// log entry
 class LogEntry {
   final LogLevel level;
   final String message;

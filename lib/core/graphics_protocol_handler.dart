@@ -217,7 +217,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Parse basic ANSI colors (fallback)
+  /// parse basic ansi colors (fallback)
   Color _parseBasicAnsiColor(String sequence, {bool isBackground = false}) {
     final match = RegExp(r'\x1b\[(\d+)m').firstMatch(sequence);
     if (match != null) {

@@ -564,7 +564,7 @@ class GraphicsProtocolHandler {
     return '\x1b_GOK\x1b\\';
   }
 
-  /// Get Kitty protocol capabilities
+  /// get kitty protocol capabilities
   String _getKittyCapabilities() {
     return '\x1b_Ga=T,f=32,s=1,v=1,c=1\x1b\\';
   }

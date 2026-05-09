@@ -106,10 +106,10 @@ class RobustErrorHandler {
       // broadcast to listeners
       _errorController.add(errorReport);
       
-      // Check for error patterns
+      // check for error patterns
       _checkErrorPatterns(errorReport);
       
-      // Attempt recovery if possible
+      // attempt recovery if possible
       if (recoverable) {
         await _attemptRecovery(errorReport);
       }

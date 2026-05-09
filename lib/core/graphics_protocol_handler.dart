@@ -366,7 +366,7 @@ class GraphicsProtocolHandler {
       id: _nextImageId++,
       width: width,
       height: height,
-      data: '', // Will be filled by transmission
+      data: '', // will be filled by transmission
       format: 'kitty',
     );
 

@@ -34,6 +34,7 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     required bool alwaysShowCursor,
     EditableRectCallback? onEditableRect,
     String? composingText,
+    TerminalPainter? customPainter,
   })  : _terminal = terminal,
         _controller = controller,
         _offset = offset,
@@ -44,7 +45,7 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
         _alwaysShowCursor = alwaysShowCursor,
         _onEditableRect = onEditableRect,
         _composingText = composingText,
-        _painter = TerminalPainter(
+        _painter = customPainter ?? TerminalPainter(
           theme: theme,
           textStyle: textStyle,
           textScaler: textScaler,

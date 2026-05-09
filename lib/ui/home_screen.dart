@@ -97,20 +97,22 @@ class _HomeScreenState extends State<HomeScreen> {
       onResult: (result) {
         final recognizedWords = result.recognizedWords;
         if (recognizedWords.isNotEmpty && _activeSession != null) {
-          _activeSession!.sendRawInput(recognizedWords + '\n');
+          _activeSession!.sendRawInput('$recognizedWords\n');
         }
       },
       listenFor: const Duration(seconds: 30),
       pauseFor: const Duration(seconds: 5),
-      partialResults: false,
-      localeId: 'en_US',
-      onDevice: false,
-      onSoundLevelChange: (level) {},
+      listenOptions: SpeechListenOptions(
+        partialResults: false,
+        onDevice: false,
+      ),
     );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Listening... Speak your command')),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Listening... Speak your command')),
+      );
+    }
   }
 
   @override
@@ -192,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
     String content = '';
     try {
       final file = File(filePath);
-      if (await file.exists()) {
+      if (file.existsSync()) {
         content = await file.readAsString();
       }
     } catch (e, stack) {
@@ -215,7 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
   TerminalSession? get _activeSession {
     return _tabs.firstWhere(
       (t) => t.id == _activeTab,
-      orElse: () => _tabs.isNotEmpty ? _tabs.first : null as TerminalSession,
+      orElse: () => _tabs.isNotEmpty ? _tabs.first : null! as TerminalSession,
     );
   }
 

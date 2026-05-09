@@ -141,7 +141,7 @@ class _EditTerminalState extends State<EditTerminal> {
   Future<void> _loadFile() async {
     try {
       final file = File(widget.filePath);
-      if (await file.exists()) {
+      if (file.existsSync()) {
         final content = await file.readAsString();
         if (!mounted) return;
         _controller.text = content;

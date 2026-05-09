@@ -260,7 +260,7 @@ class GraphicsProtocolHandler {
     return processed;
   }
 
-  /// Process Sixel graphics sequences in output
+  /// process sixel graphics sequences in output
   String _processSixelSequences(String output, int cursorX, int cursorY) {
     if (!_sixelEnabled) return output;
 

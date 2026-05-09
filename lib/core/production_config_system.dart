@@ -257,10 +257,10 @@ class ProductionConfigSystem {
         
         return isOculus || isQuest || hasVrFeature;
       } else if (Platform.isWindows) {
-        // Check for Windows Mixed Reality or SteamVR
+        // check for windows mixed reality or steamvr
         return _checkWindowsVRSupport();
       } else if (Platform.isLinux) {
-        // Check for Linux VR support (OpenXR, etc.)
+        // check for linux vr support (openxr, etc.)
         return _checkLinuxVRSupport();
       }
       

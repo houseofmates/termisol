@@ -22,6 +22,59 @@ class PerformanceMetrics {
   });
 }
 
+/// lightweight frame metrics for the performance overlay.
+class FrameMetrics {
+  final double fps;
+  final double frameTimeMs;
+  final double buildTimeMs;
+  final double rasterTimeMs;
+
+  const FrameMetrics({
+    required this.fps,
+    required this.frameTimeMs,
+    required this.buildTimeMs,
+    required this.rasterTimeMs,
+  });
+}
+
+/// real-time performance metrics collected from Flutter's frame timing.
+class PerformanceMetrics2 {
+  final double buildDurationMs;
+  final double rasterDurationMs;
+  final double vsyncOverheadMs;
+  final double totalFrameTimeMs;
+  final double frameRate;
+  final DateTime timestamp;
+
+  const PerformanceMetrics2({
+    required this.buildDurationMs,
+    required this.rasterDurationMs,
+    required this.vsyncOverheadMs,
+    required this.totalFrameTimeMs,
+    required this.frameRate,
+    required this.timestamp,
+  });
+}
+
+/// real-time performance metrics collected from Flutter's frame timing.
+class PerformanceMetrics3 {
+  final double buildDurationMs;
+  final double rasterDurationMs;
+  final double vsyncOverheadMs;
+  final double totalFrameTimeMs;
+  final double frameRate;
+  final DateTime timestamp;
+
+  const PerformanceMetrics({
+    required this.buildDurationMs,
+    required this.rasterDurationMs,
+    required this.vsyncOverheadMs,
+    required this.totalFrameTimeMs,
+    required this.frameRate,
+    required this.timestamp,
+  });
+}
+
 /// termisol core integration system.
 ///
 /// collects real frame timing data via SchedulerBinding.addTimingsCallback

@@ -281,6 +281,50 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     setState(() => _showSuggestions = false);
   }
 
+  /// Save the currently opened file (for edit or nano)
+  Future<void> _saveCurrentFile() async {
+    // Check if we're in an editor session
+    final buffer = widget.session.terminal.buffer;
+    if (buffer.height == 0) return;
+    
+    final lastLine = buffer.lines[buffer.height - 1].getText();
+    
+    // Try to detect if we're in an editor by checking common editor patterns
+    final isInEditor = RegExp(r'(nano|vi|vim|edit|emacs|code)\s+').hasMatch(lastLine) ||
+                      lastLine.contains('-- INSERT --') ||
+                      lastLine.contains('Normal mode');
+    
+    if (isInEditor) {
+      // Send Ctrl+S to save in most editors
+      widget.session.sendRawInput('\x13'); // Ctrl+S
+      debugPrint('Termisol: Save command sent to editor');
+    } else {
+      debugPrint('Termisol: Not in an editor session');
+    }
+  }
+
+  /// Show search overlay
+  void _showSearchOverlay() {
+    // This would integrate with the existing search functionality
+    // For now, we'll send Ctrl+F to the terminal which many apps support
+    widget.session.sendRawInput('\x06'); // Ctrl+F
+    debugPrint('Termisol: Search command sent');
+  }
+
+  /// Copy all terminal content
+  void _copyAllContent() {
+    final buffer = widget.session.terminal.buffer;
+    if (buffer.height == 0) return;
+    
+    final allText = buffer.getText(
+      TerminalPosition(0, 0),
+      TerminalPosition(buffer.columns - 1, buffer.height - 1),
+    );
+    
+    Clipboard.setData(ClipboardData(text: allText));
+    debugPrint('Termisol: All content copied to clipboard');
+  }
+
   void _sendChainCommand(String command) {
     widget.session.sendRawInput('$command\r');
     setState(() => _showChainSuggestions = false);

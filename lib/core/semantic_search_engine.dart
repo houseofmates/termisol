@@ -194,22 +194,20 @@ class SemanticSearchEngine {
   Set<String> _getCandidateDocs(String collection, List<String> queryTokens) {
     final inverted = _invertedIndexes[collection];
     if (inverted == null) return {};
-    final candidates = <String>{};
+    Set<String>? candidates;
     for (final token in queryTokens) {
       final docs = inverted.terms[token];
-      if (docs != null) {
-        if (candidates.isEmpty) {
-          candidates.addAll(docs);
-        } else {
-          candidates.addAll(docs);
-        }
+      if (docs != null && docs.isNotEmpty) {
+        candidates = candidates == null ? {...docs} : candidates.intersection(docs);
       }
       for (int n = _ngramMin; n <= _ngramMax; n++) {
         final ngramDocs = inverted.ngrams[token.substring(0, min(n, token.length))];
-        if (ngramDocs != null) candidates.addAll(ngramDocs);
+        if (ngramDocs != null && ngramDocs.isNotEmpty) {
+          candidates = candidates == null ? {...ngramDocs} : candidates.intersection(ngramDocs);
+        }
       }
     }
-    return candidates;
+    return candidates ?? {};
   }
 
   double _scoreBM25(IndexedDocument doc, List<String> queryTokens, double avgLength) {
@@ -218,7 +216,8 @@ class SemanticSearchEngine {
     for (final token in queryTokens) {
       final tf = doc.termFrequencies[token]?.toDouble() ?? 0.0;
       if (tf == 0) continue;
-      final df = _invertedIndexes.isEmpty ? 1 : (_invertedIndexes.values.first.terms[token]?.length ?? 1).toDouble();
+      final inverted = _invertedIndexes[collection];
+      final df = inverted == null ? 1 : (inverted.terms[token]?.length ?? 1).toDouble();
       final idf = log((_totalDocuments - df + 0.5) / (df + 0.5) + 1.0);
       final numerator = tf * (_k1 + 1);
       final denominator = tf + _k1 * (1 - _b + _b * (docLength / max(avgLength, 1)));

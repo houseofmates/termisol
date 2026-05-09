@@ -107,10 +107,7 @@ class SshBackend implements TermisolPtyBackend {
   void resize(int cols, int rows) {
     if (_session != null && _isRunning) {
       try {
-        // Send SIGWINCH or use TIOCSWINSZ if supported
-        // For now, send escape sequence
-        final resizeSeq = '\x1b[8;$rows;${cols}t';
-        write(utf8.encode(resizeSeq));
+        _session!.resizeTerminal(cols, rows);
       } catch (e) {
         debugPrint('[ssh] resize error: $e');
       }

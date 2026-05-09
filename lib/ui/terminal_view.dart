@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:xterm/xterm.dart';
 import '../core/terminal_session.dart';
 import '../core/gpu_renderer.dart';
@@ -47,10 +48,12 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   late final TerminalClipboardManager _clipboard;
   late final GraphicsProtocolHandler _graphicsHandler;
   final _deepL = DeepLTranslationService();
+  final _terminalViewKey = GlobalKey<TerminalViewState>();
   bool _isSummarizing = false;
   bool _isTranslating = false;
   bool _isCopyMode = false;
   double _fontSize = _defaultTerminalFontSize;
+  MouseCursor _mouseCursor = SystemMouseCursors.text;
   String _fontFamily = 'DroidSansMono';
 
   @override

@@ -72,7 +72,7 @@ class CustomHotkeyManager {
     // ctrl+z: undo (let it pass through to terminal)
     // we'll ignore this to let the terminal handle undo
     
-    // Ctrl+A: Copy all
+    // ctrl+a: copy all
     if (ctrl && !shift && event.logicalKey == LogicalKeyboardKey.keyA) {
       _handleCopyAll();
       return KeyEventResult.handled;

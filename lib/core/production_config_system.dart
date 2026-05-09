@@ -91,7 +91,7 @@ class ProductionConfigSystem {
         'allow_remote_connections': false,
       },
 
-      // Device-specific settings
+      // device-specific settings
       'device': {
         'platform': defaultTargetPlatform.name,
         'is_mobile': defaultTargetPlatform == TargetPlatform.android ||

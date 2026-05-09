@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'dart:async';
-import '../core/session_persistence.dart' hide TerminalSession;
+import '../core/session_persistence.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/service_registry.dart';

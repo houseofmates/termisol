@@ -92,11 +92,12 @@ class LongCommandNotifier extends ChangeNotifier {
   /// Get active long commands
   Map<String, bool> get activeCommands {
     return Map.fromEntries(
-      _activeCommands.entries.map((entry) => MapEntry(entry.key, entry.value.isActive ?? false)),
+      _activeCommands.entries.map((entry) => MapEntry(entry.key, entry.value.isActive)),
     );
   }
 
   /// Dispose resources
+  @override
   void dispose() {
     // Cancel all active timers
     for (final timer in _activeCommands.values) {

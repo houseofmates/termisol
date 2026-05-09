@@ -113,14 +113,18 @@ ai:
 
 | shortcut | action |
 |----------|--------|
-| `Ctrl+T` | new tab |
-| `Ctrl+Shift+T` | duplicate tab |
+| `Ctrl+N` | new tab |
+| `Ctrl+T` | duplicate tab |
 | `Ctrl+W` | close tab |
 | `Ctrl+Shift+W` | close all other tabs |
 | `Ctrl+Tab` | next tab |
-| `Ctrl+Shift+C` | copy (or enter copy mode if no selection) |
-| `Ctrl+Shift+V` | paste |
+| `Ctrl+C` | copy selected text |
+| `Ctrl+Shift+C` | interrupt (original Ctrl+C behavior) |
+| `Ctrl+Z` | paste |
+| `Ctrl+A` | copy all terminal content |
 | `Ctrl+F` | find in terminal |
+| `Ctrl+S` | save current file (in edit/nano) |
+| `Ctrl+B` | toggle transcript recording with Whisper |
 | `Ctrl+Shift+P` | command palette |
 | `Ctrl+Shift+O` | toggle performance overlay |
 | `Ctrl+Shift+B` | toggle broadcast input |

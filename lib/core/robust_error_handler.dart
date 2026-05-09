@@ -801,7 +801,7 @@ class ErrorAlert {
 /// missing helper functions for robust error handler
 extension RobustErrorHandlerHelpers on RobustErrorHandler {
   
-  /// Clear old log files
+  /// clear old log files
   Future<void> _clearOldLogFiles() async {
     try {
       final documentsDir = await getApplicationDocumentsDirectory();

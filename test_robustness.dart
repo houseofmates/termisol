@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 
 /// Comprehensive robustness test for enhanced clipboard
 void main() {

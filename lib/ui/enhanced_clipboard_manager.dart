@@ -55,7 +55,7 @@ class EnhancedClipboardManager {
       }
 
       // On desktop platforms, check for file content
-      if (!kIsWeb && Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
         final fileContent = await _getClipboardFiles();
         if (fileContent != null) {
           return fileContent;

@@ -119,6 +119,8 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     PkmTheme.bgOpacity.removeListener(_onBgOpacityChanged);
     widget.session.removeListener(_onSessionChanged);
     widget.session.onOutputReceived = _originalOnOutput;
+    _graphicsHandler.dispose();
+    _clipboard.dispose();
     super.dispose();
   }
 
@@ -159,21 +161,21 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     setState(() {
       _fontSize = (_fontSize + 1.0).clamp(_minFontSize, _maxFontSize);
     });
-    _saveFontSize();
+    unawaited(_saveFontSize());
   }
 
   void _zoomOut() {
     setState(() {
       _fontSize = (_fontSize - 1.0).clamp(_minFontSize, _maxFontSize);
     });
-    _saveFontSize();
+    unawaited(_saveFontSize());
   }
 
   void _zoomReset() {
     setState(() {
       _fontSize = _defaultTerminalFontSize;
     });
-    _saveFontSize();
+    unawaited(_saveFontSize());
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
@@ -230,16 +232,26 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     return parts.isNotEmpty ? parts.last.trim() : lastLine.trim();
   }
 
+  bool _autocompleteInProgress = false;
+
   Future<void> _triggerAutocomplete() async {
+    if (_autocompleteInProgress) return;
     final input = _extractCurrentInput();
     if (input.isEmpty) return;
-    final suggestions = await widget.session.getCommandSuggestions(input);
-    if (!mounted) return;
-    setState(() {
-      _currentInput = input;
-      _suggestions = suggestions;
-      _showSuggestions = suggestions.isNotEmpty;
-    });
+    _autocompleteInProgress = true;
+    try {
+      final suggestions = await widget.session.getCommandSuggestions(input);
+      if (!mounted) return;
+      setState(() {
+        _currentInput = input;
+        _suggestions = suggestions;
+        _showSuggestions = suggestions.isNotEmpty;
+      });
+    } on Exception catch (e, stack) {
+      debugPrint('autocomplete failed: $e\n$stack');
+    } finally {
+      _autocompleteInProgress = false;
+    }
   }
 
   void _insertSuggestion(String suggestion) {
@@ -284,15 +296,19 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
       if (_mouseCursor != newCursor) {
         setState(() => _mouseCursor = newCursor);
       }
-    } catch (_) {
-      // RenderTerminal may not be ready yet.
+    } on Exception catch (e, stack) {
+      debugPrint('hover handling failed: $e\n$stack');
     }
   }
 
   Future<void> _launchUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } on Exception catch (e, stack) {
+      debugPrint('launch url failed: $e\n$stack');
     }
   }
 
@@ -611,7 +627,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
           '\r\n\x1b[36m[summary copied to clipboard]\x1b[0m\r\n',
         );
       }
-    } catch (e, stack) {
+    } on Exception catch (e, stack) {
       debugPrint('summary failed: $e\n$stack');
       widget.session.terminal.write(
         '\r\n\x1b[31m[summary failed: $e]\x1b[0m\r\n',
@@ -645,7 +661,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
           '\r\n\x1b[31m[translation failed]\x1b[0m\r\n',
         );
       }
-    } catch (e, stack) {
+    } on Exception catch (e, stack) {
       debugPrint('translation error: $e\n$stack');
       widget.session.terminal.write(
         '\r\n\x1b[31m[translation error: $e]\x1b[0m\r\n',

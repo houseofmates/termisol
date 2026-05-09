@@ -798,7 +798,7 @@ class ErrorAlert {
   });
 }
 
-/// Missing helper functions for robust error handler
+/// missing helper functions for robust error handler
 extension RobustErrorHandlerHelpers on RobustErrorHandler {
   
   /// Clear old log files

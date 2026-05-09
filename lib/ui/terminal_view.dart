@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:xterm/xterm.dart';
+import 'package:xterm/xterm.dart' show Terminal, TerminalTheme, TerminalView, TerminalViewState, BufferPosition;
 import '../core/terminal_session.dart';
 import '../core/gpu_renderer.dart';
 import '../core/deep_l_service.dart';

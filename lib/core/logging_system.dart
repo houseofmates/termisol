@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 
 /// comprehensive logging and debugging system for termisol
 /// 
-/// Features:
+/// features:
 /// - Structured logging with multiple levels
 /// - Performance monitoring and profiling
 /// - Debug event tracking

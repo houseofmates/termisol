@@ -537,9 +537,6 @@ class EnhancedClipboardManager {
         
       case ClipboardContentType.empty:
         return 'Empty';
-        
-      default:
-        return 'Unknown';
     }
   }
 

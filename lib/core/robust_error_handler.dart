@@ -206,7 +206,7 @@ class RobustErrorHandler {
   
   /// recovery strategies for errors
   Future<void> _recoverFromError(ErrorReport report) async {
-    // Implement error-specific recovery
+    // implement error-specific recovery
     if (report.error.contains('file')) {
       await _triggerFilesystemCheck();
     }

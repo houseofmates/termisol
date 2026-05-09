@@ -96,7 +96,7 @@ class CustomHotkeyManager {
       return KeyEventResult.handled;
     }
     
-    // Ctrl+N: New tab
+    // ctrl+n: new tab
     if (ctrl && !shift && event.logicalKey == LogicalKeyboardKey.keyN) {
       onNewTab?.call();
       return KeyEventResult.handled;

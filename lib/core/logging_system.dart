@@ -487,7 +487,7 @@ class DebugEvent {
   }
 }
 
-/// Debug utilities
+/// debug utilities
 class DebugUtils {
   static void logMemoryUsage(String context) {
     if (!kDebugMode) return;

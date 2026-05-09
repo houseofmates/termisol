@@ -369,7 +369,7 @@ class FileSink implements LogSink {
     if (_file.existsSync()) {
       _currentSize = _file.lengthSync();
       
-      // Rotate if file is too large
+      // rotate if file is too large
       if (_currentSize > TermisolLogger._maxLogFileSize) {
         _rotateLog();
       }

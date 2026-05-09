@@ -504,7 +504,7 @@ class ProductionConfigSystem {
       _deepMerge(_config, imported);
       _applyPlatformOverrides();
 
-      // Emit import event
+      // emit import event
       _changeController.add(ConfigChangeEvent(
         key: '*',
         oldValue: null,

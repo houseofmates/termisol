@@ -73,7 +73,7 @@ class KittyGraphicsManager {
         final isLast = end >= base64Image.length;
         final chunkHeader = isLast ? 'm=1;' : 'm=0;';
         
-        terminal.write('\x1b_G$header${chunkHeader}chunk$payload');
+        terminal.write('\x1b_G$header${chunkHeader}$chunk\x1b\\');
       }
       
       _imageId++;

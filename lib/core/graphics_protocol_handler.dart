@@ -47,7 +47,7 @@ class GraphicsProtocolHandler {
   final Map<String, Offset> _imagePositions =
       {}; // imageId -> character position (x,y)
   final Map<int, Color> _colorPalette = {};
-  final Map<String, GraphicsOverlay> _overlays = {};
+
   final List<GraphicsAnimation> _animations = [];
 
   // Pending images for processing
@@ -59,6 +59,7 @@ class GraphicsProtocolHandler {
 
   // Protocol state
   final GraphicsProtocolState _protocolState = GraphicsProtocolState();
+  // _protocolState is used by sixel color register parsing
 
   // Rendering optimization
   final Map<String, ui.Picture> _pictureCache = {};

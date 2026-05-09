@@ -112,7 +112,7 @@ class WhisperService {
     
     String cleaned = text.trim();
     
-    // Remove filler words with proper spacing
+    // remove filler words with proper spacing
     for (final filler in fillerWords) {
       cleaned = cleaned.replaceAll(RegExp('\\b$filler\\b', caseSensitive: false), '');
     }

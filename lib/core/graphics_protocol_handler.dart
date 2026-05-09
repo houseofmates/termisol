@@ -1123,7 +1123,7 @@ class GraphicsProtocolHandler {
     return Map.unmodifiable(_imageCache);
   }
 
-  /// Toggle graphics features
+  /// toggle graphics features
   void setTrueColorEnabled(bool enabled) {
     _trueColorEnabled = enabled;
     _eventController.add(

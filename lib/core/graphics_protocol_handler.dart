@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:xterm/xterm.dart';
 
 /// Graphics Protocol Handler - Advanced terminal graphics support
@@ -40,6 +41,9 @@ class GraphicsProtocolHandler {
   // Pending images for processing
   final Map<int, PendingImage> _pendingImages = {};
   int _nextImageId = 1;
+
+  String? _cacheDir;
+  final List<String> _tempFilePaths = [];
 
   // Protocol state
   final GraphicsProtocolState _protocolState = GraphicsProtocolState();

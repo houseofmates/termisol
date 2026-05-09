@@ -22,6 +22,7 @@ import 'termisol_plugin_system.dart';
 import 'graphics_protocol_handler.dart';
 import 'ring_buffer_scrollback.dart';
 import 'command_history.dart';
+import 'hyperlink_handler.dart';
 import 'command_alias_system.dart';
 import 'directory_tracker.dart';
 import '../ui/clipboard_manager.dart';
@@ -115,6 +116,7 @@ class TerminalSession extends ChangeNotifier {
   late final LongCommandNotifier _commandNotifier;
   late final TermisolPluginSystem _pluginSystem;
   late final BracketedPasteManager bracketedPaste;
+  late final HyperlinkHandler _hyperlinkHandler;
 
   bool get connected => _connected;
   String? get error => _error;
@@ -156,6 +158,8 @@ class TerminalSession extends ChangeNotifier {
     throttledRenderer = ThrottledRenderer(terminal);
     clipboardManager = TerminalClipboardManager(terminal, controller);
     graphicsHandler = GraphicsProtocolHandler(terminal, controller);
+    _hyperlinkHandler = HyperlinkHandler();
+    _hyperlinkHandler.attach(terminal);
 
     _aliasSystem = CommandAliasSystem.instance;
     unawaited(_aliasSystem.load());
@@ -227,6 +231,7 @@ class TerminalSession extends ChangeNotifier {
            throttledRenderer.write(processedText);
            _directoryTracker.processOutput(text);
            _extractUrls(text);
+           _hyperlinkHandler.processOutput(text);
            // Semantic search indexing removed (feature not yet implemented)
            onOutputReceived?.call(text);
         },
@@ -331,6 +336,11 @@ class TerminalSession extends ChangeNotifier {
   }
 
   /// Persist current session state.
+  /// Returns the hyperlink URL at the given buffer line and column, if any.
+  String? getHyperlinkAt(int line, int column) {
+    return _hyperlinkHandler.getUrlAt(line, column);
+  }
+
   Map<String, dynamic> saveSessionState() {
     return {
       'id': id,
@@ -388,6 +398,7 @@ class TerminalSession extends ChangeNotifier {
     _textBuffer.dispose();
     clipboardManager.dispose();
     await _pluginSystem.dispose();
+    _hyperlinkHandler.dispose();
   }
 
   @override

@@ -56,7 +56,7 @@ class ProductionConfigSystem {
         'animations_enabled': true,
       },
 
-      // Terminal settings
+      // terminal settings
       'terminal': {
         'shell': Platform.isWindows ? 'cmd.exe' : 'bash',
         'working_directory': null,

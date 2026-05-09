@@ -104,7 +104,7 @@ class TermisolCoreIntegration {
         _evaluateAutoOptimization(metric);
       }
 
-      final recent = getRecentMetrics(count: 60);
+      final recent = getRecentMetrics();
       if (recent.isNotEmpty) {
         final avgFrameTime = recent.fold<double>(0.0, (s, m) => s + m.totalFrameTimeMs) / recent.length;
         final avgBuildTime = recent.fold<double>(0.0, (s, m) => s + m.buildDurationMs) / recent.length;

@@ -235,7 +235,7 @@ class TermisolPluginSystem {
     return manifest?.capabilities ?? [];
   }
 
-  /// List all available plugin files
+  /// list all available plugin files
   Future<List<String>> listAvailablePlugins() async {
     try {
       final pluginsDir = Directory(_pluginsDirectory);

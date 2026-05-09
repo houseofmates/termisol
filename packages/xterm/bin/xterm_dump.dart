@@ -5,14 +5,14 @@
 // import 'package:xterm/core/escape/handler.dart';
 // import 'package:xterm/core/escape/parser.dart';
 
-// final handler = DebugTerminalHandler();
-// final protocol = EscapeParser(handler);
-// final input = BytesBuilder(copy: true);
+// final handler = debugterminalhandler();
+// final protocol = escapeparser(handler);
+// final input = bytesbuilder(copy: true);
 
-// void main(List<String> args) async {
-//   final inputStream = args.isNotEmpty ? File(args.first).openRead() : stdin;
+// void main(list<string> args) async {
+//   final inputstream = args.isnotempty ? file(args.first).openread() : stdin;
 
-//   await for (var chunk in inputStream.transform(Utf8Decoder())) {
+//   await for (var chunk in inputstream.transform(utf8decoder())) {
 //     input.add(chunk);
 //     protocol.write(chunk);
 //   }
@@ -20,97 +20,97 @@
 //   handler.flush();
 // }
 
-// extension StringEscape on String {
-//   String escapeInvisible() {
-//     return this.replaceAllMapped(RegExp('[\x00-\x1F]'), (match) {
-//       return '\\x${match.group(0)!.codeUnitAt(0).toRadixString(16).padLeft(2, '0')}';
+// extension stringescape on string {
+//   string escapeinvisible() {
+//     return this.replaceallmapped(regexp('[\x00-\x1f]'), (match) {
+//       return '\\x${match.group(0)!.codeunitat(0).toradixstring(16).padleft(2, '0')}';
 //     });
 //   }
 // }
 
-// class DebugTerminalHandler implements EscapeHandler {
-//   final stringBuffer = StringBuffer();
+// class debugterminalhandler implements escapehandler {
+//   final stringbuffer = stringbuffer();
 
 //   void flush() {
-//     if (stringBuffer.isEmpty) return;
-//     print(Color.green('TXT') + "'$stringBuffer'");
-//     stringBuffer.clear();
+//     if (stringbuffer.isempty) return;
+//     print(color.green('txt') + "'$stringbuffer'");
+//     stringbuffer.clear();
 //   }
 
-//   void recordCommand(String description) {
+//   void recordcommand(string description) {
 //     flush();
-//     final raw = input.toBytes().sublist(protocol.tokenBegin, protocol.tokenEnd);
-//     final token = utf8.decode(raw).replaceAll('\x1b', 'ESC').escapeInvisible();
-//     print(Color.magenta('CMD ') + token.padRight(40) + '$description');
+//     final raw = input.tobytes().sublist(protocol.tokenbegin, protocol.tokenend);
+//     final token = utf8.decode(raw).replaceall('\x1b', 'esc').escapeinvisible();
+//     print(color.magenta('cmd ') + token.padright(40) + '$description');
 //   }
 
 //   @override
-//   void writeChar(int char) {
-//     stringBuffer.writeCharCode(char);
+//   void writechar(int char) {
+//     stringbuffer.writecharcode(char);
 //   }
 
 //   @override
-//   void setCursor(int x, int y) {
-//     recordCommand('setCursor $x, $y');
+//   void setcursor(int x, int y) {
+//     recordcommand('setcursor $x, $y');
 //   }
 
 //   @override
-//   void designateCharset(int charset) {
-//     recordCommand('designateCharset $charset');
+//   void designatecharset(int charset) {
+//     recordcommand('designatecharset $charset');
 //   }
 
 //   @override
-//   void unkownEscape(int char) {
-//     recordCommand('unkownEscape ${String.fromCharCode(char)}');
+//   void unkownescape(int char) {
+//     recordcommand('unkownescape ${string.fromcharcode(char)}');
 //   }
 
 //   @override
-//   void backspaceReturn() {
-//     recordCommand('backspaceReturn');
+//   void backspacereturn() {
+//     recordcommand('backspacereturn');
 //   }
 
 //   @override
-//   void carriageReturn() {
-//     recordCommand('carriageReturn');
+//   void carriagereturn() {
+//     recordcommand('carriagereturn');
 //   }
 
 //   @override
-//   void setCursorX(int x) {
-//     recordCommand('setCursorX $x');
+//   void setcursorx(int x) {
+//     recordcommand('setcursorx $x');
 //   }
 
 //   @override
-//   void setCursorY(int y) {
-//     recordCommand('setCursorY $y');
+//   void setcursory(int y) {
+//     recordcommand('setcursory $y');
 //   }
 
 //   @override
-//   void unkownCSI(int finalByte) {
-//     recordCommand('unkownCSI ${String.fromCharCode(finalByte)}');
+//   void unkowncsi(int finalbyte) {
+//     recordcommand('unkowncsi ${string.fromcharcode(finalbyte)}');
 //   }
 
 //   @override
-//   void unkownSBC(int char) {
-//     recordCommand('unkownSBC ${String.fromCharCode(char)}');
+//   void unkownsbc(int char) {
+//     recordcommand('unkownsbc ${string.fromcharcode(char)}');
 //   }
 
 //   @override
-//   noSuchMethod(Invocation invocation) {
-//     final name = invocation.memberName;
-//     final args = invocation.positionalArguments;
-//     recordCommand('noSuchMethod: $name $args');
+//   nosuchmethod(invocation invocation) {
+//     final name = invocation.membername;
+//     final args = invocation.positionalarguments;
+//     recordcommand('nosuchmethod: $name $args');
 //   }
 // }
 
-// abstract class Color {
-//   static String red(String s) => '\u001b[31m$s\u001b[0m';
-//   static String green(String s) => '\u001b[32m$s\u001b[0m';
-//   static String yellow(String s) => '\u001b[33m$s\u001b[0m';
-//   static String blue(String s) => '\u001b[34m$s\u001b[0m';
-//   static String magenta(String s) => '\u001b[35m$s\u001b[0m';
-//   static String cyan(String s) => '\u001b[36m$s\u001b[0m';
+// abstract class color {
+//   static string red(string s) => '\u001b[31m$s\u001b[0m';
+//   static string green(string s) => '\u001b[32m$s\u001b[0m';
+//   static string yellow(string s) => '\u001b[33m$s\u001b[0m';
+//   static string blue(string s) => '\u001b[34m$s\u001b[0m';
+//   static string magenta(string s) => '\u001b[35m$s\u001b[0m';
+//   static string cyan(string s) => '\u001b[36m$s\u001b[0m';
 // }
 
-// abstract class Labels {
-//   static final txt = Color.green('TXT');
+// abstract class labels {
+//   static final txt = color.green('txt');
 // }

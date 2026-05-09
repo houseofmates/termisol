@@ -448,7 +448,7 @@ class EnhancedClipboardManager {
       // Try to extract GIF info and display
       if (Platform.isMacOS || Platform.isLinux) {
         terminal.write('🔍 Analyzing GIF...\n\r');
-        // Here you could add GIF analysis logic
+        await _analyzeGifFile(targetPath);
       }
       
       return PasteResult(

@@ -5,7 +5,7 @@ import 'package:xterm/src/ui/palette_builder.dart';
 import 'package:xterm/src/ui/paragraph_cache.dart';
 import 'package:xterm/xterm.dart';
 
-/// Encapsulates the logic for painting various terminal elements.
+/// encapsulates the logic for painting various terminal elements.
 class TerminalPainter {
   TerminalPainter({
     required TerminalTheme theme,

@@ -197,10 +197,14 @@ class TermisolCoreIntegration {
   }
 
   Map<String, dynamic> _getProcessInfo() {
-    if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
+    try {
+      return {
+        'rss': ProcessInfo.currentRss,
+        'maxRss': ProcessInfo.maxRss,
+      };
+    } catch (e) {
       return {};
     }
-    return {};
   }
 
   /// get the last N performance samples.

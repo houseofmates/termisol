@@ -448,7 +448,7 @@ class TerminalSession extends ChangeNotifier {
     ligatureFont.dispose();
     throttledRenderer.dispose();
     graphicsHandler.dispose();
-    bracketedPaste.dispose();
+    bracketedPaste.disable();
     await _pluginSystem.dispose();
     _hyperlinkHandler.dispose();
     TermisolCoreIntegration.instance.activeConfig.removeListener(_onCoreConfigChanged);

@@ -49,7 +49,7 @@ class SshBackend implements TermisolPtyBackend {
       List<SSHKeyPair>? identities;
       if (privateKeyPath != null) {
         final pem = await File(privateKeyPath!).readAsString();
-        identities = await SSHKeyPair.fromPem(pem);
+        identities = SSHKeyPair.fromPem(pem);
       }
 
       _client = SSHClient(

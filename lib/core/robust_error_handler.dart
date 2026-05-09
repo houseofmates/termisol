@@ -114,7 +114,7 @@ class RobustErrorHandler {
         await _attemptRecovery(errorReport);
       }
       
-      // Persist to disk
+      // persist to disk
       await _persistError(errorReport);
       
     } catch (e) {

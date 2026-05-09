@@ -207,7 +207,6 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
                 textStyle: TerminalStyle(
                   fontFamily: _fontFamily,
                   fontSize: _fontSize,
-                  height: 1.2,
                 ),
                 onKeyEvent: _handleKeyEvent,
                 padding: EdgeInsets.zero,

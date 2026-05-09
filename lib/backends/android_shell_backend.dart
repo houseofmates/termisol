@@ -8,20 +8,12 @@ import '../core/prompt_config.dart';
 
 /// Android-specific shell backend with robust shell probing and environment
 /// bootstrap.
-///
-/// Modern Android restricts direct execution of /system/bin/sh for untrusted
-/// apps. This backend probes multiple shell paths, sets up a proper local
-/// environment in the app's private directory, and never uses runInShell
-/// (which would look for /bin/sh and fail on Android).
-///
-/// Because there is no real PTY on Android, this backend implements a simple
-/// line discipline: local echo, backspace handling, and \r -> \n translation.
 class AndroidShellBackend implements TermisolPtyBackend {
   @override
   final String name = 'Android Shell Backend';
   final String? workingDirectory;
   Process? _process;
-  final _outputController = StreamController<List<int>>.broadcast();
+  final _outputController = StreamController<List<int>>.broadcast(sync: false);
   bool _isRunning = false;
   bool _isDisposed = false;
   int _retryCount = 0;
@@ -29,7 +21,10 @@ class AndroidShellBackend implements TermisolPtyBackend {
 
   // Line-discipline buffer for interactive use without a PTY.
   final StringBuffer _lineBuffer = StringBuffer();
-  final _writeLock = Object();
+
+  StreamSubscription<dynamic>? _stdoutSub;
+  StreamSubscription<dynamic>? _stderrSub;
+  Timer? _ps1Timer;
 
   @override
   Stream<List<int>> get output => _outputController.stream;
@@ -71,8 +66,12 @@ class AndroidShellBackend implements TermisolPtyBackend {
       '/odm/bin',
       '/vendor/xbin',
     ];
-    if (await File('/data/data/com.termux/files/usr/bin/bash').exists()) {
-      paths.insert(0, '/data/data/com.termux/files/usr/bin');
+    try {
+      if (await File('/data/data/com.termux/files/usr/bin/bash').exists()) {
+        paths.insert(0, '/data/data/com.termux/files/usr/bin');
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[androidshell] termux probe error: $e');
     }
     if (existingPath.isNotEmpty) {
       paths.add(existingPath);
@@ -96,10 +95,15 @@ class AndroidShellBackend implements TermisolPtyBackend {
       ];
 
       for (final probe in probes) {
-        if (await File(probe.$1).exists()) {
-          shell = probe.$1;
-          args = probe.$2;
-          break;
+        try {
+          if (await File(probe.$1).exists()) {
+            shell = probe.$1;
+            args = probe.$2;
+            break;
+          }
+        } catch (e) {
+          if (kDebugMode) debugPrint('[androidshell] probe error for ${probe.$1}: $e');
+          continue;
         }
       }
 
@@ -119,7 +123,7 @@ class AndroidShellBackend implements TermisolPtyBackend {
       _isRunning = true;
       _retryCount = 0;
 
-      _process!.stdout.listen(
+      _stdoutSub = _process!.stdout.listen(
         _onProcessOutput,
         onDone: () {
           if (kDebugMode) debugPrint('[androidshell] stdout stream ended');
@@ -131,21 +135,21 @@ class AndroidShellBackend implements TermisolPtyBackend {
         },
       );
 
-      _process!.stderr.listen(
+      _stderrSub = _process!.stderr.listen(
         _onProcessOutput,
         onError: (e) => debugPrint('[androidshell] stderr error: $e'),
       );
 
-      _process!.exitCode.then((code) {
+      unawaited(_process!.exitCode.then((code) {
         if (kDebugMode) debugPrint('[androidshell] shell exited with code $code');
         _isRunning = false;
         _safeAdd(utf8.encode('\r\n[process exited: $code]\r\n'));
-      });
+      }));
 
       if (kDebugMode) debugPrint('[androidshell] started shell: $shell');
 
       // Set a colored PS1 and emit the first prompt.
-      Future.delayed(const Duration(milliseconds: 300), () {
+      _ps1Timer = Timer(const Duration(milliseconds: 300), () {
         if (!_isRunning || _isDisposed) return;
         final user = Platform.environment['USER'] ?? 'user';
         final host = Platform.environment['HOSTNAME'] ?? 'android';
@@ -165,7 +169,7 @@ class AndroidShellBackend implements TermisolPtyBackend {
     } on FileSystemException catch (e) {
       if (kDebugMode) debugPrint('[androidshell] filesystem error: ${e.message}');
       _emitError('permission denied: ${e.message}');
-    } catch (e) {
+    } on Exception catch (e) {
       if (kDebugMode) debugPrint('[androidshell] unexpected error: $e');
       _emitError('shell error: $e');
     }
@@ -181,7 +185,11 @@ class AndroidShellBackend implements TermisolPtyBackend {
 
   void _safeAdd(List<int> data) {
     if (!_outputController.isClosed && !_isDisposed) {
-      _outputController.add(data);
+      try {
+        _outputController.add(data);
+      } catch (e) {
+        // ignore add-after-close races
+      }
     }
   }
 
@@ -197,9 +205,7 @@ class AndroidShellBackend implements TermisolPtyBackend {
   @override
   void write(List<int> data) {
     if (_process == null || !_isRunning) return;
-    synchronized(_writeLock, () {
-      _doWrite(data);
-    });
+    _doWrite(data);
   }
 
   void _doWrite(List<int> data) {
@@ -227,8 +233,9 @@ class AndroidShellBackend implements TermisolPtyBackend {
         } else if (ch == '\b' || ch == '\x7f') {
           if (_lineBuffer.isNotEmpty) {
             final str = _lineBuffer.toString();
+            final lastChar = str.characters.last;
             _lineBuffer.clear();
-            _lineBuffer.write(str.substring(0, str.length - 1));
+            _lineBuffer.write(str.substring(0, str.length - lastChar.length));
             _safeAdd(utf8.encode('\b \b'));
           }
         } else if (rune == 0x03) {
@@ -237,7 +244,11 @@ class AndroidShellBackend implements TermisolPtyBackend {
           _safeWriteStdin('\x03');
         } else if (rune == 0x04) {
           if (_lineBuffer.isEmpty) {
-            _process?.stdin.close();
+            try {
+              _process?.stdin.close();
+            } catch (e) {
+              if (kDebugMode) debugPrint('[androidshell] stdin close error: $e');
+            }
           }
         } else if (rune < 0x20) {
           _safeWriteStdin(String.fromCharCode(rune));
@@ -246,8 +257,8 @@ class AndroidShellBackend implements TermisolPtyBackend {
           _safeAdd(utf8.encode(ch));
         }
       }
-    } catch (e) {
-      if (kDebugMode) debugPrint('[androidshell] write error: $e');
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('[androidshell] write error: $e\n$stack');
       _safeAdd(utf8.encode('\r\n\x1b[31m[i/o error: $e]\x1b[0m\r\n'));
     }
   }
@@ -260,15 +271,16 @@ class AndroidShellBackend implements TermisolPtyBackend {
   @override
   Future<void> stop() async {
     _isRunning = false;
+    _ps1Timer?.cancel();
+    await _stdoutSub?.cancel();
+    await _stderrSub?.cancel();
     if (_process != null) {
       try {
         _process!.kill();
         await Future.delayed(const Duration(milliseconds: 100));
-        if (_process != null) {
-          _process!.kill(ProcessSignal.sigkill);
-        }
+        _process?.kill(ProcessSignal.sigkill);
       } catch (e) {
-        if (kDebugMode) debugPrint('[androidshell] Force kill error: $e');
+        if (kDebugMode) debugPrint('[androidshell] force kill error: $e');
       }
     }
     await _closeController();
@@ -277,6 +289,9 @@ class AndroidShellBackend implements TermisolPtyBackend {
   @override
   Future<void> terminate() async {
     _isRunning = false;
+    _ps1Timer?.cancel();
+    await _stdoutSub?.cancel();
+    await _stderrSub?.cancel();
 
     if (_process != null) {
       try {
@@ -288,12 +303,12 @@ class AndroidShellBackend implements TermisolPtyBackend {
             return -1;
           },
         );
-      } catch (e) {
+      } on Exception catch (e) {
         if (kDebugMode) debugPrint('[androidshell] terminate error: $e');
         try {
           _process?.kill(ProcessSignal.sigkill);
-        } catch (e) {
-          if (kDebugMode) debugPrint('[androidshell] Termination cleanup error: $e');
+        } on Exception catch (e) {
+          if (kDebugMode) debugPrint('[androidshell] termination cleanup error: $e');
         }
       }
       _process = null;
@@ -312,11 +327,4 @@ class AndroidShellBackend implements TermisolPtyBackend {
 
   @override
   bool get isConnected => _isRunning && _process != null;
-}
-
-// Simple synchronized helper since dart:io doesn't expose one for isolate-local locks
-void synchronized(Object lock, void Function() action) {
-  // In a single-threaded event loop this is effectively a no-op,
-  // but it documents the intent. For true concurrency use an Isolate or Mutex.
-  action();
 }

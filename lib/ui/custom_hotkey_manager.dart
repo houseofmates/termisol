@@ -137,10 +137,7 @@ class CustomHotkeyManager {
   /// copy all terminal content
   void _handleCopyAll() async {
     final buffer = session.terminal.buffer;
-    final allText = buffer.getText(
-      BufferPosition(0, 0),
-      BufferPosition(buffer.columns - 1, buffer.height - 1),
-    );
+    final allText = buffer.getText();
     final success = await clipboard.copyAll();
     _showFeedback(success ? 'All content copied to clipboard' : 'Copy all failed');
   }

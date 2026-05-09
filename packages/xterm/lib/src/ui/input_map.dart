@@ -265,20 +265,20 @@ final _keyByChar = () {
   return map;
 }();
 
-/// Converts a [LogicalKeyboardKey] to a [TerminalKey]. Returns `null` if the
-/// key does not have a corresponding [TerminalKey].
+/// converts a [logicalkeyboardkey] to a [terminalkey]. returns `null` if the
+/// key does not have a corresponding [terminalkey].
 ///
-/// For example, `LogicalKeyboardKey.keyA` will be converted to
-/// `TerminalKey.keyA`.
+/// for example, `logicalkeyboardkey.keya` will be converted to
+/// `terminalkey.keya`.
 TerminalKey? keyToTerminalKey(LogicalKeyboardKey key) {
   return _keyById[key.keyId];
 }
 
-/// Converts a character to a [TerminalKey]. Returns `null` if the character
-/// does not have a corresponding [TerminalKey].
+/// converts a character to a [terminalkey]. returns `null` if the character
+/// does not have a corresponding [terminalkey].
 ///
-/// For example, `charToTerminalKey('a')` or `charToTerminalKey('A')` will both
-/// return [TerminalKey.a].
+/// for example, `chartoterminalkey('a')` or `chartoterminalkey('a')` will both
+/// return [terminalkey.a].
 TerminalKey? charToTerminalKey(String char) {
   if (char.length != 1) {
     return null;

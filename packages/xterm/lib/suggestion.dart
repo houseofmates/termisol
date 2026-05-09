@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
-/// Controls the location of the suggestion popup of [SuggestionPortal].
+/// controls the location of the suggestion popup of [suggestionportal].
 class SuggestionPortalController extends OverlayPortalController {
   final _cursorRect = ValueNotifier<Rect>(Rect.zero);
 
@@ -16,8 +16,8 @@ class SuggestionPortalController extends OverlayPortalController {
   }
 }
 
-/// A convenience widget to place a suggestion popup around the cursor specified
-/// by [SuggestionPortalController].
+/// a convenience widget to place a suggestion popup around the cursor specified
+/// by [suggestionportalcontroller].
 class SuggestionPortal extends StatefulWidget {
   const SuggestionPortal({
     super.key,
@@ -63,7 +63,7 @@ class _SuggestionPortalState extends State<SuggestionPortal> {
   }
 }
 
-/// A widget that places [child] around [cursorRect].
+/// a widget that places [child] around [cursorrect].
 class SuggestionLayout extends SingleChildRenderObjectWidget {
   SuggestionLayout({
     super.child,

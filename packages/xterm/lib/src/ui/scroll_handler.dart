@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:xterm/core.dart';
 import 'package:xterm/src/ui/infinite_scroll_view.dart';
 
-/// Handles scrolling gestures in the alternate screen buffer. In alternate
+/// handles scrolling gestures in the alternate screen buffer. in alternate
 /// screen buffer, the terminal don't have a scrollback buffer, instead, the
 /// scroll gestures are converted to escape sequences based on the current
 /// report mode declared by the application.

@@ -337,7 +337,7 @@ class ProductionConfigSystem {
         }
       }
       
-      // Check for Monado runtime
+      // check for monado runtime
       final monadoFile = File('/usr/lib/libmonado.so');
       if (monadoFile.existsSync()) {
         return true;

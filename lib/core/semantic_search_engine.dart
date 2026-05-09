@@ -7,10 +7,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:collection/collection.dart';
 
 /// Semantic Search Engine
-///
-/// Provides semantic search capabilities for terminal output, command
-/// history, and filesystem content. Leverages TF-IDF scoring with n-gram
-/// indexing for fast approximate matching.
 class SemanticSearchEngine {
   final Map<String, DocumentIndex> _indexes = {};
   final Map<String, InvertedIndex> _invertedIndexes = {};
@@ -35,15 +31,16 @@ class SemanticSearchEngine {
       }
       _cacheTimer = Timer.periodic(const Duration(minutes: 5), (_) => _rebuildIdfCache());
       debugPrint('SemanticSearchEngine initialized');
-    } catch (e) {
-      debugPrint('Failed to initialize SemanticSearchEngine: $e');
+    } on Exception catch (e, stack) {
+      debugPrint('Failed to initialize SemanticSearchEngine: $e\n$stack');
       rethrow;
     }
   }
 
   void indexDocument(String collection, String docId, String content, {Map<String, dynamic>? metadata}) {
     final index = _getOrCreateIndex(collection);
-    if (index.documents.containsKey(docId)) {
+    final isUpdate = index.documents.containsKey(docId);
+    if (isUpdate) {
       _removeFromInverted(collection, docId);
     }
     final tokens = _tokenize(content);
@@ -62,15 +59,24 @@ class SemanticSearchEngine {
       indexedAt: DateTime.now(),
     );
     index.documents[docId] = doc;
-    index.totalTokens += tokens.length;
+    if (!isUpdate) {
+      index.totalTokens += tokens.length;
+      _totalDocuments++;
+    } else {
+      index.totalTokens = index.documents.values.fold(0, (sum, d) => sum + d.tokens.length);
+    }
     _updateInvertedIndex(collection, docId, termFrequencies, ngramSet);
-    _totalDocuments++;
   }
 
   void removeDocument(String collection, String docId) {
+    final index = _indexes[collection];
+    final hadDoc = index?.documents.containsKey(docId) ?? false;
     _removeFromInverted(collection, docId);
-    _indexes[collection]?.documents.remove(docId);
-    _totalDocuments = max(0, _totalDocuments - 1);
+    index?.documents.remove(docId);
+    if (hadDoc) {
+      _totalDocuments = max(0, _totalDocuments - 1);
+      index?.totalTokens = index.documents.values.fold(0, (sum, d) => sum + d.tokens.length);
+    }
   }
 
   List<SearchResult> search(String collection, String query, {int? maxResults, double minScore = 0.01, List<String>? filters}) {
@@ -133,8 +139,11 @@ class SemanticSearchEngine {
   }
 
   Future<void> clearIndex(String collection) async {
-    _indexes.remove(collection);
+    final index = _indexes.remove(collection);
     _invertedIndexes.remove(collection);
+    if (index != null) {
+      _totalDocuments = max(0, _totalDocuments - index.documents.length);
+    }
   }
 
   Future<void> persist() async {
@@ -153,8 +162,8 @@ class SemanticSearchEngine {
           'indexedAt': v.indexedAt.toIso8601String(),
         }));
         await file.writeAsString(json.encode(data));
-      } catch (e) {
-        debugPrint('Failed to persist index ${entry.key}: $e');
+      } on Exception catch (e, stack) {
+        debugPrint('Failed to persist index ${entry.key}: $e\n$stack');
       }
     }
   }
@@ -197,12 +206,13 @@ class SemanticSearchEngine {
     for (final token in queryTokens) {
       final docs = inverted.terms[token];
       if (docs != null && docs.isNotEmpty) {
-        candidates = candidates == null ? {...docs} : candidates.intersection(docs);
+        candidates = candidates == null ? {...docs} : candidates.union(docs);
       }
       for (int n = _ngramMin; n <= _ngramMax; n++) {
-        final ngramDocs = inverted.ngrams[token.substring(0, min(n, token.length))];
+        if (token.length < n) continue;
+        final ngramDocs = inverted.ngrams[token.substring(0, n)];
         if (ngramDocs != null && ngramDocs.isNotEmpty) {
-          candidates = candidates == null ? {...ngramDocs} : candidates.intersection(ngramDocs);
+          candidates = candidates == null ? {...ngramDocs} : candidates.union(ngramDocs);
         }
       }
     }
@@ -212,12 +222,14 @@ class SemanticSearchEngine {
   double _scoreBM25(IndexedDocument doc, List<String> queryTokens, double avgLength, String collection) {
     double score = 0.0;
     final docLength = doc.tokens.length.toDouble();
+    final index = _indexes[collection];
+    final collectionDocCount = index?.documents.length ?? 0;
     for (final token in queryTokens) {
       final tf = doc.termFrequencies[token]?.toDouble() ?? 0.0;
       if (tf == 0) continue;
       final inverted = _invertedIndexes[collection];
       final df = inverted == null ? 1 : (inverted.terms[token]?.length ?? 1).toDouble();
-      final idf = log((_totalDocuments - df + 0.5) / (df + 0.5) + 1.0);
+      final idf = log((collectionDocCount - df + 0.5) / (df + 0.5) + 1.0);
       final numerator = tf * (_k1 + 1);
       final denominator = tf + _k1 * (1 - _b + _b * (docLength / max(avgLength, 1)));
       score += idf * (numerator / denominator);
@@ -275,7 +287,7 @@ class SemanticSearchEngine {
     return text.toLowerCase()
         .replaceAll(RegExp(r'[^a-z0-9\s_\-/\.]'), ' ')
         .split(RegExp(r'\s+'))
-        .where((t) => t.isNotEmpty && t.isNotEmpty)
+        .where((t) => t.isNotEmpty)
         .toList();
   }
 
@@ -308,7 +320,6 @@ class SemanticSearchEngine {
     _idfCache.clear();
   }
 }
-
 
 class DocumentIndex {
   final String name;

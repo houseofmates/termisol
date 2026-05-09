@@ -22,9 +22,9 @@ class PluginMessage {
       };
 }
 
-/// Termisol Plugin System
+/// termisol plugin system
 ///
-/// Features:
+/// features:
 /// - Dynamic plugin loading from file system
 /// - Plugin lifecycle management (load, unload, reload)
 /// - Secure isolate-based execution

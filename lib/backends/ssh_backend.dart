@@ -59,7 +59,6 @@ class SshBackend implements TermisolPtyBackend {
         identities: identities,
       );
 
-      // Start shell session.
       _session = await _client!.execute('bash');
 
       _isRunning = true;
@@ -81,25 +80,23 @@ class SshBackend implements TermisolPtyBackend {
         },
       );
 
-      // Set terminal size after a short delay so the shell is ready.
       Future.delayed(const Duration(milliseconds: 100), () {
         if (_isRunning && _session != null) {
           resize(cols, rows);
         }
       });
 
-      // Set working directory if specified.
       final wd = workingDirectory ?? this.workingDirectory;
       if (wd != null) {
-        write(utf8.encode('cd \${wd.replaceAll("\\", "\\\\").replaceAll("\'", "\'\\\'\'")}\n'));
+        final escaped = wd.replaceAll("'", "'\"'\"'");
+        write(utf8.encode("cd '$escaped'\n"));
       }
 
-      // Inject colored PS1.
       write(utf8.encode("export PS1='${PromptConfig.sshPs1}'\n"));
 
-      if (kDebugMode) debugPrint('[ssh] connected to \$username@\$host:\$port');
+      if (kDebugMode) debugPrint('[ssh] connected to $username@$host:$port');
     } catch (e, stack) {
-      if (kDebugMode) debugPrint('[ssh] connection failed: \$e\n\$stack');
+      if (kDebugMode) debugPrint('[ssh] connection failed: $e\n$stack');
       _isRunning = false;
       rethrow;
     }
@@ -111,7 +108,7 @@ class SshBackend implements TermisolPtyBackend {
       try {
         _session!.stdin.add(Uint8List.fromList(data));
       } catch (e, stack) {
-        if (kDebugMode) debugPrint('[ssh] write error: \$e\n\$stack');
+        if (kDebugMode) debugPrint('[ssh] write error: $e\n$stack');
       }
     }
   }
@@ -122,7 +119,7 @@ class SshBackend implements TermisolPtyBackend {
       try {
         _session!.resizeTerminal(cols, rows);
       } catch (e, stack) {
-        if (kDebugMode) debugPrint('[ssh] resize error: \$e\n\$stack');
+        if (kDebugMode) debugPrint('[ssh] resize error: $e\n$stack');
       }
     }
   }
@@ -149,12 +146,12 @@ class SshBackend implements TermisolPtyBackend {
     try {
       _session?.close();
     } catch (e) {
-      if (kDebugMode) debugPrint('[ssh] session close error: \$e');
+      if (kDebugMode) debugPrint('[ssh] session close error: $e');
     }
     try {
       _client?.close();
     } catch (e) {
-      if (kDebugMode) debugPrint('[ssh] client close error: \$e');
+      if (kDebugMode) debugPrint('[ssh] client close error: $e');
     }
     _session = null;
     _client = null;

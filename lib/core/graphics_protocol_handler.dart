@@ -591,7 +591,7 @@ class GraphicsProtocolHandler {
     return '';
   }
 
-  /// Process Sixel data
+  /// process sixel data
   String _processSixel(String params, String data, int cursorX, int cursorY) {
     try {
       // Parse Sixel parameters

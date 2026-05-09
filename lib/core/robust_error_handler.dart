@@ -777,7 +777,7 @@ class ErrorReport {
   );
 }
 
-/// Alert data structure
+/// alert data structure
 class ErrorAlert {
   final String id;
   final DateTime timestamp;

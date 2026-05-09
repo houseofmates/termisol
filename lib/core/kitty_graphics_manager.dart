@@ -63,7 +63,6 @@ class KittyGraphicsManager {
       ];
       
       final header = 'G${command.join(',')};';
-      final payload = '$base64Image\x1b\\';
       
       // Send in chunks to avoid terminal buffer limits
       const chunkSize = 4096;

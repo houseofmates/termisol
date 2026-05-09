@@ -169,7 +169,7 @@ class ProductionConfigSystem {
     // start with defaults
     _config.addAll(Map.from(_defaults));
 
-    // Load from file if exists
+    // load from file if exists
     if (_configFile != null && await _configFile!.exists()) {
       try {
         final content = await _configFile!.readAsString();

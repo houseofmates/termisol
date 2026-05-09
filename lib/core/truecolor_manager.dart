@@ -72,14 +72,5 @@ class TrueColorManager {
     if (kDebugMode) debugPrint('TrueColor cursor: #$color');
   }
 
-  void startListening() {
-    // Active listening is performed by calling processOutput from
-    // the terminal session output stream.
-  }
-
-  void stopListening() {}
-
-  void dispose() {
-    stopListening();
-  }
+  void dispose() {}
 }

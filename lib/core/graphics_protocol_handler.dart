@@ -1173,7 +1173,7 @@ class GraphicsProtocolHandler {
     return _supportedImageFormats.contains(extension.toLowerCase());
   }
 
-  /// Load image from file
+  /// load image from file
   Future<ui.Image?> loadImageFromFile(String filePath) async {
     try {
       final file = File(filePath);

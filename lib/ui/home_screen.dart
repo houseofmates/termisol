@@ -97,20 +97,15 @@ class _HomeScreenState extends State<HomeScreen> {
       onResult: (result) {
         final recognizedWords = result.recognizedWords;
         if (recognizedWords.isNotEmpty && _activeSession != null) {
-          // Send the recognized text to the terminal
           _activeSession!.sendRawInput(recognizedWords + '\n');
         }
       },
-      listenOptions: SpeechListenOptions(
-        listenFor: const Duration(seconds: 30),
-        pauseFor: const Duration(seconds: 5),
-        partialResults: false,
-        localeId: 'en_US', // Default to English, could be made configurable
-        onDevice: false,
-      ),
-      onSoundLevelChange: (level) {
-        // Could add visual feedback here
-      },
+      listenFor: const Duration(seconds: 30),
+      pauseFor: const Duration(seconds: 5),
+      partialResults: false,
+      localeId: 'en_US',
+      onDevice: false,
+      onSoundLevelChange: (level) {},
     );
 
     ScaffoldMessenger.of(context).showSnackBar(

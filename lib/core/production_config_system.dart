@@ -525,7 +525,7 @@ class ProductionConfigSystem {
   }
 
   void _validateImportedConfig(Map<String, dynamic> config) {
-    // Basic validation - could be more comprehensive
+    // basic validation - could be more comprehensive
     final requiredSections = ['performance', 'ui', 'terminal'];
     for (final section in requiredSections) {
       if (!config.containsKey(section)) {

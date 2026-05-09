@@ -101,12 +101,12 @@ class TermisolLogger {
     _log(LogLevel.fatal, message, context, error, stackTrace);
   }
   
-  /// Start performance tracking
+  /// start performance tracking
   void startPerformanceTracking(String operation) {
     _performanceTrackers[operation] = PerformanceTracker(operation);
   }
   
-  /// End performance tracking and log result
+  /// end performance tracking and log result
   void endPerformanceTracking(String operation, [Map<String, dynamic>? context]) {
     final tracker = _performanceTrackers[operation];
     if (tracker != null) {

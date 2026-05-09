@@ -12,8 +12,8 @@ import 'package:xterm/xterm.dart';
 /// implements industry-standard graphics protocols:
 /// - 24-bit true color (rgb)
 /// - kitty graphics protocol
-/// - Sixel Graphics
-/// - Alpha Channel Support
+/// - sixel graphics
+/// - alpha channel support
 /// - Inline Images with proper rendering
 class GraphicsProtocolHandler {
   // Terminal reference for output interception
@@ -80,7 +80,7 @@ class GraphicsProtocolHandler {
   Map<String, GraphicsImage> get cachedImages => Map.unmodifiable(_imageCache);
   Map<String, Offset> get imagePositions => Map.unmodifiable(_imagePositions);
 
-  /// Initialize graphics protocol handler
+  /// initialize graphics protocol handler
   Future<void> initialize() async {
     if (_isInitialized) return;
 

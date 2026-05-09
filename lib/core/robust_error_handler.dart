@@ -239,7 +239,7 @@ class RobustErrorHandler {
       // clear image cache
       PaintingBinding.instance.imageCache.clear();
       
-      // Clear performance metrics
+      // clear performance metrics
       _performanceMetrics.clear();
       
       // Force garbage collection
@@ -410,7 +410,7 @@ class RobustErrorHandler {
       // Clear connection pool
       _connectionPool.clear();
       
-      // Clear performance metrics
+      // clear performance metrics
       _performanceMetrics.clear();
       
       // Clear temporary files

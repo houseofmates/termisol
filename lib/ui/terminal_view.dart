@@ -317,8 +317,8 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     if (buffer.height == 0) return;
     
     final allText = buffer.getText(
-      TerminalPosition(0, 0),
-      TerminalPosition(buffer.columns - 1, buffer.height - 1),
+      BufferPosition(0, 0),
+      BufferPosition(buffer.columns - 1, buffer.height - 1),
     );
     
     Clipboard.setData(ClipboardData(text: allText));

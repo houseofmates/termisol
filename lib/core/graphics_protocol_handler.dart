@@ -653,7 +653,7 @@ class GraphicsProtocolHandler {
     final startTime = DateTime.now();
 
     try {
-      // Convert image based on format
+      // convert image based on format
       Uint8List? result;
       switch (image.format) {
         case 'sixel':

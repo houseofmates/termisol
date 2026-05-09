@@ -56,3 +56,14 @@ coverage/
 .env
 .env.local
 android/app/termisol-release-key.jks
+# Ignore build and release artifacts
+dist/
+build/
+releases/
+AppDir/
+*.apk
+*.deb
+*.appimage
+*.idsig
+# Local env
+.env

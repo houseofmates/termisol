@@ -262,7 +262,7 @@ class _HintsModeOverlayState extends State<HintsModeOverlay> {
                           color: PkmTheme.primary.withValues(alpha: 0.5),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         'hints mode — type letters to open, esc to cancel',
                         style: TextStyle(
                           color: PkmTheme.text,

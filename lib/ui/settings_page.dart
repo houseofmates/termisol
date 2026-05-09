@@ -56,6 +56,8 @@ class _SettingsPageState extends State<SettingsPage>
   @override
   void dispose() {
     _tabController.dispose();
+    _aliasController.dispose();
+    _expansionController.dispose();
     super.dispose();
   }
 

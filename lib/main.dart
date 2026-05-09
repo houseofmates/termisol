@@ -95,29 +95,37 @@ void main() async {
   });
 
   if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
-    await windowManager.ensureInitialized();
-    const windowOptions = WindowOptions(
-      size: Size(1280, 720),
-      center: true,
-      backgroundColor: Colors.black,
-      skipTaskbar: false,
-      titleBarStyle: TitleBarStyle.normal,
-      title: 'termisol',
-    );
-    await windowManager.waitUntilReadyToShow(windowOptions, () async {
-      await windowManager.show();
-      await windowManager.focus();
-    });
+    try {
+      await windowManager.ensureInitialized();
+      const windowOptions = WindowOptions(
+        size: Size(1280, 720),
+        center: true,
+        backgroundColor: Colors.black,
+        skipTaskbar: false,
+        titleBarStyle: TitleBarStyle.normal,
+        title: 'termisol',
+      );
+      await windowManager.waitUntilReadyToShow(windowOptions, () async {
+        await windowManager.show();
+        await windowManager.focus();
+      });
+    } on Exception catch (e, stack) {
+      debugPrint('Window manager init failed: $e\n$stack');
+    }
   }
 
   if (Platform.isAndroid || Platform.isIOS) {
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    try {
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    } on Exception catch (e, stack) {
+      debugPrint('System chrome init failed: $e\n$stack');
+    }
   }
 
   final registry = _registerServices();

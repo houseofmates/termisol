@@ -857,7 +857,7 @@ extension RobustErrorHandlerHelpers on RobustErrorHandler {
       return {
         'imageCacheSize': imageCache.currentSize,
         'imageCacheBytes': imageCache.currentSizeBytes,
-        'liveByteCount': -1, // Not available in all environments
+        'liveByteCount': ProcessInfo.currentRss,
         'timestamp': DateTime.now().toIso8601String(),
       };
     } catch (e) {

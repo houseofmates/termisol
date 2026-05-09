@@ -223,7 +223,7 @@ class TermisolPluginSystem {
     return await plugin.execute(method, args ?? {});
   }
 
-  /// Get plugin information
+  /// get plugin information
   PluginManifest? getPluginManifest(String pluginId) => _manifests[pluginId];
 
   /// Check if plugin is loaded

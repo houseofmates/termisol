@@ -320,7 +320,7 @@ class ProductionConfigSystem {
     }
   }
   
-  /// Check Linux VR support
+  /// check linux vr support
   bool _checkLinuxVRSupport() {
     try {
       // Check for OpenXR runtime

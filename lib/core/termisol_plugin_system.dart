@@ -213,7 +213,7 @@ class TermisolPluginSystem {
     return await loadPlugin(pluginFile.path);
   }
 
-  /// Execute plugin method
+  /// execute plugin method
   Future<dynamic> executePlugin(String pluginId, String method, [Map<String, dynamic>? args]) async {
     final plugin = _plugins[pluginId];
     if (plugin == null) {

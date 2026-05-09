@@ -14,7 +14,7 @@ import 'package:xterm/xterm.dart';
 /// - kitty graphics protocol
 /// - sixel graphics
 /// - alpha channel support
-/// - Inline Images with proper rendering
+/// - inline images with proper rendering
 class GraphicsProtocolHandler {
   // terminal reference for output interception
   final Terminal? _terminal;
@@ -42,7 +42,7 @@ class GraphicsProtocolHandler {
     'svg',
   };
 
-  // Graphics state
+  // graphics state
   final Map<String, GraphicsImage> _imageCache = {};
   final Map<String, Offset> _imagePositions =
       {}; // imageId -> character position (x,y)
@@ -50,7 +50,7 @@ class GraphicsProtocolHandler {
 
   final List<GraphicsAnimation> _animations = [];
 
-  // Pending images for processing
+  // pending images for processing
   final Map<int, PendingImage> _pendingImages = {};
   int _nextImageId = 1;
 
@@ -58,11 +58,11 @@ class GraphicsProtocolHandler {
   final List<String> _tempFilePaths = [];
 
 
-  // Rendering optimization
+  // rendering optimization
   final Map<String, ui.Picture> _pictureCache = {};
   final Map<int, List<ui.Rect>> _damageRegions = {};
 
-  // Performance monitoring
+  // performance monitoring
   int _totalImagesProcessed = 0;
   int _totalRenderTime = 0;
   final StreamController<GraphicsEvent> _eventController =
@@ -85,10 +85,10 @@ class GraphicsProtocolHandler {
     if (_isInitialized) return;
 
     try {
-      // Initialize default color palette
+      // initialize default color palette
       _initializeColorPalette();
 
-      // Set up terminal output interception if terminal is available
+      // set up terminal output interception if terminal is available
       if (_terminal != null && _controller != null) {
         _setupOutputInterception();
       }
@@ -134,9 +134,9 @@ class GraphicsProtocolHandler {
     };
   }
 
-  /// Initialize default color palette (256 colors + true color support)
+  /// initialize default color palette (256 colors + true color support)
   void _initializeColorPalette() {
-    // ANSI 16-color palette
+    // ansi 16-color palette
     final standardColors = [
       0x000000,
       0x800000,
@@ -176,7 +176,7 @@ class GraphicsProtocolHandler {
       }
     }
 
-    // Grayscale ramp
+    // grayscale ramp
     for (int i = 0; i < 24; i++) {
       final gray = 8 + 10 * i;
       final index = 232 + i;
@@ -191,7 +191,7 @@ class GraphicsProtocolHandler {
     }
 
     try {
-      // Parse True Color (RGB) sequences: ESC[38;2;r;g;b or ESC[48;2;r;g;b
+      // parse true color (rgb) sequences: esc[38;2;r;g;b or esc[48;2;r;g;b
       final rgbMatch = RegExp(
         r'\x1b\[(38|48);2;(\d+);(\d+);(\d+)m',
       ).firstMatch(sequence);
@@ -202,14 +202,14 @@ class GraphicsProtocolHandler {
         return Color.fromARGB(255, r, g, b);
       }
 
-      // Parse 256-color sequences: ESC[38;5;n or ESC[48;5;n
+      // parse 256-color sequences: esc[38;5;n or esc[48;5;n
       final colorMatch = RegExp(r'\x1b\[(38|48);5;(\d+)m').firstMatch(sequence);
       if (colorMatch != null) {
         final colorIndex = int.parse(colorMatch.group(2)!);
         return _colorPalette[colorIndex] ?? Colors.white;
       }
 
-      // Fallback to basic ANSI
+      // fallback to basic ansi
       return _parseBasicAnsiColor(sequence, isBackground: isBackground);
     } catch (e) {
       debugPrint('Failed to parse ANSI color: $e');
@@ -251,10 +251,10 @@ class GraphicsProtocolHandler {
 
     String processed = output;
 
-    // Process Sixel sequences
+    // process sixel sequences
     processed = _processSixelSequences(processed, cursorX, cursorY);
 
-    // Process Kitty graphics sequences
+    // process kitty graphics sequences
     processed = _processKittySequences(processed, cursorX, cursorY);
 
     return processed;
@@ -264,7 +264,7 @@ class GraphicsProtocolHandler {
   String _processSixelSequences(String output, int cursorX, int cursorY) {
     if (!_sixelEnabled) return output;
 
-    // Look for Sixel DCS sequences: ESC P ... ESC \
+    // look for sixel dcs sequences: esc p ... esc \
     final sixelRegex = RegExp(r'\x1bP([0-9;]*)(.*?)\x1b\\', dotAll: true);
     return output.replaceAllMapped(sixelRegex, (match) {
       final params = match.group(1) ?? '';
@@ -278,7 +278,7 @@ class GraphicsProtocolHandler {
   String _processKittySequences(String output, int cursorX, int cursorY) {
     if (!_kittyProtocolEnabled) return output;
 
-    // Look for Kitty sequences: ESC _ G ... ESC \
+    // look for kitty sequences: esc _ g ... esc \
     final kittyRegex = RegExp(r'\x1b_G([^\\]*)\x1b\\', dotAll: true);
     return output.replaceAllMapped(kittyRegex, (match) {
       final data = match.group(1) ?? '';
@@ -296,7 +296,7 @@ class GraphicsProtocolHandler {
     if (!_kittyProtocolEnabled) return '';
 
     try {
-      // Parse Kitty graphics sequences: _Gq=1,i=id,t=f,f=24,s=w,h=h
+      // parse kitty graphics sequences: _gq=1,i=id,t=f,f=24,s=w,h=h
       final match = RegExp(r'_G[^\\]*\\').firstMatch(sequence);
       if (match != null) {
         final params = match.group(0)!;
@@ -324,11 +324,11 @@ class GraphicsProtocolHandler {
     final action = params[1]; // a=action, t=transmission, q=query
 
     switch (action) {
-      case 'a': // Action
+      case 'a': // action
         return _handleKittyAction(paramMap, cursorX, cursorY);
-      case 't': // Transmission
+      case 't': // transmission
         return _handleKittyTransmission(paramMap, cursorX, cursorY);
-      case 'q': // Query
+      case 'q': // query
         return _handleKittyQuery(paramMap);
       default:
         return '';
@@ -344,11 +344,11 @@ class GraphicsProtocolHandler {
     final action = params['a'];
 
     switch (action) {
-      case 'p': // Put image
+      case 'p': // put image
         return _putKittyImage(params, cursorX, cursorY);
-      case 'd': // Delete image
+      case 'd': // delete image
         return _deleteKittyImage(params);
-      case 'q': // Query
+      case 'q': // query
         return _queryKittyImage(params);
       default:
         return '';
@@ -361,16 +361,16 @@ class GraphicsProtocolHandler {
     final width = int.tryParse(params['s'] ?? '0') ?? 0;
     final height = int.tryParse(params['h'] ?? '0') ?? 0;
 
-    // Store image metadata
+    // store image metadata
     _imageCache[id] = GraphicsImage(
       id: _nextImageId++,
       width: width,
       height: height,
-      data: '', // Will be filled by transmission
+      data: '', // will be filled by transmission
       format: 'kitty',
     );
 
-    // Store position
+    // store position
     _imagePositions[id] = Offset(cursorX.toDouble(), cursorY.toDouble());
 
     _eventController.add(
@@ -381,7 +381,7 @@ class GraphicsProtocolHandler {
       ),
     );
 
-    // Return acknowledgment
+    // return acknowledgment
     return '\x1b_Gi=$id;OK\x1b\\';
   }
 
@@ -418,15 +418,15 @@ class GraphicsProtocolHandler {
     int cursorX,
     int cursorY,
   ) {
-    // Handle image data transmission
+    // handle image data transmission
     final format = params['t'] ?? 'f';
     final id = params['i'] ?? _nextImageId.toString();
 
-    // Process image data based on format
+    // process image data based on format
     switch (format) {
-      case 'f': // Direct transmission
+      case 'f': // direct transmission
         return _processDirectTransmission(params, id, cursorX, cursorY);
-      case 't': // Temporary file
+      case 't': // temporary file
         return _processTemporaryFileTransmission(params, id, cursorX, cursorY);
       default:
         return '';
@@ -446,16 +446,16 @@ class GraphicsProtocolHandler {
       final width = int.tryParse(params['w'] ?? '0') ?? 0;
       final height = int.tryParse(params['h'] ?? '0') ?? 0;
 
-      if (data == null) return '\x1b_Gi=$id,f=32\x1b\\'; // Error: no data
+      if (data == null) return '\x1b_Gi=$id,f=32\x1b\\'; // error: no data
 
-      // Validate base64 data
+      // validate base64 data
       try {
         base64.decode(data);
       } catch (e) {
-        return '\x1b_Gi=$id,f=32\x1b\\'; // Error: invalid base64
+        return '\x1b_Gi=$id,f=32\x1b\\'; // error: invalid base64
       }
 
-      // Store image data
+      // store image data
       if (_imageCache.containsKey(id)) {
         final image = _imageCache[id]!;
         _imageCache[id] = GraphicsImage(
@@ -466,7 +466,7 @@ class GraphicsProtocolHandler {
           format: 'kitty',
         );
 
-        // Ensure position is set
+        // ensure position is set
         _imagePositions[id] ??= Offset(cursorX.toDouble(), cursorY.toDouble());
       }
 
@@ -550,9 +550,9 @@ class GraphicsProtocolHandler {
     final query = params['q'];
 
     switch (query) {
-      case 's': // Status
+      case 's': // status
         return _getKittyStatus();
-      case 'c': // Capabilities
+      case 'c': // capabilities
         return _getKittyCapabilities();
       default:
         return '';
@@ -574,7 +574,7 @@ class GraphicsProtocolHandler {
     if (!_sixelEnabled) return '';
 
     try {
-      // Parse Sixel DCS sequences: ESC P ... ESC \
+      // parse sixel dcs sequences: esc p ... esc \
       final match = RegExp(r'\x1bP([0-9;]*)(.*?)\x1b\\').firstMatch(sequence);
       if (match != null) {
         return _processSixel(
@@ -594,7 +594,7 @@ class GraphicsProtocolHandler {
   /// process sixel data
   String _processSixel(String params, String data, int cursorX, int cursorY) {
     try {
-      // Parse Sixel parameters
+      // parse sixel parameters
       final paramMap = <String, String>{};
       final paramPairs = params.split(';');
 
@@ -610,7 +610,7 @@ class GraphicsProtocolHandler {
       final width = int.tryParse(paramMap['1'] ?? '0') ?? 100;
       final height = int.tryParse(paramMap['2'] ?? '0') ?? 100;
 
-      // Create image from Sixel data
+      // create image from sixel data
       final imageId = _nextImageId++;
       final idStr = imageId.toString();
       _imageCache[idStr] = GraphicsImage(
@@ -621,7 +621,7 @@ class GraphicsProtocolHandler {
         format: 'sixel',
       );
 
-      // Store position
+      // store position
       _imagePositions[idStr] = Offset(cursorX.toDouble(), cursorY.toDouble());
 
       _totalImagesProcessed++;
@@ -636,7 +636,7 @@ class GraphicsProtocolHandler {
       return '\x1b_Gi=$imageId;OK\x1b\\';
     } catch (e) {
       debugPrint('Error processing Sixel data: $e');
-      return '\x1b_Gi=1,f=32\x1b\\'; // Error response
+      return '\x1b_Gi=1,f=32\x1b\\'; // error response
     }
   }
 
@@ -653,7 +653,7 @@ class GraphicsProtocolHandler {
     final startTime = DateTime.now();
 
     try {
-      // Convert image based on format
+      // convert image based on format
       Uint8List? result;
       switch (image.format) {
         case 'sixel':
@@ -1279,7 +1279,7 @@ class GraphicsAnimation {
   });
 }
 
-/// Graphics protocol state
+/// graphics protocol state
 class GraphicsProtocolState {
   Color? currentColor;
   Color? backgroundColor;
@@ -1292,7 +1292,7 @@ class GraphicsProtocolState {
   });
 }
 
-/// Graphics event types
+/// graphics event types
 enum GraphicsEventType {
   initialized,
   imageReceived,
@@ -1305,7 +1305,7 @@ enum GraphicsEventType {
   error,
 }
 
-/// Graphics event
+/// graphics event
 class GraphicsEvent {
   final GraphicsEventType type;
   final String message;

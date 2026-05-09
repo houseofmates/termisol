@@ -12,7 +12,7 @@ import 'core/service_factories.dart';
 import 'core/robust_error_handler.dart';
 import 'core/termisol_core_integration.dart';
 
-/// Setup global error handling and crash reporting
+/// setup global error handling and crash reporting
 Future<void> _setupErrorHandling() async {
   await RobustErrorHandler().initialize();
 
@@ -36,7 +36,7 @@ Future<void> _setupErrorHandling() async {
   };
 }
 
-/// Log error to local file
+/// log error to local file
 Future<void> _logError(String type, String error, StackTrace? stack) async {
   try {
     final directory = await getApplicationDocumentsDirectory();
@@ -58,7 +58,7 @@ ${stack ?? 'No stack trace available'}
   }
 }
 
-/// Global error state
+/// global error state
 class ErrorReporter {
   static String? currentError;
   static VoidCallback? onErrorChanged;
@@ -74,12 +74,12 @@ class ErrorReporter {
   }
 }
 
-/// Show user-friendly error dialog
+/// show user-friendly error dialog
 void _showErrorDialog(String error) {
   ErrorReporter.reportError(error);
 }
 
-/// Entry point for termisol.
+/// entry point for termisol.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -140,7 +140,7 @@ void main() async {
   });
 }
 
-/// Register services that are actually used in the working ui path.
+/// register services that are actually used in the working ui path.
 ServiceRegistry _registerServices() {
   final r = ServiceRegistry.instance;
 

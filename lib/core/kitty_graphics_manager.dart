@@ -4,8 +4,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
 
-/// Manages Kitty Graphics Protocol for inline image rendering.
-/// Supports PNG, RGB, and 32-bit RGBA formats.
+/// manages kitty graphics protocol for inline image rendering.
+/// supports png, rgb, and 32-bit rgba formats.
 class KittyGraphicsManager {
   final Terminal terminal;
   final TerminalController controller;

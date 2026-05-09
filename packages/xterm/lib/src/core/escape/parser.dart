@@ -6,12 +6,12 @@ import 'package:xterm/src/utils/byte_consumer.dart';
 import 'package:xterm/src/utils/char_code.dart';
 import 'package:xterm/src/utils/lookup_table.dart';
 
-/// [EscapeParser] translates control characters and escape sequences into
+/// [escapeparser] translates control characters and escape sequences into
 /// function calls that the terminal can handle.
 ///
-/// Design goals:
-///  * Zero object allocation during processing.
-///  * No internal state. Same input will always produce same output.
+/// design goals:
+///  * zero object allocation during processing.
+///  * no internal state. same input will always produce same output.
 class EscapeParser {
   final EscapeHandler handler;
 
@@ -1145,8 +1145,8 @@ class _Csi {
   }
 }
 
-/// Function that handles a sequence of characters that starts with an escape.
-/// Returns [true] if the sequence was processed, [false] if it was not.
+/// function that handles a sequence of characters that starts with an escape.
+/// returns [true] if the sequence was processed, [false] if it was not.
 typedef _EscHandler = bool Function();
 
 typedef _SbcHandler = void Function();

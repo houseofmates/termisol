@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Reusable toggle setting row.
+/// reusable toggle setting row.
 class SettingsToggle extends StatelessWidget {
   final String label;
   final bool value;
@@ -40,7 +40,7 @@ class SettingsToggle extends StatelessWidget {
   }
 }
 
-/// Reusable slider setting row.
+/// reusable slider setting row.
 class SettingsSlider extends StatelessWidget {
   final String label;
   final double value;
@@ -102,7 +102,7 @@ class SettingsSlider extends StatelessWidget {
   }
 }
 
-/// Reusable string field setting row.
+/// reusable string field setting row.
 class SettingsStringField extends StatefulWidget {
   final String label;
   final String value;

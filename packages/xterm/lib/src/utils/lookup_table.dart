@@ -1,4 +1,4 @@
-/// Fixed-size list based lookup table, optimized for small positive integer
+/// fixed-size list based lookup table, optimized for small positive integer
 /// keys.
 class FastLookupTable<T> {
   FastLookupTable(Map<int, T> data) {

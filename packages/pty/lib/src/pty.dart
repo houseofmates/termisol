@@ -32,8 +32,8 @@ abstract class BasePseudoTerminal implements PseudoTerminal {
   }
 }
 
-/// A polling based PseudoTerminal implementation. Mainly used in flutter debug
-/// mode to make hot reload work. The underlying PtyCore must be non-blocking.
+/// a polling based pseudoterminal implementation. mainly used in flutter debug
+/// mode to make hot reload work. the underlying ptycore must be non-blocking.
 class PollingPseudoTerminal extends BasePseudoTerminal {
   PollingPseudoTerminal(PtyCore _core) : super(_core);
 
@@ -145,10 +145,10 @@ class PollingPseudoTerminal extends BasePseudoTerminal {
   }
 }
 
-/// An isolate based PseudoTerminal implementation. Performs better than
-/// PollingPseudoTerminal and requires less resource. However this prevents
-/// flutter hot reload from working. Ideal for release builds. The underlying
-/// PtyCore must be blocking.
+/// an isolate based pseudoterminal implementation. performs better than
+/// pollingpseudoterminal and requires less resource. however this prevents
+/// flutter hot reload from working. ideal for release builds. the underlying
+/// ptycore must be blocking.
 class BlockingPseudoTerminal extends BasePseudoTerminal {
   BlockingPseudoTerminal(PtyCore _core, this._syncProcessed) : super(_core);
 
@@ -195,8 +195,8 @@ class BlockingPseudoTerminal extends BasePseudoTerminal {
   }
 }
 
-/// Argument to a isolate entry point, with a sendPort and a custom value.
-/// Reduces the effort to establish bi-directional communication between isolate
+/// argument to a isolate entry point, with a sendport and a custom value.
+/// reduces the effort to establish bi-directional communication between isolate
 /// and main thread in many cases.
 class _IsolateArgs<T> {
   _IsolateArgs(this.sendPort, this.arg, this.syncProcessed);

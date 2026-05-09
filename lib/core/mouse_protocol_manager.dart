@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
 
-/// Mouse protocol modes.
+/// mouse protocol modes.
 enum TermisolMouseMode {
   none,
   normal, // X10 - basic click reporting
@@ -12,8 +12,8 @@ enum TermisolMouseMode {
   sgr, // SGR - extended coordinates
 }
 
-/// Manages mouse protocol (SGR, UTF-8, URXVT) for terminal applications.
-/// Enables clicking links, selecting text in vim/tmux, and interactive apps.
+/// manages mouse protocol (sgr, utf-8, urxvt) for terminal applications.
+/// enables clicking links, selecting text in vim/tmux, and interactive apps.
 class MouseProtocolManager {
   final Terminal terminal;
   final TerminalController controller;

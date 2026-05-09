@@ -144,7 +144,7 @@ class ProductionConfigSystem {
     };
   }
 
-  /// Initialize the configuration system
+  /// initialize the configuration system
   Future<void> initialize() async {
     if (_initialized) return;
 
@@ -152,40 +152,40 @@ class ProductionConfigSystem {
       final configDir = await getApplicationDocumentsDirectory();
       _configFile = File('${configDir.path}/$configFileName');
 
-      // Load configuration
+      // load configuration
       await _loadConfiguration();
 
       _initialized = true;
       debugPrint('ProductionConfigSystem initialized');
     } catch (e) {
       debugPrint('Failed to initialize config system: $e');
-      // Continue with defaults
+      // continue with defaults
       _config.addAll(Map.from(_defaults));
       _initialized = true;
     }
   }
 
   Future<void> _loadConfiguration() async {
-    // Start with defaults
+    // start with defaults
     _config.addAll(Map.from(_defaults));
 
-    // Load from file if exists
+    // load from file if exists
     if (_configFile != null && await _configFile!.exists()) {
       try {
         final content = await _configFile!.readAsString();
         final loadedConfig = jsonDecode(content) as Map<String, dynamic>;
 
-        // Deep merge loaded config with defaults
+        // deep merge loaded config with defaults
         _deepMerge(_config, loadedConfig);
         debugPrint('Configuration loaded from file');
       } catch (e) {
         debugPrint('Failed to load config file: $e');
-        // Try backup
+        // try backup
         await _loadBackupConfiguration();
       }
     }
 
-    // Apply platform-specific overrides
+    // apply platform-specific overrides
     _applyPlatformOverrides();
   }
 
@@ -206,7 +206,7 @@ class ProductionConfigSystem {
   }
 
   void _applyPlatformOverrides() {
-    // Ubuntu optimizations
+    // ubuntu optimizations
     if (Platform.isLinux) {
       _config['performance'] ??= {};
       _config['performance']['gpu_acceleration'] = true;
@@ -214,7 +214,7 @@ class ProductionConfigSystem {
       _config['performance']['max_memory_mb'] = 1024;
     }
 
-    // Android optimizations
+    // android optimizations
     else if (Platform.isAndroid) {
       _config['performance'] ??= {};
       _config['performance']['gpu_acceleration'] = true;
@@ -223,7 +223,7 @@ class ProductionConfigSystem {
       _config['performance']['adaptive_frame_pacing'] = true;
     }
 
-    // Oculus Quest 2 optimizations
+    // oculus quest 2 optimizations
     else if (_isVrPlatform()) {
       _config['performance'] ??= {};
       _config['performance']['gpu_acceleration'] = true;
@@ -235,7 +235,7 @@ class ProductionConfigSystem {
       _config['features']['vr_support'] = true;
     }
 
-    // Windows optimizations
+    // windows optimizations
     else if (Platform.isWindows) {
       _config['performance'] ??= {};
       _config['performance']['gpu_acceleration'] = true;
@@ -246,21 +246,21 @@ class ProductionConfigSystem {
 
   bool _isVrPlatform() {
     try {
-      // Check for VR runtime and device detection
+      // check for vr runtime and device detection
       if (Platform.isAndroid) {
-        // Check for Oculus/Quest devices
+        // check for oculus/quest devices
         final isOculus = Platform.environment['OCULUS_VR']?.isNotEmpty ?? false;
         final isQuest = Platform.environment['QUEST_VR']?.isNotEmpty ?? false;
         
-        // Check for VR-specific system properties
+        // check for vr-specific system properties
         final hasVrFeature = _checkAndroidVRFeatures();
         
         return isOculus || isQuest || hasVrFeature;
       } else if (Platform.isWindows) {
-        // Check for Windows Mixed Reality or SteamVR
+        // check for windows mixed reality or steamvr
         return _checkWindowsVRSupport();
       } else if (Platform.isLinux) {
-        // Check for Linux VR support (OpenXR, etc.)
+        // check for linux vr support (openxr, etc.)
         return _checkLinuxVRSupport();
       }
       
@@ -271,10 +271,10 @@ class ProductionConfigSystem {
     }
   }
   
-  /// Check Android VR features
+  /// check android vr features
   bool _checkAndroidVRFeatures() {
     try {
-      // Check for VR-related system properties
+      // check for vr-related system properties
       final vrFeatures = [
         'ro.hardware.vr',
         'ro.product.model',
@@ -298,10 +298,10 @@ class ProductionConfigSystem {
     }
   }
   
-  /// Check Windows VR support
+  /// check windows vr support
   bool _checkWindowsVRSupport() {
     try {
-      // Check for Windows Mixed Reality runtime
+      // check for windows mixed reality runtime
       final wmrPath = r'C:\Program Files\Windows Mixed Reality';
       final wmrDir = Directory(wmrPath);
       
@@ -309,7 +309,7 @@ class ProductionConfigSystem {
         return true;
       }
       
-      // Check for SteamVR installation
+      // check for steamvr installation
       final steamvrPath = r'C:\Program Files (x86)\Steam\steamapps\common\SteamVR';
       final steamvrDir = Directory(steamvrPath);
       
@@ -320,10 +320,10 @@ class ProductionConfigSystem {
     }
   }
   
-  /// Check Linux VR support
+  /// check linux vr support
   bool _checkLinuxVRSupport() {
     try {
-      // Check for OpenXR runtime
+      // check for openxr runtime
       final openxrPaths = [
         '/usr/lib/x86_64-linux-gnu/libopenxr_loader.so',
         '/usr/local/lib/libopenxr_loader.so',
@@ -337,7 +337,7 @@ class ProductionConfigSystem {
         }
       }
       
-      // Check for Monado runtime
+      // check for monado runtime
       final monadoFile = File('/usr/lib/libmonado.so');
       if (monadoFile.existsSync()) {
         return true;
@@ -360,7 +360,7 @@ class ProductionConfigSystem {
     }
   }
 
-  /// Get a configuration value
+  /// get a configuration value
   T? get<T>(String key, [T? defaultValue]) {
     final keys = key.split('.');
     dynamic current = _config;
@@ -391,21 +391,21 @@ class ProductionConfigSystem {
     return current as T?;
   }
 
-  /// Set a configuration value
+  /// set a configuration value
   Future<void> set(String key, dynamic value) async {
     final oldValue = get(key);
 
-    // Validate if validator exists
+    // validate if validator exists
     final validator = _validators[key];
     if (validator != null) {
       validator(value);
     }
 
-    // Set the value
+    // set the value
     final keys = key.split('.');
     _setNestedValue(_config, keys, value);
 
-    // Emit change event
+    // emit change event
     _changeController.add(ConfigChangeEvent(
       key: key,
       oldValue: oldValue,
@@ -413,7 +413,7 @@ class ProductionConfigSystem {
       timestamp: DateTime.now(),
     ));
 
-    // Auto-save if enabled
+    // auto-save if enabled
     if (_autoSave) {
       await save();
     }
@@ -437,20 +437,20 @@ class ProductionConfigSystem {
     _setNestedValue(map[key] as Map<String, dynamic>, remaining, value);
   }
 
-  /// Save configuration to persistent storage
+  /// save configuration to persistent storage
   Future<void> save() async {
     if (_configFile == null) return;
 
     try {
       _saveAttempts++;
 
-      // Create backup of current config
+      // create backup of current config
       if (await _configFile!.exists()) {
         final backupFile = File('${_configFile!.parent.path}/$backupFileName');
         await _configFile!.copy(backupFile.path);
       }
 
-      // Save new config
+      // save new config
       final jsonString = const JsonEncoder.withIndent('  ').convert(_config);
       await _configFile!.writeAsString(jsonString);
 
@@ -459,17 +459,17 @@ class ProductionConfigSystem {
 
     } catch (e) {
       debugPrint('Failed to save configuration: $e');
-      // Could implement retry logic here
+      // could implement retry logic here
     }
   }
 
-  /// Reset configuration to defaults
+  /// reset configuration to defaults
   Future<void> reset() async {
     _config.clear();
     _config.addAll(Map.from(_defaults));
     _applyPlatformOverrides();
 
-    // Emit reset event
+    // emit reset event
     _changeController.add(ConfigChangeEvent(
       key: '*',
       oldValue: null,
@@ -485,26 +485,26 @@ class ProductionConfigSystem {
     debugPrint('Configuration reset to defaults');
   }
 
-  /// Export configuration for backup/sharing
+  /// export configuration for backup/sharing
   Future<String> export() async {
     return const JsonEncoder.withIndent('  ').convert(_config);
   }
 
-  /// Import configuration from string
+  /// import configuration from string
   Future<void> import(String configJson) async {
     try {
       final imported = jsonDecode(configJson) as Map<String, dynamic>;
 
-      // Validate imported config
+      // validate imported config
       _validateImportedConfig(imported);
 
-      // Apply imported config
+      // apply imported config
       _config.clear();
       _config.addAll(Map.from(_defaults));
       _deepMerge(_config, imported);
       _applyPlatformOverrides();
 
-      // Emit import event
+      // emit import event
       _changeController.add(ConfigChangeEvent(
         key: '*',
         oldValue: null,
@@ -525,7 +525,7 @@ class ProductionConfigSystem {
   }
 
   void _validateImportedConfig(Map<String, dynamic> config) {
-    // Basic validation - could be more comprehensive
+    // basic validation - could be more comprehensive
     final requiredSections = ['performance', 'ui', 'terminal'];
     for (final section in requiredSections) {
       if (!config.containsKey(section)) {
@@ -534,13 +534,13 @@ class ProductionConfigSystem {
     }
   }
 
-  /// Enable or disable auto-save
+  /// enable or disable auto-save
   void setAutoSave(bool enabled) {
     _autoSave = enabled;
     debugPrint('Auto-save ${enabled ? 'enabled' : 'disabled'}');
   }
 
-  /// Get configuration info for debugging
+  /// get configuration info for debugging
   Map<String, dynamic> getConfigInfo() {
     return {
       'initialized': _initialized,
@@ -552,14 +552,14 @@ class ProductionConfigSystem {
     };
   }
 
-  /// Dispose resources
+  /// dispose resources
   void dispose() {
     _changeController.close();
     debugPrint('ProductionConfigSystem disposed');
   }
 }
 
-/// Configuration change event
+/// configuration change event
 class ConfigChangeEvent {
   final String key;
   final dynamic oldValue;
@@ -580,10 +580,10 @@ class ConfigChangeEvent {
   bool get isGlobalChange => key == '*' || isReset || isImport;
 }
 
-/// Configuration validator function type
+/// configuration validator function type
 typedef ConfigValidator = void Function(dynamic value);
 
-/// Configuration validation error
+/// configuration validation error
 class ConfigValidationError implements Exception {
   final String message;
   const ConfigValidationError(this.message);
@@ -591,7 +591,7 @@ class ConfigValidationError implements Exception {
   String toString() => 'ConfigValidationError: $message';
 }
 
-/// Configuration import error
+/// configuration import error
 class ConfigImportError implements Exception {
   final String message;
   const ConfigImportError(this.message);

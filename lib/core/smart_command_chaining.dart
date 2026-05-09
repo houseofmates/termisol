@@ -5,10 +5,10 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:collection/collection.dart';
 
-/// Smart Command Chaining
+/// smart command chaining
 ///
-/// Learns and suggests command sequences based on execution history.
-/// Uses pattern recognition and frequency analysis to predict the next
+/// learns and suggests command sequences based on execution history.
+/// uses pattern recognition and frequency analysis to predict the next
 /// command in a workflow chain.
 class SmartCommandChaining {
   final Map<String, CommandGraph> _patterns = {};

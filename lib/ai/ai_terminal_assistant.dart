@@ -6,8 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../core/production_config_system.dart';
 
-/// cloud-only AI terminal assistant.
-/// on android, detects a local gemma 4:4b model via common endpoints and falls back to it when the cloud API is unreachable.
+/// cloud-only ai terminal assistant.
+/// on android, detects a local gemma 4:4b model via common endpoints and falls back to it when the cloud api is unreachable.
 class NvidiaAITerminalAssistant {
   static const String nvidiaApiBaseUrl = 'https://api.nvidia.com/v1';
   static const Duration requestTimeout = Duration(seconds: 30);
@@ -28,13 +28,13 @@ class NvidiaAITerminalAssistant {
   /// cached local gemma endpoint detected on this device, if any.
   String? _localGemmaEndpoint;
 
-  /// stream of AI events
+  /// stream of ai events
   Stream<AIEvent> get events => _eventController.stream;
 
-  /// whether the AI assistant is initialized and ready
+  /// whether the ai assistant is initialized and ready
   bool get isInitialized => _isInitialized;
 
-  /// success rate of AI requests
+  /// success rate of ai requests
   double get successRate {
     return _totalRequests > 0 ? _successfulRequests / _totalRequests : 0.0;
   }
@@ -395,7 +395,7 @@ class NvidiaAITerminalAssistant {
   }
 }
 
-/// AI response wrapper
+/// ai response wrapper
 class AIResponse {
   final bool success;
   final String output;
@@ -439,7 +439,7 @@ class AIResponse {
   };
 }
 
-/// AI capability types
+/// ai capability types
 enum AICapability {
   text_generation,
   code_generation,
@@ -448,7 +448,7 @@ enum AICapability {
   documentation,
 }
 
-/// AI conversation context
+/// ai conversation context
 class AIContext {
   final String id;
   final List<AIMessage> _messages = [];
@@ -474,7 +474,7 @@ class AIContext {
 }
 
 
-/// Analysis result for terminal output
+/// analysis result for terminal output
 class AnalysisResult {
   final List<String> errors;
   final List<String> warnings;
@@ -501,7 +501,7 @@ class AnalysisResult {
   int get totalIssues => errors.length + warnings.length + suggestions.length;
 }
 
-/// AI event types
+/// ai event types
 class AIEvent {
   final AIEventType type;
   final String? contextId;
@@ -546,7 +546,7 @@ class AIEvent {
   }
 }
 
-/// AI conversation data structure
+/// ai conversation data structure
 class AIConversation {
   final String id;
   final List<AIMessage> messages;
@@ -571,7 +571,7 @@ class AIConversation {
   };
 }
 
-/// AI message data structure
+/// ai message data structure
 class AIMessage {
   final String role;
   final String content;
@@ -611,7 +611,7 @@ class AIMessage {
   };
 }
 
-/// AI event types
+/// ai event types
 enum AIEventType {
   responseGenerated,
   requestFailed,

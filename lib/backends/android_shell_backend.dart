@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import '../core/pty_backend.dart';
 import '../core/prompt_config.dart';
 
-/// Android-specific shell backend with robust shell probing and environment
+/// android-specific shell backend with robust shell probing and environment
 /// bootstrap.
 class AndroidShellBackend implements TermisolPtyBackend {
   @override

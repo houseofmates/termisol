@@ -1,13 +1,13 @@
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
-/// The function called when the user scrolls the [InfiniteScrollView]. [offset]
-/// is the current offset of the scroll view, ranging from [double.negativeInfinity]
+/// the function called when the user scrolls the [infinitescrollview]. [offset]
+/// is the current offset of the scroll view, ranging from [double.negativeinfinity]
 /// to [double.infinity].
 typedef ScrollCallback = void Function(double offset);
 
-/// A [Scrollable] that can be scrolled infinitely in both directions. When
-/// scroll happens, the [onScroll] callback is called with the new offset.
+/// a [scrollable] that can be scrolled infinitely in both directions. when
+/// scroll happens, the [onscroll] callback is called with the new offset.
 class InfiniteScrollView extends StatelessWidget {
   const InfiniteScrollView({
     super.key,

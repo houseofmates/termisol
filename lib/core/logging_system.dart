@@ -32,15 +32,15 @@ class TermisolLogger {
   bool _debugMode = false;
   String? _sessionId;
   
-  /// Initialize the logging system
+  /// initialize the logging system
   Future<void> initialize({bool debugMode = false}) async {
     _debugMode = debugMode;
     _sessionId = _generateSessionId();
     
-    // Create log directory
+    // create log directory
     await Directory(_logDirectory).create(recursive: true);
     
-    // Add default sinks
+    // add default sinks
     _sinks.add(ConsoleSink());
     _sinks.add(FileSink('$_logDirectory/termisol.log'));
     
@@ -48,10 +48,10 @@ class TermisolLogger {
       _sinks.add(DebugSink());
     }
     
-    // Start flush timer
+    // start flush timer
     _flushTimer = Timer.periodic(_flushInterval, (_) => _flush());
     
-    // Log initialization
+    // log initialization
     info('Logger initialized', {
       'debug_mode': _debugMode,
       'session_id': _sessionId,
@@ -59,7 +59,7 @@ class TermisolLogger {
     });
   }
   
-  /// Dispose the logging system
+  /// dispose the logging system
   void dispose() {
     _flushTimer?.cancel();
     _flush();
@@ -71,42 +71,42 @@ class TermisolLogger {
     _sinks.clear();
   }
   
-  /// Log debug message
+  /// log debug message
   void debug(String message, [Map<String, dynamic>? context]) {
     _log(LogLevel.debug, message, context);
   }
   
-  /// Log info message
+  /// log info message
   void info(String message, [Map<String, dynamic>? context]) {
     _log(LogLevel.info, message, context);
   }
   
-  /// Log warning message
+  /// log warning message
   void warning(String message, [Map<String, dynamic>? context]) {
     _log(LogLevel.warning, message, context);
   }
   
-  /// Log error message
+  /// log error message
   void error(String message, [Map<String, dynamic>? context, dynamic error, StackTrace? stackTrace]) {
     _log(LogLevel.error, message, context, error, stackTrace);
   }
   
-  /// Log severe message (alias for error)
+  /// log severe message (alias for error)
   void severe(String message, [Map<String, dynamic>? context, dynamic error, StackTrace? stackTrace]) {
     _log(LogLevel.error, message, context, error, stackTrace);
   }
 
-  /// Log fatal error
+  /// log fatal error
   void fatal(String message, [Map<String, dynamic>? context, dynamic error, StackTrace? stackTrace]) {
     _log(LogLevel.fatal, message, context, error, stackTrace);
   }
   
-  /// Start performance tracking
+  /// start performance tracking
   void startPerformanceTracking(String operation) {
     _performanceTrackers[operation] = PerformanceTracker(operation);
   }
   
-  /// End performance tracking and log result
+  /// end performance tracking and log result
   void endPerformanceTracking(String operation, [Map<String, dynamic>? context]) {
     final tracker = _performanceTrackers[operation];
     if (tracker != null) {
@@ -123,7 +123,7 @@ class TermisolLogger {
     }
   }
   
-  /// Track a debug event
+  /// track a debug event
   void trackDebugEvent(String eventName, [Map<String, dynamic>? data]) {
     if (!_debugMode) return;
     
@@ -133,7 +133,7 @@ class TermisolLogger {
     debug('Debug Event: $eventName', data);
   }
   
-  /// Log terminal protocol event
+  /// log terminal protocol event
   void logProtocolEvent(String sequence, String type, [Map<String, dynamic>? context]) {
     debug('Protocol Event: $type', {
       'sequence': sequence.length > 100 ? '${sequence.substring(0, 100)}...' : sequence,
@@ -143,7 +143,7 @@ class TermisolLogger {
     });
   }
   
-  /// Log quantum engine event
+  /// log quantum engine event
   void logQuantumEvent(String operation, [Map<String, dynamic>? context]) {
     info('Quantum Event: $operation', {
       'operation': operation,
@@ -152,23 +152,23 @@ class TermisolLogger {
     });
   }
   
-  /// Log performance metrics
+  /// log performance metrics
   void logPerformanceMetrics(Map<String, dynamic> metrics) {
     info('Performance Metrics', metrics);
   }
   
-  /// Log user interaction
+  /// log user interaction
   void logUserInteraction(String action, [Map<String, dynamic>? context]) {
     debug('User Interaction: $action', context);
   }
   
-  /// Get log stream for real-time monitoring
+  /// get log stream for real-time monitoring
   Stream<LogEntry> get logStream => _logStream.stream;
   
-  /// Get debug events
+  /// get debug events
   Map<String, DebugEvent> get debugEvents => Map.unmodifiable(_debugEvents);
   
-  /// Get performance summary
+  /// get performance summary
   Map<String, dynamic> getPerformanceSummary() {
     return {
       'active_trackers': _performanceTrackers.length,
@@ -178,7 +178,7 @@ class TermisolLogger {
     };
   }
   
-  /// Internal logging method
+  /// internal logging method
   void _log(LogLevel level, String message, 
     [Map<String, dynamic>? context, dynamic error, StackTrace? stackTrace]) {
     
@@ -192,15 +192,15 @@ class TermisolLogger {
       sessionId: _sessionId,
     );
     
-    // Add to all sinks
+    // add to all sinks
     for (final sink in _sinks) {
       sink.write(entry);
     }
     
-    // Add to stream
+    // add to stream
     _logStream.add(entry);
     
-    // In debug mode, also send to Flutter developer log
+    // in debug mode, also send to flutter developer log
     if (_debugMode) {
       developer.log(
         message,
@@ -213,19 +213,19 @@ class TermisolLogger {
     }
   }
   
-  /// Flush all sinks
+  /// flush all sinks
   void _flush() {
     for (final sink in _sinks) {
       sink.flush();
     }
   }
   
-  /// Generate session ID
+  /// generate session id
   String _generateSessionId() {
     return '${DateTime.now().millisecondsSinceEpoch}-${_randomString(8)}';
   }
   
-  /// Generate random string
+  /// generate random string
   String _randomString(int length) {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     final random = DateTime.now().millisecondsSinceEpoch;
@@ -239,7 +239,7 @@ class TermisolLogger {
   }
 }
 
-/// Log levels
+/// log levels
 enum LogLevel {
   debug(0),
   info(1),
@@ -253,7 +253,7 @@ enum LogLevel {
   String get name => toString().split('.').last.toUpperCase();
 }
 
-/// Log entry
+/// log entry
 class LogEntry {
   final LogLevel level;
   final String message;
@@ -306,14 +306,14 @@ class LogEntry {
   }
 }
 
-/// Log sink interface
+/// log sink interface
 abstract class LogSink {
   void write(LogEntry entry);
   void flush();
   void dispose();
 }
 
-/// Console log sink
+/// console log sink
 class ConsoleSink implements LogSink {
   @override
   void write(LogEntry entry) {
@@ -323,12 +323,12 @@ class ConsoleSink implements LogSink {
   
   @override
   void flush() {
-    // Nothing to flush for console
+    // nothing to flush for console
   }
   
   @override
   void dispose() {
-    // Nothing to dispose for console
+    // nothing to dispose for console
   }
   
   String _getColorForLevel(LogLevel level) {
@@ -354,7 +354,7 @@ class ConsoleSink implements LogSink {
   static const String ansiMagenta = '\x1b[95m';
 }
 
-/// File log sink with rotation
+/// file log sink with rotation
 class FileSink implements LogSink {
   late File _file;
   late IOSink _sink;
@@ -369,7 +369,7 @@ class FileSink implements LogSink {
     if (_file.existsSync()) {
       _currentSize = _file.lengthSync();
       
-      // Rotate if file is too large
+      // rotate if file is too large
       if (_currentSize > TermisolLogger._maxLogFileSize) {
         _rotateLog();
       }
@@ -384,7 +384,7 @@ class FileSink implements LogSink {
     _sink.write(line);
     _currentSize += line.length;
     
-    // Rotate if needed
+    // rotate if needed
     if (_currentSize > TermisolLogger._maxLogFileSize) {
       _rotateLog();
     }
@@ -403,21 +403,21 @@ class FileSink implements LogSink {
   void _rotateLog() {
     _sink.close();
     
-    // Move current file to backup
+    // move current file to backup
     final backupFile = File('${_file.path}.1');
     if (backupFile.existsSync()) {
       backupFile.deleteSync();
     }
     _file.renameSync(backupFile.path);
     
-    // Create new file
+    // create new file
     _file = File(_file.path);
     _currentSize = 0;
     _sink = _file.openWrite(mode: FileMode.append);
   }
 }
 
-/// Debug sink for enhanced debugging
+/// debug sink for enhanced debugging
 class DebugSink implements LogSink {
   final List<LogEntry> _entries = [];
   static const int _maxEntries = 1000;
@@ -426,7 +426,7 @@ class DebugSink implements LogSink {
   void write(LogEntry entry) {
     _entries.add(entry);
     
-    // Keep only recent entries
+    // keep only recent entries
     if (_entries.length > _maxEntries) {
       _entries.removeRange(0, _entries.length - _maxEntries);
     }
@@ -434,7 +434,7 @@ class DebugSink implements LogSink {
   
   @override
   void flush() {
-    // Nothing to flush for debug sink
+    // nothing to flush for debug sink
   }
   
   @override
@@ -444,12 +444,12 @@ class DebugSink implements LogSink {
   
   List<LogEntry> get entries => List.unmodifiable(_entries);
   
-  /// Get entries by level
+  /// get entries by level
   List<LogEntry> getEntriesByLevel(LogLevel level) {
     return _entries.where((e) => e.level == level).toList();
   }
   
-  /// Get entries by time range
+  /// get entries by time range
   List<LogEntry> getEntriesByTimeRange(DateTime start, DateTime end) {
     return _entries.where((e) => 
       e.timestamp.isAfter(start) && e.timestamp.isBefore(end)
@@ -457,7 +457,7 @@ class DebugSink implements LogSink {
   }
 }
 
-/// Performance tracker
+/// performance tracker
 class PerformanceTracker {
   final String operation;
   final Stopwatch _stopwatch;
@@ -470,7 +470,7 @@ class PerformanceTracker {
   }
 }
 
-/// Debug event
+/// debug event
 class DebugEvent {
   final String name;
   final Map<String, dynamic>? data;
@@ -487,17 +487,17 @@ class DebugEvent {
   }
 }
 
-/// Debug utilities
+/// debug utilities
 class DebugUtils {
   static void logMemoryUsage(String context) {
     if (!kDebugMode) return;
     
-    // Note: In a real implementation, you would use platform-specific APIs
+    // note: in a real implementation, you would use platform-specific apis
     // to get actual memory usage. Using ProcessInfo for basic memory tracking.
     TermisolLogger().debug('Memory usage: $context', {
       'context': context,
       'timestamp': DateTime.now().toIso8601String(),
-      'process_info_available': false, // Platform-specific implementation needed
+      'process_info_available': false, // platform-specific implementation needed
     });
   }
   
@@ -545,10 +545,10 @@ class DebugUtils {
   }
 }
 
-/// Global logger instance
+/// global logger instance
 final logger = TermisolLogger();
 
-/// Extension methods for easy logging
+/// extension methods for easy logging
 extension LoggerExtensions on Object {
   void logDebug(String message, [Map<String, dynamic>? context]) {
     logger.debug('$runtimeType: $message', context);

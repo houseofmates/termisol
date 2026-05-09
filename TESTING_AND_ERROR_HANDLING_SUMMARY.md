@@ -379,7 +379,7 @@ The system is now production-ready with enterprise-grade reliability, performanc
 ## 📁 File Structure
 
 ```
-/home/house/termisol/
+/path/to/termisol/
 ├── lib/core/
 │   ├── error_handling_wrapper.dart    # Comprehensive error handling
 │   ├── logging_system.dart            # Advanced logging system

@@ -6,15 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:logging/logging.dart';
 
-/// Production-grade error handling system for Termisol
+/// production-grade error handling system for termisol
 /// 
-/// Features:
-/// - Structured error logging with context
-/// - Automatic error recovery mechanisms
-/// - Performance monitoring and alerting
-/// - Cross-platform error reporting
-/// - Secure error data handling
-/// - Real-time error analytics
+/// features:
+/// - structured error logging with context
+/// - automatic error recovery mechanisms
+/// - performance monitoring and alerting
+/// - cross-platform error reporting
+/// - secure error data handling
+/// - real-time error analytics
 class RobustErrorHandler {
   static final RobustErrorHandler _instance = RobustErrorHandler._internal();
   factory RobustErrorHandler() => _instance;
@@ -26,15 +26,15 @@ class RobustErrorHandler {
   final List<ErrorReport> _errorHistory = [];
   final _errorController = StreamController<ErrorReport>.broadcast();
   
-  // Connection pool for error recovery
+  // connection pool for error recovery
   final List<dynamic> _connectionPool = [];
   
-  // Recovery state variables
+  // recovery state variables
   Timer? _monitoringTimer;
   int _errorCount = 0;
   String? _lastError;
   
-  // Additional state variables
+  // additional state variables
   final DateTime _startTime = DateTime.now();
   final List<dynamic> _pendingRequests = [];
   final Map<String, dynamic> _networkCache = {};
@@ -44,22 +44,22 @@ class RobustErrorHandler {
   
   Stream<ErrorReport> get errorStream => _errorController.stream;
   
-  // Configuration
+  // configuration
   final int _maxErrorHistory = 1000;
-  final int _errorThreshold = 10; // Alert after 10 similar errors
+  final int _errorThreshold = 10; // alert after 10 similar errors
   final Duration _errorWindow = const Duration(minutes: 5);
   
-  /// Initialize the error handler
+  /// initialize the error handler
   Future<void> initialize() async {
     try {
-      // Setup logging hierarchy
+      // setup logging hierarchy
       Logger.root.level = Level.ALL;
       Logger.root.onRecord.listen(_handleLogRecord);
       
-      // Load error history
+      // load error history
       await _loadErrorHistory();
       
-      // Setup periodic cleanup
+      // setup periodic cleanup
       Timer.periodic(const Duration(hours: 1), (_) => _cleanupOldErrors());
       
       _logger.info('Robust error handler initialized');
@@ -68,7 +68,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Handle an error with full context
+  /// handle an error with full context
   Future<void> handleError(
     dynamic error,
     StackTrace? stackTrace, {
@@ -91,30 +91,30 @@ class RobustErrorHandler {
         version: '1.0.0',
       );
       
-      // Update error statistics
+      // update error statistics
       _updateErrorStats(errorReport);
       
-      // Add to history
+      // add to history
       _errorHistory.add(errorReport);
       if (_errorHistory.length > _maxErrorHistory) {
         _errorHistory.removeAt(0);
       }
       
-      // Log the error
+      // log the error
       _logError(errorReport);
       
-      // Broadcast to listeners
+      // broadcast to listeners
       _errorController.add(errorReport);
       
-      // Check for error patterns
+      // check for error patterns
       _checkErrorPatterns(errorReport);
       
-      // Attempt recovery if possible
+      // attempt recovery if possible
       if (recoverable) {
         await _attemptRecovery(errorReport);
       }
       
-      // Persist to disk
+      // persist to disk
       await _persistError(errorReport);
       
     } catch (e) {
@@ -122,21 +122,21 @@ class RobustErrorHandler {
     }
   }
   
-  /// Generate unique error ID
+  /// generate unique error id
   String _generateErrorId() {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final random = timestamp % 1000000;
     return 'err_${timestamp}_$random';
   }
   
-  /// Update error statistics
+  /// update error statistics
   void _updateErrorStats(ErrorReport report) {
     final key = '${report.error}_${report.context ?? ''}';
     _errorCounts[key] = (_errorCounts[key] ?? 0) + 1;
     _lastErrorTime[key] = report.timestamp;
   }
   
-  /// Check for error patterns and thresholds
+  /// check for error patterns and thresholds
   void _checkErrorPatterns(ErrorReport report) {
     final key = '${report.error}_${report.context ?? ''}';
     final count = _errorCounts[key] ?? 0;
@@ -151,9 +151,9 @@ class RobustErrorHandler {
     }
   }
   
-  /// Handle error threshold exceeded
+  /// handle error threshold exceeded
   void _handleErrorThreshold(ErrorReport report, int count) {
-    // Create alert for high-frequency errors
+    // create alert for high-frequency errors
     final alert = ErrorAlert(
       id: _generateErrorId(),
       timestamp: DateTime.now(),
@@ -167,12 +167,12 @@ class RobustErrorHandler {
     _broadcastAlert(alert);
   }
   
-  /// Attempt automatic error recovery
+  /// attempt automatic error recovery
   Future<void> _attemptRecovery(ErrorReport report) async {
     try {
       switch (report.severity) {
         case ErrorSeverity.info:
-          // No recovery needed for info
+          // no recovery needed for info
           break;
           
         case ErrorSeverity.warning:
@@ -192,9 +192,9 @@ class RobustErrorHandler {
     }
   }
   
-  /// Recovery strategies for warnings
+  /// recovery strategies for warnings
   Future<void> _recoverFromWarning(ErrorReport report) async {
-    // Implement warning-specific recovery
+    // implement warning-specific recovery
     if (report.error.contains('memory')) {
       await _triggerMemoryCleanup();
     }
@@ -204,9 +204,9 @@ class RobustErrorHandler {
     }
   }
   
-  /// Recovery strategies for errors
+  /// recovery strategies for errors
   Future<void> _recoverFromError(ErrorReport report) async {
-    // Implement error-specific recovery
+    // implement error-specific recovery
     if (report.error.contains('file')) {
       await _triggerFilesystemCheck();
     }
@@ -216,38 +216,38 @@ class RobustErrorHandler {
     }
   }
   
-  /// Recovery strategies for critical errors
+  /// recovery strategies for critical errors
   Future<void> _recoverFromCritical(ErrorReport report) async {
-    // Implement critical error recovery
+    // implement critical error recovery
     _logger.severe('Critical error detected, initiating emergency recovery');
     
-    // Save current state
+    // save current state
     await _emergencyStateSave();
     
-    // Clear caches
+    // clear caches
     await _clearAllCaches();
     
-    // Restart affected services
+    // restart affected services
     await _restartCriticalServices();
   }
   
-  /// Memory cleanup recovery
+  /// memory cleanup recovery
   Future<void> _triggerMemoryCleanup() async {
     try {
       _logger.info('Triggering memory cleanup');
       
-      // Clear image cache
+      // clear image cache
       PaintingBinding.instance.imageCache.clear();
       
-      // Clear performance metrics
+      // clear performance metrics
       _performanceMetrics.clear();
       
-      // Force garbage collection
+      // force garbage collection
       for (int i = 0; i < 3; i++) {
         await Future.delayed(const Duration(milliseconds: 50));
       }
       
-      // Clear temporary files
+      // clear temporary files
       final tempDir = Directory.systemTemp;
       if (await tempDir.exists()) {
         await for (final entity in tempDir.list()) {
@@ -267,7 +267,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Connection retry recovery
+  /// connection retry recovery
   Future<void> _triggerConnectionRetry() async {
     try {
       _logger.info('Triggering connection retry');
@@ -293,7 +293,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Filesystem check recovery
+  /// filesystem check recovery
   Future<void> _triggerFilesystemCheck() async {
     try {
       _logger.info('Triggering filesystem check');
@@ -336,7 +336,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Network reset recovery
+  /// network reset recovery
   Future<void> _triggerNetworkReset() async {
     try {
       _logger.info('Triggering network reset');
@@ -368,7 +368,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Emergency state save
+  /// emergency state save
   Future<void> _emergencyStateSave() async {
     try {
       _logger.info('Performing emergency state save');
@@ -396,12 +396,12 @@ class RobustErrorHandler {
     }
   }
   
-  /// Clear all caches
+  /// clear all caches
   Future<void> _clearAllCaches() async {
     try {
       _logger.info('Clearing all caches');
       
-      // Clear image cache
+      // clear image cache
       PaintingBinding.instance.imageCache.clear();
       
       // Clear network cache
@@ -410,10 +410,10 @@ class RobustErrorHandler {
       // Clear connection pool
       _connectionPool.clear();
       
-      // Clear performance metrics
+      // clear performance metrics
       _performanceMetrics.clear();
       
-      // Clear temporary files
+      // clear temporary files
       final tempDir = Directory.systemTemp;
       if (await tempDir.exists()) {
         await for (final entity in tempDir.list()) {
@@ -433,7 +433,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Restart critical services
+  /// restart critical services
   Future<void> _restartCriticalServices() async {
     try {
       _logger.info('Restarting critical services');
@@ -462,7 +462,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Perform health check
+  /// perform health check
   Future<void> _performHealthCheck() async {
     try {
       // Check system health
@@ -481,7 +481,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Check memory usage as a ratio of current rss to total system memory.
+  /// check memory usage as a ratio of current rss to total system memory.
   Future<double> _checkMemoryUsage() async {
     try {
       final rss = ProcessInfo.currentRss;
@@ -513,7 +513,7 @@ class RobustErrorHandler {
     return 8 * 1024 * 1024 * 1024; // 8GB fallback
   }
 
-  /// Check available disk space in MB.
+  /// check available disk space in mb.
   Future<double> _checkDiskSpace() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
@@ -544,13 +544,13 @@ class RobustErrorHandler {
     }
   }
   
-  /// Log error with proper formatting
+  /// log error with proper formatting
   void _logError(ErrorReport report) {
     final level = _mapSeverityToLevel(report.severity);
     _logger.log(level, _formatErrorLog(report));
   }
   
-  /// Map error severity to log level
+  /// map error severity to log level
   Level _mapSeverityToLevel(ErrorSeverity severity) {
     switch (severity) {
       case ErrorSeverity.info:
@@ -564,7 +564,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Format error for logging
+  /// format error for logging
   String _formatErrorLog(ErrorReport report) {
     final buffer = StringBuffer();
     buffer.writeln('Error ID: ${report.id}');
@@ -587,7 +587,7 @@ class RobustErrorHandler {
     return buffer.toString();
   }
   
-  /// Handle log records
+  /// handle log records
   void _handleLogRecord(LogRecord record) {
     // Convert log records to error reports if they're severe enough
     if (record.level.value >= Level.SEVERE.value) {
@@ -600,7 +600,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Map log level to error severity
+  /// map log level to error severity
   ErrorSeverity _mapLogLevelToSeverity(Level level) {
     if (level.value >= Level.SHOUT.value) {
       return ErrorSeverity.critical;
@@ -613,13 +613,13 @@ class RobustErrorHandler {
     }
   }
   
-  /// Broadcast alert
+  /// broadcast alert
   void _broadcastAlert(ErrorAlert alert) {
     _logger.warning('ALERT: ${alert.message}');
     // Implementation would notify monitoring systems
   }
   
-  /// Persist error to disk
+  /// persist error to disk
   Future<void> _persistError(ErrorReport report) async {
     try {
       final directory = await getApplicationDocumentsDirectory();
@@ -634,7 +634,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Load error history from disk
+  /// load error history from disk
   Future<void> _loadErrorHistory() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
@@ -657,7 +657,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Clean up old errors
+  /// clean up old errors
   void _cleanupOldErrors() {
     final cutoff = DateTime.now().subtract(const Duration(days: 7));
     _errorHistory.removeWhere((error) => error.timestamp.isBefore(cutoff));
@@ -676,7 +676,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Get error statistics
+  /// get error statistics
   Map<String, dynamic> getErrorStats() {
     return {
       'totalErrors': _errorHistory.length,
@@ -691,13 +691,13 @@ class RobustErrorHandler {
     };
   }
   
-  /// Dispose resources
+  /// dispose resources
   void dispose() {
     _errorController.close();
   }
 }
 
-/// Error severity levels
+/// error severity levels
 enum ErrorSeverity {
   info,
   warning,
@@ -705,7 +705,7 @@ enum ErrorSeverity {
   critical,
 }
 
-/// Alert types
+/// alert types
 enum AlertType {
   highFrequencyError,
   memoryThreshold,
@@ -713,7 +713,7 @@ enum AlertType {
   securityIssue,
 }
 
-/// Alert severity levels
+/// alert severity levels
 enum AlertSeverity {
   low,
   medium,
@@ -721,7 +721,7 @@ enum AlertSeverity {
   critical,
 }
 
-/// Error report data structure
+/// error report data structure
 class ErrorReport {
   final String id;
   final DateTime timestamp;
@@ -777,7 +777,7 @@ class ErrorReport {
   );
 }
 
-/// Alert data structure
+/// alert data structure
 class ErrorAlert {
   final String id;
   final DateTime timestamp;
@@ -798,10 +798,10 @@ class ErrorAlert {
   });
 }
 
-/// Missing helper functions for robust error handler
+/// missing helper functions for robust error handler
 extension RobustErrorHandlerHelpers on RobustErrorHandler {
   
-  /// Clear old log files
+  /// clear old log files
   Future<void> _clearOldLogFiles() async {
     try {
       final documentsDir = await getApplicationDocumentsDirectory();
@@ -823,7 +823,7 @@ extension RobustErrorHandlerHelpers on RobustErrorHandler {
     }
   }
   
-  /// Reinitialize critical connections
+  /// reinitialize critical connections
   Future<void> _reinitializeCriticalConnections() async {
     try {
       // Reset connection pool
@@ -838,7 +838,7 @@ extension RobustErrorHandlerHelpers on RobustErrorHandler {
     }
   }
   
-  /// Test basic connectivity
+  /// test basic connectivity
   Future<bool> _testBasicConnectivity() async {
     try {
       final result = await InternetAddress.lookup('google.com');
@@ -849,7 +849,7 @@ extension RobustErrorHandlerHelpers on RobustErrorHandler {
     }
   }
   
-  /// Get current memory usage
+  /// get current memory usage
   Map<String, dynamic> _getCurrentMemoryUsage() {
     try {
       final imageCache = PaintingBinding.instance.imageCache;

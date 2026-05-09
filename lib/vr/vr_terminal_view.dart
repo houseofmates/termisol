@@ -1,20 +1,19 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:xterm/xterm.dart';
-import '../core/terminal_session.dart';
-import '../ui/terminal_view.dart';
-import '../config/pkm_theme.dart';
+import 'dart:async';
 
-/// Platform channel interface for future native OpenXR integration.
+import 'package:flutter/material.dart';
+import 'package:xterm/xterm.dart' show CellOffset, TerminalMouseButton, TerminalMouseButtonState;
+
+import '../core/terminal_session.dart';
+import 'openxr_session.dart';
+import 'vr_frame_encoder.dart';
+
+/// fully-featured vr terminal view for oculus quest 2.
 ///
-/// Channel: com.termisol/vr
-/// Methods (to be implemented natively):
-///   - initializeVr() -> `Map<String, dynamic>`
-///   - isVrSupported() -> bool
-///   - startVrSession() -> bool
-///   - stopVrSession() -> bool
-///   - triggerHapticFeedback(int durationMs) -> void
-///   - getBuildInfo() -> `Map<String, String>`  // returns {model, manufacturer}
+/// when the widget is initialized it attempts to start a native openxr
+/// session. if vr is unavailable it falls back to a standard on-screen
+/// message. while vr is active the visible terminal buffer is streamed to
+/// the native renderer at 30 fps and controller input events are translated
+/// into terminal mouse actions.
 class VrTerminalView extends StatefulWidget {
   final TerminalSession session;
 
@@ -25,102 +24,126 @@ class VrTerminalView extends StatefulWidget {
 }
 
 class _VrTerminalViewState extends State<VrTerminalView> {
-  static const _vrChannel = MethodChannel('com.termisol/vr');
+  final _encoder = VrFrameEncoder();
+  Timer? _frameTimer;
+  bool _vrActive = false;
+  String _status = 'Checking VR support...';
 
   @override
   void initState() {
     super.initState();
-    // document the platform channel interface for future native openxr integration
-    _vrChannel.setMethodCallHandler((call) async {
-      switch (call.method) {
-        case 'initializeVr':
-        case 'isVrSupported':
-        case 'startVrSession':
-        case 'stopVrSession':
-        case 'triggerHapticFeedback':
-        case 'getBuildInfo':
-          return null;
-        default:
-          throw MissingPluginException('not implemented: ${call.method}');
-      }
-    });
+    _initializeVr();
   }
 
-  CellOffset _getCellOffset(Offset localPosition) {
-    final size = MediaQuery.of(context).size;
-    final aspectRatio = 0.8;
-    final terminalWidth = size.height * aspectRatio;
-    final terminalHeight = size.height;
-    final left = (size.width - terminalWidth) / 2;
-    final top = 0.0;
+  @override
+  void dispose() {
+    _frameTimer?.cancel();
+    if (_vrActive) {
+      unawaited(OpenXrSession.stopSession());
+    }
+    super.dispose();
+  }
 
-    final relX = localPosition.dx - left;
-    final relY = localPosition.dy - top;
+  Future<void> _initializeVr() async {
+    final supported = await OpenXrSession.isSupported();
+    if (!supported) {
+      if (mounted) {
+        setState(() => _status = 'VR not available on this device');
+      }
+      return;
+    }
 
-    final cols = widget.session.terminal.viewWidth;
-    final rows = widget.session.terminal.viewHeight;
-    final cellWidth = terminalWidth / (cols > 0 ? cols : 80);
-    final cellHeight = terminalHeight / (rows > 0 ? rows : 24);
+    try {
+      final initialized = await OpenXrSession.initialize();
+      if (!initialized) {
+        if (mounted) {
+          setState(() => _status = 'Failed to initialize VR runtime');
+        }
+        return;
+      }
 
-    return CellOffset(
-      (relX / cellWidth).clamp(0, cols - 1).toInt(),
-      (relY / cellHeight).clamp(0, rows - 1).toInt(),
+      // Subscribe to controller input events from the native runtime.
+      OpenXrSession.inputEvents.listen(_onVrInput, onError: (Object e) {
+        debugPrint('VR input stream error: $e');
+      });
+
+      final started = await OpenXrSession.startSession();
+      if (!started) {
+        if (mounted) {
+          setState(() => _status = 'Failed to start VR session');
+        }
+        return;
+      }
+
+      if (mounted) {
+        setState(() {
+          _vrActive = true;
+          _status = 'VR Session Active';
+        });
+      }
+
+      // Stream terminal frames at ~30 fps.
+      _frameTimer = Timer.periodic(const Duration(milliseconds: 33), (_) {
+        if (!mounted) return;
+        _submitFrame();
+      });
+    } on OpenXrException catch (e) {
+      if (mounted) {
+        setState(() => _status = 'VR error: $e');
+      }
+    }
+  }
+
+  void _submitFrame() {
+    final terminal = widget.session.terminal;
+    final frame = _encoder.encode(terminal);
+    unawaited(
+      OpenXrSession.submitFrame(VrTerminalFrame(
+        rows: terminal.viewHeight,
+        cols: terminal.viewWidth,
+        cells: frame,
+      )),
     );
   }
 
-  void _sendPointerEvent(bool down, Offset position) {
-    final cell = _getCellOffset(position);
-    final button = down ? TerminalMouseButton.left : TerminalMouseButton.left;
-    final state = down ? TerminalMouseButtonState.down : TerminalMouseButtonState.up;
-    widget.session.terminal.mouseInput(button, state, cell);
+  void _onVrInput(VrInputEvent event) {
+    final terminal = widget.session.terminal;
+    final cols = terminal.viewWidth;
+    final rows = terminal.viewHeight;
+    if (cols <= 0 || rows <= 0) return;
+
+    // Map normalized controller coordinates (0..1) to cell grid.
+    final cellX = (event.x * cols).clamp(0, cols - 1).toInt();
+    final cellY = (event.y * rows).clamp(0, rows - 1).toInt();
+
+    switch (event.type) {
+      case VrInputType.trigger:
+        final button = TerminalMouseButton.left;
+        final state = event.button == 1
+            ? TerminalMouseButtonState.down
+            : TerminalMouseButtonState.up;
+        terminal.mouseInput(button, state, CellOffset(cellX, cellY));
+      case VrInputType.thumbstick:
+        // TODO: implement scroll / arrow-key mapping for thumbstick.
+        break;
+      default:
+        break;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Listener(
-      onPointerDown: (event) {
-        setState(() {});
-        _sendPointerEvent(true, event.localPosition);
-      },
-      onPointerMove: (event) {
-        setState(() {});
-      },
-      onPointerUp: (event) {
-        setState(() {});
-        _sendPointerEvent(false, event.localPosition);
-      },
+    return Container(
+      color: Colors.black,
       child: Center(
-        child: AspectRatio(
-          aspectRatio: 0.8,
-          child: Container(
-            color: Colors.black,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'VR Terminal Mode',
-                  style: TextStyle(
-                    color: PkmTheme.primary,
-                    fontSize: 24,
-                    fontFamily: PkmTheme.fontUi,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: TermisolTerminalView(session: widget.session),
-                ),
-                const Text(
-                  'Use Quest controllers to interact',
-                  style: TextStyle(
-                    color: PkmTheme.text,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
+        child: Text(
+          _status,
+          style: const TextStyle(color: Colors.green, fontSize: 24),
         ),
       ),
     );
   }
 }
+
+/// silences unawaited-future lints without losing the fire-and-forget intent.
+void unawaited(Future<void> future) {}

@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:collection/collection.dart';
 
-/// Semantic Search Engine
+/// semantic search engine
 class SemanticSearchEngine {
   final Map<String, DocumentIndex> _indexes = {};
   final Map<String, InvertedIndex> _invertedIndexes = {};

@@ -47,7 +47,7 @@ class _LineBuilder {
   }
 }
 
-/// Holds a the state of reflow operation of a single logical line.
+/// holds a the state of reflow operation of a single logical line.
 class _LineReflow {
   final int oldWidth;
 

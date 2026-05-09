@@ -22,9 +22,9 @@ class _HintMatch {
   });
 }
 
-/// An overlay that scans the visible terminal buffer for URLs, file paths, and
-/// email addresses, then displays letter hints over each match. Typing the
-/// hint letters opens URLs/emails or copies paths to the clipboard.
+/// an overlay that scans the visible terminal buffer for urls, file paths, and
+/// email addresses, then displays letter hints over each match. typing the
+/// hint letters opens urls/emails or copies paths to the clipboard.
 class HintsModeOverlay extends StatefulWidget {
   final Terminal terminal;
   final VoidCallback onClose;

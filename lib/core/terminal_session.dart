@@ -25,13 +25,13 @@ import 'command_alias_system.dart';
 import 'directory_tracker.dart';
 import '../ui/clipboard_manager.dart';
 
-/// Called when the user types `/ai <query>` and presses Enter.
+/// called when the user types `/ai <query>` and presses enter.
 typedef AiQueryHandler = Future<String> Function(String query);
 
-/// Called when the user types `edit <filename>` and presses Enter.
+/// called when the user types `edit <filename>` and presses enter.
 typedef EditCommandHandler = Future<void> Function(String filePath);
 
-/// A URL detected in terminal output.
+/// a url detected in terminal output.
 class DetectedUrl {
   final String url;
   final DateTime detectedAt;
@@ -39,7 +39,7 @@ class DetectedUrl {
   DetectedUrl({required this.url, required this.detectedAt});
 }
 
-/// Encapsulates a single terminal instance with its backend, controller,
+/// encapsulates a single terminal instance with its backend, controller,
 /// and various optimization managers.
 class TerminalSession extends ChangeNotifier {
   final String id;

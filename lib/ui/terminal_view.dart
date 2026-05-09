@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:xterm/xterm.dart' show Terminal, TerminalTheme, TerminalView, TerminalViewState, BufferPosition;
+import 'package:xterm/xterm.dart' show CellOffset, TerminalStyle, TerminalTheme, TerminalView, TerminalViewState;
 import '../core/terminal_session.dart';
 import '../core/gpu_renderer.dart';
+
 import '../core/deep_l_service.dart';
 import '../core/graphics_protocol_handler.dart';
 import '../config/pkm_theme.dart';
@@ -323,10 +324,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     final buffer = widget.session.terminal.buffer;
     if (buffer.height == 0) return;
     
-    final allText = buffer.getText(
-      BufferPosition(0, 0),
-      BufferPosition(buffer.columns - 1, buffer.height - 1),
-    );
+    final allText = buffer.getText();
     
     Clipboard.setData(ClipboardData(text: allText));
     debugPrint('Termisol: All content copied to clipboard');
@@ -425,6 +423,13 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
                   padding: EdgeInsets.zero,
                   onTapUp: _handleTapUp,
                   onSecondaryTapUp: (details, offset) => _showContextMenu(context, details.globalPosition),
+                  painter: GpuRenderer.instance.createPainter(
+                    theme: termisolTerminalTheme,
+                    textStyle: TerminalStyle(
+                      fontFamily: _fontFamily,
+                      fontSize: _fontSize,
+                    ),
+                  ),
                 ),
               ),
             ),

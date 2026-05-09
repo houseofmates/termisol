@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-/// Global dispatcher for GNOME header bar button actions.
+/// global dispatcher for gnome header bar button actions.
 class HeaderbarActions {
   static final ValueNotifier<String?> action = ValueNotifier<String?>(null);
 

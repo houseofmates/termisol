@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../config/pkm_theme.dart';
 
-/// A command palette action that can be executed.
+/// a command palette action that can be executed.
 class PaletteAction {
   final String id;
   final String title;
@@ -23,7 +23,7 @@ class PaletteAction {
   });
 }
 
-/// VS Code-style command palette for quick access to all actions.
+/// vs code-style command palette for quick access to all actions.
 class CommandPalette extends StatefulWidget {
   final List<PaletteAction> actions;
   final VoidCallback onClose;

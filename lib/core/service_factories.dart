@@ -1,8 +1,8 @@
 import '../ai/ai_terminal_assistant.dart';
 import '../core/production_config_system.dart';
 
-/// Real service factories for termisol.
-/// Only factories for services that are actually used in the working ui path.
+/// real service factories for termisol.
+/// only factories for services that are actually used in the working ui path.
 class ServiceFactories {
   /// Create AI terminal assistant using cloud APIs.
   static NvidiaAITerminalAssistant createAIAssistant() {

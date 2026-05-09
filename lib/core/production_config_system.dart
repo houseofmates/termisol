@@ -540,7 +540,7 @@ class ProductionConfigSystem {
     debugPrint('Auto-save ${enabled ? 'enabled' : 'disabled'}');
   }
 
-  /// Get configuration info for debugging
+  /// get configuration info for debugging
   Map<String, dynamic> getConfigInfo() {
     return {
       'initialized': _initialized,
@@ -552,7 +552,7 @@ class ProductionConfigSystem {
     };
   }
 
-  /// Dispose resources
+  /// dispose resources
   void dispose() {
     _changeController.close();
     debugPrint('ProductionConfigSystem disposed');

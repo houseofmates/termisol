@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
-/// Production-ready configuration system with validation, defaults, and runtime updates.
-/// Supports hierarchical configuration with environment-specific overrides.
+/// production-ready configuration system with validation, defaults, and runtime updates.
+/// supports hierarchical configuration with environment-specific overrides.
 class ProductionConfigSystem {
   static const String configFileName = 'termisol_config.json';
   static const String backupFileName = 'termisol_config.backup.json';
@@ -21,13 +21,13 @@ class ProductionConfigSystem {
   DateTime? _lastSaveTime;
   int _saveAttempts = 0;
 
-  /// Stream of configuration changes
+  /// stream of configuration changes
   Stream<ConfigChangeEvent> get changes => _changeController.stream;
 
-  /// Whether the system is initialized
+  /// whether the system is initialized
   bool get initialized => _initialized;
 
-  /// Whether auto-save is enabled
+  /// whether auto-save is enabled
   bool get autoSave => _autoSave;
 
   ProductionConfigSystem() {
@@ -37,7 +37,7 @@ class ProductionConfigSystem {
 
   void _setupDefaults() {
     _defaults.addAll({
-      // Performance settings
+      // performance settings
       'performance': {
         'gpu_acceleration': true,
         'adaptive_frame_pacing': true,
@@ -46,7 +46,7 @@ class ProductionConfigSystem {
         'performance_monitoring': true,
       },
 
-      // UI settings
+      // ui settings
       'ui': {
         'theme': 'dark',
         'font_family': 'Fira Code',
@@ -56,7 +56,7 @@ class ProductionConfigSystem {
         'animations_enabled': true,
       },
 
-      // Terminal settings
+      // terminal settings
       'terminal': {
         'shell': Platform.isWindows ? 'cmd.exe' : 'bash',
         'working_directory': null,
@@ -66,7 +66,7 @@ class ProductionConfigSystem {
         'true_color_support': true,
       },
 
-      // AI settings
+      // ai settings
       'ai': {
         'enabled': true,
         'model': 'nvidia-ai',
@@ -75,7 +75,7 @@ class ProductionConfigSystem {
         'context_window': 8192,
       },
 
-      // Network settings
+      // network settings
       'network': {
         'connection_timeout': 30,
         'max_retries': 3,
@@ -83,7 +83,7 @@ class ProductionConfigSystem {
         'proxy_url': null,
       },
 
-      // Security settings
+      // security settings
       'security': {
         'enable_ssh_key_management': true,
         'auto_lock_timeout': 30,
@@ -91,7 +91,7 @@ class ProductionConfigSystem {
         'allow_remote_connections': false,
       },
 
-      // Device-specific settings
+      // device-specific settings
       'device': {
         'platform': defaultTargetPlatform.name,
         'is_mobile': defaultTargetPlatform == TargetPlatform.android ||
@@ -99,10 +99,10 @@ class ProductionConfigSystem {
         'is_desktop': defaultTargetPlatform == TargetPlatform.linux ||
                       defaultTargetPlatform == TargetPlatform.windows ||
                       defaultTargetPlatform == TargetPlatform.macOS,
-        'is_vr': false, // Will be set by VR detection
+        'is_vr': false, // will be set by vr detection
       },
 
-      // Feature flags
+      // feature flags
       'features': {
         'vr_support': false,
         'ai_assistant': true,

@@ -7,16 +7,16 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:xterm/xterm.dart';
 
-/// Graphics Protocol Handler - Advanced terminal graphics support
+/// graphics protocol handler - advanced terminal graphics support
 ///
-/// Implements industry-standard graphics protocols:
-/// - 24-bit True Color (RGB)
-/// - Kitty Graphics Protocol
-/// - Sixel Graphics
-/// - Alpha Channel Support
+/// implements industry-standard graphics protocols:
+/// - 24-bit true color (rgb)
+/// - kitty graphics protocol
+/// - sixel graphics
+/// - alpha channel support
 /// - Inline Images with proper rendering
 class GraphicsProtocolHandler {
-  // Terminal reference for output interception
+  // terminal reference for output interception
   final Terminal? _terminal;
   final TerminalController? _controller;
 
@@ -26,7 +26,7 @@ class GraphicsProtocolHandler {
   bool _sixelEnabled = true;
   bool _alphaChannelEnabled = true;
 
-  // Extended image format support
+  // extended image format support
   final Set<String> _supportedImageFormats = {
     'png',
     'jpg',
@@ -80,7 +80,7 @@ class GraphicsProtocolHandler {
   Map<String, GraphicsImage> get cachedImages => Map.unmodifiable(_imageCache);
   Map<String, Offset> get imagePositions => Map.unmodifiable(_imagePositions);
 
-  /// Initialize graphics protocol handler
+  /// initialize graphics protocol handler
   Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -119,7 +119,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Set up output interception to handle graphics protocols
+  /// set up output interception to handle graphics protocols
   void _setupOutputInterception() {
     final terminal = _terminal;
     if (terminal == null) return;
@@ -184,7 +184,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Parse ANSI color sequences for True Color support
+  /// parse ansi color sequences for true color support
   Color parseAnsiColor(String sequence, {bool isBackground = false}) {
     if (!_trueColorEnabled) {
       return _parseBasicAnsiColor(sequence, isBackground: isBackground);
@@ -217,7 +217,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Parse basic ANSI colors (fallback)
+  /// parse basic ansi colors (fallback)
   Color _parseBasicAnsiColor(String sequence, {bool isBackground = false}) {
     final match = RegExp(r'\x1b\[(\d+)m').firstMatch(sequence);
     if (match != null) {
@@ -245,7 +245,7 @@ class GraphicsProtocolHandler {
     return Colors.white;
   }
 
-  /// Process terminal output for graphics protocol sequences
+  /// process terminal output for graphics protocol sequences
   String processOutput(String output, int cursorX, int cursorY) {
     if (!_isInitialized) return output;
 
@@ -260,7 +260,7 @@ class GraphicsProtocolHandler {
     return processed;
   }
 
-  /// Process Sixel graphics sequences in output
+  /// process sixel graphics sequences in output
   String _processSixelSequences(String output, int cursorX, int cursorY) {
     if (!_sixelEnabled) return output;
 
@@ -274,7 +274,7 @@ class GraphicsProtocolHandler {
     });
   }
 
-  /// Process Kitty graphics sequences in output
+  /// process kitty graphics sequences in output
   String _processKittySequences(String output, int cursorX, int cursorY) {
     if (!_kittyProtocolEnabled) return output;
 
@@ -291,7 +291,7 @@ class GraphicsProtocolHandler {
     });
   }
 
-  /// Handle Kitty Graphics Protocol
+  /// handle kitty graphics protocol
   String handleKittyProtocol(String sequence, int cursorX, int cursorY) {
     if (!_kittyProtocolEnabled) return '';
 
@@ -309,7 +309,7 @@ class GraphicsProtocolHandler {
     return '';
   }
 
-  /// Process Kitty graphics parameters
+  /// process kitty graphics parameters
   String _processKittyGraphics(String params, int cursorX, int cursorY) {
     final paramMap = <String, String>{};
     final pairs = params.substring(2, params.length - 1).split(',');
@@ -335,7 +335,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Handle Kitty graphics actions
+  /// handle kitty graphics actions
   String _handleKittyAction(
     Map<String, String> params,
     int cursorX,
@@ -355,7 +355,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Put image via Kitty protocol
+  /// put image via kitty protocol
   String _putKittyImage(Map<String, String> params, int cursorX, int cursorY) {
     final id = params['i'] ?? _nextImageId.toString();
     final width = int.tryParse(params['s'] ?? '0') ?? 0;
@@ -385,7 +385,7 @@ class GraphicsProtocolHandler {
     return '\x1b_Gi=$id;OK\x1b\\';
   }
 
-  /// Delete image via Kitty protocol
+  /// delete image via kitty protocol
   String _deleteKittyImage(Map<String, String> params) {
     final id = params['i'];
     if (id != null) {
@@ -402,7 +402,7 @@ class GraphicsProtocolHandler {
     return '\x1b_GOK\x1b\\';
   }
 
-  /// Query image via Kitty protocol
+  /// query image via kitty protocol
   String _queryKittyImage(Map<String, String> params) {
     final id = params['i'];
     if (id != null && _imageCache.containsKey(id)) {
@@ -412,7 +412,7 @@ class GraphicsProtocolHandler {
     return '\x1b_GFAIL\x1b\\';
   }
 
-  /// Handle Kitty graphics transmission
+  /// handle kitty graphics transmission
   String _handleKittyTransmission(
     Map<String, String> params,
     int cursorX,
@@ -433,7 +433,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Process direct image transmission
+  /// process direct image transmission
   String _processDirectTransmission(
     Map<String, String> params,
     String id,
@@ -486,7 +486,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Process temporary file transmission
+  /// process temporary file transmission
   String _processTemporaryFileTransmission(
     Map<String, String> params,
     String id,
@@ -545,7 +545,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Handle Kitty graphics queries
+  /// handle kitty graphics queries
   String _handleKittyQuery(Map<String, String> params) {
     final query = params['q'];
 
@@ -559,17 +559,17 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Get Kitty protocol status
+  /// get kitty protocol status
   String _getKittyStatus() {
     return '\x1b_GOK\x1b\\';
   }
 
-  /// Get Kitty protocol capabilities
+  /// get kitty protocol capabilities
   String _getKittyCapabilities() {
     return '\x1b_Ga=T,f=32,s=1,v=1,c=1\x1b\\';
   }
 
-  /// Handle Sixel graphics
+  /// handle sixel graphics
   String handleSixel(String sequence, int cursorX, int cursorY) {
     if (!_sixelEnabled) return '';
 
@@ -591,7 +591,7 @@ class GraphicsProtocolHandler {
     return '';
   }
 
-  /// Process Sixel data
+  /// process sixel data
   String _processSixel(String params, String data, int cursorX, int cursorY) {
     try {
       // Parse Sixel parameters
@@ -640,7 +640,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Convert image to display format
+  /// convert image to display format
   Future<Uint8List?> convertImageForDisplay(
     String imageId, {
     int? targetWidth,
@@ -768,7 +768,7 @@ class GraphicsProtocolHandler {
     );
   }
 
-  /// Convert Sixel to RGBA format
+  /// convert sixel to rgba format
   Uint8List _convertSixelToRGBA(
     GraphicsImage image,
     int? targetWidth,
@@ -1044,7 +1044,7 @@ class GraphicsProtocolHandler {
     return i;
   }
 
-  /// Convert Kitty image to RGBA format
+  /// convert kitty image to rgba format
   Future<Uint8List> _convertKittyToRGBA(
     GraphicsImage image,
     int? targetWidth,
@@ -1095,7 +1095,7 @@ class GraphicsProtocolHandler {
     return data;
   }
 
-  /// Clear image cache
+  /// clear image cache
   void clearImageCache() {
     for (final path in _tempFilePaths) {
       try {
@@ -1113,17 +1113,17 @@ class GraphicsProtocolHandler {
     );
   }
 
-  /// Get cached image
+  /// get cached image
   GraphicsImage? getCachedImage(String imageId) {
     return _imageCache[imageId];
   }
 
-  /// Get all cached images
+  /// get all cached images
   Map<String, GraphicsImage> getCachedImages() {
     return Map.unmodifiable(_imageCache);
   }
 
-  /// Toggle graphics features
+  /// toggle graphics features
   void setTrueColorEnabled(bool enabled) {
     _trueColorEnabled = enabled;
     _eventController.add(
@@ -1168,12 +1168,12 @@ class GraphicsProtocolHandler {
     );
   }
 
-  /// Check if image format is supported
+  /// check if image format is supported
   bool isImageFormatSupported(String extension) {
     return _supportedImageFormats.contains(extension.toLowerCase());
   }
 
-  /// Load image from file
+  /// load image from file
   Future<ui.Image?> loadImageFromFile(String filePath) async {
     try {
       final file = File(filePath);
@@ -1190,7 +1190,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Get performance statistics
+  /// get performance statistics
   Map<String, dynamic> getPerformanceStats() {
     final avgRenderTime = _totalImagesProcessed > 0
         ? _totalRenderTime / _totalImagesProcessed
@@ -1205,7 +1205,7 @@ class GraphicsProtocolHandler {
     };
   }
 
-  /// Dispose resources
+  /// dispose resources
   Future<void> dispose() async {
     clearImageCache();
     _colorPalette.clear();
@@ -1215,7 +1215,7 @@ class GraphicsProtocolHandler {
   }
 }
 
-/// Graphics image data structure
+/// graphics image data structure
 class GraphicsImage {
   final int id;
   final int width;
@@ -1235,7 +1235,7 @@ class GraphicsImage {
   String toString() => 'GraphicsImage(id: $id, ${width}x$height, $format)';
 }
 
-/// Pending image data for processing
+/// pending image data for processing
 class PendingImage {
   final String data;
   final String format;
@@ -1250,7 +1250,7 @@ class PendingImage {
   });
 }
 
-/// Graphics overlay for positioning images
+/// graphics overlay for positioning images
 class GraphicsOverlay {
   final String imageId;
   final Offset position;
@@ -1264,7 +1264,7 @@ class GraphicsOverlay {
   }) : createdAt = DateTime.now();
 }
 
-/// Graphics animation data
+/// graphics animation data
 class GraphicsAnimation {
   final String id;
   final List<String> frameIds;

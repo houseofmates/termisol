@@ -4,8 +4,8 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:async';
 
-/// Amnesia-proof, restart-proof auto-push service for Termisol
-/// Monitors file changes and automatically pushes changes older than 10 seconds
+/// amnesia-proof, restart-proof auto-push service for termisol
+/// monitors file changes and automatically pushes changes older than 10 seconds
 class AutoPushService {
   static const String _configFile = '.devin/auto_push_config.json';
   static const String _stateFile = '.devin/auto_push_state.json';
@@ -25,23 +25,23 @@ class AutoPushService {
     print('🚀 Starting AutoPush Service for Termisol');
     print('📍 Repository: ${_repoDir.path}');
     
-    // Ensure .devin directory exists
+    // ensure .devin directory exists
     await Directory('.devin').create(recursive: true);
     
-    // Load previous state
+    // load previous state
     await _loadState();
     
-    // Start monitoring
+    // start monitoring
     await _startMonitoring();
     
-    // Setup signal handlers for graceful shutdown
+    // setup signal handlers for graceful shutdown
     ProcessSignal.sigint.watch().listen((signal) => _shutdown());
     ProcessSignal.sigterm.watch().listen((signal) => _shutdown());
     
     print('✅ AutoPush Service started successfully');
     print('⏱️  Pushing changes older than $_pushDelaySeconds seconds');
     
-    // Keep the service running
+    // keep the service running
     await _keepAlive();
   }
   

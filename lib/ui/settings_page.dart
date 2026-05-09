@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/pkm_theme.dart';
+import '../core/command_alias_system.dart';
 import '../core/service_registry.dart';
 import 'settings_items.dart';
 
@@ -40,10 +41,15 @@ class _SettingsPageState extends State<SettingsPage>
   // advanced state
   bool _showPerformanceOverlay = false;
 
+  // alias state
+  final CommandAliasSystem _aliasSystem = CommandAliasSystem.instance;
+  final TextEditingController _aliasController = TextEditingController();
+  final TextEditingController _expansionController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _loadTheme();
   }
 
@@ -121,6 +127,7 @@ class _SettingsPageState extends State<SettingsPage>
             Tab(icon: Icon(Icons.terminal_outlined), text: 'terminal'),
             Tab(icon: Icon(Icons.keyboard_outlined), text: 'keyboard'),
             Tab(icon: Icon(Icons.tune_outlined), text: 'advanced'),
+            Tab(icon: Icon(Icons.shortcut_outlined), text: 'aliases'),
           ],
         ),
       ),
@@ -131,6 +138,181 @@ class _SettingsPageState extends State<SettingsPage>
           _buildTerminalTab(),
           _buildKeyboardTab(),
           _buildAdvancedTab(),
+          _buildAliasesTab(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAliasesTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionTitle('aliases'),
+          const SizedBox(height: 8),
+          ..._aliasSystem.aliases.map((entry) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: PkmTheme.tabInactiveBg,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade800),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            entry.key,
+                            style: const TextStyle(
+                              color: PkmTheme.primary,
+                              fontFamily: PkmTheme.fontTerminal,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.arrow_forward,
+                            color: Colors.grey,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              entry.value,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontFamily: PkmTheme.fontTerminal,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    tooltip: 'remove alias',
+                    onPressed: () {
+                      setState(() {
+                        _aliasSystem.removeAlias(entry.key);
+                      });
+                      _aliasSystem.save();
+                    },
+                  ),
+                ],
+              ),
+            );
+          }),
+          const SizedBox(height: 24),
+          _sectionTitle('add alias'),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _aliasController,
+            style: const TextStyle(
+              color: Colors.white,
+              fontFamily: PkmTheme.fontTerminal,
+              fontSize: 13,
+            ),
+            decoration: InputDecoration(
+              hintText: 'alias',
+              hintStyle: TextStyle(
+                color: Colors.grey.shade500,
+                fontFamily: PkmTheme.fontUi,
+                fontSize: 13,
+              ),
+              filled: true,
+              fillColor: PkmTheme.tabInactiveBg,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade800),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade800),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: PkmTheme.primary),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _expansionController,
+            style: const TextStyle(
+              color: Colors.white,
+              fontFamily: PkmTheme.fontTerminal,
+              fontSize: 13,
+            ),
+            decoration: InputDecoration(
+              hintText: 'expansion',
+              hintStyle: TextStyle(
+                color: Colors.grey.shade500,
+                fontFamily: PkmTheme.fontUi,
+                fontSize: 13,
+              ),
+              filled: true,
+              fillColor: PkmTheme.tabInactiveBg,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade800),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade800),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: PkmTheme.primary),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: PkmTheme.primary,
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              onPressed: () {
+                final alias = _aliasController.text.trim();
+                final expansion = _expansionController.text.trim();
+                if (alias.isNotEmpty && expansion.isNotEmpty) {
+                  setState(() {
+                    _aliasSystem.addAlias(alias, expansion);
+                    _aliasController.clear();
+                    _expansionController.clear();
+                  });
+                  _aliasSystem.save();
+                }
+              },
+              child: const Text(
+                'add alias',
+                style: TextStyle(
+                  fontFamily: PkmTheme.fontUi,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

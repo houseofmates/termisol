@@ -20,7 +20,7 @@ const _defaultTerminalFontSize = 14.0;
 const _minFontSize = 8.0;
 const _maxFontSize = 32.0;
 
-/// gpu-optimized terminal widget for termisol.
+/// gpu-optimized terminal widget for termisol
 class TermisolTerminalView extends StatefulWidget {
   final TerminalSession session;
   final bool autofocus;

@@ -433,7 +433,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Process direct image transmission
+  /// process direct image transmission
   String _processDirectTransmission(
     Map<String, String> params,
     String id,

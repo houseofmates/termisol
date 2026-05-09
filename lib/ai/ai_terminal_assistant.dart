@@ -28,10 +28,10 @@ class NvidiaAITerminalAssistant {
   /// cached local gemma endpoint detected on this device, if any.
   String? _localGemmaEndpoint;
 
-  /// stream of AI events
+  /// stream of ai events
   Stream<AIEvent> get events => _eventController.stream;
 
-  /// whether the AI assistant is initialized and ready
+  /// whether the ai assistant is initialized and ready
   bool get isInitialized => _isInitialized;
 
   /// success rate of AI requests

@@ -143,11 +143,13 @@ class _EditTerminalState extends State<EditTerminal> {
       final file = File(widget.filePath);
       if (await file.exists()) {
         final content = await file.readAsString();
+        if (!mounted) return;
         _controller.text = content;
         setState(() => _dirty = false);
       }
     } catch (e, stack) {
       debugPrint('edit: failed to load file: $e\n$stack');
+      if (!mounted) return;
       setState(() => _error = 'failed to load file: $e');
     }
   }
@@ -158,6 +160,7 @@ class _EditTerminalState extends State<EditTerminal> {
       final file = File(widget.filePath);
       await file.parent.create(recursive: true);
       await file.writeAsString(_controller.text);
+      if (!mounted) return;
       setState(() {
         _dirty = false;
         _error = null;
@@ -169,6 +172,7 @@ class _EditTerminalState extends State<EditTerminal> {
       });
     } catch (e, stack) {
       debugPrint('edit: failed to save: $e\n$stack');
+      if (!mounted) return;
       setState(() => _error = 'failed to save: $e');
     }
   }
@@ -261,7 +265,7 @@ class _EditTerminalState extends State<EditTerminal> {
     final shift = HardwareKeyboard.instance.isShiftPressed;
 
     if (ctrl && event.logicalKey == LogicalKeyboardKey.keyS) {
-      _saveFile();
+      unawaited(_saveFile());
       return KeyEventResult.handled;
     }
     if (ctrl && event.logicalKey == LogicalKeyboardKey.keyW) {
@@ -269,7 +273,7 @@ class _EditTerminalState extends State<EditTerminal> {
       return KeyEventResult.handled;
     }
     if (ctrl && event.logicalKey == LogicalKeyboardKey.keyO) {
-      _openFile();
+      unawaited(_openFile());
       return KeyEventResult.handled;
     }
     if (ctrl && event.logicalKey == LogicalKeyboardKey.keyF) {
@@ -328,8 +332,14 @@ class _EditTerminalState extends State<EditTerminal> {
 
   void _handleEnter() {
     final sel = _controller.selection;
-    if (!sel.isValid || !sel.isCollapsed) {
-      // Normal enter if selection or invalid
+    if (!sel.isValid || sel.start < 0 || sel.end < 0) {
+      // Invalid selection: just append newline at end.
+      _controller.text = '${_controller.text}\n';
+      _controller.selection = TextSelection.collapsed(offset: _controller.text.length);
+      return;
+    }
+    if (!sel.isCollapsed) {
+      // Replace selection with newline.
       _controller.text = '${_controller.text.substring(0, sel.start)}\n${_controller.text.substring(sel.end)}';
       _controller.selection = TextSelection.collapsed(offset: sel.start + 1);
       return;
@@ -505,11 +515,11 @@ class _EditTerminalState extends State<EditTerminal> {
             child: CallbackShortcuts(
               bindings: {
                 const SingleActivator(LogicalKeyboardKey.keyS, control: true):
-                    _saveFile,
+                    () => unawaited(_saveFile()),
                 const SingleActivator(LogicalKeyboardKey.keyW, control: true):
                     () => widget.onClose?.call(),
                 const SingleActivator(LogicalKeyboardKey.keyO, control: true):
-                    _openFile,
+                    () => unawaited(_openFile()),
                 const SingleActivator(LogicalKeyboardKey.keyF, control: true):
                     () => setState(() => _showFind = !_showFind),
               },

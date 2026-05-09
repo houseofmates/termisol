@@ -1,7 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:xterm/xterm.dart' show TerminalStyle, TerminalTheme, TextScaler;
+import 'package:xterm/xterm.dart' show TerminalStyle, TerminalTheme;
 
 import 'gpu/gpu_terminal_painter.dart';
 

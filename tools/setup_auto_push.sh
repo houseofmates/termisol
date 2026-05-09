@@ -110,7 +110,7 @@ case "$SHELL_NAME" in
         ;;
 esac
 
-# Add startup command if not already present
+# add startup command if not already present
 if ! grep -q "termisol-auto-push" "$PROFILE_FILE" 2>/dev/null; then
     echo "" >> "$PROFILE_FILE"
     echo "# Termisol AutoPush Service" >> "$PROFILE_FILE"

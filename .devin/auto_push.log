@@ -4,3 +4,5 @@
 ✅ AutoPush Service started successfully
 ⏱️  Pushing changes older than 10 seconds
 🔄 AutoPush service is monitoring for changes...
+📝 Detected 444 changed files
+⏳ File .devin/auto_push.lock is too recent (0s old)

@@ -41,7 +41,7 @@ class AutoPushService {
     print('✅ AutoPush Service started successfully');
     print('⏱️  Pushing changes older than $_pushDelaySeconds seconds');
     
-    // Keep the service running
+    // keep the service running
     await _keepAlive();
   }
   

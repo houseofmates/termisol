@@ -272,7 +272,7 @@ All systems include comprehensive amnesia protection:
 - **Server Management**: Specialized for .233 and .250 environments
 - **Development Focus**: Optimized for coding and code generation
 - **Hardware Awareness**: Tailored to RTX 3080/2070 configurations
-- **Tool Integration**: Built around YOUR preferred tools (Hermes, N8N, Nextcloud)
+- **Tool Integration**: Built around YOUR preferred tools (N8N, Nextcloud)
 - **Performance Learning**: Adapts to YOUR usage patterns and preferences
 
 ### AI Integration:

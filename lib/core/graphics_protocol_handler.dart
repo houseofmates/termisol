@@ -274,7 +274,7 @@ class GraphicsProtocolHandler {
     });
   }
 
-  /// Process Kitty graphics sequences in output
+  /// process kitty graphics sequences in output
   String _processKittySequences(String output, int cursorX, int cursorY) {
     if (!_kittyProtocolEnabled) return output;
 

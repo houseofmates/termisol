@@ -93,7 +93,7 @@ fi
 
 rm -f "$TEMP_CRON"
 
-# Create startup script in user's shell profile
+# create startup script in user's shell profile
 echo "🖥️  Setting up shell startup..."
 SHELL_NAME=$(basename "$SHELL")
 PROFILE_FILE=""

@@ -452,7 +452,7 @@ class GraphicsProtocolHandler {
       try {
         base64.decode(data);
       } catch (e) {
-        return '\x1b_Gi=$id,f=32\x1b\\'; // Error: invalid base64
+        return '\x1b_Gi=$id,f=32\x1b\\'; // error: invalid base64
       }
 
       // Store image data

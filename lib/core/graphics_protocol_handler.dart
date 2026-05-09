@@ -412,7 +412,7 @@ class GraphicsProtocolHandler {
     return '\x1b_GFAIL\x1b\\';
   }
 
-  /// Handle Kitty graphics transmission
+  /// handle kitty graphics transmission
   String _handleKittyTransmission(
     Map<String, String> params,
     int cursorX,

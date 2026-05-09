@@ -462,7 +462,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Perform health check
+  /// perform health check
   Future<void> _performHealthCheck() async {
     try {
       // Check system health

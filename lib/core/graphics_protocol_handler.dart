@@ -1264,7 +1264,7 @@ class GraphicsOverlay {
   }) : createdAt = DateTime.now();
 }
 
-/// Graphics animation data
+/// graphics animation data
 class GraphicsAnimation {
   final String id;
   final List<String> frameIds;

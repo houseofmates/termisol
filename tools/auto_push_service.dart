@@ -4,8 +4,8 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:async';
 
-/// Amnesia-proof, restart-proof auto-push service for Termisol
-/// Monitors file changes and automatically pushes changes older than 10 seconds
+/// amnesia-proof, restart-proof auto-push service for termisol
+/// monitors file changes and automatically pushes changes older than 10 seconds
 class AutoPushService {
   static const String _configFile = '.devin/auto_push_config.json';
   static const String _stateFile = '.devin/auto_push_state.json';

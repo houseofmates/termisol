@@ -381,7 +381,7 @@ class GraphicsProtocolHandler {
       ),
     );
 
-    // Return acknowledgment
+    // return acknowledgment
     return '\x1b_Gi=$id;OK\x1b\\';
   }
 

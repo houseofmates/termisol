@@ -186,6 +186,12 @@ class TerminalSession extends ChangeNotifier {
     // start health monitoring and auto-save
     _crashRecovery.startHealthMonitoring(id);
     _sessionPersistence.setAutoSaveEnabled(true);
+
+    TermisolCoreIntegration.instance.activeConfig.addListener(_onCoreConfigChanged);
+  }
+
+  void _onCoreConfigChanged() {
+    applyCoreConfig(TermisolCoreIntegration.instance.activeConfig.value);
   }
 
   Future<void> _initLigatureFont() async {
@@ -456,6 +462,7 @@ class TerminalSession extends ChangeNotifier {
     clipboardManager.dispose();
     await _pluginSystem.dispose();
     _hyperlinkHandler.dispose();
+    TermisolCoreIntegration.instance.activeConfig.removeListener(_onCoreConfigChanged);
   }
 
   @override

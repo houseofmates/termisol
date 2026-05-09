@@ -6,6 +6,7 @@ import 'package:xterm/xterm.dart' show Terminal, BufferPosition;
 import '../core/terminal_session.dart';
 import '../core/whisper_service.dart';
 import 'clipboard_manager.dart';
+import 'enhanced_clipboard_manager.dart';
 
 /// custom hotkey manager for termisol with user-defined bindings
 class CustomHotkeyManager {

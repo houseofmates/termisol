@@ -717,7 +717,7 @@ class SessionPersistence {
     _crashReports.clear();
     
     // Close event controller
-    _sessionController.close();
+    await _sessionController.close();
     
     _isInitialized = false;
     debugPrint('💾 Session Persistence disposed');

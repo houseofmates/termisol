@@ -26,7 +26,7 @@ class GraphicsProtocolHandler {
   bool _sixelEnabled = true;
   bool _alphaChannelEnabled = true;
 
-  // Extended image format support
+  // extended image format support
   final Set<String> _supportedImageFormats = {
     'png',
     'jpg',
@@ -184,7 +184,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Parse ANSI color sequences for True Color support
+  /// parse ansi color sequences for true color support
   Color parseAnsiColor(String sequence, {bool isBackground = false}) {
     if (!_trueColorEnabled) {
       return _parseBasicAnsiColor(sequence, isBackground: isBackground);

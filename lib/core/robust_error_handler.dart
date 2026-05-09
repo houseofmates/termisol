@@ -368,7 +368,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Emergency state save
+  /// emergency state save
   Future<void> _emergencyStateSave() async {
     try {
       _logger.info('Performing emergency state save');

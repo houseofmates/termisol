@@ -70,14 +70,6 @@ class _VrTerminalViewState extends State<VrTerminalView> {
       },
       onPointerMove: (event) {
         setState(() => _pointerPosition = event.localPosition);
-        if (_pointerDown) {
-          final cell = _getCellOffset(event.localPosition);
-          widget.session.terminal.mouseInput(
-            TerminalMouseButton.left,
-            TerminalMouseButtonState.move,
-            cell,
-          );
-        }
       },
       onPointerUp: (event) {
         setState(() => _pointerDown = false);

@@ -15,6 +15,7 @@ analyzer:
     - "unused/**"
     - "scripts/**"
     - "packages/xterm/**"
+    - "packages/pty/**"
 
 linter:
   rules:

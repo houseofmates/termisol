@@ -413,7 +413,7 @@ class ProductionConfigSystem {
       timestamp: DateTime.now(),
     ));
 
-    // Auto-save if enabled
+    // auto-save if enabled
     if (_autoSave) {
       await save();
     }

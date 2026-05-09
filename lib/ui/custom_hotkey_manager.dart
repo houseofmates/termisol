@@ -149,14 +149,8 @@ class CustomHotkeyManager {
   /// Start recording audio transcript
   void _startRecording() {
     _isRecording = true;
-    _transcriptBuffer.clear();
+    _audioRecorder!.startRecording();
     _showFeedback('🎙️ Recording transcript... (Press Ctrl+B again to stop)');
-    
-    // Start recording timer (simulated - in real implementation would use audio recording)
-    _recordingTimer = Timer.periodic(Duration(milliseconds: 100), (timer) {
-      // This would interface with actual audio recording
-      // For now, we'll simulate it
-    });
   }
   
   /// Stop recording and process with Whisper

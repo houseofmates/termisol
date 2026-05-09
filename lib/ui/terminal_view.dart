@@ -85,6 +85,14 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
       widget.session.terminal,
       widget.session.controller,
     );
+    _hotkeyManager = CustomHotkeyManager(
+      session: widget.session,
+      clipboard: _clipboard,
+      onNewTab: widget.onNewTab,
+      onSaveFile: _saveCurrentFile,
+      onSearch: _showSearchOverlay,
+      onCopyAll: _copyAllContent,
+    );
     widget.session.addListener(_onSessionChanged);
     _loadTerminalStyle();
     _hookOutputForChaining();
@@ -123,6 +131,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     widget.session.onOutputReceived = _originalOnOutput;
     _graphicsHandler.dispose();
     _clipboard.dispose();
+    _hotkeyManager.dispose();
     super.dispose();
   }
 

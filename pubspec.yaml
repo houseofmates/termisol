@@ -33,6 +33,7 @@ dependencies:
   postgres: any
   crypto: any
   ffi: any
+  flutter_secure_storage: ^10.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

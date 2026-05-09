@@ -192,7 +192,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Recovery strategies for warnings
+  /// recovery strategies for warnings
   Future<void> _recoverFromWarning(ErrorReport report) async {
     // Implement warning-specific recovery
     if (report.error.contains('memory')) {

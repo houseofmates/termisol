@@ -552,7 +552,7 @@ class GraphicsProtocolHandler {
     switch (query) {
       case 's': // status
         return _getKittyStatus();
-      case 'c': // Capabilities
+      case 'c': // capabilities
         return _getKittyCapabilities();
       default:
         return '';

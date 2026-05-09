@@ -11,6 +11,7 @@ import '../core/graphics_protocol_handler.dart';
 import '../config/pkm_theme.dart';
 import 'clipboard_manager.dart';
 import 'copy_mode_overlay.dart';
+import 'custom_hotkey_manager.dart';
 
 /// Active terminal theme based on the current [PkmTheme.themeMode].
 TerminalTheme get termisolTerminalTheme => PkmTheme.activeTerminalTheme;
@@ -49,6 +50,7 @@ class TermisolTerminalView extends StatefulWidget {
 class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   late final TerminalClipboardManager _clipboard;
   late final GraphicsProtocolHandler _graphicsHandler;
+  late final CustomHotkeyManager _hotkeyManager;
   final _deepL = DeepLTranslationService();
   final _terminalViewKey = GlobalKey<TerminalViewState>();
   bool _isSummarizing = false;

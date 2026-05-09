@@ -26,11 +26,9 @@ import 'directory_tracker.dart';
 import '../ui/clipboard_manager.dart';
 
 /// Called when the user types `/ai <query>` and presses Enter.
-/// If null, `/ai` commands are passed through to shell normally.
 typedef AiQueryHandler = Future<String> Function(String query);
 
 /// Called when the user types `edit <filename>` and presses Enter.
-/// If null, edit commands are passed through to the shell normally.
 typedef EditCommandHandler = Future<void> Function(String filePath);
 
 /// A URL detected in terminal output.
@@ -42,8 +40,7 @@ class DetectedUrl {
 }
 
 /// Encapsulates a single terminal instance with its backend, controller,
-/// and various optimization managers. Handles input/output, AI queries, edit commands,
-/// and session persistence.
+/// and various optimization managers.
 class TerminalSession extends ChangeNotifier {
   final String id;
   String name;
@@ -59,23 +56,11 @@ class TerminalSession extends ChangeNotifier {
   late final ValueNotifier<String?> _directoryNotifier;
   ValueNotifier<String?> get directory => _directoryNotifier;
 
-  /// Called when the user types `/ai <query>` and presses Enter.
   AiQueryHandler? onAiQuery;
-
-  /// Called when the user types `edit <filename>` and presses Enter.
   EditCommandHandler? onEditCommand;
-
-  /// Called when the terminal widget gains or loses focus.
   void Function(bool)? onFocusChanged;
-
-  /// Called when the terminal receives focus events (bracketed paste mode).
   void Function(bool)? onFocusEvent;
-
-  /// Called whenever writeInput receives data, before processing.
-  /// Use this for input broadcasting/monitoring.
   void Function(String)? onInputIntercepted;
-
-  /// Called for non-error informational notifications.
   void Function(String)? onNotification;
 
   late final FocusManager focusManager;
@@ -87,41 +72,36 @@ class TerminalSession extends ChangeNotifier {
   late final TerminalClipboardManager clipboardManager;
   late final GraphicsProtocolHandler graphicsHandler;
 
-  /// Called whenever data is received from the backend.
   void Function(String output)? onOutputReceived;
 
-  /// Get command suggestions based on current input
   Future<List<String>> getCommandSuggestions(String currentInput, {int maxSuggestions = 5}) async {
     final suggestions = await _autoComplete.getSuggestions(currentInput);
     return suggestions.map((s) => s.command).take(maxSuggestions).toList();
   }
 
-  /// Get chained command suggestions based on the current command.
   List<String> getChainedSuggestions(String currentCommand, {int maxSuggestions = 5}) {
     final suggestions = _commandChaining.suggestNext(currentCommand, maxSuggestions: maxSuggestions);
     return suggestions.map((s) => s.command).toList();
   }
 
-  /// Search terminal output semantically
   List<String> searchTerminalOutput(String query, {int maxResults = 10}) {
     try {
       final results = _semanticSearch.search('terminal_output', query, maxResults: maxResults);
       return results.map((result) => result.content).toList();
-    } catch (e) {
-      debugPrint('Semantic search failed: $e');
+    } on Exception catch (e, stack) {
+      debugPrint('Semantic search failed: $e\n$stack');
       return [];
     }
   }
 
   final List<DetectedUrl> detectedUrls = [];
   final _urlRegex = RegExp(
-    r'''https?://[^\s<>"'`\)\]\}]+''',
+    r'''https?://[^\s<>"'\`\)\]\}]+''',
     caseSensitive: false,
   );
 
   final StringBuffer _inputBuffer = StringBuffer();
 
-  // optimization managers
   late final SmartAutoComplete _autoComplete;
   late final SmartCommandChaining _commandChaining;
   late final SemanticSearchEngine _semanticSearch;
@@ -136,6 +116,8 @@ class TerminalSession extends ChangeNotifier {
   String? get error => _error;
   LongCommandNotifier get longCommandNotifier => _commandNotifier;
 
+  bool _isDisposed = false;
+
   TerminalSession({
     required this.id,
     required this.name,
@@ -146,7 +128,6 @@ class TerminalSession extends ChangeNotifier {
     controller = TerminalController();
     terminal.onOutput = (data) => writeInput(data);
 
-    // initialize optimization managers
     _autoComplete = SmartAutoComplete();
     _commandChaining = SmartCommandChaining();
     _semanticSearch = SemanticSearchEngine();
@@ -168,7 +149,9 @@ class TerminalSession extends ChangeNotifier {
     _hyperlinkHandler.attach(terminal);
 
     _aliasSystem = CommandAliasSystem.instance;
-    unawaited(_aliasSystem.load());
+    unawaited(_aliasSystem.load().catchError((e, stack) {
+      debugPrint('Alias system load failed: $e\n$stack');
+    }));
 
     _directoryTracker = DirectoryTracker();
     _directoryNotifier = ValueNotifier<String?>(null);
@@ -176,14 +159,14 @@ class TerminalSession extends ChangeNotifier {
       _directoryNotifier.value = _directoryTracker.currentDirectory;
     });
 
-    // setup advanced features
     focusManager.enableFocusEvents();
     trueColor.enable();
     kittyGraphics.enable();
     mouseProtocol.enable(TermisolMouseMode.any);
-    unawaited(_initLigatureFont());
+    unawaited(_initLigatureFont().catchError((e, stack) {
+      debugPrint('Ligature font init failed: $e\n$stack');
+    }));
 
-    // start health monitoring and auto-save
     _crashRecovery.startHealthMonitoring(id);
     _sessionPersistence.setAutoSaveEnabled(true);
 
@@ -202,59 +185,53 @@ class TerminalSession extends ChangeNotifier {
     }
   }
 
-  /// Rename this session and notify listeners.
   void rename(String newName) {
     name = newName;
     notifyListeners();
   }
 
-  /// Start the session with an auto-detected shell.
   Future<void> start({String? workingDirectory}) async {
     if (_connected) return;
 
     try {
-      // use the cross-platform auto-detect factory
       _backend = TermisolPtyBackend.autoDetect(workingDirectory: workingDirectory);
 
-      // start the backend
       await _backend!.start();
       _connected = true;
       _error = null;
 
-      // initialize async subsystems
       await _pluginSystem.initialize();
       await graphicsHandler.initialize();
       await _commandChaining.initialize();
       await _semanticSearch.initialize();
 
-      // enable terminal features
-      terminal.write('\x1b[?2004h'); // bracketed paste
-      terminal.write('\x1b[?1004h'); // focus tracking
-      terminal.write('\x1b[?1;2c'); // trueColor (DA1 response)
-      terminal.write('\x1b[?1000h'); // mouse protocol
-      terminal.write('\x1b[?1002h'); // button-event tracking
-      terminal.write('\x1b[?1005h'); // UTF-8 mouse encoding
+      terminal.write('\x1b[?2004h');
+      terminal.write('\x1b[?1004h');
+      terminal.write('\x1b[?1;2c');
+      terminal.write('\x1b[?1000h');
+      terminal.write('\x1b[?1002h');
+      terminal.write('\x1b[?1005h');
 
       bracketedPaste.enable();
 
-      // start listening for output with throttled rendering
       _outputSub = _backend!.output.listen(
         (data) {
           final text = utf8.decode(data, allowMalformed: true);
-          // normalize line endings only for plain text without escape sequences
           final normalized = text.contains('\x1b')
               ? text
               : text.replaceAll('\r\n', '\n').replaceAll('\n', '\r\n');
 
-          // process graphics protocols before rendering
-          final processedText = graphicsHandler.processOutput(normalized, 0, 0);
+          final processedText = graphicsHandler.processOutput(
+            normalized,
+            terminal.viewWidth,
+            terminal.viewHeight,
+          );
           trueColor.processOutput(text);
 
           throttledRenderer.write(processedText);
           _directoryTracker.processOutput(text);
           _extractUrls(text);
           _hyperlinkHandler.processOutput(text);
-          // index terminal output for semantic search
           _semanticSearch.indexDocument('terminal_output', id, text, metadata: {
             'timestamp': DateTime.now().toIso8601String(),
             'session_id': id,
@@ -283,8 +260,8 @@ class TerminalSession extends ChangeNotifier {
     }
   }
 
-  /// Write input to the backend. Intercepts `/ai` and `edit` commands.
   void writeInput(String input) {
+    if (_isDisposed) return;
     onInputIntercepted?.call(input);
 
     if (_backend == null || !_connected) return;
@@ -306,31 +283,39 @@ class TerminalSession extends ChangeNotifier {
 
       if (bufferText.startsWith('/ai ')) {
         final query = bufferText.substring(4).trim();
-        onAiQuery?.call(query).then((response) {
-          terminal.write('\r\n[AI Response]\r\n$response\r\n');
-        }).catchError((e) {
-          terminal.write('\r\n[AI Error: $e]\r\n');
-        });
+        unawaited(
+          onAiQuery?.call(query).then((response) {
+            if (_isDisposed) return;
+            terminal.write('\r\n[AI Response]\r\n$response\r\n');
+          }).catchError((e) {
+            if (_isDisposed) return;
+            terminal.write('\r\n[AI Error: $e]\r\n');
+          }) ?? Future<void>.value(),
+        );
         return;
       }
 
       if (bufferText.startsWith('edit ')) {
         final filePath = bufferText.substring(5).trim();
-        onEditCommand?.call(filePath);
+        unawaited(
+          onEditCommand?.call(filePath).catchError((e) {
+            if (_isDisposed) return;
+            terminal.write('\r\n[Edit Error: $e]\r\n');
+          }) ?? Future<void>.value(),
+        );
         return;
       }
 
-      // record non-empty commands to history
       if (bufferText.isNotEmpty) {
-        commandHistory.add(bufferText);
+        unawaited(commandHistory.add(bufferText).catchError((e) {
+          debugPrint('commandHistory.add error: $e');
+        }));
         _autoComplete.addToHistory(bufferText);
         _commandNotifier.notifyLongCommand(bufferText, timeout: const Duration(seconds: 10));
-        // record for smart chaining
         _commandChaining.recordCommand(id, bufferText, cwd: directory.value);
       }
     }
 
-    // actually send input to the backend
     try {
       _backend!.write(utf8.encode(input));
     } catch (e, stack) {
@@ -340,7 +325,6 @@ class TerminalSession extends ChangeNotifier {
     }
   }
 
-  /// Send raw input directly to the backend, bypassing /ai and edit: interception.
   void sendRawInput(String input) {
     if (_backend == null || !_connected) return;
     try {
@@ -352,7 +336,6 @@ class TerminalSession extends ChangeNotifier {
     }
   }
 
-  /// Resize the terminal.
   void resize(int cols, int rows) {
     terminal.resize(cols, rows);
     try {
@@ -378,8 +361,6 @@ class TerminalSession extends ChangeNotifier {
     }
   }
 
-  /// Persist current session state.
-  /// Returns the hyperlink URL at the given buffer line and column, if any.
   String? getHyperlinkAt(int line, int column) {
     return _hyperlinkHandler.getUrlAt(line, column);
   }
@@ -398,13 +379,12 @@ class TerminalSession extends ChangeNotifier {
     };
   }
 
-  /// Copy session data from another session.
   void copyFrom(TerminalSession other) {
-    // scrollback buffer content cannot be copied due to xterm.dart limitations
     terminal.resize(other.terminal.viewWidth, other.terminal.viewHeight);
 
     if (other._backend != null) {
       _backend = other._backend;
+      other._backend = null;
       _connected = other._connected;
       _error = other._error;
     }
@@ -413,7 +393,9 @@ class TerminalSession extends ChangeNotifier {
     detectedUrls.addAll(other.detectedUrls);
 
     for (final cmd in other.commandHistory.commands) {
-      unawaited(commandHistory.add(cmd));
+      unawaited(commandHistory.add(cmd).catchError((e) {
+        debugPrint('copyFrom commandHistory.add error: $e');
+      }));
     }
 
     _directoryTracker.directory.value = other.directory.value ?? '';
@@ -423,19 +405,18 @@ class TerminalSession extends ChangeNotifier {
     onNotification = other.onNotification;
   }
 
-  /// Apply performance optimization config to this session.
   void applyCoreConfig(TermisolCoreConfig config) {
     try {
       terminal.buffer.lines.maxLength = config.maxScrollbackLines;
       ligatureFont.setFont(ligatureFont.currentFont, enableLigatures: config.enableGpuAcceleration);
       throttledRenderer.setTargetFps(config.targetFps);
-    } catch (e) {
-      debugPrint('failed to apply core config: $e');
+    } on Exception catch (e, stack) {
+      debugPrint('failed to apply core config: $e\n$stack');
     }
   }
 
-  /// Gracefully dispose the session and all resources.
   Future<void> disposeSession() async {
+    _isDisposed = true;
     await _outputSub?.cancel();
     _outputSub = null;
     _connected = false;
@@ -460,6 +441,14 @@ class TerminalSession extends ChangeNotifier {
     _commandNotifier.dispose();
     _autoComplete.dispose();
     clipboardManager.dispose();
+    focusManager.dispose();
+    trueColor.dispose();
+    kittyGraphics.dispose();
+    mouseProtocol.dispose();
+    ligatureFont.dispose();
+    throttledRenderer.dispose();
+    graphicsHandler.dispose();
+    bracketedPaste.dispose();
     await _pluginSystem.dispose();
     _hyperlinkHandler.dispose();
     TermisolCoreIntegration.instance.activeConfig.removeListener(_onCoreConfigChanged);
@@ -467,7 +456,9 @@ class TerminalSession extends ChangeNotifier {
 
   @override
   void dispose() {
-    disposeSession();
+    unawaited(disposeSession().catchError((e, stack) {
+      debugPrint('disposeSession error: $e\n$stack');
+    }));
     super.dispose();
   }
 }

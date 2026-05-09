@@ -361,8 +361,8 @@ class BufferLine with IndexedItem {
   }
 }
 
-/// A handle to a cell in a [BufferLine] that can be used to track the location
-/// of the cell. Anchors are guaranteed to be stable, retaining their relative
+/// a handle to a cell in a [bufferline] that can be used to track the location
+/// of the cell. anchors are guaranteed to be stable, retaining their relative
 /// position to each other after mutations to the buffer.
 class CellAnchor {
   CellAnchor(int offset, {BufferLine? owner})

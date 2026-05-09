@@ -613,7 +613,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Broadcast alert
+  /// broadcast alert
   void _broadcastAlert(ErrorAlert alert) {
     _logger.warning('ALERT: ${alert.message}');
     // Implementation would notify monitoring systems

@@ -59,7 +59,7 @@ class RobustErrorHandler {
       // load error history
       await _loadErrorHistory();
       
-      // Setup periodic cleanup
+      // setup periodic cleanup
       Timer.periodic(const Duration(hours: 1), (_) => _cleanupOldErrors());
       
       _logger.info('Robust error handler initialized');

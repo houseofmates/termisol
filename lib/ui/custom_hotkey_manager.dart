@@ -156,18 +156,20 @@ class CustomHotkeyManager {
   /// Stop recording and process with Whisper
   void _stopRecording() async {
     _isRecording = false;
-    _recordingTimer?.cancel();
-    _recordingTimer = null;
+    final audioBytes = _audioRecorder!.stopRecording();
     _showFeedback('🔍 Processing transcript with Whisper...');
     
     try {
-      // In real implementation, this would send recorded audio to Whisper
-      // For now, we'll simulate the process
-      final processedText = await _processWithWhisper();
+      final transcription = await _whisperService!.transcribeAudioBytes(
+        audioBytes, 
+        'recording_${DateTime.now().millisecondsSinceEpoch}.wav'
+      );
       
-      if (processedText.isNotEmpty) {
+      final cleanedText = WhisperService.cleanTranscription(transcription);
+      
+      if (cleanedText.isNotEmpty) {
         // Insert the processed text at cursor position
-        session.sendRawInput(processedText);
+        session.sendRawInput(cleanedText);
         _showFeedback('✅ Transcript processed and inserted');
       } else {
         _showFeedback('❌ No speech detected');
@@ -177,53 +179,7 @@ class CustomHotkeyManager {
     }
   }
   
-  /// Process audio with Whisper API
-  Future<String> _processWithWhisper() async {
-    try {
-      // Simulate Whisper API call to 192.168.4.250
-      // In real implementation, this would send actual audio data
-      
-      // For demo purposes, we'll simulate a response
-      await Future.delayed(Duration(seconds: 2)); // Simulate processing time
-      
-      // Mock response - in real implementation this would be the actual transcription
-      final mockTranscription = "this is a sample transcription from whisper";
-      
-      // Clean up the transcription
-      return _cleanTranscription(mockTranscription);
-      
-    } catch (e) {
-      throw Exception('Whisper API error: $e');
-    }
-  }
   
-  /// Clean up transcription by removing filler words
-  String _cleanTranscription(String text) {
-    final fillerWords = [
-      'uhh', 'uhm', 'umm', 'uhhhs', 'uhmms', 'errrh', 'errs',
-      'uh', 'um', 'er', 'ah', 'like', 'you know', 'I mean',
-      'actually', 'basically', 'literally', 'sort of', 'kind of'
-    ];
-    
-    String cleaned = text.toLowerCase();
-    
-    // Remove filler words with proper spacing
-    for (final filler in fillerWords) {
-      cleaned = cleaned.replaceAll(RegExp('\\b$filler\\b', caseSensitive: false), '');
-    }
-    
-    // Clean up extra spaces and punctuation
-    cleaned = cleaned.replaceAll(RegExp(r'\s+'), ' ');
-    cleaned = cleaned.replaceAll(RegExp(r'\s+([.,!?])'), r'\1');
-    cleaned = cleaned.trim();
-    
-    // Capitalize first letter
-    if (cleaned.isNotEmpty) {
-      cleaned = cleaned[0].toUpperCase() + cleaned.substring(1);
-    }
-    
-    return cleaned;
-  }
   
   /// Show feedback message (could be implemented as toast, status bar, etc.)
   void _showFeedback(String message) {

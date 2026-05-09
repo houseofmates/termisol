@@ -306,7 +306,7 @@ class LogEntry {
   }
 }
 
-/// Log sink interface
+/// log sink interface
 abstract class LogSink {
   void write(LogEntry entry);
   void flush();

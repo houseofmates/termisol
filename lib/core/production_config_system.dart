@@ -27,7 +27,7 @@ class ProductionConfigSystem {
   /// whether the system is initialized
   bool get initialized => _initialized;
 
-  /// Whether auto-save is enabled
+  /// whether auto-save is enabled
   bool get autoSave => _autoSave;
 
   ProductionConfigSystem() {

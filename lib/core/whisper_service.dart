@@ -14,7 +14,7 @@ class WhisperService {
     this.timeout = const Duration(seconds: 30),
   });
 
-  /// Check if Whisper server is available
+  /// check if whisper server is available
   Future<bool> isServerAvailable() async {
     try {
       final response = await http.get(

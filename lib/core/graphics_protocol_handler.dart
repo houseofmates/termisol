@@ -85,7 +85,7 @@ class GraphicsProtocolHandler {
     if (_isInitialized) return;
 
     try {
-      // Initialize default color palette
+      // initialize default color palette
       _initializeColorPalette();
 
       // Set up terminal output interception if terminal is available
@@ -134,7 +134,7 @@ class GraphicsProtocolHandler {
     };
   }
 
-  /// Initialize default color palette (256 colors + true color support)
+  /// initialize default color palette (256 colors + true color support)
   void _initializeColorPalette() {
     // ANSI 16-color palette
     final standardColors = [

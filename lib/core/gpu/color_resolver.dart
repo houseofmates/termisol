@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:xterm/xterm.dart' show CellColor, TerminalTheme;
-
-import 'package:xterm/src/ui/palette_builder.dart';
+import 'package:xterm/xterm.dart' show CellColor, PaletteBuilder, TerminalTheme;
 
 /// Resolves terminal cell colors into Flutter [Color] values.
 ///

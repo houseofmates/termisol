@@ -40,7 +40,7 @@ class TermisolLogger {
     // create log directory
     await Directory(_logDirectory).create(recursive: true);
     
-    // Add default sinks
+    // add default sinks
     _sinks.add(ConsoleSink());
     _sinks.add(FileSink('$_logDirectory/termisol.log'));
     

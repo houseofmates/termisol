@@ -193,8 +193,11 @@ class CustomHotkeyManager {
   
   /// Dispose resources
   void dispose() {
-    _recordingTimer?.cancel();
-    _recordingTimer = null;
+    if (_isRecording) {
+      _audioRecorder?.stopRecording();
+    }
+    _audioRecorder = null;
+    _whisperService = null;
   }
 }
 

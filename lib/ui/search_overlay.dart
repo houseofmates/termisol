@@ -130,7 +130,7 @@ class _TerminalSearchOverlayState extends State<TerminalSearchOverlay> {
 
     final lineIndex = _matchLineIndices[matchIndex];
     final scroll = widget.scrollController;
-    if (scroll != null) {
+    if (scroll != null && scroll.hasClients) {
       scroll.jumpTo(lineIndex * _estimatedLineHeight);
     }
   }

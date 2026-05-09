@@ -296,7 +296,7 @@ class GraphicsProtocolHandler {
     if (!_kittyProtocolEnabled) return '';
 
     try {
-      // Parse Kitty graphics sequences: _Gq=1,i=id,t=f,f=24,s=w,h=h
+      // parse kitty graphics sequences: _gq=1,i=id,t=f,f=24,s=w,h=h
       final match = RegExp(r'_G[^\\]*\\').firstMatch(sequence);
       if (match != null) {
         final params = match.group(0)!;

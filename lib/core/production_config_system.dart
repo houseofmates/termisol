@@ -21,7 +21,7 @@ class ProductionConfigSystem {
   DateTime? _lastSaveTime;
   int _saveAttempts = 0;
 
-  /// Stream of configuration changes
+  /// stream of configuration changes
   Stream<ConfigChangeEvent> get changes => _changeController.stream;
 
   /// Whether the system is initialized

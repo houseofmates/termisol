@@ -2,7 +2,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'lib/ui/enhanced_clipboard_manager.dart';
-import 'lib/packages/xterm/lib/xterm.dart';
 
 /// Test script for enhanced clipboard functionality
 void main() async {

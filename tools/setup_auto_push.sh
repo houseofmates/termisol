@@ -40,7 +40,7 @@ echo "🔐 Making scripts executable..."
 chmod +x "$SCRIPT_DIR/start_auto_push.sh"
 chmod +x "$SCRIPT_DIR/setup_auto_push.sh"
 
-# Create systemd service (if systemd is available and sudo works)
+# create systemd service (if systemd is available and sudo works)
 if command -v systemctl &> /dev/null && [ -w "/etc/systemd/system" ]; then
     echo "🔧 Setting up systemd service..."
     

@@ -60,7 +60,7 @@ class TermisolPluginSystem {
         await pluginsDir.create(recursive: true);
       }
 
-      // Load all plugins from directory
+      // load all plugins from directory
       await _loadAllPlugins();
 
       _isInitialized = true;

@@ -100,10 +100,10 @@ class RobustErrorHandler {
         _errorHistory.removeAt(0);
       }
       
-      // Log the error
+      // log the error
       _logError(errorReport);
       
-      // Broadcast to listeners
+      // broadcast to listeners
       _errorController.add(errorReport);
       
       // Check for error patterns

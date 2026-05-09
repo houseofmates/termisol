@@ -37,7 +37,7 @@ class TermisolLogger {
     _debugMode = debugMode;
     _sessionId = _generateSessionId();
     
-    // Create log directory
+    // create log directory
     await Directory(_logDirectory).create(recursive: true);
     
     // Add default sinks
@@ -548,7 +548,7 @@ class DebugUtils {
 /// global logger instance
 final logger = TermisolLogger();
 
-/// Extension methods for easy logging
+/// extension methods for easy logging
 extension LoggerExtensions on Object {
   void logDebug(String message, [Map<String, dynamic>? context]) {
     logger.debug('$runtimeType: $message', context);

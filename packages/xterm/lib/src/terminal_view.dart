@@ -136,6 +136,10 @@ class TerminalView extends StatefulWidget {
   /// also prevent any on-screen keyboard to be shown.
   final bool hardwareKeyboardOnly;
 
+  /// Optional custom painter. When provided it replaces the default
+  /// [TerminalPainter] used by the internal [RenderTerminal].
+  final TerminalPainter? painter;
+
   /// If true, when the terminal is in alternate buffer (for example running
   /// vim, man, etc), if the application does not declare that it can handle
   /// scrolling, the terminal will simulate scrolling by sending up/down arrow

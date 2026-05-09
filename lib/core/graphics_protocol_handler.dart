@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:xterm/xterm.dart';
 
-/// Graphics Protocol Handler - Advanced terminal graphics support
+/// graphics protocol handler - advanced terminal graphics support
 ///
 /// Implements industry-standard graphics protocols:
 /// - 24-bit True Color (RGB)

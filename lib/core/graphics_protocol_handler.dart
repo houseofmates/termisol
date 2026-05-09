@@ -448,7 +448,7 @@ class GraphicsProtocolHandler {
 
       if (data == null) return '\x1b_Gi=$id,f=32\x1b\\'; // error: no data
 
-      // Validate base64 data
+      // validate base64 data
       try {
         base64.decode(data);
       } catch (e) {

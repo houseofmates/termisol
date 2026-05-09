@@ -190,11 +190,11 @@ class CustomHotkeyManager {
     // for now, we'll print to debug
     debugPrint('Termisol Hotkey: $message');
     
-    // In a real implementation, you could use:
+    // in a real implementation, you could use:
     // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
   
-  /// Dispose resources
+  /// dispose resources
   void dispose() {
     if (_isRecording) {
       _audioRecorder?.stopRecording();

@@ -361,7 +361,7 @@ class GraphicsProtocolHandler {
     final width = int.tryParse(params['s'] ?? '0') ?? 0;
     final height = int.tryParse(params['h'] ?? '0') ?? 0;
 
-    // Store image metadata
+    // store image metadata
     _imageCache[id] = GraphicsImage(
       id: _nextImageId++,
       width: width,

@@ -93,8 +93,16 @@ class TerminalClipboardManager {
   /// Note: xterm.dart selection requires CellAnchors; this is a best-effort.
   void selectAll() {
     try {
-      controller.clearSelection();
-    } catch (e, stack) {
+      final buffer = terminal.buffer;
+      final lastLine = buffer.lines.length - 1;
+      if (lastLine < 0) return;
+      final start = CellOffset(0, 0);
+      final end = CellOffset(
+        buffer.lines[lastLine].getText().length,
+        lastLine,
+      );
+      controller.setSelection(BufferRangeLine(start, end));
+    } on Exception catch (e, stack) {
       debugPrint('selectAll failed: $e\n$stack');
     }
   }

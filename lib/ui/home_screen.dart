@@ -147,13 +147,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  TerminalSession? get _lastSession {
-    if (_tabs.length >= 2) {
-      return _tabs.lastWhere((t) => t.id != _activeTab);
-    }
-    return null;
-  }
-
   Future<String> _handleAiQuery(String query) async {
     debugPrint('AI query: $query');
     try {

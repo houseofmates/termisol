@@ -185,8 +185,10 @@ class TerminalSession extends ChangeNotifier {
       _error = null;
 
       // Initialize async subsystems
-      unawaited(_pluginSystem.initialize());
-      unawaited(graphicsHandler.initialize());
+      await _pluginSystem.initialize();
+      await graphicsHandler.initialize();
+      await _commandChaining.initialize();
+      await _semanticSearch.initialize();
 
 
       // Enable terminal features

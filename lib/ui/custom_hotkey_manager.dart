@@ -149,14 +149,14 @@ class CustomHotkeyManager {
     }
   }
   
-  /// Start recording audio transcript
+  /// start recording audio transcript
   void _startRecording() {
     _isRecording = true;
     _audioRecorder!.startRecording();
     _showFeedback('🎙️ Recording transcript... (Press Ctrl+B again to stop)');
   }
   
-  /// Stop recording and process with Whisper
+  /// stop recording and process with whisper
   void _stopRecording() async {
     _isRecording = false;
     final audioBytes = _audioRecorder!.stopRecording();

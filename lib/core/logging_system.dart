@@ -200,7 +200,7 @@ class TermisolLogger {
     // add to stream
     _logStream.add(entry);
     
-    // In debug mode, also send to Flutter developer log
+    // in debug mode, also send to flutter developer log
     if (_debugMode) {
       developer.log(
         message,

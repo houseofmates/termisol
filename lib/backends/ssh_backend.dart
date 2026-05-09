@@ -45,7 +45,7 @@ class SshBackend implements TermisolPtyBackend {
         username: username,
         onPasswordRequest: password != null ? () => password! : null,
         identities: privateKeyPath != null
-            ? [await SSHKeyPair.fromPem(await File(privateKeyPath!).readAsString())]
+            ? await SSHKeyPair.fromPem(await File(privateKeyPath!).readAsString())
             : null,
       );
 

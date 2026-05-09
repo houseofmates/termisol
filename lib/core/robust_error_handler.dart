@@ -721,7 +721,7 @@ enum AlertSeverity {
   critical,
 }
 
-/// Error report data structure
+/// error report data structure
 class ErrorReport {
   final String id;
   final DateTime timestamp;

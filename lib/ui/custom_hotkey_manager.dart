@@ -105,7 +105,7 @@ class CustomHotkeyManager {
     return KeyEventResult.ignored;
   }
   
-  /// Copy selected text to clipboard
+  /// copy selected text to clipboard
   void _handleCopy() {
     final selection = session.terminal.selection;
     if (selection != null) {

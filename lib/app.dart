@@ -46,7 +46,7 @@ class _TermisolAppState extends State<TermisolApp> {
     if (saved != null) {
       try {
         PkmTheme.themeMode.value = TermisolThemeMode.values.byName(saved);
-      } catch (_) {
+      } on ArgumentError {
         // invalid saved theme, ignore
       }
     }
@@ -70,7 +70,9 @@ class _TermisolAppState extends State<TermisolApp> {
                model.contains('oculus') ||
                manufacturer.contains('oculus');
       }
-    } catch (e) {
+    } on PlatformException catch (e) {
+      debugPrint('vr detection platform error: $e');
+    } on Exception catch (e) {
       debugPrint('vr detection failed: $e');
     }
 

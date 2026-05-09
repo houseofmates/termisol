@@ -498,7 +498,7 @@ class ProductionConfigSystem {
       // validate imported config
       _validateImportedConfig(imported);
 
-      // Apply imported config
+      // apply imported config
       _config.clear();
       _config.addAll(Map.from(_defaults));
       _deepMerge(_config, imported);

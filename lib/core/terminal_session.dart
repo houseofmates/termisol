@@ -311,7 +311,8 @@ class TerminalSession extends ChangeNotifier {
       // Record non-empty commands to history
       if (bufferText.isNotEmpty) {
         commandHistory.add(bufferText);
-        // Record for smart chaining (placeholder removed)
+        // Record for smart chaining
+        _commandChaining.recordCommand(id, bufferText, cwd: directory.value);
       }
     }
 

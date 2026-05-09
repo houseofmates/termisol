@@ -163,7 +163,7 @@ class TermisolPluginSystem {
     }
   }
 
-  /// Unload a plugin
+  /// unload a plugin
   Future<void> unloadPlugin(String pluginId) async {
     final plugin = _plugins[pluginId];
     final isolate = _isolates[pluginId];

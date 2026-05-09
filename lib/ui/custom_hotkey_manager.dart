@@ -11,7 +11,7 @@ import 'enhanced_clipboard_manager.dart';
 /// custom hotkey manager for termisol with user-defined bindings
 class CustomHotkeyManager {
   final TerminalSession session;
-  final TerminalClipboardManager clipboard;
+  final EnhancedClipboardManager clipboard;
   final VoidCallback? onNewTab;
   final VoidCallback? onSaveFile;
   final VoidCallback? onSearch;

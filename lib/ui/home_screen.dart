@@ -270,6 +270,79 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _duplicateTab(int index) {
+    if (index < 0 || index >= _tabs.length) return;
+    final source = _tabs[index];
+    final newTabId = _nextTabId();
+    final newTab = TerminalSession(
+      id: newTabId,
+      name: '${source.name} copy',
+    );
+    newTab.onAiQuery = _handleAiQuery;
+    newTab.onEditCommand = _handleEditCommand;
+    newTab.directory.addListener(_onDirectoryChanged);
+    newTab.start(workingDirectory: source.directory.value);
+
+    setState(() {
+      _tabs.add(newTab);
+      _tabFocusNodes[newTabId] = FocusNode();
+      _activeTab = newTabId;
+    });
+
+    _tabFocusNodes[newTabId]?.requestFocus();
+    _saveSessions();
+  }
+
+  void _closeOthers(int index) {
+    if (index < 0 || index >= _tabs.length) return;
+    final keep = _tabs[index];
+    final keepId = keep.id;
+
+    for (int i = _tabs.length - 1; i >= 0; i--) {
+      if (i == index) continue;
+      final tab = _tabs[i];
+      tab.directory.removeListener(_onDirectoryChanged);
+      tab.dispose();
+      _tabFocusNodes[tab.id]?.dispose();
+      _tabFocusNodes.remove(tab.id);
+      _tabs.removeAt(i);
+    }
+
+    setState(() {
+      _activeTab = keepId;
+    });
+    _saveSessions();
+  }
+
+  void _closeToTheRight(int index) {
+    if (index < 0 || index >= _tabs.length) return;
+    for (int i = _tabs.length - 1; i > index; i--) {
+      final tab = _tabs[i];
+      tab.directory.removeListener(_onDirectoryChanged);
+      tab.dispose();
+      _tabFocusNodes[tab.id]?.dispose();
+      _tabFocusNodes.remove(tab.id);
+      _tabs.removeAt(i);
+    }
+
+    if (_tabs.indexWhere((t) => t.id == _activeTab) == -1) {
+      _activeTab = _tabs[index].id;
+    }
+
+    setState(() {});
+    _saveSessions();
+  }
+
+  void _duplicateActiveTab() {
+    final idx = _tabs.indexWhere((t) => t.id == _activeTab);
+    if (idx >= 0) _duplicateTab(idx);
+  }
+
+  void _closeOthersActive() {
+    final idx = _tabs.indexWhere((t) => t.id == _activeTab);
+    if (idx >= 0) _closeOthers(idx);
+  }
+
   void _showTabContextMenu(TapUpDetails details, int index) {
     final overlay = Navigator.of(context).overlay!;
     final renderBox = overlay.context.findRenderObject() as RenderBox;
@@ -290,6 +363,15 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         PopupMenuItem(
+          value: 'duplicate',
+          onTap: () => _duplicateTab(index),
+          child: const Text(
+            'duplicate tab',
+            style: TextStyle(color: PkmTheme.text),
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
           value: 'rename',
           onTap: () => _renameTab(index),
           child: const Text(
@@ -297,11 +379,28 @@ class _HomeScreenState extends State<HomeScreen> {
             style: TextStyle(color: PkmTheme.text),
           ),
         ),
+        const PopupMenuDivider(),
         PopupMenuItem(
           value: 'close',
           onTap: () => _closeTab(index),
           child: const Text(
             'close',
+            style: TextStyle(color: PkmTheme.text),
+          ),
+        ),
+        PopupMenuItem(
+          value: 'closeOthers',
+          onTap: () => _closeOthers(index),
+          child: const Text(
+            'close others',
+            style: TextStyle(color: PkmTheme.text),
+          ),
+        ),
+        PopupMenuItem(
+          value: 'closeToTheRight',
+          onTap: () => _closeToTheRight(index),
+          child: const Text(
+            'close to the right',
             style: TextStyle(color: PkmTheme.text),
           ),
         ),
@@ -562,6 +661,16 @@ class _HomeScreenState extends State<HomeScreen> {
             control: true,
             shift: true,
           ): _togglePerformanceOverlay,
+          const SingleActivator(
+            LogicalKeyboardKey.keyT,
+            control: true,
+            shift: true,
+          ): _duplicateActiveTab,
+          const SingleActivator(
+            LogicalKeyboardKey.keyW,
+            control: true,
+            shift: true,
+          ): _closeOthersActive,
         },
         child: Stack(
           children: [
@@ -692,18 +801,40 @@ class _HomeScreenState extends State<HomeScreen> {
                                         child: Container(
                                           height: double.infinity,
                                           alignment: Alignment.centerLeft,
-                                          child: Text(
-                                            _tabDisplayName(tab),
-                                            style: TextStyle(
-                                              color: isActive
-                                                  ? PkmTheme.primary
-                                                  : PkmTheme.text,
-                                              fontWeight: isActive
-                                                  ? FontWeight.bold
-                                                  : FontWeight.normal,
-                                              fontFamily: PkmTheme.fontUi,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Flexible(
+                                                child: Text(
+                                                  _tabDisplayName(tab),
+                                                  style: TextStyle(
+                                                    color: isActive
+                                                        ? PkmTheme.primary
+                                                        : PkmTheme.text,
+                                                    fontWeight: isActive
+                                                        ? FontWeight.bold
+                                                        : FontWeight.normal,
+                                                    fontFamily: PkmTheme.fontUi,
+                                                  ),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              AnimatedBuilder(
+                                                animation: tab.longCommandNotifier,
+                                                builder: (context, child) {
+                                                  final hasLongRunning = tab.longCommandNotifier.activeCommands.isNotEmpty;
+                                                  return Container(
+                                                    width: 6,
+                                                    height: 6,
+                                                    margin: const EdgeInsets.only(left: 4),
+                                                    decoration: BoxDecoration(
+                                                      color: hasLongRunning ? Colors.orange : Colors.transparent,
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ),

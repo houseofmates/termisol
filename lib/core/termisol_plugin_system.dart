@@ -438,10 +438,14 @@ class _IsolatePlugin implements Plugin {
   List<String> get capabilities => manifest.capabilities;
 
   @override
-  Future<void> initialize() async {}
+  Future<void> initialize() async {
+    if (kDebugMode) debugPrint('isolate plugin $name initialized');
+  }
 
   @override
-  Future<void> dispose() async {}
+  Future<void> dispose() async {
+    if (kDebugMode) debugPrint('isolate plugin $name disposed');
+  }
 
   @override
   Future<dynamic> execute(String method, [Map<String, dynamic>? args]) async {

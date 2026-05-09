@@ -961,6 +961,12 @@ class GraphicsProtocolHandler {
 
   /// Clear image cache
   void clearImageCache() {
+    for (final path in _tempFilePaths) {
+      try {
+        File(path).deleteSync();
+      } catch (_) {}
+    }
+    _tempFilePaths.clear();
     _imageCache.clear();
     _imagePositions.clear();
     _pendingImages.clear();

@@ -122,7 +122,7 @@ else
     echo "✅ Shell startup already configured"
 fi
 
-# Start the service immediately
+# start the service immediately
 echo "🚀 Starting AutoPush service..."
 "$SCRIPT_DIR/start_auto_push.sh"
 

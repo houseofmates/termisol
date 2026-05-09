@@ -14,6 +14,7 @@ import 'smart_auto_complete.dart';
 import 'smart_command_chaining.dart';
 import 'semantic_search_engine.dart';
 import 'session_persistence.dart';
+import 'termisol_core_integration.dart';
 import 'crash_recovery.dart';
 import 'long_command_notifier.dart';
 import 'termisol_plugin_system.dart';
@@ -93,6 +94,12 @@ class TerminalSession extends ChangeNotifier {
   Future<List<String>> getCommandSuggestions(String currentInput, {int maxSuggestions = 5}) async {
     final suggestions = await _autoComplete.getSuggestions(currentInput);
     return suggestions.map((s) => s.command).take(maxSuggestions).toList();
+  }
+
+  /// Get chained command suggestions based on the current command.
+  List<String> getChainedSuggestions(String currentCommand, {int maxSuggestions = 5}) {
+    final suggestions = _commandChaining.suggestNext(currentCommand, maxSuggestions: maxSuggestions);
+    return suggestions.map((s) => s.command).toList();
   }
 
   /// Search terminal output semantically
@@ -408,6 +415,17 @@ class TerminalSession extends ChangeNotifier {
     onAiQuery = other.onAiQuery;
     onEditCommand = other.onEditCommand;
     onNotification = other.onNotification;
+  }
+
+  /// Apply performance optimization config to this session.
+  void applyCoreConfig(TermisolCoreConfig config) {
+    try {
+      terminal.buffer.lines.maxLength = config.maxScrollbackLines;
+      ligatureFont.setFont(ligatureFont.currentFont, enableLigatures: config.enableGpuAcceleration);
+      throttledRenderer.setTargetFps(config.targetFps);
+    } catch (e) {
+      debugPrint('failed to apply core config: $e');
+    }
   }
 
   /// Gracefully dispose the session and all resources.

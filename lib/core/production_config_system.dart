@@ -490,7 +490,7 @@ class ProductionConfigSystem {
     return const JsonEncoder.withIndent('  ').convert(_config);
   }
 
-  /// Import configuration from string
+  /// import configuration from string
   Future<void> import(String configJson) async {
     try {
       final imported = jsonDecode(configJson) as Map<String, dynamic>;
@@ -534,7 +534,7 @@ class ProductionConfigSystem {
     }
   }
 
-  /// Enable or disable auto-save
+  /// enable or disable auto-save
   void setAutoSave(bool enabled) {
     _autoSave = enabled;
     debugPrint('Auto-save ${enabled ? 'enabled' : 'disabled'}');

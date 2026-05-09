@@ -88,7 +88,7 @@ class GraphicsProtocolHandler {
       // initialize default color palette
       _initializeColorPalette();
 
-      // Set up terminal output interception if terminal is available
+      // set up terminal output interception if terminal is available
       if (_terminal != null && _controller != null) {
         _setupOutputInterception();
       }

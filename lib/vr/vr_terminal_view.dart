@@ -79,17 +79,14 @@ class _VrTerminalViewState extends State<VrTerminalView> {
   Widget build(BuildContext context) {
     return Listener(
       onPointerDown: (event) {
-        setState(() {
-          _pointerPosition = event.localPosition;
-          _pointerDown = true;
-        });
+        setState(() {});
         _sendPointerEvent(true, event.localPosition);
       },
       onPointerMove: (event) {
-        setState(() => _pointerPosition = event.localPosition);
+        setState(() {});
       },
       onPointerUp: (event) {
-        setState(() => _pointerDown = false);
+        setState(() {});
         _sendPointerEvent(false, event.localPosition);
       },
       child: Center(

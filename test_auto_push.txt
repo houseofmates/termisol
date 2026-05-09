@@ -1,2 +1,0 @@
-This is a test file to verify the auto-push mechanism is working.
-Created at: ${DateTime.now().toIso8601String()}

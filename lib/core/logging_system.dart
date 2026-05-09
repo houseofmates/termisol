@@ -213,14 +213,14 @@ class TermisolLogger {
     }
   }
   
-  /// Flush all sinks
+  /// flush all sinks
   void _flush() {
     for (final sink in _sinks) {
       sink.flush();
     }
   }
   
-  /// Generate session ID
+  /// generate session id
   String _generateSessionId() {
     return '${DateTime.now().millisecondsSinceEpoch}-${_randomString(8)}';
   }

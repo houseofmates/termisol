@@ -370,7 +370,7 @@ class GraphicsProtocolHandler {
       format: 'kitty',
     );
 
-    // Store position
+    // store position
     _imagePositions[id] = Offset(cursorX.toDouble(), cursorY.toDouble());
 
     _eventController.add(
@@ -621,7 +621,7 @@ class GraphicsProtocolHandler {
         format: 'sixel',
       );
 
-      // Store position
+      // store position
       _imagePositions[idStr] = Offset(cursorX.toDouble(), cursorY.toDouble());
 
       _totalImagesProcessed++;

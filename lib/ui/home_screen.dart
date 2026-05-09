@@ -558,13 +558,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _toggleSplit() {
-    if (_tabs.length < 2) {
-      // Create second tab if needed
-      _addTab();
-    }
-    setState(() => _isSplit = !_isSplit);
-  }
+
 
   void _togglePerformanceOverlay() {
     setState(() => _showPerformanceOverlay = !_showPerformanceOverlay);

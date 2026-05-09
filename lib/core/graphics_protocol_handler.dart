@@ -42,7 +42,7 @@ class GraphicsProtocolHandler {
     'svg',
   };
 
-  // Graphics state
+  // graphics state
   final Map<String, GraphicsImage> _imageCache = {};
   final Map<String, Offset> _imagePositions =
       {}; // imageId -> character position (x,y)
@@ -50,7 +50,7 @@ class GraphicsProtocolHandler {
 
   final List<GraphicsAnimation> _animations = [];
 
-  // Pending images for processing
+  // pending images for processing
   final Map<int, PendingImage> _pendingImages = {};
   int _nextImageId = 1;
 
@@ -58,7 +58,7 @@ class GraphicsProtocolHandler {
   final List<String> _tempFilePaths = [];
 
 
-  // Rendering optimization
+  // rendering optimization
   final Map<String, ui.Picture> _pictureCache = {};
   final Map<int, List<ui.Rect>> _damageRegions = {};
 

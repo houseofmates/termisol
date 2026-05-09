@@ -143,7 +143,7 @@ class TermisolPluginSystem {
       _manifests[manifest.id] = manifest;
       _isolates[manifest.id] = isolate;
 
-      // Initialize plugin
+      // initialize plugin
       await plugin.initialize();
 
       _eventController.add(PluginSystemEvent(

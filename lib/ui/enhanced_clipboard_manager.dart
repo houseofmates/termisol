@@ -10,7 +10,7 @@ import 'package:path/path.dart' as path;
 import 'package:mime/mime.dart';
 import 'package:http/http.dart' as http;
 
-/// Enhanced clipboard manager supporting text, images, GIFs, and videos
+/// enhanced clipboard manager supporting text, images, gifs, and videos
 class EnhancedClipboardManager {
   final Terminal terminal;
   final TerminalController controller;
@@ -175,19 +175,37 @@ class EnhancedClipboardManager {
     try {
       // Platform-specific image detection
       if (Platform.isMacOS) {
-        final result = await Process.run('osascript', [
-          '-e',
-          'tell application "System Events" to get the clipboard as data class «class PNGf»'
-        ]);
+        final script = '''
+          tell application "System Events"
+            try
+              set theClipboard to the clipboard as data class «class PNGf»
+              return theClipboard
+            on error
+              return ""
+            end try
+          end tell
+        ''';
         
-        if (result.exitCode == 0 && (result.stdout as String).isNotEmpty) {
-          final imageData = result.stdout as List<int>;
-          return ClipboardContent(
-            type: ClipboardContentType.image,
-            imageData: Uint8List.fromList(imageData),
-            size: imageData.length,
-            format: 'png',
-          );
+        try {
+          final result = await Process.run('osascript', ['-e', script]);
+          if (result.exitCode == 0) {
+            final output = result.stdout as String;
+            if (output.isNotEmpty) {
+              // Parse the binary data from osascript output
+              final imageData = await _parseOsascriptImageData(output);
+              if (imageData != null) {
+                return ClipboardContent(
+                  type: ClipboardContentType.image,
+                  imageData: imageData!,
+                  size: imageData.length,
+                  format: 'png',
+                );
+              }
+            }
+          }
+        } catch (e) {
+          debugPrint('macOS image clipboard access failed: $e');
+          return null;
         }
       }
       
@@ -624,7 +642,7 @@ class EnhancedClipboardManager {
   }
 }
 
-/// Clipboard content types
+/// clipboard content types
 enum ClipboardContentType {
   empty,
   text,
@@ -632,7 +650,7 @@ enum ClipboardContentType {
   image,
 }
 
-/// Clipboard content data class
+/// clipboard content data class
 class ClipboardContent {
   final ClipboardContentType type;
   final String? text;
@@ -651,7 +669,7 @@ class ClipboardContent {
   });
 }
 
-/// Paste result types
+/// paste result types
 enum PasteType {
   text,
   largeText,
@@ -661,7 +679,7 @@ enum PasteType {
   video,
 }
 
-/// Paste result class
+/// paste result class
 class PasteResult {
   final bool success;
   final String message;

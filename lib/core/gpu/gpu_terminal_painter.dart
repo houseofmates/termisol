@@ -8,14 +8,14 @@ import 'package:xterm/xterm.dart' show CellAttr, CellColor, CellContent, CellDat
 import 'color_resolver.dart';
 import 'line_picture_cache.dart';
 
-/// A high-performance GPU-accelerated terminal painter.
+/// a high-performance gpu-accelerated terminal painter.
 ///
-/// This painter batches background rectangles into a single [Vertices] draw call
-/// and caches entire lines as [Picture] objects so that static scrollback is
-/// replayed from GPU instruction memory instead of being rebuilt every frame.
+/// this painter batches background rectangles into a single [vertices] draw call
+/// and caches entire lines as [picture] objects so that static scrollback is
+/// replayed from gpu instruction memory instead of being rebuilt every frame.
 ///
-/// Text is still shaped by Skia/Impeller via [ParagraphBuilder]; each unique
-/// glyph/style combination is cached in an internal LRU map.
+/// text is still shaped by skia/impeller via [paragraphbuilder]; each unique
+/// glyph/style combination is cached in an internal lru map.
 class GpuTerminalPainter extends TerminalPainter {
   GpuTerminalPainter({
     required super.theme,

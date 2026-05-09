@@ -7,11 +7,11 @@ import '../core/terminal_session.dart';
 import 'openxr_session.dart';
 import 'vr_frame_encoder.dart';
 
-/// Fully-featured VR terminal view for Oculus Quest 2.
+/// fully-featured vr terminal view for oculus quest 2.
 ///
-/// When the widget is initialized it attempts to start a native OpenXR
-/// session. If VR is unavailable it falls back to a standard on-screen
-/// message. While VR is active the visible terminal buffer is streamed to
+/// when the widget is initialized it attempts to start a native openxr
+/// session. if vr is unavailable it falls back to a standard on-screen
+/// message. while vr is active the visible terminal buffer is streamed to
 /// the native renderer at 30 fps and controller input events are translated
 /// into terminal mouse actions.
 class VrTerminalView extends StatefulWidget {
@@ -145,5 +145,5 @@ class _VrTerminalViewState extends State<VrTerminalView> {
   }
 }
 
-/// Silences unawaited-future lints without losing the fire-and-forget intent.
+/// silences unawaited-future lints without losing the fire-and-forget intent.
 void unawaited(Future<void> future) {}

@@ -3,10 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:xterm/xterm.dart';
 
-/// Terminal-aware clipboard manager.
+/// terminal-aware clipboard manager.
 ///
-/// Bridges the xterm selection model with the system clipboard.
-/// All operations are async and wrapped in try/catch to prevent
+/// bridges the xterm selection model with the system clipboard.
+/// all operations are async and wrapped in try/catch to prevent
 /// terminal lock-up on permission errors.
 class TerminalClipboardManager {
   final Terminal terminal;

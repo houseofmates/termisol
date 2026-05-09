@@ -9,10 +9,10 @@ class _CachedPicture {
   _CachedPicture(this.hash, this.picture);
 }
 
-/// LRU-style cache that stores [Picture] recordings of terminal lines.
+/// lru-style cache that stores [picture] recordings of terminal lines.
 ///
-/// Each visible line is keyed by its buffer index. The content hash of the
-/// [BufferLine] is stored alongside the picture so that mutations are detected
+/// each visible line is keyed by its buffer index. the content hash of the
+/// [bufferline] is stored alongside the picture so that mutations are detected
 /// and the stale picture is discarded.
 class LinePictureCache {
   static const int _maxSize = 500;

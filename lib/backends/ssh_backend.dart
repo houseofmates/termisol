@@ -6,7 +6,7 @@ import 'package:dartssh2/dartssh2.dart';
 import '../core/pty_backend.dart';
 import '../core/prompt_config.dart';
 
-/// SSH backend for remote terminal connections.
+/// ssh backend for remote terminal connections.
 class SshBackend implements TermisolPtyBackend {
   @override
   final String name = 'SSH Backend';

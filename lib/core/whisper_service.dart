@@ -139,7 +139,7 @@ class WhisperService {
   }
 }
 
-/// Mock Whisper service for testing when server is unavailable
+/// mock whisper service for testing when server is unavailable
 class MockWhisperService extends WhisperService {
   @override
   Future<bool> isServerAvailable() async {
@@ -170,7 +170,7 @@ class MockWhisperService extends WhisperService {
   }
 }
 
-/// Audio recording simulation for testing
+/// audio recording simulation for testing
 class AudioRecorder {
   bool _isRecording = false;
   Timer? _recordingTimer;

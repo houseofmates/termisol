@@ -14,7 +14,7 @@ import 'package:xterm/xterm.dart';
 /// - kitty graphics protocol
 /// - sixel graphics
 /// - alpha channel support
-/// - Inline Images with proper rendering
+/// - inline images with proper rendering
 class GraphicsProtocolHandler {
   // terminal reference for output interception
   final Terminal? _terminal;

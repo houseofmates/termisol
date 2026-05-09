@@ -7,7 +7,7 @@ import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'terminal_session.dart' as ui;
 
-/// Session persistence and crash recovery system.
+/// session persistence and crash recovery system.
 class SessionPersistence {
   static final SessionPersistence _instance = SessionPersistence._internal();
   factory SessionPersistence() => _instance;

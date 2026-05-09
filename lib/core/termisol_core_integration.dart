@@ -65,7 +65,7 @@ class PerformanceMetrics3 {
   final double frameRate;
   final DateTime timestamp;
 
-  const PerformanceMetrics({
+  const PerformanceMetrics3({
     required this.buildDurationMs,
     required this.rasterDurationMs,
     required this.vsyncOverheadMs,

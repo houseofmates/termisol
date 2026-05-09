@@ -369,7 +369,7 @@ class TermisolPluginSystem {
       _isolates.remove(manifest.id);
       return null;
     } on Exception catch (e) {
-      if (kDebugMode) debugPrint('Failed to create plugin isolate: \$e\n\$stack');
+      if (kDebugMode) debugPrint('Failed to create plugin isolate: \$e');
       receivePort?.close();
       _receivePorts.remove(manifest.id);
       _isolates.remove(manifest.id);

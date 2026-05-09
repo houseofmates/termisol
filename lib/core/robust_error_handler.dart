@@ -293,7 +293,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Filesystem check recovery
+  /// filesystem check recovery
   Future<void> _triggerFilesystemCheck() async {
     try {
       _logger.info('Triggering filesystem check');
@@ -336,7 +336,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Network reset recovery
+  /// network reset recovery
   Future<void> _triggerNetworkReset() async {
     try {
       _logger.info('Triggering network reset');

@@ -47,6 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _createInitialTab();
     _maybeRestoreSessions();
     HeaderbarActions.action.addListener(_onHeaderbarAction);
+    PkmTheme.bgOpacity.addListener(_onBgOpacityChanged);
     _loadPerformanceOverlay();
   }
 
@@ -67,6 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _saveDebounceTimer?.cancel();
     HeaderbarActions.action.removeListener(_onHeaderbarAction);
+    PkmTheme.bgOpacity.removeListener(_onBgOpacityChanged);
     for (final tab in _tabs) {
       tab.directory.removeListener(_onDirectoryChanged);
       tab.dispose();
@@ -78,6 +80,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onDirectoryChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _onBgOpacityChanged() {
     if (mounted) setState(() {});
   }
 
@@ -887,12 +893,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: _tabs.map((tab) {
                           return Container(
                             key: ValueKey(tab.id),
-                            color: PkmTheme.terminalBg,
+                            color: PkmTheme.terminalBg.withValues(
+                              alpha: PkmTheme.bgOpacity.value,
+                            ),
                             padding: EdgeInsets.zero,
                             child: Container(
                               constraints: const BoxConstraints.expand(),
                               decoration: BoxDecoration(
-                                color: Colors.black,
+                                color: PkmTheme.terminalBg.withValues(
+                                  alpha: PkmTheme.bgOpacity.value,
+                                ),
                                 border: Border.all(
                                   color: PkmTheme.primary.withValues(alpha: 0.3),
                                 ),

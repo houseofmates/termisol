@@ -391,7 +391,7 @@ class ProductionConfigSystem {
     return current as T?;
   }
 
-  /// Set a configuration value
+  /// set a configuration value
   Future<void> set(String key, dynamic value) async {
     final oldValue = get(key);
 

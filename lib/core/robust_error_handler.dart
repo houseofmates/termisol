@@ -396,7 +396,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Clear all caches
+  /// clear all caches
   Future<void> _clearAllCaches() async {
     try {
       _logger.info('Clearing all caches');

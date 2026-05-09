@@ -189,7 +189,7 @@ class TerminalSession extends ChangeNotifier {
 
     // Start health monitoring and auto-save
     _crashRecovery.startHealthMonitoring(id);
-    // Auto-save disabled: SessionPersistence does not expose startAutoSave
+    _sessionPersistence.setAutoSaveEnabled(true);
   }
 
   /// Rename this session and notify listeners.

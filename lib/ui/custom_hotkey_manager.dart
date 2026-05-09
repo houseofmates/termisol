@@ -129,7 +129,7 @@ class CustomHotkeyManager {
     _showFeedback('Pasted from clipboard');
   }
   
-  /// Copy all terminal content
+  /// copy all terminal content
   void _handleCopyAll() {
     final buffer = session.terminal.buffer;
     final allText = buffer.getText(

@@ -10,11 +10,13 @@ import '../core/headerbar_actions.dart';
 import '../config/pkm_theme.dart';
 import 'settings_page.dart';
 import 'terminal_view.dart';
+import 'performance_overlay.dart';
 import 'command_palette.dart';
 import 'search_overlay.dart';
 import 'edit.dart';
 import 'command_history_search.dart';
 import 'split_pane.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Home screen with core terminal functionality.
@@ -36,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showSearch = false;
   bool _showHistorySearch = false;
   bool _isSplit = false;
+  bool _showPerformanceOverlay = false;
   Timer? _saveDebounceTimer;
 
   @override
@@ -44,6 +47,20 @@ class _HomeScreenState extends State<HomeScreen> {
     _createInitialTab();
     _maybeRestoreSessions();
     HeaderbarActions.action.addListener(_onHeaderbarAction);
+    _loadPerformanceOverlay();
+  }
+
+  Future<void> _loadPerformanceOverlay() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (mounted) {
+        setState(() {
+          _showPerformanceOverlay = prefs.getBool('show_performance_overlay') ?? false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Failed to load performance overlay setting: $e');
+    }
   }
 
   @override
@@ -438,6 +455,10 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _isSplit = !_isSplit);
   }
 
+  void _togglePerformanceOverlay() {
+    setState(() => _showPerformanceOverlay = !_showPerformanceOverlay);
+  }
+
   List<PaletteAction> _buildPaletteActions() {
     return [
       PaletteAction(
@@ -519,6 +540,14 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         enabled: _activeSession?.detectedUrls.isNotEmpty ?? false,
       ),
+      PaletteAction(
+        id: 'performance_overlay',
+        title: 'toggle performance overlay',
+        subtitle: 'show or hide fps and frame timing overlay',
+        icon: Icons.speed,
+        keywords: ['fps', 'performance', 'overlay', 'timing', 'frame'],
+        onExecute: _togglePerformanceOverlay,
+      ),
     ];
   }
 
@@ -526,10 +555,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: PkmTheme.background,
-      body: Stack(
-        children: [
-          Column(
-            children: [
+      body: CallbackShortcuts(
+        bindings: {
+          const SingleActivator(
+            LogicalKeyboardKey.keyO,
+            control: true,
+            shift: true,
+          ): _togglePerformanceOverlay,
+        },
+        child: Stack(
+          children: [
+            Column(
+              children: [
               // Top toolbar
               Container(
                 height: 50,

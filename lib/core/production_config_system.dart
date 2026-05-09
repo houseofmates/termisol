@@ -580,10 +580,10 @@ class ConfigChangeEvent {
   bool get isGlobalChange => key == '*' || isReset || isImport;
 }
 
-/// Configuration validator function type
+/// configuration validator function type
 typedef ConfigValidator = void Function(dynamic value);
 
-/// Configuration validation error
+/// configuration validation error
 class ConfigValidationError implements Exception {
   final String message;
   const ConfigValidationError(this.message);

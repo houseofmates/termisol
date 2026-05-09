@@ -10,8 +10,6 @@ import 'kitty_graphics_manager.dart';
 import 'mouse_protocol_manager.dart';
 import 'ligature_font_manager.dart';
 import 'throttled_renderer.dart';
-import 'optimized_text_buffer.dart';
-import 'lazy_terminal_output.dart';
 import 'smart_auto_complete.dart';
 import 'smart_command_chaining.dart';
 import 'semantic_search_engine.dart';
@@ -20,7 +18,6 @@ import 'crash_recovery.dart';
 import 'long_command_notifier.dart';
 import 'termisol_plugin_system.dart';
 import 'graphics_protocol_handler.dart';
-import 'ring_buffer_scrollback.dart';
 import 'command_history.dart';
 import 'hyperlink_handler.dart';
 import 'command_alias_system.dart';
@@ -51,7 +48,6 @@ class TerminalSession extends ChangeNotifier {
   String name;
   late final Terminal terminal;
   late final TerminalController controller;
-  late final RingBufferScrollback scrollback;
   TermisolPtyBackend? _backend;
   bool _connected = false;
   String? _error;
@@ -77,6 +73,9 @@ class TerminalSession extends ChangeNotifier {
   /// Called whenever writeInput receives data, before processing.
   /// Use this for input broadcasting/monitoring.
   void Function(String)? onInputIntercepted;
+
+  /// Called for non-error informational notifications.
+  void Function(String)? onNotification;
 
   late final FocusManager focusManager;
   late final TrueColorManager trueColor;
@@ -115,9 +114,7 @@ class TerminalSession extends ChangeNotifier {
 
   final StringBuffer _inputBuffer = StringBuffer();
 
-  // Optimization managers
-  late final OptimizedTextBuffer _textBuffer;
-  late final LazyTerminalOutput _lazyOutput;
+  // optimization managers
   late final SmartAutoComplete _autoComplete;
   late final SmartCommandChaining _commandChaining;
   late final SemanticSearchEngine _semanticSearch;
@@ -135,22 +132,14 @@ class TerminalSession extends ChangeNotifier {
   TerminalSession({
     required this.id,
     required this.name,
+    this.onNotification,
     int maxLines = 50000,
   }) {
-    // Initialize ring buffer scrollback with memory optimization
-    scrollback = RingBufferScrollback(
-      maxLines: maxLines,
-      compressionThreshold: maxLines ~/ 5, // Compress after 20% capacity
-      gcThreshold: maxLines ~/ 2, // GC at 50% capacity
-    );
-    
-    terminal = Terminal(); // Keep terminal buffer small for performance
+    terminal = Terminal();
     controller = TerminalController();
     terminal.onOutput = (data) => writeInput(data);
 
-    // Initialize optimization managers
-    _textBuffer = OptimizedTextBuffer(maxLines: maxLines);
-    _lazyOutput = LazyTerminalOutput(sessionId: id, visibleLines: 1000);
+    // initialize optimization managers
     _autoComplete = SmartAutoComplete();
     _commandChaining = SmartCommandChaining();
     _semanticSearch = SemanticSearchEngine();
@@ -180,16 +169,24 @@ class TerminalSession extends ChangeNotifier {
       _directoryNotifier.value = _directoryTracker.currentDirectory;
     });
 
-    // Setup advanced features
+    // setup advanced features
     focusManager.enableFocusEvents();
     trueColor.enable();
     kittyGraphics.enable();
     mouseProtocol.enable(TermisolMouseMode.any);
-    ligatureFont.setFont('Fira Code');
+    unawaited(_initLigatureFont());
 
-    // Start health monitoring and auto-save
+    // start health monitoring and auto-save
     _crashRecovery.startHealthMonitoring(id);
     _sessionPersistence.setAutoSaveEnabled(true);
+  }
+
+  Future<void> _initLigatureFont() async {
+    final ok = await ligatureFont.setFont('Fira Code');
+    if (!ok) {
+      await ligatureFont.setFont('monospace');
+      onNotification?.call('fira code unavailable, using monospace fallback');
+    }
   }
 
   /// Rename this session and notify listeners.
@@ -203,51 +200,53 @@ class TerminalSession extends ChangeNotifier {
     if (_connected) return;
 
     try {
-      // Use the cross-platform auto-detect factory
+      // use the cross-platform auto-detect factory
       _backend = TermisolPtyBackend.autoDetect(workingDirectory: workingDirectory);
 
-      // Start the backend
+      // start the backend
       await _backend!.start();
       _connected = true;
       _error = null;
 
-      // Initialize async subsystems
+      // initialize async subsystems
       await _pluginSystem.initialize();
       await graphicsHandler.initialize();
       await _commandChaining.initialize();
       await _semanticSearch.initialize();
 
-
-      // Enable terminal features
+      // enable terminal features
       terminal.write('\x1b[?2004h'); // bracketed paste
       terminal.write('\x1b[?1004h'); // focus tracking
-      terminal.write('\x1b[?1;2c'); // TrueColor (DA1 response)
+      terminal.write('\x1b[?1;2c'); // trueColor (DA1 response)
       terminal.write('\x1b[?1000h'); // mouse protocol
       terminal.write('\x1b[?1002h'); // button-event tracking
       terminal.write('\x1b[?1005h'); // UTF-8 mouse encoding
 
       bracketedPaste.enable();
 
-      // Start listening for output with throttled rendering
+      // start listening for output with throttled rendering
       _outputSub = _backend!.output.listen(
         (data) {
           final text = utf8.decode(data, allowMalformed: true);
-          // Normalize line endings for display consistency
-          final normalized = text.replaceAll('\r\n', '\n').replaceAll('\n', '\r\n');
+          // normalize line endings only for plain text without escape sequences
+          final normalized = text.contains('\x1b')
+              ? text
+              : text.replaceAll('\r\n', '\n').replaceAll('\n', '\r\n');
 
-          // Process graphics protocols before rendering
+          // process graphics protocols before rendering
           final processedText = graphicsHandler.processOutput(normalized, 0, 0);
+          trueColor.processOutput(text);
 
-           throttledRenderer.write(processedText);
-           _directoryTracker.processOutput(text);
-           _extractUrls(text);
-            _hyperlinkHandler.processOutput(text);
-            // Index terminal output for semantic search
-            _semanticSearch.indexDocument('terminal_output', id, text, metadata: {
-              'timestamp': DateTime.now().toIso8601String(),
-              'session_id': id,
-            });
-            onOutputReceived?.call(text);
+          throttledRenderer.write(processedText);
+          _directoryTracker.processOutput(text);
+          _extractUrls(text);
+          _hyperlinkHandler.processOutput(text);
+          // index terminal output for semantic search
+          _semanticSearch.indexDocument('terminal_output', id, text, metadata: {
+            'timestamp': DateTime.now().toIso8601String(),
+            'session_id': id,
+          });
+          onOutputReceived?.call(text);
         },
         onError: (Object e) {
           _error = e.toString();
@@ -308,15 +307,17 @@ class TerminalSession extends ChangeNotifier {
         return;
       }
 
-      // Record non-empty commands to history
+      // record non-empty commands to history
       if (bufferText.isNotEmpty) {
         commandHistory.add(bufferText);
-        // Record for smart chaining
+        _autoComplete.addToHistory(bufferText);
+        _commandNotifier.notifyLongCommand(bufferText, timeout: const Duration(seconds: 10));
+        // record for smart chaining
         _commandChaining.recordCommand(id, bufferText, cwd: directory.value);
       }
     }
 
-    // Actually send input to the backend
+    // actually send input to the backend
     try {
       _backend!.write(utf8.encode(input));
     } catch (e, stack) {
@@ -376,13 +377,17 @@ class TerminalSession extends ChangeNotifier {
       'name': name,
       'connected': _connected,
       'error': _error,
+      'workingDirectory': directory.value,
+      'terminalWidth': terminal.viewWidth,
+      'terminalHeight': terminal.viewHeight,
+      'commandHistory': commandHistory.commands.toList(),
       'timestamp': DateTime.now().toIso8601String(),
     };
   }
 
   /// Copy session data from another session.
   void copyFrom(TerminalSession other) {
-    // Buffer copying not supported by xterm package
+    // scrollback buffer content cannot be copied due to xterm.dart limitations
     terminal.resize(other.terminal.viewWidth, other.terminal.viewHeight);
 
     if (other._backend != null) {
@@ -394,8 +399,15 @@ class TerminalSession extends ChangeNotifier {
     detectedUrls.clear();
     detectedUrls.addAll(other.detectedUrls);
 
+    for (final cmd in other.commandHistory.commands) {
+      unawaited(commandHistory.add(cmd));
+    }
+
+    _directoryTracker.directory.value = other.directory.value ?? '';
+
     onAiQuery = other.onAiQuery;
     onEditCommand = other.onEditCommand;
+    onNotification = other.onNotification;
   }
 
   /// Gracefully dispose the session and all resources.
@@ -423,8 +435,6 @@ class TerminalSession extends ChangeNotifier {
     _crashRecovery.dispose();
     _commandNotifier.dispose();
     _autoComplete.dispose();
-    _lazyOutput.dispose();
-    _textBuffer.dispose();
     clipboardManager.dispose();
     await _pluginSystem.dispose();
     _hyperlinkHandler.dispose();

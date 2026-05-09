@@ -424,7 +424,7 @@ class GraphicsProtocolHandler {
 
     // process image data based on format
     switch (format) {
-      case 'f': // Direct transmission
+      case 'f': // direct transmission
         return _processDirectTransmission(params, id, cursorX, cursorY);
       case 't': // Temporary file
         return _processTemporaryFileTransmission(params, id, cursorX, cursorY);

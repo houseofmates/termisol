@@ -3,6 +3,25 @@ import 'dart:io';
 import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 
+/// protocol for isolate message-passing between main isolate and plugin isolate
+class PluginMessage {
+  final String id;
+  final String method;
+  final Map<String, dynamic> args;
+
+  PluginMessage({
+    required this.id,
+    required this.method,
+    this.args = const {},
+  });
+
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'method': method,
+        'args': args,
+      };
+}
+
 /// Termisol Plugin System
 ///
 /// Features:
@@ -116,6 +135,8 @@ class TermisolPluginSystem {
       final plugin = SimplePlugin(
         manifest: manifest,
         isolate: isolate,
+        sendPort: _sendPorts[manifest.id]!,
+        receivePort: _receivePorts[manifest.id]!,
       );
 
       _plugins[manifest.id] = plugin;
@@ -344,11 +365,12 @@ class TermisolPluginSystem {
   }
 }
 
-/// Plugin isolate entry point
+/// plugin isolate entry point
 void _pluginIsolateMain(Map<String, dynamic> args) {
   final manifest = PluginManifest.fromJson(args['manifest'] as Map<String, dynamic>);
-  final code = args['code'] as String;
   final parentSendPort = args['sendPort'] as SendPort;
+
+  final plugin = _IsolatePlugin(manifest: manifest);
 
   final receivePort = ReceivePort();
   parentSendPort.send({
@@ -356,25 +378,34 @@ void _pluginIsolateMain(Map<String, dynamic> args) {
     'sendPort': receivePort.sendPort,
   });
 
-  receivePort.listen((message) {
+  receivePort.listen((message) async {
     if (message is Map<String, dynamic>) {
       final type = message['type'];
 
       switch (type) {
         case 'execute':
           try {
+            final id = message['id'] as String;
             final method = message['method'] as String;
             final args = message['args'] as Map<String, dynamic>? ?? {};
-            final responsePort = message['responsePort'] as SendPort;
 
-            final result = _executePluginMethodInIsolate(manifest, method, args);
-            responsePort.send({'type': 'result', 'data': result});
+            final result = await plugin.execute(method, args);
+            parentSendPort.send({
+              'type': 'result',
+              'id': id,
+              'data': result,
+            });
           } catch (e) {
-            final responsePort = message['responsePort'] as SendPort;
-            responsePort.send({'type': 'error', 'error': e.toString()});
+            final id = message['id'] as String? ?? '';
+            parentSendPort.send({
+              'type': 'error',
+              'id': id,
+              'error': e.toString(),
+            });
           }
           break;
         case 'dispose':
+          await plugin.dispose();
           receivePort.close();
           break;
       }
@@ -382,20 +413,45 @@ void _pluginIsolateMain(Map<String, dynamic> args) {
   });
 }
 
-dynamic _executePluginMethodInIsolate(PluginManifest manifest, String method, Map<String, dynamic> args) {
-  // Plugin method execution - in production, this would compile and run actual plugin code
-  switch (method) {
-    case 'getInfo':
-      return manifest.toJson();
-    case 'getCapabilities':
-      return manifest.capabilities;
-    case 'ping':
-      return {'status': 'ok', 'timestamp': DateTime.now().toIso8601String()};
-    case 'execute':
-      // Generic execution for custom plugin methods
-      return {'method': method, 'args': args, 'executed': true, 'plugin': manifest.id};
-    default:
-      throw Exception('Unknown method: $method');
+/// lightweight plugin implementation that runs inside the isolate
+class _IsolatePlugin implements Plugin {
+  final PluginManifest manifest;
+
+  _IsolatePlugin({required this.manifest});
+
+  @override
+  String get id => manifest.id;
+
+  @override
+  String get name => manifest.name;
+
+  @override
+  String get version => manifest.version;
+
+  @override
+  String get description => manifest.description;
+
+  @override
+  String get author => manifest.author;
+
+  @override
+  List<String> get capabilities => manifest.capabilities;
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<void> dispose() async {}
+
+  @override
+  Future<dynamic> execute(String method, [Map<String, dynamic>? args]) async {
+    return {
+      'method': method,
+      'args': args,
+      'plugin_id': id,
+      'plugin_name': name,
+      'executed': true,
+    };
   }
 }
 
@@ -417,11 +473,20 @@ abstract class Plugin {
 class SimplePlugin implements Plugin {
   final PluginManifest manifest;
   final Isolate isolate;
+  final SendPort sendPort;
+  final ReceivePort receivePort;
 
   SimplePlugin({
     required this.manifest,
     required this.isolate,
+    required this.sendPort,
+    required this.receivePort,
   });
+
+  final Map<String, Completer<dynamic>> _pendingRequests = {};
+  int _requestCounter = 0;
+  StreamSubscription? _responseSubscription;
+  bool _isDisposed = false;
 
   @override
   String get id => manifest.id;
@@ -443,20 +508,25 @@ class SimplePlugin implements Plugin {
 
   @override
   Future<void> initialize() async {
-    // Plugin initialization logic
     debugPrint('Plugin $name initialized');
   }
 
   @override
   Future<void> dispose() async {
-    // Plugin cleanup logic
+    _isDisposed = true;
+    await _responseSubscription?.cancel();
+    for (final completer in _pendingRequests.values) {
+      if (!completer.isCompleted) {
+        completer.completeError(Exception('plugin disposed'));
+      }
+    }
+    _pendingRequests.clear();
     debugPrint('Plugin $name disposed');
   }
 
   @override
   Future<dynamic> execute(String method, [Map<String, dynamic>? args]) async {
     try {
-      // Check if this plugin supports the requested capability
       if (!capabilities.contains(method)) {
         return {
           'method': method,
@@ -467,8 +537,6 @@ class SimplePlugin implements Plugin {
         };
       }
 
-      // Simulate plugin execution with basic validation
-      // In a real implementation, this would communicate with the isolate
       final result = await _executeInIsolate(method, args ?? {});
 
       return {
@@ -488,29 +556,69 @@ class SimplePlugin implements Plugin {
     }
   }
 
+  void _ensureListening() {
+    if (_responseSubscription != null) return;
+    _responseSubscription = receivePort.listen((message) {
+      if (message == null) {
+        for (final entry in _pendingRequests.entries.toList()) {
+          if (!entry.value.isCompleted) {
+            entry.value.completeError(Exception('plugin isolate terminated unexpectedly'));
+          }
+        }
+        _pendingRequests.clear();
+        return;
+      }
+
+      if (message is List && message.isNotEmpty) {
+        for (final entry in _pendingRequests.entries.toList()) {
+          if (!entry.value.isCompleted) {
+            entry.value.completeError(Exception('plugin isolate error: ${message[0]}'));
+          }
+        }
+        _pendingRequests.clear();
+        return;
+      }
+
+      if (message is Map<String, dynamic>) {
+        final id = message['id'] as String?;
+        final completer = id != null ? _pendingRequests.remove(id) : null;
+        if (completer == null || completer.isCompleted) return;
+
+        final type = message['type'];
+        if (type == 'result') {
+          completer.complete(message['data']);
+        } else if (type == 'error') {
+          completer.completeError(Exception(message['error']?.toString() ?? 'unknown isolate error'));
+        } else {
+          completer.completeError(Exception('unknown response type: $type'));
+        }
+      }
+    });
+  }
+
   Future<dynamic> _executeInIsolate(String method, Map<String, dynamic> args) async {
-    // Placeholder for actual isolate communication
-    // This would send a message to the isolate and wait for response
-    switch (method) {
-      case 'echo':
-        return args['message'] ?? 'echo';
-      case 'get_info':
-        return {
-          'plugin_id': id,
-          'plugin_name': name,
-          'version': version,
-          'capabilities': capabilities,
-        };
-      case 'execute_command':
-        // Simulate command execution
-        return {
-          'command': args['command'],
-          'simulated': true,
-          'exit_code': 0,
-          'output': 'Command executed successfully (simulated)',
-        };
-      default:
-        throw UnsupportedError('Method $method not implemented in plugin $name');
+    if (_isDisposed) {
+      throw Exception('plugin has been disposed');
+    }
+
+    _ensureListening();
+
+    final requestId = '${manifest.id}_${_requestCounter++}';
+    final completer = Completer<dynamic>();
+    _pendingRequests[requestId] = completer;
+
+    sendPort.send({
+      'type': 'execute',
+      'id': requestId,
+      'method': method,
+      'args': args,
+    });
+
+    try {
+      return await completer.future.timeout(TermisolPluginSystem._isolateTimeout);
+    } on TimeoutException {
+      _pendingRequests.remove(requestId);
+      throw Exception('isolate execution timed out for method $method');
     }
   }
 }

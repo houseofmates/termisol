@@ -203,15 +203,15 @@ All requested features have been implemented with **amnesia-proof persistence**,
 N8N_API_KEY=
 
 # Nextcloud Configuration (Self-hosted cloud storage)
-NEXTCLOUD_BASE_URL=https://n8n.houseofmates.space/nextcloud
-NEXTCLOUD_USERNAME=house
+NEXTCLOUD_BASE_URL=https://your-nextcloud-instance.com
+NEXTCLOUD_USERNAME=your_username
 NEXTCLOUD_PASSWORD=
 
 # Docker Stack Configuration
-DOCKER_STACK_PATH=/home/house/Documents/docker/main-stack
+DOCKER_STACK_PATH=/path/to/your/docker/stack
 
 # Personal Preferences
-PERSONAL_NAME=house
+PERSONAL_NAME=your_name
 DEFAULT_PROJECT_SERVER=.233
 BACKUP_SERVER=.250
 

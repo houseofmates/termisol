@@ -703,11 +703,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              // Terminal area
+// Terminal area
               Expanded(
                 child: _isSplit && _tabs.length >= 2
                     ? SplitPane(
-                        sessions: [_activeSession, _tabs.isNotEmpty ? _tabs.last : null].whereType<TerminalSession>().toList(),
+                        sessions: [_tabs[0], _tabs[1]],
                         onNewTab: _addTab,
                         onCloseTab: () {
                           final idx = _tabs.indexWhere((t) => t.id == _activeTab);

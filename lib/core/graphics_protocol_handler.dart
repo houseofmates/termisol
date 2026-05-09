@@ -575,7 +575,7 @@ class GraphicsProtocolHandler {
           result = _convertSixelToRGBA(image, targetWidth, targetHeight, enableAlpha);
           break;
         case 'kitty':
-          result = _convertKittyToRGBA(image, targetWidth, targetHeight, enableAlpha);
+          result = await _convertKittyToRGBA(image, targetWidth, targetHeight, enableAlpha);
           break;
         default:
           result = null;

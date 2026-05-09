@@ -209,7 +209,7 @@ class GraphicsProtocolHandler {
         return _colorPalette[colorIndex] ?? Colors.white;
       }
 
-      // Fallback to basic ANSI
+      // fallback to basic ansi
       return _parseBasicAnsiColor(sequence, isBackground: isBackground);
     } catch (e) {
       debugPrint('Failed to parse ANSI color: $e');
@@ -251,10 +251,10 @@ class GraphicsProtocolHandler {
 
     String processed = output;
 
-    // Process Sixel sequences
+    // process sixel sequences
     processed = _processSixelSequences(processed, cursorX, cursorY);
 
-    // Process Kitty graphics sequences
+    // process kitty graphics sequences
     processed = _processKittySequences(processed, cursorX, cursorY);
 
     return processed;

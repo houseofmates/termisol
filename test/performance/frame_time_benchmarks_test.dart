@@ -5,7 +5,7 @@ import 'package:termisol/core/service_registry.dart';
 
 void main() {
   group('Performance Benchmarks', () {
-    late ServiceRegistry registry;
+    final registry = ServiceRegistry.instance;
 
     testWidgets('Frame times under 16ms during normal typing', (WidgetTester tester) async {
       await tester.pumpWidget(TermisolApp(registry: registry));

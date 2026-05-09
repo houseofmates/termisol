@@ -247,7 +247,7 @@ class RobustErrorHandler {
         await Future.delayed(const Duration(milliseconds: 50));
       }
       
-      // Clear temporary files
+      // clear temporary files
       final tempDir = Directory.systemTemp;
       if (await tempDir.exists()) {
         await for (final entity in tempDir.list()) {
@@ -413,7 +413,7 @@ class RobustErrorHandler {
       // clear performance metrics
       _performanceMetrics.clear();
       
-      // Clear temporary files
+      // clear temporary files
       final tempDir = Directory.systemTemp;
       if (await tempDir.exists()) {
         await for (final entity in tempDir.list()) {

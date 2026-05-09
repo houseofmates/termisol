@@ -111,7 +111,7 @@ class TermisolPluginSystem {
         return false;
       }
 
-      // Validate dependencies
+      // validate dependencies
       if (!await _validateDependencies(manifest)) {
         _eventController.add(PluginSystemEvent(
           PluginSystemEventType.loadFailed,

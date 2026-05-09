@@ -137,6 +137,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     widget.session.onOutputReceived = _originalOnOutput;
     _graphicsHandler.dispose();
     _clipboard.dispose();
+    _enhancedClipboard.dispose();
     _hotkeyManager.dispose();
     super.dispose();
   }

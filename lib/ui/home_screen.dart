@@ -70,6 +70,15 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _initSpeech() async {
+    _speechAvailable = await _speechToText.initialize(
+      onError: (error) => debugPrint('Speech recognition error: $error'),
+      onStatus: (status) => debugPrint('Speech recognition status: $status'),
+    );
+    if (!mounted) return;
+    setState(() {});
+  }
+
   @override
   void dispose() {
     _saveDebounceTimer?.cancel();

@@ -768,7 +768,7 @@ class GraphicsProtocolHandler {
     );
   }
 
-  /// Convert Sixel to RGBA format
+  /// convert sixel to rgba format
   Uint8List _convertSixelToRGBA(
     GraphicsImage image,
     int? targetWidth,

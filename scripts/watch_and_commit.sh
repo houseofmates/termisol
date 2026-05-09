@@ -72,8 +72,8 @@ commit_changes() {
         if git commit -m "$commit_msg"; then
             log_message "Committed: $commit_msg"
             
-            # Push to main branch (try both main and master)
-            if git push origin main 2>/dev/null || git push origin master 2>/dev/null; then
+            # Push to main branch
+            if git push origin main; then
                 log_message "Pushed to remote"
             else
                 log_message "Failed to push to remote"

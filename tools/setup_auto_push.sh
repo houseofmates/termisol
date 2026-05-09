@@ -46,7 +46,7 @@ if command -v systemctl &> /dev/null && [ -w "/etc/systemd/system" ]; then
     
     SERVICE_FILE="/etc/systemd/system/termisol-autopush.service"
     
-    # Create systemd service file
+    # create systemd service file
     tee "$SERVICE_FILE" > /dev/null << EOF
 [Unit]
 Description=Termisol AutoPush Service

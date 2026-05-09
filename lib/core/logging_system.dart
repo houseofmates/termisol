@@ -444,7 +444,7 @@ class DebugSink implements LogSink {
   
   List<LogEntry> get entries => List.unmodifiable(_entries);
   
-  /// Get entries by level
+  /// get entries by level
   List<LogEntry> getEntriesByLevel(LogLevel level) {
     return _entries.where((e) => e.level == level).toList();
   }

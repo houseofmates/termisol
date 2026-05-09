@@ -600,7 +600,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Map log level to error severity
+  /// map log level to error severity
   ErrorSeverity _mapLogLevelToSeverity(Level level) {
     if (level.value >= Level.SHOUT.value) {
       return ErrorSeverity.critical;

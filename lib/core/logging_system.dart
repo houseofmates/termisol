@@ -449,7 +449,7 @@ class DebugSink implements LogSink {
     return _entries.where((e) => e.level == level).toList();
   }
   
-  /// Get entries by time range
+  /// get entries by time range
   List<LogEntry> getEntriesByTimeRange(DateTime start, DateTime end) {
     return _entries.where((e) => 
       e.timestamp.isAfter(start) && e.timestamp.isBefore(end)
@@ -457,7 +457,7 @@ class DebugSink implements LogSink {
   }
 }
 
-/// Performance tracker
+/// performance tracker
 class PerformanceTracker {
   final String operation;
   final Stopwatch _stopwatch;

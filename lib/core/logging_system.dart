@@ -157,7 +157,7 @@ class TermisolLogger {
     info('Performance Metrics', metrics);
   }
   
-  /// Log user interaction
+  /// log user interaction
   void logUserInteraction(String action, [Map<String, dynamic>? context]) {
     debug('User Interaction: $action', context);
   }

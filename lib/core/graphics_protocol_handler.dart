@@ -82,6 +82,13 @@ class GraphicsProtocolHandler {
         _setupOutputInterception();
       }
 
+      try {
+        final dir = await getTemporaryDirectory();
+        _cacheDir = dir.path;
+      } catch (_) {
+        _cacheDir = Directory.systemTemp.path;
+      }
+
       _isInitialized = true;
       _eventController.add(GraphicsEvent(
         GraphicsEventType.initialized,

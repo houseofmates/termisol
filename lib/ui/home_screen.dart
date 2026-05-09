@@ -1007,7 +1007,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onDismiss: () => setState(() => _showPerformanceOverlay = false),
             ),
           // Hints mode overlay
-          if (_showHintsMode && _activeSession != null && (!_isSplit || _tabs.length < 2))
+          if (_showHintsMode && _activeSession != null)
             Positioned.fill(
               child: HintsModeOverlay(
                 terminal: _activeSession!.terminal,

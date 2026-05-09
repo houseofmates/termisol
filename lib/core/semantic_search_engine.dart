@@ -94,7 +94,7 @@ class SemanticSearchEngine {
       if (filters != null && filters.isNotEmpty) {
         if (!_matchesFilters(doc, filters)) continue;
       }
-      final score = _scoreBM25(doc, queryTokens, avgLength) + _scoreNgrams(doc, query) * 0.3;
+      final score = _scoreBM25(doc, queryTokens, avgLength, collection) + _scoreNgrams(doc, query) * 0.3;
       if (score >= minScore) {
         results.add(SearchResult(
           documentId: docId,
@@ -210,7 +210,7 @@ class SemanticSearchEngine {
     return candidates ?? {};
   }
 
-  double _scoreBM25(IndexedDocument doc, List<String> queryTokens, double avgLength) {
+  double _scoreBM25(IndexedDocument doc, List<String> queryTokens, double avgLength, String collection) {
     double score = 0.0;
     final docLength = doc.tokens.length.toDouble();
     for (final token in queryTokens) {

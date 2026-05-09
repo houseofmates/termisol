@@ -2,9 +2,8 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:xterm/src/core/cell.dart' show CellAttr, CellColor, CellContent, CellData;
-import 'package:xterm/src/ui/painter.dart' show TerminalPainter;
-import 'package:xterm/xterm.dart' show BufferLine, BufferRange, TerminalCursorType, TerminalStyle, TerminalTheme;
+import 'package:xterm/xterm.dart' show BufferLine, BufferRange, TerminalPainter, TerminalStyle, TerminalTheme;
+import 'package:xterm/xterm.dart' show CellAttr, CellColor, CellContent, CellData;
 
 import 'color_resolver.dart';
 import 'line_picture_cache.dart';
@@ -19,13 +18,12 @@ import 'line_picture_cache.dart';
 /// glyph/style combination is cached in an internal LRU map.
 class GpuTerminalPainter extends TerminalPainter {
   GpuTerminalPainter({
-    required TerminalTheme theme,
-    required TerminalStyle textStyle,
-    required TextScaler textScaler,
-  })  : _colorResolver = TerminalColorResolver(theme),
-        super(theme: theme, textStyle: textStyle, textScaler: textScaler);
+    required super.theme,
+    required super.textStyle,
+    required super.textScaler,
+  }) : _colorResolver = TerminalColorResolver(theme);
 
-  TerminalColorResolver _colorResolver;
+  final TerminalColorResolver _colorResolver;
   final LinePictureCache _lineCache = LinePictureCache();
   final Map<int, Paragraph> _paragraphCache = {};
 
@@ -123,7 +121,7 @@ class GpuTerminalPainter extends TerminalPainter {
         final top = offset.dy;
         final right = left + cellWidth * (width == 2 ? 2 : 1);
         final bottom = top + cellHeight;
-        _addRect(positions, colors, left, top, right, bottom, color.value);
+        _addRect(positions, colors, left, top, right, bottom, color.toARGB32());
       }
 
       if (width == 2) i++;
@@ -166,7 +164,7 @@ class GpuTerminalPainter extends TerminalPainter {
       }
 
       if (cellData.flags & CellAttr.faint != 0) {
-        color = color.withOpacity(0.5);
+        color = color.withValues(alpha: 0.5);
       }
 
       final style = TextStyle(

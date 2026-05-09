@@ -77,7 +77,7 @@ else
     echo "⚠️  Systemd not available or no write access, using manual startup"
 fi
 
-# Create crontab entry for fallback (runs every 5 minutes to check if service is running)
+# create crontab entry for fallback (runs every 5 minutes to check if service is running)
 echo "⏰ Setting up crontab fallback..."
 TEMP_CRON=$(mktemp)
 crontab -l > "$TEMP_CRON" 2>/dev/null || echo "" > "$TEMP_CRON"

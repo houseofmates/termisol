@@ -131,7 +131,7 @@ class TermisolPluginSystem {
         return false;
       }
 
-      // Create plugin instance
+      // create plugin instance
       final plugin = SimplePlugin(
         manifest: manifest,
         isolate: isolate,

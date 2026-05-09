@@ -447,7 +447,7 @@ class _SettingsPageState extends State<SettingsPage>
           const Expanded(
             child: Text(
               'font family',
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
                 fontSize: 14,
                 fontFamily: 'monospace',

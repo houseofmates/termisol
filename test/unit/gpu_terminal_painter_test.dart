@@ -6,6 +6,8 @@ import 'package:termisol/core/gpu/gpu_terminal_painter.dart';
 import 'package:xterm/xterm.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('GpuTerminalPainter', () {
     test('can be instantiated with theme and style', () {
       final painter = GpuTerminalPainter(

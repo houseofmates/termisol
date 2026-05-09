@@ -497,7 +497,7 @@ class DebugUtils {
     TermisolLogger().debug('Memory usage: $context', {
       'context': context,
       'timestamp': DateTime.now().toIso8601String(),
-      'process_info_available': false, // Platform-specific implementation needed
+      'process_info_available': false, // platform-specific implementation needed
     });
   }
   

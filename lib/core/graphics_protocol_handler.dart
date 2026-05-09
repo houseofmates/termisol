@@ -62,7 +62,7 @@ class GraphicsProtocolHandler {
   final Map<String, ui.Picture> _pictureCache = {};
   final Map<int, List<ui.Rect>> _damageRegions = {};
 
-  // Performance monitoring
+  // performance monitoring
   int _totalImagesProcessed = 0;
   int _totalRenderTime = 0;
   final StreamController<GraphicsEvent> _eventController =

@@ -1250,7 +1250,7 @@ class PendingImage {
   });
 }
 
-/// Graphics overlay for positioning images
+/// graphics overlay for positioning images
 class GraphicsOverlay {
   final String imageId;
   final Offset position;

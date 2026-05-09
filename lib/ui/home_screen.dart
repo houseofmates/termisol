@@ -802,7 +802,7 @@ class _HomeScreenState extends State<HomeScreen> {
              ),
           // Performance overlay
           if (_showPerformanceOverlay)
-            PerformanceOverlay(
+            TermisolPerformanceOverlay(
               onDismiss: () => setState(() => _showPerformanceOverlay = false),
             ),
           ],

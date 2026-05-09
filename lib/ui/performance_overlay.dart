@@ -3,7 +3,7 @@ import '../config/pkm_theme.dart';
 import '../core/termisol_core_integration.dart';
 
 /// A small overlay that shows FPS and frame timing in the top-right corner.
-class PerformanceOverlay extends StatefulWidget {
+class TermisolPerformanceOverlay extends StatefulWidget {
   final VoidCallback onDismiss;
 
   const PerformanceOverlay({
@@ -15,7 +15,7 @@ class PerformanceOverlay extends StatefulWidget {
   State<PerformanceOverlay> createState() => _PerformanceOverlayState();
 }
 
-class _PerformanceOverlayState extends State<PerformanceOverlay> {
+class _TermisolPerformanceOverlayState extends State<TermisolPerformanceOverlay> {
   @override
   void initState() {
     super.initState();

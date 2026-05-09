@@ -713,7 +713,7 @@ enum AlertType {
   securityIssue,
 }
 
-/// Alert severity levels
+/// alert severity levels
 enum AlertSeverity {
   low,
   medium,

@@ -149,3 +149,5 @@
 ⏳ File test_auto_commit.txt is too recent (5s old)
 📝 Detected 1 changed files
 ⏳ File .devin/auto_push_state.json is too recent (5s old)
+📝 Detected 2 changed files
+⏳ File scripts/auto_commit.sh is too recent (2s old)

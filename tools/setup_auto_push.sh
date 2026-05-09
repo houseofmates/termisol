@@ -30,12 +30,12 @@ if ! command -v jq &> /dev/null; then
     echo "   Install with: sudo apt-get install jq (Ubuntu/Debian)"
 fi
 
-# Create necessary directories
+# create necessary directories
 echo "📁 Creating directories..."
 mkdir -p "$REPO_DIR/.devin"
 mkdir -p "$REPO_DIR/tools"
 
-# Make scripts executable
+# make scripts executable
 echo "🔐 Making scripts executable..."
 chmod +x "$SCRIPT_DIR/start_auto_push.sh"
 chmod +x "$SCRIPT_DIR/setup_auto_push.sh"

@@ -54,7 +54,7 @@ class TermisolPluginSystem {
     if (_isInitialized) return;
 
     try {
-      // Create plugins directory
+      // create plugins directory
       final pluginsDir = Directory(_pluginsDirectory);
       if (!await pluginsDir.exists()) {
         await pluginsDir.create(recursive: true);
@@ -682,7 +682,7 @@ class PluginManifest {
   String toString() => '$name ($version) by $author';
 }
 
-/// Plugin system events
+/// plugin system events
 class PluginSystemEvent {
   final PluginSystemEventType type;
   final String message;

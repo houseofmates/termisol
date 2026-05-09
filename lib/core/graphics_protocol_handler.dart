@@ -191,7 +191,7 @@ class GraphicsProtocolHandler {
     }
 
     try {
-      // Parse True Color (RGB) sequences: ESC[38;2;r;g;b or ESC[48;2;r;g;b
+      // parse true color (rgb) sequences: esc[38;2;r;g;b or esc[48;2;r;g;b
       final rgbMatch = RegExp(
         r'\x1b\[(38|48);2;(\d+);(\d+);(\d+)m',
       ).firstMatch(sequence);
@@ -202,7 +202,7 @@ class GraphicsProtocolHandler {
         return Color.fromARGB(255, r, g, b);
       }
 
-      // Parse 256-color sequences: ESC[38;5;n or ESC[48;5;n
+      // parse 256-color sequences: esc[38;5;n or esc[48;5;n
       final colorMatch = RegExp(r'\x1b\[(38|48);5;(\d+)m').firstMatch(sequence);
       if (colorMatch != null) {
         final colorIndex = int.parse(colorMatch.group(2)!);

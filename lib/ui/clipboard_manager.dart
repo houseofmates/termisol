@@ -96,7 +96,7 @@ class TerminalClipboardManager {
       final buffer = terminal.buffer;
       final lastLine = buffer.lines.length - 1;
       if (lastLine < 0) return;
-      final startOffset = CellOffset(0, 0);
+      const startOffset = CellOffset(0, 0);
       final endOffset = CellOffset(
         buffer.lines[lastLine].getText().length,
         lastLine,

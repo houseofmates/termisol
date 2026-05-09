@@ -32,7 +32,7 @@ class _TerminalSearchOverlayState extends State<TerminalSearchOverlay> {
   bool _semanticSearch = false;
   int _currentMatch = 0;
   int _totalMatches = 0;
-  final List<int> _matchLineIndices = [];
+  List<int> _matchLineIndices = [];
   List<String> _semanticResults = [];
 
   @override

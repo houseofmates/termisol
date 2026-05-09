@@ -233,9 +233,11 @@ class AndroidShellBackend implements TermisolPtyBackend {
         } else if (ch == '\b' || ch == '\x7f') {
           if (_lineBuffer.isNotEmpty) {
             final str = _lineBuffer.toString();
-            final lastChar = str.characters.last;
-            _lineBuffer.clear();
-            _lineBuffer.write(str.substring(0, str.length - lastChar.length));
+            final runes = str.runes.toList();
+            if (runes.isNotEmpty) {
+              _lineBuffer.clear();
+              _lineBuffer.write(String.fromCharCodes(runes.sublist(0, runes.length - 1)));
+            }
             _safeAdd(utf8.encode('\b \b'));
           }
         } else if (rune == 0x03) {

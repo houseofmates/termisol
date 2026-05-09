@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:xterm/xterm.dart' show TerminalView, TerminalStyle, TerminalTheme, TerminalController;
+import 'package:xterm/xterm.dart' show TerminalController, TerminalCursorType, TerminalStyle, TerminalTheme, TerminalView;
 import '../core/terminal_session.dart';
 import '../core/gpu_renderer.dart';
 import '../config/pkm_theme.dart';

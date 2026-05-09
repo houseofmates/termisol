@@ -25,7 +25,7 @@ class AutoPushService {
     print('🚀 Starting AutoPush Service for Termisol');
     print('📍 Repository: ${_repoDir.path}');
     
-    // Ensure .devin directory exists
+    // ensure .devin directory exists
     await Directory('.devin').create(recursive: true);
     
     // Load previous state

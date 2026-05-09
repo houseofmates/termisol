@@ -19,6 +19,7 @@ import 'command_history_search.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 /// Home screen with core terminal functionality.
 /// Services are pulled lazily from the registry on first use.
@@ -42,6 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showHintsMode = false;
   bool _broadcastMode = false;
   Timer? _saveDebounceTimer;
+  final SpeechToText _speechToText = SpeechToText();
+  bool _speechAvailable = false;
 
   @override
   void initState() {

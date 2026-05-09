@@ -121,8 +121,7 @@ void _parseANSISquence(String sequence) {
     // OSC sequence
     final endIndex = sequence.indexOf('\x1b\\', 2);
     if (endIndex != -1) {
-      final content = sequence.substring(2, endIndex);
-      // Parse OSC content
+      // Parse OSC content: ${sequence.substring(2, endIndex)}
     }
   }
 }

@@ -137,6 +137,31 @@ ai:
 
 Type `/ai <question>` in the terminal. On desktop, this always goes to NVIDIA NIM. On Android, if the cloud request fails and a local gemma endpoint was detected at startup, it falls back to the local model.
 
+## security
+
+if you believe you, or an ai agent that you coordinate has found a security vulnerability, please report it privately to: john@houseofmates.space
+
+do NOT open public issues for security vulnerabilities.
+
+we will try to respond promptly and provide coordination for fixes as soon as we can
+
 ## license
 
-MIT License. See `LICENSE`.
+mates license
+
+copyright (c) 2026 house of mates
+
+permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "software"), to fork the existing 
+codebase or utilize the code from it in one's own projects so long as financial profit is 
+not to be gained by said code/software created by the code.
+
+TERMISOL IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE HOUSE OF MATES
+SYSTEM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+USE OR OTHER DEALINGS IN THE SOFTWARE. TERMISOL WAS INITIALLY, AND ONLY MADE TO BE USED
+BY THE HOUSE OF MATES SYSTEM. OTHER USERS WERE NEVER IN MIND FOR THIS PROJECT, AND YOU
+ARE EXPECTED TO CHANGE SIGNIFICANT PARTS OF THE CODEBASE TO ADAPT TO YOUR OWN PREFERENCES
+AND NEEDS BASED ON THE DIFFERENCES IN HOW YOUR BRAIN WORKS VS. THE HOUSE OF MATES SYSTEM'S.

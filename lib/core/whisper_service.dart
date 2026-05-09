@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-/// Whisper speech-to-text service for local server integration
+/// whisper speech-to-text service for local server integration
 class WhisperService {
   final String serverUrl;
   final Duration timeout;

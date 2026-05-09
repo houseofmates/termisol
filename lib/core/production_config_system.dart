@@ -248,7 +248,7 @@ class ProductionConfigSystem {
     try {
       // check for vr runtime and device detection
       if (Platform.isAndroid) {
-        // Check for Oculus/Quest devices
+        // check for oculus/quest devices
         final isOculus = Platform.environment['OCULUS_VR']?.isNotEmpty ?? false;
         final isQuest = Platform.environment['QUEST_VR']?.isNotEmpty ?? false;
         

@@ -28,7 +28,7 @@ class PluginMessage {
 /// - dynamic plugin loading from file system
 /// - plugin lifecycle management (load, unload, reload)
 /// - secure isolate-based execution
-/// - Plugin dependency resolution
+/// - plugin dependency resolution
 /// - Event-driven communication
 /// - Performance monitoring
 /// - Hot-reload capability

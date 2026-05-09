@@ -59,7 +59,7 @@ class TermisolLogger {
     });
   }
   
-  /// Dispose the logging system
+  /// dispose the logging system
   void dispose() {
     _flushTimer?.cancel();
     _flush();

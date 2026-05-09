@@ -81,7 +81,7 @@ class TermisolLogger {
     _log(LogLevel.info, message, context);
   }
   
-  /// Log warning message
+  /// log warning message
   void warning(String message, [Map<String, dynamic>? context]) {
     _log(LogLevel.warning, message, context);
   }

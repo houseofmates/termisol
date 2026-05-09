@@ -469,7 +469,7 @@ class ProductionConfigSystem {
     _config.addAll(Map.from(_defaults));
     _applyPlatformOverrides();
 
-    // Emit reset event
+    // emit reset event
     _changeController.add(ConfigChangeEvent(
       key: '*',
       oldValue: null,

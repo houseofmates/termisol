@@ -594,7 +594,7 @@ class GraphicsProtocolHandler {
   /// process sixel data
   String _processSixel(String params, String data, int cursorX, int cursorY) {
     try {
-      // Parse Sixel parameters
+      // parse sixel parameters
       final paramMap = <String, String>{};
       final paramPairs = params.split(';');
 
@@ -610,7 +610,7 @@ class GraphicsProtocolHandler {
       final width = int.tryParse(paramMap['1'] ?? '0') ?? 100;
       final height = int.tryParse(paramMap['2'] ?? '0') ?? 100;
 
-      // Create image from Sixel data
+      // create image from sixel data
       final imageId = _nextImageId++;
       final idStr = imageId.toString();
       _imageCache[idStr] = GraphicsImage(

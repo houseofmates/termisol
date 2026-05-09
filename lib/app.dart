@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/service_registry.dart';
@@ -19,11 +20,14 @@ class TermisolApp extends StatefulWidget {
 }
 
 class _TermisolAppState extends State<TermisolApp> {
+  bool _isVr = false;
+
   @override
   void initState() {
     super.initState();
     PkmTheme.themeMode.addListener(_onThemeChanged);
     _loadSavedTheme();
+    _detectVr();
   }
 
   @override
@@ -43,8 +47,35 @@ class _TermisolAppState extends State<TermisolApp> {
       try {
         PkmTheme.themeMode.value = TermisolThemeMode.values.byName(saved);
       } catch (_) {
-        // Invalid saved theme, ignore
+        // invalid saved theme, ignore
       }
+    }
+  }
+
+  Future<void> _detectVr() async {
+    bool isVr = false;
+    try {
+      final config = ProductionConfigSystem();
+      await config.initialize();
+      final configVr = config.get<bool>('device.is_vr') ?? false;
+      final featureVr = config.get<bool>('features.vr_support') ?? false;
+      isVr = configVr || featureVr;
+
+      if (Platform.isAndroid && !isVr) {
+        const channel = MethodChannel('com.termisol/vr');
+        final buildInfo = await channel.invokeMethod<Map<dynamic, dynamic>>('getBuildInfo');
+        final model = (buildInfo?['model'] as String? ?? '').toLowerCase();
+        final manufacturer = (buildInfo?['manufacturer'] as String? ?? '').toLowerCase();
+        isVr = model.contains('quest') ||
+               model.contains('oculus') ||
+               manufacturer.contains('oculus');
+      }
+    } catch (e) {
+      debugPrint('vr detection failed: $e');
+    }
+
+    if (mounted) {
+      setState(() => _isVr = isVr);
     }
   }
 
@@ -60,41 +91,90 @@ class _TermisolAppState extends State<TermisolApp> {
       textTheme: baseTextTheme,
     );
 
-    // Check if running on VR device
-    final isVr = _isVrDevice();
-
     return MaterialApp(
       title: 'termisol',
       debugShowCheckedModeBanner: false,
       theme: theme,
-      home: isVr ? _buildVrHome(widget.registry) : HomeScreen(registry: widget.registry),
+      home: _isVr ? _VrHome(registry: widget.registry) : HomeScreen(registry: widget.registry),
     );
   }
+}
 
-  bool _isVrDevice() {
-    if (!Platform.isAndroid) return false;
-    // Check config for VR support
-    try {
-      final config = ProductionConfigSystem();
-      final isVr = config.get<bool>('device.is_vr') ?? false;
-      final vrSupport = config.get<bool>('features.vr_support') ?? false;
-      return isVr || vrSupport;
-    } catch (e) {
-      return false;
-    }
+class _VrHome extends StatefulWidget {
+  final ServiceRegistry registry;
+
+  const _VrHome({required this.registry});
+
+  @override
+  State<_VrHome> createState() => _VrHomeState();
+}
+
+class _VrHomeState extends State<_VrHome> {
+  TerminalSession? _session;
+  bool _starting = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _initSession();
   }
 
-  Widget _buildVrHome(ServiceRegistry registry) {
-    // For VR, create a simplified terminal interface
+  Future<void> _initSession() async {
     final session = TerminalSession(
       id: 'vr_main',
       name: 'VR Terminal',
     );
-    session.start();
+    try {
+      await session.start();
+      if (mounted) {
+        setState(() {
+          _session = session;
+          _starting = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _starting = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _session?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_starting) {
+      return Container(
+        color: Colors.black,
+        child: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_error != null || _session == null) {
+      return Container(
+        color: Colors.black,
+        child: Center(
+          child: Text(
+            'vr session failed: ${_error ?? 'unknown'}',
+            style: const TextStyle(color: Colors.red),
+          ),
+        ),
+      );
+    }
 
     return Container(
       color: Colors.black,
-      child: VrTerminalView(session: session),
+      child: VrTerminalView(session: _session!),
     );
   }
 }

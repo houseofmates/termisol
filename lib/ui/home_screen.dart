@@ -12,6 +12,7 @@ import 'settings_page.dart';
 import 'terminal_view.dart';
 import 'performance_overlay.dart';
 import 'command_palette.dart';
+import 'hints_mode.dart';
 import 'search_overlay.dart';
 import 'edit.dart';
 import 'command_history_search.dart';
@@ -569,6 +570,10 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _showPerformanceOverlay = !_showPerformanceOverlay);
   }
 
+  void _toggleHintsMode() {
+    setState(() => _showHintsMode = !_showHintsMode);
+  }
+
   void _toggleBroadcastMode() {
     setState(() => _broadcastMode = !_broadcastMode);
   }
@@ -1007,6 +1012,14 @@ class _HomeScreenState extends State<HomeScreen> {
           if (_showPerformanceOverlay)
             TermisolPerformanceOverlay(
               onDismiss: () => setState(() => _showPerformanceOverlay = false),
+            ),
+          // Hints mode overlay
+          if (_showHintsMode && _activeSession != null && (!_isSplit || _tabs.length < 2))
+            Positioned.fill(
+              child: HintsModeOverlay(
+                terminal: _activeSession!.terminal,
+                onClose: () => setState(() => _showHintsMode = false),
+              ),
             ),
           ],
         ),

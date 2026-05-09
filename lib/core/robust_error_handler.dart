@@ -194,7 +194,7 @@ class RobustErrorHandler {
   
   /// recovery strategies for warnings
   Future<void> _recoverFromWarning(ErrorReport report) async {
-    // Implement warning-specific recovery
+    // implement warning-specific recovery
     if (report.error.contains('memory')) {
       await _triggerMemoryCleanup();
     }

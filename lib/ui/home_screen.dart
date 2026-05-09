@@ -102,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       listenFor: const Duration(seconds: 30),
       pauseFor: const Duration(seconds: 5),
-      listenOptions: const SpeechListenOptions(
+      listenOptions: SpeechListenOptions(
         partialResults: false,
       ),
     );

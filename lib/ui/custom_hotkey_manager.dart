@@ -51,7 +51,7 @@ class CustomHotkeyManager {
     final ctrl = HardwareKeyboard.instance.isControlPressed;
     final shift = HardwareKeyboard.instance.isShiftPressed;
     
-    // Ctrl+C: Copy (instead of interrupt)
+    // ctrl+c: copy (instead of interrupt)
     if (ctrl && !shift && event.logicalKey == LogicalKeyboardKey.keyC) {
       _handleCopy();
       return KeyEventResult.handled;

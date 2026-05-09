@@ -9,7 +9,7 @@ import 'package:xterm/xterm.dart';
 
 /// graphics protocol handler - advanced terminal graphics support
 ///
-/// Implements industry-standard graphics protocols:
+/// implements industry-standard graphics protocols:
 /// - 24-bit True Color (RGB)
 /// - Kitty Graphics Protocol
 /// - Sixel Graphics

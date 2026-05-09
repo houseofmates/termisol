@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:logging/logging.dart';
 
-/// Production-grade error handling system for Termisol
+/// production-grade error handling system for termisol
 /// 
-/// Features:
+/// features:
 /// - Structured error logging with context
 /// - Automatic error recovery mechanisms
 /// - Performance monitoring and alerting
@@ -49,7 +49,7 @@ class RobustErrorHandler {
   final int _errorThreshold = 10; // Alert after 10 similar errors
   final Duration _errorWindow = const Duration(minutes: 5);
   
-  /// Initialize the error handler
+  /// initialize the error handler
   Future<void> initialize() async {
     try {
       // Setup logging hierarchy

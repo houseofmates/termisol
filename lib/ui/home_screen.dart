@@ -35,6 +35,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final List<TerminalSession> _tabs = [];
   final Map<String, FocusNode> _tabFocusNodes = {};
+  final Map<String, ScrollController> _tabScrollControllers = {};
   String _activeTab = '0';
   bool _showCommandPalette = false;
   bool _showSearch = false;
@@ -128,6 +129,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     for (final node in _tabFocusNodes.values) {
       node.dispose();
+    }
+    for (final sc in _tabScrollControllers.values) {
+      sc.dispose();
     }
     super.dispose();
   }
@@ -258,6 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _tabs.add(session);
     _tabFocusNodes['0'] = FocusNode();
+    _tabScrollControllers['0'] = ScrollController();
     _activeTab = '0';
   }
 
@@ -283,6 +288,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _tabs.add(newTab);
       _tabFocusNodes[newTabId] = FocusNode();
+      _tabScrollControllers[newTabId] = ScrollController();
       _activeTab = newTabId;
     });
 
@@ -305,12 +311,13 @@ class _HomeScreenState extends State<HomeScreen> {
       tab.directory.removeListener(_onDirectoryChanged);
       tab.dispose();
       _tabFocusNodes[tabId]?.dispose();
+      _tabScrollControllers[tabId]?.dispose();
 
       setState(() {
         _tabs.removeAt(index);
         _tabFocusNodes.remove(tabId);
+        _tabScrollControllers.remove(tabId);
 
-        // If we closed the active tab, switch to another one
         if (_activeTab == tabId && _tabs.isNotEmpty) {
           _activeTab = _tabs[0].id;
         }
@@ -346,6 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _tabs.add(newTab);
       _tabFocusNodes[newTabId] = FocusNode();
+      _tabScrollControllers[newTabId] = ScrollController();
       _activeTab = newTabId;
     });
 
@@ -365,6 +373,8 @@ class _HomeScreenState extends State<HomeScreen> {
       tab.dispose();
       _tabFocusNodes[tab.id]?.dispose();
       _tabFocusNodes.remove(tab.id);
+      _tabScrollControllers[tab.id]?.dispose();
+      _tabScrollControllers.remove(tab.id);
       _tabs.removeAt(i);
     }
 
@@ -382,6 +392,8 @@ class _HomeScreenState extends State<HomeScreen> {
       tab.dispose();
       _tabFocusNodes[tab.id]?.dispose();
       _tabFocusNodes.remove(tab.id);
+      _tabScrollControllers[tab.id]?.dispose();
+      _tabScrollControllers.remove(tab.id);
       _tabs.removeAt(i);
     }
 
@@ -551,7 +563,6 @@ class _HomeScreenState extends State<HomeScreen> {
       final saved = await SessionPersistence().loadSessions();
       if (saved.isEmpty || !mounted) return;
 
-      // Dispose initial tab
       for (final tab in _tabs) {
         tab.directory.removeListener(_onDirectoryChanged);
         tab.dispose();
@@ -559,8 +570,12 @@ class _HomeScreenState extends State<HomeScreen> {
       for (final node in _tabFocusNodes.values) {
         node.dispose();
       }
+      for (final sc in _tabScrollControllers.values) {
+        sc.dispose();
+      }
       _tabs.clear();
       _tabFocusNodes.clear();
+      _tabScrollControllers.clear();
 
       for (final data in saved) {
         final id = data['id'] as String? ?? '';
@@ -577,10 +592,30 @@ class _HomeScreenState extends State<HomeScreen> {
         session.directory.addListener(_onDirectoryChanged);
         await session.start(workingDirectory: workingDirectory);
 
+        final history = (data['commandHistory'] as List<dynamic>?)?.cast<String>();
+        if (history != null) {
+          for (final cmd in history.reversed) {
+            await session.commandHistory.add(cmd);
+          }
+        }
+
+        final dims = data['terminalDimensions'] as Map<String, dynamic>?;
+        if (dims != null) {
+          final cols = dims['cols'] as int? ?? 80;
+          final rows = dims['rows'] as int? ?? 24;
+          session.resize(cols, rows);
+        }
+
+        final scrollback = data['scrollback'] as String?;
+        if (scrollback != null && scrollback.isNotEmpty) {
+          session.terminal.write(scrollback);
+        }
+
         if (!mounted) return;
 
         _tabs.add(session);
         _tabFocusNodes[id] = FocusNode();
+        _tabScrollControllers[id] = ScrollController();
       }
 
       if (_tabs.isNotEmpty) {
@@ -1020,6 +1055,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: TermisolTerminalView(
                                 session: tab,
                                 focusNode: _tabFocusNodes[tab.id],
+                                scrollController: _tabScrollControllers[tab.id],
                                 onNewTab: _addTab,
                                 onCloseTab: () => _closeTab(
                                   _tabs.indexWhere((t) => t.id == tab.id),
@@ -1043,6 +1079,8 @@ class _HomeScreenState extends State<HomeScreen> {
             TerminalSearchOverlay(
               terminal: _activeSession!.terminal,
               onClose: () => setState(() => _showSearch = false),
+              scrollController: _tabScrollControllers[_activeSession!.id],
+              session: _activeSession,
             ),
            // Command history search overlay
            if (_showHistorySearch && _activeSession != null)

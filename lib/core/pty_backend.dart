@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:pty/pty.dart';
 import '../backends/android_shell_backend.dart';
-import 'ffi_pty_backend.dart';
 import 'prompt_config.dart';
 
 /// Cross-platform PTY backend interface for termisol.
@@ -23,14 +22,7 @@ abstract class TermisolPtyBackend {
     if (Platform.isAndroid) {
       return AndroidShellBackend(workingDirectory: workingDirectory);
     }
-    
-    // Prefer FFI backend for desktop platforms for maximum performance
-    try {
-      return FfiPtyBackend(workingDirectory: workingDirectory);
-    } catch (e, stack) {
-      debugPrint('[pty] FFI backend failed, falling back to PTY package: $e\n$stack');
-      return _PtyBackend(workingDirectory: workingDirectory);
-    }
+    return _PtyBackend(workingDirectory: workingDirectory);
   }
 }
 

@@ -1,49 +1,48 @@
+import 'package:flutter/material.dart';
 import 'package:xterm/xterm.dart';
 
-/// Manages terminal focus events for bracketed paste mode and vim/emacs integration.
-/// When terminal gains focus, sends bracketed paste enable sequence.
-/// When terminal loses focus, sends bracketed paste disable sequence.
+/// Manages terminal focus events using Flutter's FocusNode.
+/// Emits ANSI focus in (\x1b[I) and focus out (\x1b[O) sequences
+/// to the PTY when focus changes, per xterm focus-event protocol.
 class FocusManager {
   final Terminal terminal;
   final TerminalController controller;
   final Function(bool)? onFocusChanged;
   final Function(bool)? onFocusEvent;
+  final FocusNode focusNode = FocusNode();
 
   FocusManager(this.terminal, this.controller, this.onFocusChanged, this.onFocusEvent);
 
-  /// Initialize focus management.
+  /// Initialize focus management by wiring the FocusNode listener.
   void initialize() {
-    // xterm 4.0.0: Terminal does not have an onFocus setter.
-    // terminal.onFocus = _handleTerminalFocus;
+    focusNode.addListener(_onFocusChanged);
   }
 
-  /// Handle focus events from the terminal widget.
-  void _handleTerminalFocus(bool hasFocus) {
-    // Notify listeners of focus change
+  void _onFocusChanged() {
+    final hasFocus = focusNode.hasFocus;
     onFocusChanged?.call(hasFocus);
-    
-    // Send bracketed paste sequences when focus changes
-    if (hasFocus) {
-      // Terminal gained focus - enable bracketed paste
-      terminal.write('\x1b[?2004h');
-    } else {
-      // Terminal lost focus - disable bracketed paste
-      terminal.write('\x1b[?2004l');
-    }
-    
-    // Notify focus event listeners (for vim/emacs integration)
     onFocusEvent?.call(hasFocus);
+    if (hasFocus) {
+      terminal.write('\x1b[I');
+    } else {
+      terminal.write('\x1b[O');
+    }
   }
 
-  /// Enable focus events from terminal.
+  /// Enable focus events (idempotent; actual wiring happens in initialize).
   void enableFocusEvents() {
-    // xterm 4.0.0: Terminal does not have an onFocus setter.
-    // terminal.onFocus = _handleTerminalFocus;
+    if (!focusNode.hasListeners) {
+      focusNode.addListener(_onFocusChanged);
+    }
   }
 
-  /// Disable focus events from terminal.
+  /// Disable focus events.
   void disableFocusEvents() {
-    // xterm 4.0.0: Terminal does not have an onFocus setter.
-    // terminal.onFocus = null;
+    focusNode.removeListener(_onFocusChanged);
+  }
+
+  void dispose() {
+    focusNode.removeListener(_onFocusChanged);
+    focusNode.dispose();
   }
 }

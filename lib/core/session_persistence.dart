@@ -7,46 +7,38 @@ import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'terminal_session.dart' as ui;
 
-/// Session Persistence and Crash Recovery System
-/// 
-/// Comprehensive session management with automatic backup,
-/// crash recovery, and cross-device synchronization.
+/// Session persistence and crash recovery system.
 class SessionPersistence {
   static final SessionPersistence _instance = SessionPersistence._internal();
   factory SessionPersistence() => _instance;
   SessionPersistence._internal();
 
   bool _isInitialized = false;
-  
-  // Session storage
+
   final Map<String, PersistedSessionRecord> _sessions = {};
   final List<SessionSnapshot> _sessionHistory = [];
   final Map<String, SessionBackup> _backups = {};
-  
-  // Auto-save system
+
   Timer? _autoSaveTimer;
+  Timer? _cleanupTimer;
   bool _autoSaveEnabled = true;
   Duration _autoSaveInterval = const Duration(minutes: 1);
-  
-  // Crash recovery
+
   final Map<String, CrashReport> _crashReports = {};
   bool _recoveryMode = false;
-  
-  // Configuration
+
   Directory? _sessionsDir;
   Directory? _backupsDir;
   Directory? _crashDir;
   String? _deviceId;
-  
-  // Event system
-  final _sessionController = StreamController<SessionEvent>.broadcast();
+
+  final _sessionController = StreamController<SessionEvent>.broadcast(sync: false);
   Stream<SessionEvent> get events => _sessionController.stream;
-  
-  // Configuration
+
   static const int _maxBackups = 50;
   static const int _maxCrashReports = 20;
   static const Duration _sessionTimeout = Duration(hours: 24);
-  
+
   bool get isInitialized => _isInitialized;
   bool get autoSaveEnabled => _autoSaveEnabled;
   bool get recoveryMode => _recoveryMode;
@@ -55,35 +47,23 @@ class SessionPersistence {
 
   Future<void> initialize() async {
     if (_isInitialized) return;
-    
+
     try {
-      // Setup directories
       await _setupDirectories();
-      
-      // Generate device ID
       await _generateDeviceId();
-      
-      // Check for crash recovery
       await _checkForCrashRecovery();
-      
-      // Load existing sessions
       await _loadExistingSessions();
-      
-      // Load backups
       await _loadBackups();
-      
-      // Start auto-save
+
       if (_autoSaveEnabled) {
         _startAutoSave();
       }
-      
-      // Start cleanup timer
       _startCleanupTimer();
-      
+
       _isInitialized = true;
-      debugPrint('💾 Session Persistence initialized');
-    } catch (e) {
-      debugPrint('❌ Failed to initialize Session Persistence: $e');
+      debugPrint('Session Persistence initialized');
+    } catch (e, stack) {
+      debugPrint('Failed to initialize Session Persistence: $e\n$stack');
       rethrow;
     }
   }
@@ -94,32 +74,34 @@ class SessionPersistence {
       _sessionsDir = Directory('${appDir.path}/.termisol/sessions');
       _backupsDir = Directory('${appDir.path}/.termisol/backups');
       _crashDir = Directory('${appDir.path}/.termisol/crashes');
-      
+
       await _sessionsDir!.create(recursive: true);
       await _backupsDir!.create(recursive: true);
       await _crashDir!.create(recursive: true);
-      
-      debugPrint('📁 Session directories created');
-    } catch (e) {
-      debugPrint('❌ Failed to setup directories: $e');
+
+      debugPrint('Session directories created');
+    } catch (e, stack) {
+      debugPrint('Failed to setup directories: $e\n$stack');
       rethrow;
     }
   }
 
   Future<void> _generateDeviceId() async {
     try {
-      final idFile = File('${_sessionsDir!.path}/device_id');
-      
+      final dir = _sessionsDir;
+      if (dir == null) return;
+      final idFile = File('${dir.path}/device_id');
+
       if (await idFile.exists()) {
         _deviceId = await idFile.readAsString();
       } else {
         _deviceId = _generateDeviceIdString();
         await idFile.writeAsString(_deviceId!);
       }
-      
-      debugPrint('🔑 Device ID: $_deviceId');
-    } catch (e) {
-      debugPrint('⚠️ Failed to generate device ID: $e');
+
+      debugPrint('Device ID: $_deviceId');
+    } catch (e, stack) {
+      debugPrint('Failed to generate device ID: $e\n$stack');
       _deviceId = 'unknown_${DateTime.now().millisecondsSinceEpoch}';
     }
   }
@@ -133,31 +115,24 @@ class SessionPersistence {
 
   Future<void> _checkForCrashRecovery() async {
     try {
-      // Check for crash indicator file
-      final crashIndicator = File('${_sessionsDir!.path}/.crash_indicator');
-      
+      final dir = _sessionsDir;
+      if (dir == null) return;
+      final crashIndicator = File('${dir.path}/.crash_indicator');
+
       if (await crashIndicator.exists()) {
-        debugPrint('💥 Crash detected, entering recovery mode');
+        debugPrint('Crash detected, entering recovery mode');
         _recoveryMode = true;
-        
-        // Create crash report
         await _createCrashReport();
-        
-        // Remove crash indicator
         await crashIndicator.delete();
-        
-        // Emit crash recovery event
         _sessionController.add(SessionEvent(
           type: SessionEventType.crashDetected,
           data: {'recovery_mode': true},
         ));
       }
-      
-      // Create crash indicator for this session
+
       await crashIndicator.writeAsString(DateTime.now().toIso8601String());
-      
-    } catch (e) {
-      debugPrint('⚠️ Failed to check for crash recovery: $e');
+    } catch (e, stack) {
+      debugPrint('Failed to check for crash recovery: $e\n$stack');
     }
   }
 
@@ -166,18 +141,18 @@ class SessionPersistence {
       final crashReport = CrashReport(
         id: 'crash_${DateTime.now().millisecondsSinceEpoch}',
         timestamp: DateTime.now(),
-        deviceId: _deviceId!,
+        deviceId: _deviceId ?? 'unknown',
         activeSessions: _sessions.length,
         lastKnownState: _captureCurrentState(),
         error: 'Application crash detected',
       );
-      
+
       _crashReports[crashReport.id] = crashReport;
       await _saveCrashReport(crashReport);
-      
-      debugPrint('💥 Crash report created: ${crashReport.id}');
-    } catch (e) {
-      debugPrint('❌ Failed to create crash report: $e');
+
+      debugPrint('Crash report created: ${crashReport.id}');
+    } catch (e, stack) {
+      debugPrint('Failed to create crash report: $e\n$stack');
     }
   }
 
@@ -192,182 +167,170 @@ class SessionPersistence {
 
   Future<void> _loadExistingSessions() async {
     try {
-      if (!await _sessionsDir!.exists()) return;
-      
-      await for (final entity in _sessionsDir!.list()) {
+      final dir = _sessionsDir;
+      if (dir == null || !await dir.exists()) return;
+
+      await for (final entity in dir.list()) {
         if (entity is File && entity.path.endsWith('.json')) {
           try {
             final content = await entity.readAsString();
-            final data = jsonDecode(content) as Map<String, dynamic>;
-            
+            final data = jsonDecode(content);
+            if (data is! Map<String, dynamic>) continue;
             final session = PersistedSessionRecord.fromJson(data);
             _sessions[session.id] = session;
-            
-            // Check if session is still valid
+
             if (_isSessionValid(session)) {
-              debugPrint('📂 Loaded session: ${session.id}');
+              debugPrint('Loaded session: ${session.id}');
             } else {
               _sessions.remove(session.id);
               await entity.delete();
             }
-          } catch (e) {
-            debugPrint('⚠️ Failed to load session from ${entity.path}: $e');
+          } catch (e, stack) {
+            debugPrint('Failed to load session from ${entity.path}: $e\n$stack');
           }
         }
       }
-      
-      debugPrint('📂 Loaded ${_sessions.length} sessions');
-    } catch (e) {
-      debugPrint('❌ Failed to load existing sessions: $e');
+
+      debugPrint('Loaded ${_sessions.length} sessions');
+    } catch (e, stack) {
+      debugPrint('Failed to load existing sessions: $e\n$stack');
     }
   }
 
   Future<void> _loadBackups() async {
     try {
-      if (!await _backupsDir!.exists()) return;
-      
-      await for (final entity in _backupsDir!.list()) {
+      final dir = _backupsDir;
+      if (dir == null || !await dir.exists()) return;
+
+      await for (final entity in dir.list()) {
         if (entity is File && entity.path.endsWith('.backup')) {
           try {
             final content = await entity.readAsString();
-            final data = jsonDecode(content) as Map<String, dynamic>;
-            
+            final data = jsonDecode(content);
+            if (data is! Map<String, dynamic>) continue;
             final backup = SessionBackup.fromJson(data);
             _backups[backup.id] = backup;
-          } catch (e) {
-            debugPrint('⚠️ Failed to load backup from ${entity.path}: $e');
+          } catch (e, stack) {
+            debugPrint('Failed to load backup from ${entity.path}: $e\n$stack');
           }
         }
       }
-      
-      debugPrint('💾 Loaded ${_backups.length} backups');
-    } catch (e) {
-      debugPrint('❌ Failed to load backups: $e');
+
+      debugPrint('Loaded ${_backups.length} backups');
+    } catch (e, stack) {
+      debugPrint('Failed to load backups: $e\n$stack');
     }
   }
 
   bool _isSessionValid(PersistedSessionRecord session) {
     final now = DateTime.now();
     final lastActivity = session.lastActivity ?? session.createdAt;
-    
-    // Check if session is too old
+
     if (now.difference(lastActivity) > _sessionTimeout) {
       return false;
     }
-    
-    // Check if session has valid data
+
     if (session.id.isEmpty || session.title.isEmpty) {
       return false;
     }
-    
+
     return true;
   }
 
   void _startAutoSave() {
+    _autoSaveTimer?.cancel();
     _autoSaveTimer = Timer.periodic(_autoSaveInterval, (_) {
-      _performAutoSave();
+      unawaited(_performAutoSave().catchError((e) {
+        debugPrint('Auto-save failed: $e');
+      }));
     });
-    
-    debugPrint('⏰ Auto-save started (${_autoSaveInterval.inMinutes} minutes)');
+
+    debugPrint('Auto-save started (${_autoSaveInterval.inMinutes} minutes)');
   }
 
   Future<void> _performAutoSave() async {
-    try {
-      await _saveAllSessions();
-      await _createBackup();
-      
-      _sessionController.add(SessionEvent(
-        type: SessionEventType.autoSaved,
-        data: {
-          'sessions_count': _sessions.length,
-          'timestamp': DateTime.now().toIso8601String(),
-        },
-      ));
-      
-    } catch (e) {
-      debugPrint('⚠️ Auto-save failed: $e');
-    }
+    await _saveAllSessions();
+    await _createBackup();
+
+    _sessionController.add(SessionEvent(
+      type: SessionEventType.autoSaved,
+      data: {
+        'sessions_count': _sessions.length,
+        'timestamp': DateTime.now().toIso8601String(),
+      },
+    ));
   }
 
-  Future<void> _startCleanupTimer() async {
-    Timer.periodic(const Duration(hours: 1), (_) {
-      _performCleanup();
+  void _startCleanupTimer() {
+    _cleanupTimer?.cancel();
+    _cleanupTimer = Timer.periodic(const Duration(hours: 1), (_) {
+      unawaited(_performCleanup().catchError((e) {
+        debugPrint('Cleanup failed: $e');
+      }));
     });
   }
 
   Future<void> _performCleanup() async {
-    try {
-      // Clean up old sessions
-      await _cleanupOldSessions();
-      
-      // Clean up old backups
-      await _cleanupOldBackups();
-      
-      // Clean up old crash reports
-      await _cleanupOldCrashReports();
-      
-      debugPrint('🧹 Cleanup completed');
-    } catch (e) {
-      debugPrint('⚠️ Cleanup failed: $e');
-    }
+    await _cleanupOldSessions();
+    await _cleanupOldBackups();
+    await _cleanupOldCrashReports();
+    debugPrint('Cleanup completed');
   }
 
   Future<void> _cleanupOldSessions() async {
     final now = DateTime.now();
     final sessionsToRemove = <String>[];
-    
+
     for (final entry in _sessions.entries) {
       final session = entry.value;
       final lastActivity = session.lastActivity ?? session.createdAt;
-      
+
       if (now.difference(lastActivity) > _sessionTimeout) {
         sessionsToRemove.add(entry.key);
       }
     }
-    
+
     for (final sessionId in sessionsToRemove) {
       await _removeSession(sessionId);
     }
-    
+
     if (sessionsToRemove.isNotEmpty) {
-      debugPrint('🗑️ Cleaned up ${sessionsToRemove.length} old sessions');
+      debugPrint('Cleaned up ${sessionsToRemove.length} old sessions');
     }
   }
 
   Future<void> _cleanupOldBackups() async {
     final backups = _backups.values.toList();
     backups.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    
+
     if (backups.length > _maxBackups) {
       final toRemove = backups.skip(_maxBackups);
-      
+
       for (final backup in toRemove) {
         _backups.remove(backup.id);
         await _deleteBackup(backup.id);
       }
-      
-      debugPrint('🗑️ Cleaned up ${toRemove.length} old backups');
+
+      debugPrint('Cleaned up ${toRemove.length} old backups');
     }
   }
 
   Future<void> _cleanupOldCrashReports() async {
     final reports = _crashReports.values.toList();
     reports.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    
+
     if (reports.length > _maxCrashReports) {
       final toRemove = reports.skip(_maxCrashReports);
-      
+
       for (final report in toRemove) {
         _crashReports.remove(report.id);
         await _deleteCrashReport(report.id);
       }
-      
-      debugPrint('🗑️ Cleaned up ${toRemove.length} old crash reports');
+
+      debugPrint('Cleaned up ${toRemove.length} old crash reports');
     }
   }
 
-  // Public API methods
-  
   Future<String> createSession({
     required String title,
     required String workingDirectory,
@@ -375,7 +338,7 @@ class SessionPersistence {
     String? command,
   }) async {
     final sessionId = 'session_${DateTime.now().millisecondsSinceEpoch}';
-    
+
     final session = PersistedSessionRecord(
       id: sessionId,
       title: title,
@@ -389,17 +352,17 @@ class SessionPersistence {
       history: [],
       bookmarks: [],
     );
-    
+
     _sessions[sessionId] = session;
     await _saveSession(session);
-    
+
     _sessionController.add(SessionEvent(
       type: SessionEventType.sessionCreated,
       sessionId: sessionId,
       data: session.toJson(),
     ));
-    
-    debugPrint('📂 Created session: $sessionId');
+
+    debugPrint('Created session: $sessionId');
     return sessionId;
   }
 
@@ -415,18 +378,18 @@ class SessionPersistence {
     if (session == null) {
       throw ArgumentError('Session not found: $sessionId');
     }
-    
+
     if (title != null) session.title = title;
     if (content != null) session.content = content;
     if (workingDirectory != null) session.workingDirectory = workingDirectory;
     if (environment != null) session.environment = environment;
     if (history != null) session.history = history;
     if (bookmarks != null) session.bookmarks = bookmarks;
-    
+
     session.lastActivity = DateTime.now();
-    
+
     await _saveSession(session);
-    
+
     _sessionController.add(SessionEvent(
       type: SessionEventType.sessionUpdated,
       sessionId: sessionId,
@@ -436,7 +399,7 @@ class SessionPersistence {
 
   Future<void> removeSession(String sessionId) async {
     await _removeSession(sessionId);
-    
+
     _sessionController.add(SessionEvent(
       type: SessionEventType.sessionRemoved,
       sessionId: sessionId,
@@ -447,7 +410,7 @@ class SessionPersistence {
     final session = _sessions.remove(sessionId);
     if (session != null) {
       await _deleteSession(sessionId);
-      debugPrint('🗑️ Removed session: $sessionId');
+      debugPrint('Removed session: $sessionId');
     }
   }
 
@@ -463,7 +426,6 @@ class SessionPersistence {
     await _saveAllSessions();
   }
 
-  // Simple SharedPreferences-based session restore
   static const String _prefsKey = 'termisol_sessions';
 
   Future<void> saveSessions(List<ui.TerminalSession> sessions) async {
@@ -486,8 +448,9 @@ class SessionPersistence {
     final prefs = await SharedPreferences.getInstance();
     final jsonStr = prefs.getString(_prefsKey);
     if (jsonStr == null || jsonStr.isEmpty) return [];
-    final list = jsonDecode(jsonStr) as List<dynamic>;
-    return list.map((e) => e as Map<String, dynamic>).toList();
+    final list = jsonDecode(jsonStr);
+    if (list is! List<dynamic>) return [];
+    return list.map((e) => e is Map<String, dynamic> ? e : <String, dynamic>{}).toList();
   }
 
   static Future<void> clear() async {
@@ -503,32 +466,36 @@ class SessionPersistence {
 
   Future<void> _saveSession(PersistedSessionRecord session) async {
     try {
-      final sessionFile = File('${_sessionsDir!.path}/${session.id}.json');
+      final dir = _sessionsDir;
+      if (dir == null) return;
+      final sessionFile = File('${dir.path}/${session.id}.json');
       await sessionFile.writeAsString(jsonEncode(session.toJson()));
-    } catch (e) {
-      debugPrint('❌ Failed to save session ${session.id}: $e');
+    } catch (e, stack) {
+      debugPrint('Failed to save session ${session.id}: $e\n$stack');
     }
   }
 
   Future<void> _deleteSession(String sessionId) async {
     try {
-      final sessionFile = File('${_sessionsDir!.path}/$sessionId.json');
+      final dir = _sessionsDir;
+      if (dir == null) return;
+      final sessionFile = File('${dir.path}/$sessionId.json');
       if (await sessionFile.exists()) {
         await sessionFile.delete();
       }
-    } catch (e) {
-      debugPrint('❌ Failed to delete session $sessionId: $e');
+    } catch (e, stack) {
+      debugPrint('Failed to delete session $sessionId: $e\n$stack');
     }
   }
 
   Future<void> _createBackup() async {
     try {
       final backupId = 'backup_${DateTime.now().millisecondsSinceEpoch}';
-      
+
       final backup = SessionBackup(
         id: backupId,
         timestamp: DateTime.now(),
-        deviceId: _deviceId!,
+        deviceId: _deviceId ?? 'unknown',
         sessions: _sessions.map((k, v) => MapEntry(k, v.toJson())),
         metadata: {
           'version': '1.0.0',
@@ -536,53 +503,61 @@ class SessionPersistence {
           'platform': Platform.operatingSystem,
         },
       );
-      
+
       _backups[backupId] = backup;
       await _saveBackup(backup);
-      
-      debugPrint('💾 Created backup: $backupId');
-    } catch (e) {
-      debugPrint('❌ Failed to create backup: $e');
+
+      debugPrint('Created backup: $backupId');
+    } catch (e, stack) {
+      debugPrint('Failed to create backup: $e\n$stack');
     }
   }
 
   Future<void> _saveBackup(SessionBackup backup) async {
     try {
-      final backupFile = File('${_backupsDir!.path}/${backup.id}.backup');
+      final dir = _backupsDir;
+      if (dir == null) return;
+      final backupFile = File('${dir.path}/${backup.id}.backup');
       await backupFile.writeAsString(jsonEncode(backup.toJson()));
-    } catch (e) {
-      debugPrint('❌ Failed to save backup ${backup.id}: $e');
+    } catch (e, stack) {
+      debugPrint('Failed to save backup ${backup.id}: $e\n$stack');
     }
   }
 
   Future<void> _deleteBackup(String backupId) async {
     try {
-      final backupFile = File('${_backupsDir!.path}/$backupId.backup');
+      final dir = _backupsDir;
+      if (dir == null) return;
+      final backupFile = File('${dir.path}/$backupId.backup');
       if (await backupFile.exists()) {
         await backupFile.delete();
       }
-    } catch (e) {
-      debugPrint('❌ Failed to delete backup $backupId: $e');
+    } catch (e, stack) {
+      debugPrint('Failed to delete backup $backupId: $e\n$stack');
     }
   }
 
   Future<void> _saveCrashReport(CrashReport report) async {
     try {
-      final reportFile = File('${_crashDir!.path}/${report.id}.crash');
+      final dir = _crashDir;
+      if (dir == null) return;
+      final reportFile = File('${dir.path}/${report.id}.crash');
       await reportFile.writeAsString(jsonEncode(report.toJson()));
-    } catch (e) {
-      debugPrint('❌ Failed to save crash report ${report.id}: $e');
+    } catch (e, stack) {
+      debugPrint('Failed to save crash report ${report.id}: $e\n$stack');
     }
   }
 
   Future<void> _deleteCrashReport(String reportId) async {
     try {
-      final reportFile = File('${_crashDir!.path}/$reportId.crash');
+      final dir = _crashDir;
+      if (dir == null) return;
+      final reportFile = File('${dir.path}/$reportId.crash');
       if (await reportFile.exists()) {
         await reportFile.delete();
       }
-    } catch (e) {
-      debugPrint('❌ Failed to delete crash report $reportId: $e');
+    } catch (e, stack) {
+      debugPrint('Failed to delete crash report $reportId: $e\n$stack');
     }
   }
 
@@ -592,17 +567,21 @@ class SessionPersistence {
       if (backup == null) {
         throw ArgumentError('Backup not found: $backupId');
       }
-      
-      // Clear current sessions
-      _sessions.clear();
-      
-      // Restore sessions from backup
+
+      // Validate backup data before clearing current sessions.
+      final restoredSessions = <String, PersistedSessionRecord>{};
       for (final entry in backup.sessions.entries) {
         final session = PersistedSessionRecord.fromJson(entry.value);
-        _sessions[entry.key] = session;
+        restoredSessions[entry.key] = session;
+      }
+
+      _sessions.clear();
+      _sessions.addAll(restoredSessions);
+
+      for (final session in restoredSessions.values) {
         await _saveSession(session);
       }
-      
+
       _sessionController.add(SessionEvent(
         type: SessionEventType.backupRestored,
         data: {
@@ -610,11 +589,11 @@ class SessionPersistence {
           'sessions_restored': backup.sessions.length,
         },
       ));
-      
-      debugPrint('🔄 Restored from backup: $backupId');
+
+      debugPrint('Restored from backup: $backupId');
       return true;
-    } catch (e) {
-      debugPrint('❌ Failed to restore from backup: $e');
+    } catch (e, stack) {
+      debugPrint('Failed to restore from backup: $e\n$stack');
       return false;
     }
   }
@@ -631,26 +610,26 @@ class SessionPersistence {
 
   void setAutoSaveEnabled(bool enabled) {
     _autoSaveEnabled = enabled;
-    
+
     if (enabled && _autoSaveTimer == null) {
       _startAutoSave();
     } else if (!enabled && _autoSaveTimer != null) {
       _autoSaveTimer?.cancel();
       _autoSaveTimer = null;
     }
-    
-    debugPrint('⏰ Auto-save ${enabled ? 'enabled' : 'disabled'}');
+
+    debugPrint('Auto-save ${enabled ? 'enabled' : 'disabled'}');
   }
 
   void setAutoSaveInterval(Duration interval) {
     _autoSaveInterval = interval;
-    
+
     if (_autoSaveTimer != null) {
       _autoSaveTimer?.cancel();
       _startAutoSave();
     }
-    
-    debugPrint('⏰ Auto-save interval set to ${interval.inMinutes} minutes');
+
+    debugPrint('Auto-save interval set to ${interval.inMinutes} minutes');
   }
 
   SessionStatistics getStatistics() {
@@ -669,61 +648,61 @@ class SessionPersistence {
 
   PersistedSessionRecord? _getOldestSession() {
     if (_sessions.isEmpty) return null;
-    
+
     PersistedSessionRecord? oldest;
     for (final session in _sessions.values) {
       if (oldest == null || session.createdAt.isBefore(oldest.createdAt)) {
         oldest = session;
       }
     }
-    
+
     return oldest;
   }
 
   PersistedSessionRecord? _getNewestSession() {
     if (_sessions.isEmpty) return null;
-    
+
     PersistedSessionRecord? newest;
     for (final session in _sessions.values) {
       if (newest == null || session.createdAt.isAfter(newest.createdAt)) {
         newest = session;
       }
     }
-    
+
     return newest;
   }
 
   Future<void> dispose() async {
-    // Save all sessions
-    await _saveAllSessions();
-    
-    // Create final backup
-    await _createBackup();
-    
-    // Remove crash indicator (clean shutdown)
-    final crashIndicator = File('${_sessionsDir!.path}/.crash_indicator');
-    if (await crashIndicator.exists()) {
-      await crashIndicator.delete();
-    }
-    
-    // Cancel timers
     _autoSaveTimer?.cancel();
-    
-    // Clear data
+    _cleanupTimer?.cancel();
+
+    await _saveAllSessions();
+    await _createBackup();
+
+    final dir = _sessionsDir;
+    if (dir != null) {
+      try {
+        final crashIndicator = File('${dir.path}/.crash_indicator');
+        if (await crashIndicator.exists()) {
+          await crashIndicator.delete();
+        }
+      } catch (e, stack) {
+        debugPrint('Failed to delete crash indicator: $e\n$stack');
+      }
+    }
+
     _sessions.clear();
     _sessionHistory.clear();
     _backups.clear();
     _crashReports.clear();
-    
-    // Close event controller
+
     await _sessionController.close();
-    
+
     _isInitialized = false;
-    debugPrint('💾 Session Persistence disposed');
+    debugPrint('Session Persistence disposed');
   }
 }
 
-/// Data classes
 class PersistedSessionRecord {
   final String id;
   String title;
@@ -736,7 +715,7 @@ class PersistedSessionRecord {
   String content;
   List<String> history;
   List<String> bookmarks;
-  
+
   PersistedSessionRecord({
     required this.id,
     required this.title,
@@ -750,7 +729,7 @@ class PersistedSessionRecord {
     required this.history,
     required this.bookmarks,
   });
-  
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -766,29 +745,68 @@ class PersistedSessionRecord {
       'bookmarks': bookmarks,
     };
   }
-  
+
   factory PersistedSessionRecord.fromJson(Map<String, dynamic> json) {
     return PersistedSessionRecord(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      workingDirectory: json['working_directory'] as String,
-      environment: Map<String, String>.from((json['environment'] ?? {}) as Map<dynamic, dynamic>),
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      workingDirectory: json['working_directory'] as String? ?? '',
+      environment: _mapStringString(json['environment']),
       command: json['command'] as String?,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      lastActivity: json['last_activity'] != null ? DateTime.parse(json['last_activity'] as String) : null,
+      createdAt: _parseDateTime(json['created_at']),
+      lastActivity: _parseDateTimeOptional(json['last_activity']),
       isActive: json['is_active'] as bool? ?? true,
       content: json['content'] as String? ?? '',
-      history: List<String>.from((json['history'] ?? []) as List<dynamic>),
-      bookmarks: List<String>.from((json['bookmarks'] ?? []) as List<dynamic>),
+      history: _listString(json['history']),
+      bookmarks: _listString(json['bookmarks']),
     );
   }
+}
+
+Map<String, String> _mapStringString(dynamic value) {
+  if (value is Map<String, dynamic>) {
+    return value.map((k, v) => MapEntry(k, v.toString()));
+  }
+  if (value is Map<dynamic, dynamic>) {
+    return value.map((k, v) => MapEntry(k.toString(), v.toString()));
+  }
+  return {};
+}
+
+List<String> _listString(dynamic value) {
+  if (value is List<dynamic>) {
+    return value.map((e) => e.toString()).toList();
+  }
+  return [];
+}
+
+DateTime _parseDateTime(dynamic value) {
+  if (value is String) {
+    try {
+      return DateTime.parse(value);
+    } catch (_) {
+      return DateTime.now();
+    }
+  }
+  return DateTime.now();
+}
+
+DateTime? _parseDateTimeOptional(dynamic value) {
+  if (value is String) {
+    try {
+      return DateTime.parse(value);
+    } catch (_) {
+      return null;
+    }
+  }
+  return null;
 }
 
 class SessionSnapshot {
   final String sessionId;
   final DateTime timestamp;
   final Map<String, dynamic> state;
-  
+
   SessionSnapshot({
     required this.sessionId,
     required this.timestamp,
@@ -802,7 +820,7 @@ class SessionBackup {
   final String deviceId;
   final Map<String, Map<String, dynamic>> sessions;
   final Map<String, dynamic> metadata;
-  
+
   SessionBackup({
     required this.id,
     required this.timestamp,
@@ -810,7 +828,7 @@ class SessionBackup {
     required this.sessions,
     required this.metadata,
   });
-  
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -820,16 +838,34 @@ class SessionBackup {
       'metadata': metadata,
     };
   }
-  
+
   factory SessionBackup.fromJson(Map<String, dynamic> json) {
     return SessionBackup(
-      id: json['id'] as String,
-      timestamp: DateTime.parse(json['timestamp'] as String),
-      deviceId: json['device_id'] as String,
-      sessions: (json['sessions'] as Map<dynamic, dynamic>? ?? {}).cast<String, Map<String, dynamic>>(),
-      metadata: Map<String, dynamic>.from((json['metadata'] ?? {}) as Map<dynamic, dynamic>),
+      id: json['id'] as String? ?? '',
+      timestamp: _parseDateTime(json['timestamp']),
+      deviceId: json['device_id'] as String? ?? '',
+      sessions: _mapStringMap(json['sessions']),
+      metadata: _mapDynamic(json['metadata']),
     );
   }
+}
+
+Map<String, Map<String, dynamic>> _mapStringMap(dynamic value) {
+  if (value is Map<String, dynamic>) {
+    return value.map((k, v) => MapEntry(k, v is Map<String, dynamic> ? v : <String, dynamic>{}));
+  }
+  if (value is Map<dynamic, dynamic>) {
+    return value.map((k, v) => MapEntry(k.toString(), v is Map<String, dynamic> ? v : <String, dynamic>{}));
+  }
+  return {};
+}
+
+Map<String, dynamic> _mapDynamic(dynamic value) {
+  if (value is Map<String, dynamic>) return value;
+  if (value is Map<dynamic, dynamic>) {
+    return value.map((k, v) => MapEntry(k.toString(), v));
+  }
+  return {};
 }
 
 class CrashReport {
@@ -839,7 +875,7 @@ class CrashReport {
   final int activeSessions;
   final Map<String, dynamic> lastKnownState;
   final String error;
-  
+
   CrashReport({
     required this.id,
     required this.timestamp,
@@ -848,7 +884,7 @@ class CrashReport {
     required this.lastKnownState,
     required this.error,
   });
-  
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -859,14 +895,14 @@ class CrashReport {
       'error': error,
     };
   }
-  
+
   factory CrashReport.fromJson(Map<String, dynamic> json) {
     return CrashReport(
-      id: json['id'] as String,
-      timestamp: DateTime.parse(json['timestamp'] as String),
-      deviceId: json['device_id'] as String,
+      id: json['id'] as String? ?? '',
+      timestamp: _parseDateTime(json['timestamp']),
+      deviceId: json['device_id'] as String? ?? '',
       activeSessions: json['active_sessions'] as int? ?? 0,
-      lastKnownState: Map<String, dynamic>.from((json['last_known_state'] ?? {}) as Map<dynamic, dynamic>),
+      lastKnownState: _mapDynamic(json['last_known_state']),
       error: json['error'] as String? ?? '',
     );
   }
@@ -876,7 +912,7 @@ class SessionEvent {
   final SessionEventType type;
   final String? sessionId;
   final Map<String, dynamic>? data;
-  
+
   SessionEvent({
     required this.type,
     this.sessionId,
@@ -894,7 +930,7 @@ class SessionStatistics {
   final String? deviceId;
   final PersistedSessionRecord? oldestSession;
   final PersistedSessionRecord? newestSession;
-  
+
   SessionStatistics({
     required this.activeSessions,
     required this.availableBackups,

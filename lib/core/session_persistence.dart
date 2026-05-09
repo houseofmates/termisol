@@ -43,7 +43,6 @@ class SessionPersistence {
   Stream<SessionEvent> get events => _sessionController.stream;
   
   // Configuration
-  static const int _maxSessionHistory = 100;
   static const int _maxBackups = 50;
   static const int _maxCrashReports = 20;
   static const Duration _sessionTimeout = Duration(hours: 24);

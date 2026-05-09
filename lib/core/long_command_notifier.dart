@@ -17,24 +17,18 @@ class LongCommandNotifier extends ChangeNotifier {
   
   final Map<String, Timer> _activeCommands = {};
   AudioPlayer? _audioPlayer;
-  bool _isInitialized = false;
-
   LongCommandNotifier() {
     // Skip audio initialization in tests
     if (const bool.fromEnvironment('FLUTTER_TEST')) {
       _audioPlayer = null;
-      _isInitialized = true;
       return;
     }
 
     try {
       _audioPlayer = AudioPlayer();
       _audioPlayer!.setPlayerMode(PlayerMode.lowLatency);
-      _isInitialized = true;
     } catch (e) {
-      // Audio not available
       _audioPlayer = null;
-      _isInitialized = true;
     }
   }
 

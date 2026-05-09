@@ -96,9 +96,15 @@ class TerminalSession extends ChangeNotifier {
     return suggestions.map((s) => s.command).take(maxSuggestions).toList();
   }
 
-  /// Search terminal output semantically (placeholder — returns empty list)
+  /// Search terminal output semantically
   List<String> searchTerminalOutput(String query, {int maxResults = 10}) {
-    return [];
+    try {
+      final results = _semanticSearch.search('terminal_output', query, maxResults: maxResults);
+      return results.map((result) => result.content).toList();
+    } catch (e) {
+      debugPrint('Semantic search failed: $e');
+      return [];
+    }
   }
 
   final List<DetectedUrl> detectedUrls = [];
@@ -235,9 +241,13 @@ class TerminalSession extends ChangeNotifier {
            throttledRenderer.write(processedText);
            _directoryTracker.processOutput(text);
            _extractUrls(text);
-           _hyperlinkHandler.processOutput(text);
-           // Semantic search indexing removed (feature not yet implemented)
-           onOutputReceived?.call(text);
+            _hyperlinkHandler.processOutput(text);
+            // Index terminal output for semantic search
+            _semanticSearch.indexDocument('terminal_output', id, text, metadata: {
+              'timestamp': DateTime.now().toIso8601String(),
+              'session_id': id,
+            });
+            onOutputReceived?.call(text);
         },
         onError: (Object e) {
           _error = e.toString();

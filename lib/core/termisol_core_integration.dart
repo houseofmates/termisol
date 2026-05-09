@@ -37,44 +37,6 @@ class FrameMetrics {
   });
 }
 
-/// real-time performance metrics collected from Flutter's frame timing.
-class PerformanceMetrics2 {
-  final double buildDurationMs;
-  final double rasterDurationMs;
-  final double vsyncOverheadMs;
-  final double totalFrameTimeMs;
-  final double frameRate;
-  final DateTime timestamp;
-
-  const PerformanceMetrics2({
-    required this.buildDurationMs,
-    required this.rasterDurationMs,
-    required this.vsyncOverheadMs,
-    required this.totalFrameTimeMs,
-    required this.frameRate,
-    required this.timestamp,
-  });
-}
-
-/// real-time performance metrics collected from Flutter's frame timing.
-class PerformanceMetrics3 {
-  final double buildDurationMs;
-  final double rasterDurationMs;
-  final double vsyncOverheadMs;
-  final double totalFrameTimeMs;
-  final double frameRate;
-  final DateTime timestamp;
-
-  const PerformanceMetrics3({
-    required this.buildDurationMs,
-    required this.rasterDurationMs,
-    required this.vsyncOverheadMs,
-    required this.totalFrameTimeMs,
-    required this.frameRate,
-    required this.timestamp,
-  });
-}
-
 /// termisol core integration system.
 ///
 /// collects real frame timing data via SchedulerBinding.addTimingsCallback
@@ -92,6 +54,11 @@ class TermisolCoreIntegration {
   Timer? _metricsTimer;
   int _consecutiveSlowFrames = 0;
   bool _isInitialized = false;
+
+  /// notifier for the latest averaged frame metrics.
+  final ValueNotifier<FrameMetrics> frameMetrics = ValueNotifier(
+    const FrameMetrics(fps: 0, frameTimeMs: 0, buildTimeMs: 0, rasterTimeMs: 0),
+  );
 
   /// stream of real frame timing metrics.
   Stream<PerformanceMetrics> get metrics => _metricsController.stream;
@@ -135,6 +102,21 @@ class TermisolCoreIntegration {
 
         _metricsController.add(metric);
         _evaluateAutoOptimization(metric);
+      }
+
+      final recent = getRecentMetrics(count: 60);
+      if (recent.isNotEmpty) {
+        final avgFrameTime = recent.fold<double>(0.0, (s, m) => s + m.totalFrameTimeMs) / recent.length;
+        final avgBuildTime = recent.fold<double>(0.0, (s, m) => s + m.buildDurationMs) / recent.length;
+        final avgRasterTime = recent.fold<double>(0.0, (s, m) => s + m.rasterDurationMs) / recent.length;
+        final avgFps = avgFrameTime > 0 ? 1000.0 / avgFrameTime : 0.0;
+
+        frameMetrics.value = FrameMetrics(
+          fps: avgFps,
+          frameTimeMs: avgFrameTime,
+          buildTimeMs: avgBuildTime,
+          rasterTimeMs: avgRasterTime,
+        );
       }
     });
 
@@ -292,4 +274,3 @@ class TermisolCoreConfig {
     };
   }
 }
-

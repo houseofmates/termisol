@@ -433,7 +433,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Restart critical services
+  /// restart critical services
   Future<void> _restartCriticalServices() async {
     try {
       _logger.info('Restarting critical services');

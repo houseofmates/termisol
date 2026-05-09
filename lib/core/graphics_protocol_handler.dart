@@ -57,8 +57,6 @@ class GraphicsProtocolHandler {
   String? _cacheDir;
   final List<String> _tempFilePaths = [];
 
-  // Protocol state for sixel color registers
-  final GraphicsProtocolState _protocolState = GraphicsProtocolState();
 
   // Rendering optimization
   final Map<String, ui.Picture> _pictureCache = {};

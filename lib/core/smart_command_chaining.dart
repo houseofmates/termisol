@@ -20,7 +20,6 @@ class SmartCommandChaining {
 
   static const int _maxSessions = 100;
   static const int _maxPatternDepth = 5;
-  static const Duration _sessionTimeout = Duration(minutes: 5);
   static const Duration _decayInterval = Duration(hours: 1);
   static const double _decayFactor = 0.95;
 

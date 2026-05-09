@@ -800,7 +800,13 @@ class _HomeScreenState extends State<HomeScreen> {
                session: _activeSession!,
                onClose: () => setState(() => _showHistorySearch = false),
              ),
-        ],
+          // Performance overlay
+          if (_showPerformanceOverlay)
+            PerformanceOverlay(
+              onDismiss: () => setState(() => _showPerformanceOverlay = false),
+            ),
+          ],
+        ),
       ),
     );
   }

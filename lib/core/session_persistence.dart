@@ -201,7 +201,7 @@ class SessionPersistence {
             final content = await entity.readAsString();
             final data = jsonDecode(content) as Map<String, dynamic>;
             
-            final session = TerminalSession.fromJson(data);
+            final session = PersistedSessionRecord.fromJson(data);
             _sessions[session.id] = session;
             
             // Check if session is still valid
@@ -893,8 +893,8 @@ class SessionStatistics {
   final Duration autoSaveInterval;
   final bool recoveryMode;
   final String? deviceId;
-  final TerminalSession? oldestSession;
-  final TerminalSession? newestSession;
+  final PersistedSessionRecord? oldestSession;
+  final PersistedSessionRecord? newestSession;
   
   SessionStatistics({
     required this.activeSessions,

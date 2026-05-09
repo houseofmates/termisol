@@ -6,6 +6,8 @@ import 'core/service_registry.dart';
 import 'ui/home_screen.dart';
 import 'config/pkm_theme.dart';
 import 'core/production_config_system.dart';
+import 'core/terminal_session.dart';
+import 'vr/vr_terminal_view.dart';
 
 class TermisolApp extends StatefulWidget {
   final ServiceRegistry registry;
@@ -83,19 +85,16 @@ class _TermisolAppState extends State<TermisolApp> {
   }
 
   Widget _buildVrHome(ServiceRegistry registry) {
-    // For VR, use a simplified interface
+    // For VR, create a simplified terminal interface
+    final session = TerminalSession(
+      id: 'vr_main',
+      name: 'VR Terminal',
+    );
+    session.start();
+
     return Container(
-      color: PkmTheme.background,
-      child: const Center(
-        child: Text(
-          'VR Mode Not Fully Implemented',
-          style: TextStyle(
-            color: PkmTheme.primary,
-            fontSize: 24,
-            fontFamily: PkmTheme.fontUi,
-          ),
-        ),
-      ),
+      color: Colors.black,
+      child: VrTerminalView(session: session),
     );
   }
 }

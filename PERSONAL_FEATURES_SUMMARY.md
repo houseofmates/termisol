@@ -299,7 +299,7 @@ All systems include comprehensive amnesia protection:
 ### Initial Setup:
 1. Copy `.env.example` to `.env`
 2. Add your NVIDIA API keys (NVIDIA_API_KEY_1 through NVIDIA_API_KEY_24)
-3. Add your N8N API key (from https://n8n.houseofmates.space)
+3. Add your N8N API key (from your N8N instance)
 4. Configure Nextcloud credentials
 5. Set your Docker stack path
 6. Customize personal preferences

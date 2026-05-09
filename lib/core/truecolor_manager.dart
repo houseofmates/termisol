@@ -29,11 +29,12 @@ class TrueColorManager {
   bool get isEnabled => _enabled;
 
   /// Scans raw terminal output for OSC 10/11/12 color sequences and
-  /// extracts RGB values. Results are forwarded to the terminal via
-  /// OSC responses when the underlying API supports it.
+  /// extracts RGB values.
   void processOutput(String text) {
     if (!_enabled) return;
-    final oscPattern = RegExp(r'\x1b\](10|11|12);rgb:([\da-fA-F]{2,4})\/([\da-fA-F]{2,4})\/([\da-fA-F]{2,4})(?:\x07|\x1b\\)');
+    final oscPattern = RegExp(
+      r'\x1b\](10|11|12);rgb:([\da-fA-F]{2,4})\/([\da-fA-F]{2,4})\/([\da-fA-F]{2,4})(?:\x07|\x1b\\)',
+    );
     for (final match in oscPattern.allMatches(text)) {
       final osc = match.group(1)!;
       final rRaw = match.group(2)!;
@@ -56,8 +57,8 @@ class TrueColorManager {
   static int _scaleColorComponent(String hex) {
     final value = int.tryParse(hex, radix: 16) ?? 0;
     if (hex.length <= 2) return value.clamp(0, 255);
-    // 12-bit color: scale down to 8-bit
-    return (value >> 4).clamp(0, 255);
+    // 16-bit color: scale down to 8-bit via value >> 8.
+    return (value >> 8).clamp(0, 255);
   }
 
   void _applyForeground(Color color) {

@@ -559,7 +559,7 @@ class ProductionConfigSystem {
   }
 }
 
-/// Configuration change event
+/// configuration change event
 class ConfigChangeEvent {
   final String key;
   final dynamic oldValue;

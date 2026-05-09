@@ -550,7 +550,7 @@ class RobustErrorHandler {
     _logger.log(level, _formatErrorLog(report));
   }
   
-  /// Map error severity to log level
+  /// map error severity to log level
   Level _mapSeverityToLevel(ErrorSeverity severity) {
     switch (severity) {
       case ErrorSeverity.info:

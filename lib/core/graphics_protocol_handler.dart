@@ -326,7 +326,7 @@ class GraphicsProtocolHandler {
     switch (action) {
       case 'a': // action
         return _handleKittyAction(paramMap, cursorX, cursorY);
-      case 't': // Transmission
+      case 't': // transmission
         return _handleKittyTransmission(paramMap, cursorX, cursorY);
       case 'q': // Query
         return _handleKittyQuery(paramMap);

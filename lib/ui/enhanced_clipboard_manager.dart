@@ -543,9 +543,9 @@ class EnhancedClipboardManager {
   /// Clean up temporary files
   Future<void> cleanup() async {
     try {
-      final tempDir = Directory(tempDir);
-      if (tempDir.existsSync()) {
-        await tempDir.delete(recursive: true);
+      final dir = Directory(tempDir);
+      if (dir.existsSync()) {
+        await dir.delete(recursive: true);
       }
     } catch (e) {
       debugPrint('Cleanup failed: $e');

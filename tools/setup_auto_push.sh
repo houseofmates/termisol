@@ -11,7 +11,7 @@ REPO_DIR="$(dirname "$SCRIPT_DIR")"
 echo "🔧 Setting up Termisol AutoPush System"
 echo "📍 Repository: $REPO_DIR"
 
-# Check if we're in a git repository
+# check if we're in a git repository
 cd "$REPO_DIR"
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
     echo "❌ Error: Not in a git repository"

@@ -107,12 +107,12 @@ class CustomHotkeyManager {
   }
   
   /// copy selected text to clipboard
-  void _handleCopy() {
+  void _handleCopy() async {
     final selection = session.terminal.selection;
     if (selection != null) {
       final text = session.terminal.buffer.getText(selection.start, selection.end);
-      clipboard.copy(text);
-      _showFeedback('Copied to clipboard');
+      final success = await clipboard.copy();
+      _showFeedback(success ? 'Copied to clipboard' : 'Copy failed');
     } else {
       _showFeedback('No text selected');
     }

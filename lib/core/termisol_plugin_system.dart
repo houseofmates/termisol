@@ -254,7 +254,7 @@ class TermisolPluginSystem {
     }
   }
 
-  /// Dispose all resources
+  /// dispose all resources
   Future<void> dispose() async {
     final pluginIds = List<String>.from(_plugins.keys);
     for (final pluginId in pluginIds) {

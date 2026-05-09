@@ -36,7 +36,7 @@ void main() {
         green: Colors.green,
         yellow: Colors.yellow,
         blue: Colors.blue,
-        magenta: Colors.magenta,
+        magenta: const Color(0xFFFF00FF),
         cyan: Colors.cyan,
         white: Colors.white,
         brightBlack: Colors.grey,

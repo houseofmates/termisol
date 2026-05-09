@@ -513,7 +513,7 @@ class RobustErrorHandler {
     return 8 * 1024 * 1024 * 1024; // 8GB fallback
   }
 
-  /// Check available disk space in MB.
+  /// check available disk space in mb.
   Future<double> _checkDiskSpace() async {
     try {
       final directory = await getApplicationDocumentsDirectory();

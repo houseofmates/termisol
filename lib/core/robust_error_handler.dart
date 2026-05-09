@@ -634,7 +634,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Load error history from disk
+  /// load error history from disk
   Future<void> _loadErrorHistory() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
@@ -657,7 +657,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Clean up old errors
+  /// clean up old errors
   void _cleanupOldErrors() {
     final cutoff = DateTime.now().subtract(const Duration(days: 7));
     _errorHistory.removeWhere((error) => error.timestamp.isBefore(cutoff));
@@ -676,7 +676,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Get error statistics
+  /// get error statistics
   Map<String, dynamic> getErrorStats() {
     return {
       'totalErrors': _errorHistory.length,

@@ -29,7 +29,7 @@ class RobustErrorHandler {
   // connection pool for error recovery
   final List<dynamic> _connectionPool = [];
   
-  // Recovery state variables
+  // recovery state variables
   Timer? _monitoringTimer;
   int _errorCount = 0;
   String? _lastError;

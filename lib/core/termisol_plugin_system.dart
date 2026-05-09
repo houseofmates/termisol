@@ -121,7 +121,7 @@ class TermisolPluginSystem {
         return false;
       }
 
-      // Create plugin isolate
+      // create plugin isolate
       final isolate = await _createPluginIsolate(manifest, content);
       if (isolate == null) {
         _eventController.add(PluginSystemEvent(

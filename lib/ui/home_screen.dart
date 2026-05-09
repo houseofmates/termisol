@@ -79,6 +79,41 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
+  Future<void> _startDictation() async {
+    if (!_speechAvailable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Speech recognition not available')),
+      );
+      return;
+    }
+
+    if (_speechToText.isListening) {
+      await _speechToText.stop();
+      return;
+    }
+
+    await _speechToText.listen(
+      onResult: (result) {
+        final recognizedWords = result.recognizedWords;
+        if (recognizedWords.isNotEmpty && _activeSession != null) {
+          // Send the recognized text to the terminal
+          _activeSession!.sendRawInput(recognizedWords + '\n');
+        }
+      },
+      listenFor: const Duration(seconds: 30),
+      pauseFor: const Duration(seconds: 5),
+      partialResults: false,
+      localeId: 'en_US', // Default to English, could be made configurable
+      onSoundLevelChange: (level) {
+        // Could add visual feedback here
+      },
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Listening... Speak your command')),
+    );
+  }
+
   @override
   void dispose() {
     _saveDebounceTimer?.cancel();
@@ -135,9 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _showSettings();
         break;
       case 'dictate':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('dictation not yet implemented')),
-        );
+        _startDictation();
         break;
       case 'copy':
         _activeSession?.clipboardManager.copy();

@@ -245,7 +245,7 @@ class GraphicsProtocolHandler {
     return Colors.white;
   }
 
-  /// Process terminal output for graphics protocol sequences
+  /// process terminal output for graphics protocol sequences
   String processOutput(String output, int cursorX, int cursorY) {
     if (!_isInitialized) return output;
 

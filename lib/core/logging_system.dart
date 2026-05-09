@@ -168,7 +168,7 @@ class TermisolLogger {
   /// get debug events
   Map<String, DebugEvent> get debugEvents => Map.unmodifiable(_debugEvents);
   
-  /// Get performance summary
+  /// get performance summary
   Map<String, dynamic> getPerformanceSummary() {
     return {
       'active_trackers': _performanceTrackers.length,
@@ -178,7 +178,7 @@ class TermisolLogger {
     };
   }
   
-  /// Internal logging method
+  /// internal logging method
   void _log(LogLevel level, String message, 
     [Map<String, dynamic>? context, dynamic error, StackTrace? stackTrace]) {
     

@@ -19,7 +19,7 @@ class SessionPersistence {
   bool _isInitialized = false;
   
   // Session storage
-  final Map<String, TerminalSession> _sessions = {};
+  final Map<String, PersistedSessionRecord> _sessions = {};
   final List<SessionSnapshot> _sessionHistory = [];
   final Map<String, SessionBackup> _backups = {};
   
@@ -247,7 +247,7 @@ class SessionPersistence {
     }
   }
 
-  bool _isSessionValid(TerminalSession session) {
+  bool _isSessionValid(PersistedSessionRecord session) {
     final now = DateTime.now();
     final lastActivity = session.lastActivity ?? session.createdAt;
     
@@ -377,7 +377,7 @@ class SessionPersistence {
   }) async {
     final sessionId = 'session_${DateTime.now().millisecondsSinceEpoch}';
     
-    final session = TerminalSession(
+    final session = PersistedSessionRecord(
       id: sessionId,
       title: title,
       workingDirectory: workingDirectory,
@@ -452,11 +452,11 @@ class SessionPersistence {
     }
   }
 
-  TerminalSession? getSession(String sessionId) {
+  PersistedSessionRecord? getSession(String sessionId) {
     return _sessions[sessionId];
   }
 
-  List<TerminalSession> getAllSessions() {
+  List<PersistedSessionRecord> getAllSessions() {
     return _sessions.values.toList();
   }
 
@@ -473,6 +473,12 @@ class SessionPersistence {
       'id': s.id,
       'name': s.name,
       'workingDirectory': s.directory.value ?? '',
+      'commandHistory': s.commandHistory.commands,
+      'terminalDimensions': {
+        'cols': s.terminal.viewWidth,
+        'rows': s.terminal.viewHeight,
+      },
+      'scrollback': s.terminal.buffer.getText(),
     }).toList();
     await prefs.setString(_prefsKey, jsonEncode(data));
   }
@@ -496,7 +502,7 @@ class SessionPersistence {
     }
   }
 
-  Future<void> _saveSession(TerminalSession session) async {
+  Future<void> _saveSession(PersistedSessionRecord session) async {
     try {
       final sessionFile = File('${_sessionsDir!.path}/${session.id}.json');
       await sessionFile.writeAsString(jsonEncode(session.toJson()));
@@ -593,7 +599,7 @@ class SessionPersistence {
       
       // Restore sessions from backup
       for (final entry in backup.sessions.entries) {
-        final session = TerminalSession.fromJson(entry.value);
+        final session = PersistedSessionRecord.fromJson(entry.value);
         _sessions[entry.key] = session;
         await _saveSession(session);
       }
@@ -662,10 +668,10 @@ class SessionPersistence {
     );
   }
 
-  TerminalSession? _getOldestSession() {
+  PersistedSessionRecord? _getOldestSession() {
     if (_sessions.isEmpty) return null;
     
-    TerminalSession? oldest;
+    PersistedSessionRecord? oldest;
     for (final session in _sessions.values) {
       if (oldest == null || session.createdAt.isBefore(oldest.createdAt)) {
         oldest = session;
@@ -675,10 +681,10 @@ class SessionPersistence {
     return oldest;
   }
 
-  TerminalSession? _getNewestSession() {
+  PersistedSessionRecord? _getNewestSession() {
     if (_sessions.isEmpty) return null;
     
-    TerminalSession? newest;
+    PersistedSessionRecord? newest;
     for (final session in _sessions.values) {
       if (newest == null || session.createdAt.isAfter(newest.createdAt)) {
         newest = session;
@@ -719,7 +725,7 @@ class SessionPersistence {
 }
 
 /// Data classes
-class TerminalSession {
+class PersistedSessionRecord {
   final String id;
   String title;
   String workingDirectory;
@@ -732,7 +738,7 @@ class TerminalSession {
   List<String> history;
   List<String> bookmarks;
   
-  TerminalSession({
+  PersistedSessionRecord({
     required this.id,
     required this.title,
     required this.workingDirectory,
@@ -762,8 +768,8 @@ class TerminalSession {
     };
   }
   
-  factory TerminalSession.fromJson(Map<String, dynamic> json) {
-    return TerminalSession(
+  factory PersistedSessionRecord.fromJson(Map<String, dynamic> json) {
+    return PersistedSessionRecord(
       id: json['id'] as String,
       title: json['title'] as String,
       workingDirectory: json['working_directory'] as String,

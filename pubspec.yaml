@@ -26,7 +26,7 @@ dependencies:
   pty:
     path: packages/pty
   stack_trace: ^1.11.1
-  speech_to_text: ^6.6.1
+  speech_to_text: ^7.0.0
 
   logging: any
   collection: any

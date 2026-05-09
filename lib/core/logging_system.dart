@@ -48,7 +48,7 @@ class TermisolLogger {
       _sinks.add(DebugSink());
     }
     
-    // Start flush timer
+    // start flush timer
     _flushTimer = Timer.periodic(_flushInterval, (_) => _flush());
     
     // Log initialization

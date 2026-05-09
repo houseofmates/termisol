@@ -49,7 +49,7 @@ class TermisolPluginSystem {
   List<String> get loadedPluginIds => _plugins.keys.toList();
   Map<String, PluginManifest> get loadedPlugins => Map.unmodifiable(_manifests);
 
-  /// Initialize the plugin system
+  /// initialize the plugin system
   Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -197,7 +197,7 @@ class TermisolPluginSystem {
     ));
   }
 
-  /// Reload a plugin
+  /// reload a plugin
   Future<bool> reloadPlugin(String pluginId) async {
     final manifest = _manifests[pluginId];
     if (manifest == null) return false;

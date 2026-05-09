@@ -30,6 +30,9 @@ class PkmTheme {
   static final ValueNotifier<TermisolThemeMode> themeMode =
       ValueNotifier(TermisolThemeMode.dark);
 
+  /// Singleton notifier for terminal background opacity.
+  static final ValueNotifier<double> bgOpacity = ValueNotifier(1.0);
+
   /// Map of terminal themes for each mode.
   static const Map<TermisolThemeMode, TerminalTheme> terminalThemes = {
     TermisolThemeMode.dark: TerminalTheme(

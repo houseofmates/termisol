@@ -175,6 +175,45 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     return KeyEventResult.ignored;
   }
 
+  void _handleTapUp(TapUpDetails details, CellOffset cellOffset) {
+    if (HardwareKeyboard.instance.isControlPressed) {
+      final url = widget.session.getHyperlinkAt(cellOffset.y, cellOffset.x);
+      if (url != null) {
+        _launchUrl(url);
+      }
+    }
+  }
+
+  void _handleHover(PointerHoverEvent event) {
+    if (!HardwareKeyboard.instance.isControlPressed) {
+      if (_mouseCursor != SystemMouseCursors.text) {
+        setState(() => _mouseCursor = SystemMouseCursors.text);
+      }
+      return;
+    }
+
+    final terminalViewState = _terminalViewKey.currentState;
+    if (terminalViewState == null) return;
+
+    try {
+      final cellOffset = terminalViewState.renderTerminal.getCellOffset(event.localPosition);
+      final url = widget.session.getHyperlinkAt(cellOffset.y, cellOffset.x);
+      final newCursor = url != null ? SystemMouseCursors.click : SystemMouseCursors.text;
+      if (_mouseCursor != newCursor) {
+        setState(() => _mouseCursor = newCursor);
+      }
+    } catch (_) {
+      // RenderTerminal may not be ready yet.
+    }
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GpuRenderer.wrapWithGpuBoundary(

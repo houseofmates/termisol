@@ -229,7 +229,7 @@ class TermisolPluginSystem {
   /// check if plugin is loaded
   bool isPluginLoaded(String pluginId) => _plugins.containsKey(pluginId);
 
-  /// Get plugin capabilities
+  /// get plugin capabilities
   List<String> getPluginCapabilities(String pluginId) {
     final manifest = _manifests[pluginId];
     return manifest?.capabilities ?? [];

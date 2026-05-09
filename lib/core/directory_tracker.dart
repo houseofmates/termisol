@@ -32,7 +32,32 @@ class DirectoryTracker {
 
     String bufferStr = _buffer.toString();
     if (bufferStr.length > _maxBufferSize) {
-      bufferStr = bufferStr.substring(bufferStr.length - _maxBufferSize);
+      var start = bufferStr.length - _maxBufferSize;
+      // Scan forward from start to a safe boundary so we do not split
+      // an escape sequence at the head of the retained buffer.
+      final esc = bufferStr.indexOf('\x1b', start);
+      if (esc != -1 && esc > start) {
+        // If an ESC begins shortly after the cut, move the cut to just
+        // before it so the sequence is either wholly kept or discarded.
+        start = esc;
+      }
+      // If the buffer now starts inside an OSC sequence (\x1b] without
+      // its terminator yet), advance to the next newline or ESC to
+      // avoid a malformed partial sequence.
+      if (bufferStr.length > start + 2 &&
+          bufferStr[start] == '\x1b' &&
+          bufferStr[start + 1] == ']') {
+        final nextEsc = bufferStr.indexOf('\x1b', start + 2);
+        final nextNl = bufferStr.indexOf('\n', start + 2);
+        final nextBoundary = <int>[
+          if (nextEsc != -1) nextEsc,
+          if (nextNl != -1) nextNl,
+        ];
+        if (nextBoundary.isNotEmpty) {
+          start = nextBoundary.reduce((a, b) => a < b ? a : b);
+        }
+      }
+      bufferStr = bufferStr.substring(start);
       _buffer.clear();
       _buffer.write(bufferStr);
     }

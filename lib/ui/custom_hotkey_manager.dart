@@ -36,7 +36,7 @@ class CustomHotkeyManager {
   Future<void> _initializeWhisper() async {
     _whisperService = WhisperService();
     
-    // Check if server is available, fall back to mock if not
+    // check if server is available, fall back to mock if not
     final available = await _whisperService!.isServerAvailable();
     if (!available) {
       debugPrint('Termisol: Whisper server unavailable, using mock service');
@@ -44,7 +44,7 @@ class CustomHotkeyManager {
     }
   }
   
-  /// Handle key events with custom bindings
+  /// handle key events with custom bindings
   KeyEventResult handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
     

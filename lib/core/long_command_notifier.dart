@@ -100,7 +100,6 @@ class LongCommandNotifier extends ChangeNotifier {
     _activeCommands.clear();
     
     _audioPlayer?.dispose();
-    _isInitialized = false;
     super.dispose();
   }
 }

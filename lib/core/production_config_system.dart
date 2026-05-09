@@ -274,7 +274,7 @@ class ProductionConfigSystem {
   /// check android vr features
   bool _checkAndroidVRFeatures() {
     try {
-      // Check for VR-related system properties
+      // check for vr-related system properties
       final vrFeatures = [
         'ro.hardware.vr',
         'ro.product.model',
@@ -301,7 +301,7 @@ class ProductionConfigSystem {
   /// check windows vr support
   bool _checkWindowsVRSupport() {
     try {
-      // Check for Windows Mixed Reality runtime
+      // check for windows mixed reality runtime
       final wmrPath = r'C:\Program Files\Windows Mixed Reality';
       final wmrDir = Directory(wmrPath);
       

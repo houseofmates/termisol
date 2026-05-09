@@ -264,7 +264,7 @@ class GraphicsProtocolHandler {
   String _processSixelSequences(String output, int cursorX, int cursorY) {
     if (!_sixelEnabled) return output;
 
-    // Look for Sixel DCS sequences: ESC P ... ESC \
+    // look for sixel dcs sequences: esc p ... esc \
     final sixelRegex = RegExp(r'\x1bP([0-9;]*)(.*?)\x1b\\', dotAll: true);
     return output.replaceAllMapped(sixelRegex, (match) {
       final params = match.group(1) ?? '';
@@ -278,7 +278,7 @@ class GraphicsProtocolHandler {
   String _processKittySequences(String output, int cursorX, int cursorY) {
     if (!_kittyProtocolEnabled) return output;
 
-    // Look for Kitty sequences: ESC _ G ... ESC \
+    // look for kitty sequences: esc _ g ... esc \
     final kittyRegex = RegExp(r'\x1b_G([^\\]*)\x1b\\', dotAll: true);
     return output.replaceAllMapped(kittyRegex, (match) {
       final data = match.group(1) ?? '';

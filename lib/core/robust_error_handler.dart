@@ -823,7 +823,7 @@ extension RobustErrorHandlerHelpers on RobustErrorHandler {
     }
   }
   
-  /// Reinitialize critical connections
+  /// reinitialize critical connections
   Future<void> _reinitializeCriticalConnections() async {
     try {
       // Reset connection pool

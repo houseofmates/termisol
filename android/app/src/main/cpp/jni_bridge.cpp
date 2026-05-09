@@ -81,7 +81,7 @@ Java_com_termisol_vr_VrActivity_nativeStartVR(JNIEnv* /*env*/, jobject /*thiz*/)
       }
 
       XrTime display_time;
-      std::vector<XrCompositionLayerProjectionView> views;
+      std::vector<FrameView> views;
       if (!g_openxr->BeginFrame(display_time, views)) continue;
 
       // Update terminal texture if new data is available.
@@ -93,21 +93,10 @@ Java_com_termisol_vr_VrActivity_nativeStartVR(JNIEnv* /*env*/, jobject /*thiz*/)
         }
       }
 
-      // Render each eye.
+      // Render each eye to its acquired swapchain image.
       for (size_t i = 0; i < views.size(); ++i) {
-        // Acquire the swapchain image index to determine which GL texture to render to.
-        XrSwapchainImageAcquireInfo acquire_info{XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO};
-        int32_t image_index = 0;
-        xrAcquireSwapchainImage(views[i].subImage.swapchain, &acquire_info, &image_index);
-
-        // Note: We cannot directly map swapchain handle -> texture here without
-        // the OpenXrContext exposing its Swapchain structs. For this skeleton we
-        // render to the default framebuffer as a placeholder. In a production
-        // build, extend OpenXrContext to return the acquired GL texture name.
-        // g_renderer->RenderEye(static_cast<int>(i), texture_id, width, height);
-
-        XrSwapchainImageReleaseInfo release_info{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
-        xrReleaseSwapchainImage(views[i].subImage.swapchain, &release_info);
+        g_renderer->RenderEye(static_cast<int>(i), views[i].framebufferTexture,
+                              views[i].width, views[i].height);
       }
 
       g_openxr->EndFrame(display_time, views);

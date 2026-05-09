@@ -136,7 +136,7 @@ class GraphicsProtocolHandler {
 
   /// initialize default color palette (256 colors + true color support)
   void _initializeColorPalette() {
-    // ANSI 16-color palette
+    // ansi 16-color palette
     final standardColors = [
       0x000000,
       0x800000,

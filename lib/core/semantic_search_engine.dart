@@ -48,7 +48,6 @@ class SemanticSearchEngine {
     }
     final tokens = _tokenize(content);
     final termFrequencies = <String, int>{};
-    final ngrams = <String, Set<String>>{};
     for (final token in tokens) {
       termFrequencies[token] = (termFrequencies[token] ?? 0) + 1;
     }

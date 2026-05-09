@@ -7,7 +7,7 @@ import '../core/terminal_session.dart';
 import '../core/whisper_service.dart';
 import 'clipboard_manager.dart';
 
-/// Custom hotkey manager for Termisol with user-defined bindings
+/// custom hotkey manager for termisol with user-defined bindings
 class CustomHotkeyManager {
   final TerminalSession session;
   final TerminalClipboardManager clipboard;
@@ -16,7 +16,7 @@ class CustomHotkeyManager {
   final VoidCallback? onSearch;
   final VoidCallback? onCopyAll;
   
-  // Transcript recording state
+  // transcript recording state
   bool _isRecording = false;
   AudioRecorder? _audioRecorder;
   WhisperService? _whisperService;

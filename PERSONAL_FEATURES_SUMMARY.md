@@ -178,7 +178,7 @@ All requested features have been implemented with **amnesia-proof persistence**,
 **File**: `lib/core/personal_integration_manager.dart`
 
 ### Features:
-- ✅ **Hermes Agent integration** - YOUR preferred AI agent
+- ✅ **Termisol AI integration** - Built-in terminal AI assistant
 - ✅ **N8N workflow automation** - YOUR self-hosted N8N
 - ✅ **Nextcloud integration** - YOUR self-hosted cloud storage
 - ✅ **Docker stack management** - YOUR docker-compose setup
@@ -187,7 +187,7 @@ All requested features have been implemented with **amnesia-proof persistence**,
 - ✅ **Amnesia recovery system** - Multiple backup locations
 
 ### Tool Integrations:
-- **Hermes Agent**: Command synchronization and AI collaboration
+- **Termisol AI**: Command synchronization and AI collaboration
 - **N8N**: Workflow automation with API key placeholder
 - **Nextcloud**: File synchronization and backup
 - **Docker Stack**: Container management from YOUR setup
@@ -275,7 +275,7 @@ All systems include comprehensive amnesia protection:
 - **Server Management**: Specialized for .233 and .250 environments
 - **Development Focus**: Optimized for coding and code generation
 - **Hardware Awareness**: Tailored to RTX 3080/2070 configurations
-- **Tool Integration**: Built around YOUR preferred tools (Hermes, N8N, Nextcloud)
+- **Tool Integration**: Built around YOUR preferred tools (N8N, Nextcloud)
 - **Performance Learning**: Adapts to YOUR usage patterns and preferences
 
 ### AI Integration:

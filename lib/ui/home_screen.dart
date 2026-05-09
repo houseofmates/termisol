@@ -38,7 +38,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showCommandPalette = false;
   bool _showSearch = false;
   bool _showHistorySearch = false;
-  bool _isSplit = false;
   bool _showPerformanceOverlay = false;
   bool _showHintsMode = false;
   bool _broadcastMode = false;

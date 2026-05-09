@@ -15,7 +15,7 @@ import 'package:flutter/foundation.dart';
 /// - debug mode with enhanced details
 class TermisolLogger {
   static const String _logDirectory = 'logs';
-  static const int _maxLogFileSize = 10 * 1024 * 1024; // 10MB
+  static const int _maxLogFileSize = 10 * 1024 * 1024; // 10mb
 
   static const Duration _flushInterval = Duration(seconds: 5);
   

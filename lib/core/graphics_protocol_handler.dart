@@ -1215,7 +1215,7 @@ class GraphicsProtocolHandler {
   }
 }
 
-/// Graphics image data structure
+/// graphics image data structure
 class GraphicsImage {
   final int id;
   final int width;
@@ -1235,7 +1235,7 @@ class GraphicsImage {
   String toString() => 'GraphicsImage(id: $id, ${width}x$height, $format)';
 }
 
-/// Pending image data for processing
+/// pending image data for processing
 class PendingImage {
   final String data;
   final String format;

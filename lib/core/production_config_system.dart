@@ -166,7 +166,7 @@ class ProductionConfigSystem {
   }
 
   Future<void> _loadConfiguration() async {
-    // Start with defaults
+    // start with defaults
     _config.addAll(Map.from(_defaults));
 
     // Load from file if exists

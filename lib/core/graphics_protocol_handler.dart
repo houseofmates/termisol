@@ -66,7 +66,7 @@ class GraphicsProtocolHandler {
   int _totalImagesProcessed = 0;
   int _totalRenderTime = 0;
   final StreamController<GraphicsEvent> _eventController =
-      StreamController.broadcast();
+      StreamController.broadcast(sync: false);
 
   GraphicsProtocolHandler([this._terminal, this._controller]);
 
@@ -1025,10 +1025,8 @@ class GraphicsProtocolHandler {
               );
             }
           }
-          if (colors.containsKey(reg)) currentColor = colors[reg]!;
-        } else {
-          if (colors.containsKey(reg)) currentColor = colors[reg]!;
         }
+        currentColor = colors[reg] ?? Colors.white;
         continue;
       }
       i++;
@@ -1067,6 +1065,7 @@ class GraphicsProtocolHandler {
       final byteData = await uiImage.toByteData(
         format: ui.ImageByteFormat.rawRgba,
       );
+      uiImage.dispose();
       codec.dispose();
       if (byteData == null) throw Exception('decode failed');
       final raw = byteData.buffer.asUint8List();
@@ -1207,11 +1206,11 @@ class GraphicsProtocolHandler {
   }
 
   /// Dispose resources
-  void dispose() {
+  Future<void> dispose() async {
     clearImageCache();
     _colorPalette.clear();
     _animations.clear();
-    _eventController.close();
+    await _eventController.close();
     _isInitialized = false;
   }
 }

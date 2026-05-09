@@ -56,7 +56,7 @@ class RobustErrorHandler {
       Logger.root.level = Level.ALL;
       Logger.root.onRecord.listen(_handleLogRecord);
       
-      // Load error history
+      // load error history
       await _loadErrorHistory();
       
       // Setup periodic cleanup

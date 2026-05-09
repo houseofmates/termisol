@@ -444,7 +444,7 @@ class ProductionConfigSystem {
     try {
       _saveAttempts++;
 
-      // Create backup of current config
+      // create backup of current config
       if (await _configFile!.exists()) {
         final backupFile = File('${_configFile!.parent.path}/$backupFileName');
         await _configFile!.copy(backupFile.path);

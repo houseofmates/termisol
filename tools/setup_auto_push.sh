@@ -66,7 +66,7 @@ StandardError=append:$REPO_DIR/.devin/auto_push.log
 WantedBy=multi-user.target
 EOF
 
-    # Reload systemd and enable service
+    # reload systemd and enable service
     systemctl daemon-reload 2>/dev/null || echo "⚠️  Could not reload systemd (need sudo?)"
     systemctl enable termisol-autopush.service 2>/dev/null || echo "⚠️  Could not enable systemd service (need sudo?)"
     

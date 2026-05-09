@@ -192,7 +192,7 @@ class TermisolLogger {
       sessionId: _sessionId,
     );
     
-    // Add to all sinks
+    // add to all sinks
     for (final sink in _sinks) {
       sink.write(entry);
     }

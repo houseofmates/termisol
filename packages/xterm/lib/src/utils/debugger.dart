@@ -89,7 +89,7 @@ class _TerminalDebuggerHandler implements EscapeHandler {
     onCommand('writeChar(${String.fromCharCode(char)})');
   }
 
-  /* SBC */
+  /* sbc */
 
   @override
   void bell() {
@@ -131,7 +131,7 @@ class _TerminalDebuggerHandler implements EscapeHandler {
     onCommand('unkownSBC(${String.fromCharCode(char)})', error: true);
   }
 
-  /* ANSI sequence */
+  /* ansi sequence */
 
   @override
   void saveCursor() {
@@ -173,7 +173,7 @@ class _TerminalDebuggerHandler implements EscapeHandler {
     onCommand('unkownEscape(${String.fromCharCode(char)})', error: true);
   }
 
-  /* CSI */
+  /* csi */
 
   @override
   void repeatPreviousCharacter(int count) {
@@ -340,7 +340,7 @@ class _TerminalDebuggerHandler implements EscapeHandler {
     onCommand('sendSize');
   }
 
-  /* Modes */
+  /* modes */
 
   @override
   void setInsertMode(bool enabled) {
@@ -357,7 +357,7 @@ class _TerminalDebuggerHandler implements EscapeHandler {
     onCommand('setUnknownMode($mode, $enabled)', error: true);
   }
 
-  /* DEC Private modes */
+  /* dec private modes */
 
   @override
   void setCursorKeysMode(bool enabled) {
@@ -444,7 +444,7 @@ class _TerminalDebuggerHandler implements EscapeHandler {
     onCommand('setUnknownDecMode($mode, $enabled)', error: true);
   }
 
-  /* Select Graphic Rendition (SGR) */
+  /* select graphic rendition (sgr) */
 
   @override
   void resetCursorStyle() {
@@ -576,7 +576,7 @@ class _TerminalDebuggerHandler implements EscapeHandler {
     onCommand('unsupportedStyle($param)', error: true);
   }
 
-  /* OSC */
+  /* osc */
 
   @override
   void setTitle(String name) {

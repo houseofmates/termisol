@@ -197,7 +197,7 @@ class TermisolLogger {
       sink.write(entry);
     }
     
-    // Add to stream
+    // add to stream
     _logStream.add(entry);
     
     // In debug mode, also send to Flutter developer log

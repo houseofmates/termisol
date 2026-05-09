@@ -6,7 +6,7 @@ import 'package:dartssh2/dartssh2.dart';
 import '../core/pty_backend.dart';
 import '../core/prompt_config.dart';
 
-/// SSH backend for remote terminal connections
+/// SSH backend for remote terminal connections.
 class SshBackend implements TermisolPtyBackend {
   @override
   final String name = 'SSH Backend';
@@ -20,9 +20,11 @@ class SshBackend implements TermisolPtyBackend {
 
   SSHClient? _client;
   SSHSession? _session;
-  final _outputController = StreamController<List<int>>.broadcast();
+  final _outputController = StreamController<List<int>>.broadcast(sync: false);
   bool _isRunning = false;
   bool _isDisposed = false;
+  StreamSubscription<dynamic>? _stdoutSub;
+  StreamSubscription<dynamic>? _stderrSub;
 
   @override
   Stream<List<int>> get output => _outputController.stream;
@@ -39,54 +41,65 @@ class SshBackend implements TermisolPtyBackend {
   @override
   Future<void> start({int cols = 80, int rows = 24, String? workingDirectory}) async {
     try {
-      // Connect to SSH server
-      _client = SSHClient(
-        await SSHSocket.connect(host, port),
-        username: username,
-        onPasswordRequest: password != null ? () => password! : null,
-        identities: privateKeyPath != null
-            ? await SSHKeyPair.fromPem(await File(privateKeyPath!).readAsString())
-            : null,
+      final socket = await SSHSocket.connect(host, port).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () => throw Exception('SSH connection timed out to $host:$port'),
       );
 
-      // Start shell session
+      List<SSHKeyPair>? identities;
+      if (privateKeyPath != null) {
+        final pem = await File(privateKeyPath!).readAsString();
+        identities = await SSHKeyPair.fromPem(pem);
+      }
+
+      _client = SSHClient(
+        socket,
+        username: username,
+        onPasswordRequest: password != null ? () => password! : null,
+        identities: identities,
+      );
+
+      // Start shell session.
       _session = await _client!.execute('bash');
 
       _isRunning = true;
 
-      // Listen to output
-      _session!.stdout.listen(
+      _stdoutSub = _session!.stdout.listen(
         (data) => _safeAdd(data),
         onError: (Object e) {
-          debugPrint('[ssh] stdout error: $e');
+          if (kDebugMode) debugPrint('[ssh] stdout error: $e');
         },
         onDone: () {
           _isRunning = false;
         },
       );
 
-      _session!.stderr.listen(
+      _stderrSub = _session!.stderr.listen(
         (data) => _safeAdd(data),
         onError: (Object e) {
-          debugPrint('[ssh] stderr error: $e');
+          if (kDebugMode) debugPrint('[ssh] stderr error: $e');
         },
       );
 
-      // Set terminal size
-      resize(cols, rows);
+      // Set terminal size after a short delay so the shell is ready.
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (_isRunning && _session != null) {
+          resize(cols, rows);
+        }
+      });
 
-      // Set working directory if specified
-      if (workingDirectory != null || this.workingDirectory != null) {
-        final wd = workingDirectory ?? this.workingDirectory!;
-        write(utf8.encode('cd "$wd"\n'));
+      // Set working directory if specified.
+      final wd = workingDirectory ?? this.workingDirectory;
+      if (wd != null) {
+        write(utf8.encode('cd \${wd.replaceAll("\\", "\\\\").replaceAll("\'", "\'\\\'\'")}\n'));
       }
 
-      // Inject colored PS1
+      // Inject colored PS1.
       write(utf8.encode("export PS1='${PromptConfig.sshPs1}'\n"));
 
-      debugPrint('[ssh] connected to $username@$host:$port');
+      if (kDebugMode) debugPrint('[ssh] connected to \$username@\$host:\$port');
     } catch (e, stack) {
-      debugPrint('[ssh] connection failed: $e\n$stack');
+      if (kDebugMode) debugPrint('[ssh] connection failed: \$e\n\$stack');
       _isRunning = false;
       rethrow;
     }
@@ -97,8 +110,8 @@ class SshBackend implements TermisolPtyBackend {
     if (_session != null && _isRunning) {
       try {
         _session!.stdin.add(Uint8List.fromList(data));
-      } catch (e) {
-        debugPrint('[ssh] write error: $e');
+      } catch (e, stack) {
+        if (kDebugMode) debugPrint('[ssh] write error: \$e\n\$stack');
       }
     }
   }
@@ -108,8 +121,8 @@ class SshBackend implements TermisolPtyBackend {
     if (_session != null && _isRunning) {
       try {
         _session!.resizeTerminal(cols, rows);
-      } catch (e) {
-        debugPrint('[ssh] resize error: $e');
+      } catch (e, stack) {
+        if (kDebugMode) debugPrint('[ssh] resize error: \$e\n\$stack');
       }
     }
   }
@@ -117,25 +130,34 @@ class SshBackend implements TermisolPtyBackend {
   @override
   Future<void> stop() async {
     _isRunning = false;
-    try {
-      _session?.close();
-      _client?.close();
-    } catch (e) {
-      debugPrint('[ssh] stop error: $e');
-    }
+    await _closeStreams();
     await _closeController();
   }
 
   @override
   Future<void> terminate() async {
     _isRunning = false;
+    await _closeStreams();
+    await _closeController();
+  }
+
+  Future<void> _closeStreams() async {
+    await _stdoutSub?.cancel();
+    await _stderrSub?.cancel();
+    _stdoutSub = null;
+    _stderrSub = null;
     try {
       _session?.close();
+    } catch (e) {
+      if (kDebugMode) debugPrint('[ssh] session close error: \$e');
+    }
+    try {
       _client?.close();
     } catch (e) {
-      debugPrint('[ssh] terminate error: $e');
+      if (kDebugMode) debugPrint('[ssh] client close error: \$e');
     }
-    await _closeController();
+    _session = null;
+    _client = null;
   }
 
   Future<void> _closeController() async {
@@ -147,7 +169,11 @@ class SshBackend implements TermisolPtyBackend {
 
   void _safeAdd(List<int> data) {
     if (!_outputController.isClosed && !_isDisposed) {
-      _outputController.add(data);
+      try {
+        _outputController.add(data);
+      } catch (e) {
+        // ignore add-after-close races
+      }
     }
   }
 

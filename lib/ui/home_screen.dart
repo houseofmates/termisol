@@ -948,16 +948,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 // Terminal area
               Expanded(
-                child: _isSplit && _tabs.length >= 2
-                    ? SplitPane(
-                        sessions: [_tabs[0], _tabs[1]],
-                        onNewTab: _addTab,
-                        onCloseTab: () {
-                          final idx = _tabs.indexWhere((t) => t.id == _activeTab);
-                          if (idx >= 0) _closeTab(idx);
-                        },
-                      )
-                    : IndexedStack(
+                child: IndexedStack(
                         index: _tabs.indexWhere((tab) => tab.id == _activeTab),
                         children: _tabs.map((tab) {
                           return Container(

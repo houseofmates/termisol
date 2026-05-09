@@ -123,7 +123,7 @@ class TermisolLogger {
     }
   }
   
-  /// Track a debug event
+  /// track a debug event
   void trackDebugEvent(String eventName, [Map<String, dynamic>? data]) {
     if (!_debugMode) return;
     

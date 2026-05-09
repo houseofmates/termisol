@@ -545,7 +545,7 @@ class DebugUtils {
   }
 }
 
-/// Global logger instance
+/// global logger instance
 final logger = TermisolLogger();
 
 /// Extension methods for easy logging

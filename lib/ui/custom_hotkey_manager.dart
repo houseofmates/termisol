@@ -117,7 +117,7 @@ class CustomHotkeyManager {
     }
   }
   
-  /// Send interrupt signal (Ctrl+C original behavior)
+  /// send interrupt signal (ctrl+c original behavior)
   void _handleInterrupt() {
     session.sendRawInput('\x03'); // Ctrl+C character
     _showFeedback('Interrupt sent');

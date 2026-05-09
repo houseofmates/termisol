@@ -1190,7 +1190,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Get performance statistics
+  /// get performance statistics
   Map<String, dynamic> getPerformanceStats() {
     final avgRenderTime = _totalImagesProcessed > 0
         ? _totalRenderTime / _totalImagesProcessed

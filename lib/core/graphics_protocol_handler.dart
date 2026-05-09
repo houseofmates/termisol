@@ -1205,7 +1205,7 @@ class GraphicsProtocolHandler {
     };
   }
 
-  /// Dispose resources
+  /// dispose resources
   Future<void> dispose() async {
     clearImageCache();
     _colorPalette.clear();

@@ -127,7 +127,11 @@ class _CopyModeOverlayState extends State<CopyModeOverlay> {
     final range = BufferRangeLine(beginOffset, endOffset);
     final text = widget.terminal.buffer.getText(range);
     if (text.isNotEmpty) {
-      await Clipboard.setData(ClipboardData(text: text));
+      try {
+        await Clipboard.setData(ClipboardData(text: text));
+      } on Exception catch (e, stack) {
+        debugPrint('copy selection failed: $e\n$stack');
+      }
     }
   }
 

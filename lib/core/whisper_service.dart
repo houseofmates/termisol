@@ -36,7 +36,7 @@ class WhisperService {
         Uri.parse('$serverUrl/transcribe'),
       );
       
-      // Add audio file
+      // add audio file
       final audioFile = await http.MultipartFile.fromPath(
         'audio',
         audioFilePath,

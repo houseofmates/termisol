@@ -486,7 +486,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Process temporary file transmission
+  /// process temporary file transmission
   String _processTemporaryFileTransmission(
     Map<String, String> params,
     String id,

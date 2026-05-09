@@ -75,7 +75,7 @@ class ProductionConfigSystem {
         'context_window': 8192,
       },
 
-      // Network settings
+      // network settings
       'network': {
         'connection_timeout': 30,
         'max_retries': 3,

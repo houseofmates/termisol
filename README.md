@@ -99,3 +99,7 @@ Type `/ai <question>` in the terminal. On desktop, this always goes to NVIDIA NI
 ## license
 
 MIT License. See `LICENSE`.
+
+## Public release notes
+This repository has been prepared for public release. Sensitive local configuration must be stored in a .env file (see .env.example) and never committed. See SECURITY.md and CONTRIBUTING.md for contribution and security guidance.
+

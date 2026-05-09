@@ -113,9 +113,9 @@ class _CopyModeOverlayState extends State<CopyModeOverlay> {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
                 children: [
-                  Text(
+                  const Text(
                     'copy mode — press q to exit',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: PkmTheme.text,
                       fontFamily: PkmTheme.fontUi,
                       fontSize: 13,

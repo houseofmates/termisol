@@ -2,10 +2,9 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:xterm/xterm.dart' show Terminal, BufferPosition;
-import 'dart:convert';
 import '../core/terminal_session.dart';
+import '../core/whisper_service.dart';
 import 'clipboard_manager.dart';
 
 /// Custom hotkey manager for Termisol with user-defined bindings
@@ -19,9 +18,8 @@ class CustomHotkeyManager {
   
   // Transcript recording state
   bool _isRecording = false;
-  Timer? _recordingTimer;
-  List<String> _transcriptBuffer = [];
-  String? _whisperServerUrl;
+  AudioRecorder? _audioRecorder;
+  WhisperService? _whisperService;
   
   CustomHotkeyManager({
     required this.session,
@@ -31,7 +29,19 @@ class CustomHotkeyManager {
     this.onSearch,
     this.onCopyAll,
   }) {
-    _whisperServerUrl = 'http://192.168.4.250:9000'; // Default Whisper server
+    _audioRecorder = AudioRecorder();
+    _initializeWhisper();
+  }
+  
+  Future<void> _initializeWhisper() async {
+    _whisperService = WhisperService();
+    
+    // Check if server is available, fall back to mock if not
+    final available = await _whisperService!.isServerAvailable();
+    if (!available) {
+      debugPrint('Termisol: Whisper server unavailable, using mock service');
+      _whisperService = MockWhisperService();
+    }
   }
   
   /// Handle key events with custom bindings

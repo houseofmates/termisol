@@ -501,7 +501,7 @@ abstract class Plugin {
   Future<dynamic> execute(String method, [Map<String, dynamic>? args]);
 }
 
-/// Simple plugin implementation
+/// simple plugin implementation
 class SimplePlugin implements Plugin {
   final PluginManifest manifest;
   final Isolate isolate;
@@ -634,7 +634,7 @@ class SimplePlugin implements Plugin {
   }
 }
 
-/// Plugin manifest
+/// plugin manifest
 class PluginManifest {
   final String id;
   final String name;

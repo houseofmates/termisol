@@ -22,6 +22,18 @@ class CopyModeOverlay extends StatefulWidget {
   State<CopyModeOverlay> createState() => _CopyModeOverlayState();
 }
 
+class _LineMapping {
+  final int displayStart;
+  final int displayEnd;
+  final int bufferLine;
+
+  _LineMapping({
+    required this.displayStart,
+    required this.displayEnd,
+    required this.bufferLine,
+  });
+}
+
 class _CopyModeOverlayState extends State<CopyModeOverlay> {
   final _focusNode = FocusNode();
   final _searchController = TextEditingController();
@@ -46,30 +58,37 @@ class _CopyModeOverlayState extends State<CopyModeOverlay> {
     super.dispose();
   }
 
-  /// Extract the last [maxLines] of buffer text.
-  String _getBufferText() {
+  /// Build filtered display text and a mapping to buffer lines.
+  ({String text, List<_LineMapping> mappings}) _buildDisplayMappings() {
     final buffer = widget.terminal.buffer;
     final height = buffer.height;
     const maxLines = 500;
     final startLine = height > maxLines ? height - maxLines : 0;
 
-    final range = BufferRangeLine(
-      CellOffset(0, startLine),
-      CellOffset(buffer.viewWidth > 0 ? buffer.viewWidth - 1 : 0, height - 1),
-    );
+    final mappings = <_LineMapping>[];
+    final builder = StringBuffer();
+    int offset = 0;
 
-    return buffer.getText(range);
-  }
+    for (int i = startLine; i < height; i++) {
+      final lineText = buffer.lines[i].getText();
+      if (_searchQuery.isNotEmpty &&
+          !lineText.toLowerCase().contains(_searchQuery.toLowerCase())) {
+        continue;
+      }
+      mappings.add(_LineMapping(
+        displayStart: offset,
+        displayEnd: offset + lineText.length,
+        bufferLine: i,
+      ));
+      builder.write(lineText);
+      offset += lineText.length;
+      if (i < height - 1) {
+        builder.write('\n');
+        offset += 1;
+      }
+    }
 
-  /// Filter buffer text by the current search query.
-  String _getFilteredText(String bufferText) {
-    if (_searchQuery.isEmpty) return bufferText;
-    final lines = bufferText.split('\n');
-    final query = _searchQuery.toLowerCase();
-    final filtered = lines.where((line) {
-      return line.toLowerCase().contains(query);
-    }).toList();
-    return filtered.join('\n');
+    return (text: builder.toString(), mappings: mappings);
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
@@ -83,11 +102,30 @@ class _CopyModeOverlayState extends State<CopyModeOverlay> {
     return KeyEventResult.ignored;
   }
 
-  Future<void> _copySelection(String displayText) async {
+  Future<void> _copySelection() async {
     final selection = _textSelection;
     if (selection == null || selection.isCollapsed) return;
 
-    final text = displayText.substring(selection.start, selection.end);
+    final display = _buildDisplayMappings();
+    final start = selection.start.clamp(0, display.text.length);
+    final end = selection.end.clamp(0, display.text.length);
+
+    CellOffset? beginOffset;
+    CellOffset? endOffset;
+
+    for (final mapping in display.mappings) {
+      if (beginOffset == null && start >= mapping.displayStart && start <= mapping.displayEnd) {
+        beginOffset = CellOffset(start - mapping.displayStart, mapping.bufferLine);
+      }
+      if (endOffset == null && end >= mapping.displayStart && end <= mapping.displayEnd) {
+        endOffset = CellOffset(end - mapping.displayStart, mapping.bufferLine);
+      }
+    }
+
+    if (beginOffset == null || endOffset == null) return;
+
+    final range = BufferRangeLine(beginOffset, endOffset);
+    final text = widget.terminal.buffer.getText(range);
     if (text.isNotEmpty) {
       await Clipboard.setData(ClipboardData(text: text));
     }
@@ -95,8 +133,8 @@ class _CopyModeOverlayState extends State<CopyModeOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    final bufferText = _getBufferText();
-    final displayText = _getFilteredText(bufferText);
+    final display = _buildDisplayMappings();
+    final displayText = display.text;
     final hasSelection = _textSelection != null && !_textSelection!.isCollapsed;
 
     return Focus(
@@ -123,9 +161,7 @@ class _CopyModeOverlayState extends State<CopyModeOverlay> {
                   ),
                   const Spacer(),
                   TextButton(
-                    onPressed: hasSelection
-                        ? () => _copySelection(displayText)
-                        : null,
+                    onPressed: hasSelection ? _copySelection : null,
                     child: Text(
                       'copy selection',
                       style: TextStyle(

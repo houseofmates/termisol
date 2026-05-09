@@ -227,7 +227,7 @@ class RobustErrorHandler {
     // clear caches
     await _clearAllCaches();
     
-    // Restart affected services
+    // restart affected services
     await _restartCriticalServices();
   }
   
@@ -236,7 +236,7 @@ class RobustErrorHandler {
     try {
       _logger.info('Triggering memory cleanup');
       
-      // Clear image cache
+      // clear image cache
       PaintingBinding.instance.imageCache.clear();
       
       // Clear performance metrics
@@ -401,7 +401,7 @@ class RobustErrorHandler {
     try {
       _logger.info('Clearing all caches');
       
-      // Clear image cache
+      // clear image cache
       PaintingBinding.instance.imageCache.clear();
       
       // Clear network cache

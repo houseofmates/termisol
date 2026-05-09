@@ -156,7 +156,7 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
 
   TerminalSize? _viewportSize;
 
-  final TerminalPainter _painter;
+  TerminalPainter _painter;
 
   var _stickToBottom = true;
 

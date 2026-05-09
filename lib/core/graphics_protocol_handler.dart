@@ -1095,7 +1095,7 @@ class GraphicsProtocolHandler {
     return data;
   }
 
-  /// Clear image cache
+  /// clear image cache
   void clearImageCache() {
     for (final path in _tempFilePaths) {
       try {

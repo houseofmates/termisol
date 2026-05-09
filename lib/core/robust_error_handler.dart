@@ -231,7 +231,7 @@ class RobustErrorHandler {
     await _restartCriticalServices();
   }
   
-  /// Memory cleanup recovery
+  /// memory cleanup recovery
   Future<void> _triggerMemoryCleanup() async {
     try {
       _logger.info('Triggering memory cleanup');
@@ -267,7 +267,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Connection retry recovery
+  /// connection retry recovery
   Future<void> _triggerConnectionRetry() async {
     try {
       _logger.info('Triggering connection retry');

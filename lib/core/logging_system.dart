@@ -426,7 +426,7 @@ class DebugSink implements LogSink {
   void write(LogEntry entry) {
     _entries.add(entry);
     
-    // Keep only recent entries
+    // keep only recent entries
     if (_entries.length > _maxEntries) {
       _entries.removeRange(0, _entries.length - _maxEntries);
     }
@@ -434,7 +434,7 @@ class DebugSink implements LogSink {
   
   @override
   void flush() {
-    // Nothing to flush for debug sink
+    // nothing to flush for debug sink
   }
   
   @override

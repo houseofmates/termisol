@@ -167,7 +167,7 @@ class RobustErrorHandler {
     _broadcastAlert(alert);
   }
   
-  /// Attempt automatic error recovery
+  /// attempt automatic error recovery
   Future<void> _attemptRecovery(ErrorReport report) async {
     try {
       switch (report.severity) {

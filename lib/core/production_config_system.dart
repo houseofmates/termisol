@@ -360,7 +360,7 @@ class ProductionConfigSystem {
     }
   }
 
-  /// Get a configuration value
+  /// get a configuration value
   T? get<T>(String key, [T? defaultValue]) {
     final keys = key.split('.');
     dynamic current = _config;

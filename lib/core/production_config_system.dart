@@ -323,7 +323,7 @@ class ProductionConfigSystem {
   /// check linux vr support
   bool _checkLinuxVRSupport() {
     try {
-      // Check for OpenXR runtime
+      // check for openxr runtime
       final openxrPaths = [
         '/usr/lib/x86_64-linux-gnu/libopenxr_loader.so',
         '/usr/local/lib/libopenxr_loader.so',

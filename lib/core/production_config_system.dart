@@ -495,7 +495,7 @@ class ProductionConfigSystem {
     try {
       final imported = jsonDecode(configJson) as Map<String, dynamic>;
 
-      // Validate imported config
+      // validate imported config
       _validateImportedConfig(imported);
 
       // Apply imported config

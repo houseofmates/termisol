@@ -426,6 +426,13 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
                   padding: EdgeInsets.zero,
                   onTapUp: _handleTapUp,
                   onSecondaryTapUp: (details, offset) => _showContextMenu(context, details.globalPosition),
+                  painter: GpuRenderer.instance.createPainter(
+                    theme: termisolTerminalTheme,
+                    textStyle: TerminalStyle(
+                      fontFamily: _fontFamily,
+                      fontSize: _fontSize,
+                    ),
+                  ),
                 ),
               ),
             ),

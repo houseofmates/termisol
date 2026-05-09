@@ -328,7 +328,7 @@ class GraphicsProtocolHandler {
         return _handleKittyAction(paramMap, cursorX, cursorY);
       case 't': // transmission
         return _handleKittyTransmission(paramMap, cursorX, cursorY);
-      case 'q': // Query
+      case 'q': // query
         return _handleKittyQuery(paramMap);
       default:
         return '';
@@ -344,11 +344,11 @@ class GraphicsProtocolHandler {
     final action = params['a'];
 
     switch (action) {
-      case 'p': // Put image
+      case 'p': // put image
         return _putKittyImage(params, cursorX, cursorY);
       case 'd': // Delete image
         return _deleteKittyImage(params);
-      case 'q': // Query
+      case 'q': // query
         return _queryKittyImage(params);
       default:
         return '';

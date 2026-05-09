@@ -54,6 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
     HeaderbarActions.action.addListener(_onHeaderbarAction);
     PkmTheme.bgOpacity.addListener(_onBgOpacityChanged);
     _loadPerformanceOverlay();
+    _initSpeech();
   }
 
   Future<void> _loadPerformanceOverlay() async {

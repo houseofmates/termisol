@@ -271,7 +271,7 @@ class TermisolPluginSystem {
     _isInitialized = false;
   }
 
-  // Private methods
+  // private methods
 
   Future<void> _loadAllPlugins() async {
     final pluginFiles = await listAvailablePlugins();

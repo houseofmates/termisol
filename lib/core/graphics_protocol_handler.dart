@@ -346,7 +346,7 @@ class GraphicsProtocolHandler {
     switch (action) {
       case 'p': // put image
         return _putKittyImage(params, cursorX, cursorY);
-      case 'd': // Delete image
+      case 'd': // delete image
         return _deleteKittyImage(params);
       case 'q': // query
         return _queryKittyImage(params);

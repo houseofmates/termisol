@@ -204,7 +204,7 @@ class TermisolPluginSystem {
 
     await unloadPlugin(pluginId);
 
-    // Find plugin file
+    // find plugin file
     final pluginFile = File('$_pluginsDirectory/$pluginId.plugin');
     if (!await pluginFile.exists()) {
       return false;

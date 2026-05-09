@@ -13,7 +13,7 @@ import 'clipboard_manager.dart';
 import 'copy_mode_overlay.dart';
 import 'custom_hotkey_manager.dart';
 
-/// Active terminal theme based on the current [PkmTheme.themeMode].
+/// active terminal theme based on the current [pkmtheme.thememode].
 TerminalTheme get termisolTerminalTheme => PkmTheme.activeTerminalTheme;
 
 const _defaultTerminalFontSize = 14.0;

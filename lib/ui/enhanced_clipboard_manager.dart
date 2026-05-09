@@ -102,21 +102,33 @@ class EnhancedClipboardManager {
       
       // Linux: Use xclip to get file list
       if (Platform.isLinux) {
-        final result = await Process.run('xclip', ['-selection', 'clipboard', '-t', 'text/uri-list', '-o']);
-        if (result.exitCode == 0) {
-          final output = result.stdout as String;
-          final uris = output.split('\n').where((uri) => uri.isNotEmpty).toList();
-          if (uris.isNotEmpty) {
-            final firstUri = uris.first.trim();
-            final filePath = firstUri.replaceFirst('file://', '');
-            if (File(filePath).existsSync()) {
-              return ClipboardContent(
-                type: ClipboardContentType.file,
-                filePath: filePath,
-                size: await _getFileSize(filePath),
-              );
+        // Check if xclip is available
+        try {
+          final whichResult = await Process.run('which', ['xclip']);
+          if (whichResult.exitCode != 0) {
+            debugPrint('xclip not available for file clipboard access');
+            return null;
+          }
+          
+          final result = await Process.run('xclip', ['-selection', 'clipboard', '-t', 'text/uri-list', '-o']);
+          if (result.exitCode == 0) {
+            final output = result.stdout as String;
+            final uris = output.split('\n').where((uri) => uri.isNotEmpty).toList();
+            if (uris.isNotEmpty) {
+              final firstUri = uris.first.trim();
+              final filePath = firstUri.replaceFirst(RegExp(r'^file://'), '');
+              if (File(filePath).existsSync()) {
+                return ClipboardContent(
+                  type: ClipboardContentType.file,
+                  filePath: filePath,
+                  size: await _getFileSize(filePath),
+                );
+              }
             }
           }
+        } catch (e) {
+          debugPrint('Linux file clipboard access failed: $e');
+          return null;
         }
       }
       

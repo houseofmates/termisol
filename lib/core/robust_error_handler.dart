@@ -204,7 +204,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Recovery strategies for errors
+  /// recovery strategies for errors
   Future<void> _recoverFromError(ErrorReport report) async {
     // Implement error-specific recovery
     if (report.error.contains('file')) {

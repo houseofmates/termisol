@@ -28,7 +28,7 @@ class AutoPushService {
     // ensure .devin directory exists
     await Directory('.devin').create(recursive: true);
     
-    // Load previous state
+    // load previous state
     await _loadState();
     
     // Start monitoring

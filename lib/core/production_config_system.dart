@@ -223,7 +223,7 @@ class ProductionConfigSystem {
       _config['performance']['adaptive_frame_pacing'] = true;
     }
 
-    // Oculus Quest 2 optimizations
+    // oculus quest 2 optimizations
     else if (_isVrPlatform()) {
       _config['performance'] ??= {};
       _config['performance']['gpu_acceleration'] = true;

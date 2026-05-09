@@ -28,27 +28,25 @@ a terminal emulator built with Flutter. it uses the real `xterm.dart` package fo
 
 ## what it does NOT do
 
-- **no VR**: the `lib/vr/` OpenXR implementation was removed. it was incomplete fiction with compile errors
-- **no custom GPU renderer**: rendering is handled by `xterm.dart`'s built-in `TerminalView`, wrapped in a `RepaintBoundary` for paint isolation
 - **no offline AI on desktop**: desktop builds are cloud-only. no quantized model is bundled
 - **no sixel/kitty/iterm2 graphics in the terminal grid**: `GraphicsProtocolHandler` exists but is not wired into the active `TerminalView`
 
 ## recent fixes (2026-05-08)
 
-- **Split panes**: fully implemented with draggable dividers, double-click to equalize, min-size enforcement
-- **Directory tracking**: real-time CWD detection via OSC 7 and prompt parsing
-- **Session restore**: saves and restores all tabs with working directories
-- **Command aliases**: fully functional alias system with defaults and custom aliases
-- **Copy mode**: enter a scrollable, selectable view of terminal history
-- **Hints mode**: kitty-style URL/path hinting with letter labels
-- **Broadcast input**: send keystrokes to all tabs simultaneously
+- **split panes**: fully implemented with draggable dividers, double-click to equalize, min-size enforcement
+- **directory tracking**: real-time CWD detection via OSC 7 and prompt parsing
+- **session restore**: saves and restores all tabs with working directories
+- **command aliases**: fully functional alias system with defaults and custom aliases
+- **copy mode**: enter a scrollable, selectable view of terminal history
+- **hints mode**: kitty-style URL/path hinting with letter labels
+- **broadcast input**: send keystrokes to all tabs simultaneously
 - **OSC 8 hyperlinks**: ctrl+click to open URLs printed by terminal apps
-- **Theme switcher**: dark/light/retro themes with live switching
-- **Font selector**: 5 monospace font families
-- **Background opacity**: 50–100% slider
-- **Performance overlay**: real-time FPS and frame-time display
-- **Tab management**: duplicate tab, close others, close to the right, long-command indicators
-- **Codebase cleanup**: 120+ placeholder files moved to `unused/`, 0 compilation errors
+- **theme switcher**: dark/light/retro themes with live switching
+- **font selector**: 5 monospace font families
+- **background opacity**: 50–100% slider
+- **performance overlay**: real-time FPS and frame-time display
+- **tab management**: duplicate tab, close others, close to the right, long-command indicators
+- **codebase cleanup**: 120+ placeholder files moved to `unused/`, 0 compilation errors
 
 ## architecture
 
@@ -113,25 +111,21 @@ ai:
 
 | shortcut | action |
 |----------|--------|
-| `Ctrl+T` | new tab |
-| `Ctrl+Shift+T` | duplicate tab |
-| `Ctrl+W` | close tab |
-| `Ctrl+Shift+W` | close all other tabs |
-| `Ctrl+Tab` | next tab |
-| `Ctrl+Shift+C` | copy (or enter copy mode if no selection) |
-| `Ctrl+Shift+V` | paste |
-| `Ctrl+F` | find in terminal |
-| `Ctrl+Shift+P` | command palette |
-| `Ctrl+Shift+O` | toggle performance overlay |
-| `Ctrl+Shift+B` | toggle broadcast input |
-| `Ctrl+Shift+H` | hints mode |
-| `Ctrl+=` / `Ctrl+-` | zoom in / out |
-| `Ctrl+0` | reset zoom |
+| `ctrl+T` | new tab |
+| `ctrl+shift+T` | duplicate tab |
+| `ctrl+W` | close tab |
+| `ctrl+shift+W` | close all other tabs |
+| `ctrl+Tab` | next tab |
+| `ctrl+shift+C` | copy (or enter copy mode if no selection) |
+| `ctrl+shift+V` | paste |
+| `ctrl+F` | find in terminal |
+| `ctrl+shift+P` | command palette |
+| `ctrl+shift+O` | toggle performance overlay |
+| `ctrl+shift+B` | toggle broadcast input |
+| `ctrl+shift+H` | hints mode |
+| `ctrl+=` / `Ctrl+-` | zoom in / out |
+| `ctrl+0` | reset zoom |
 
 ## AI usage
 
-Type `/ai <question>` in the terminal. On desktop, this always goes to NVIDIA NIM. On Android, if the cloud request fails and a local gemma endpoint was detected at startup, it falls back to the local model.
-
-## license
-
-MIT License. See `LICENSE`.
+type `/ai <question>` in the terminal. on desktop, this always goes to NVIDIA NIM. on android, if the cloud request fails and a local gemma endpoint was detected at startup, it falls back to the local model

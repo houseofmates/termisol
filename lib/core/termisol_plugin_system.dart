@@ -25,8 +25,8 @@ class PluginMessage {
 /// termisol plugin system
 ///
 /// features:
-/// - Dynamic plugin loading from file system
-/// - Plugin lifecycle management (load, unload, reload)
+/// - dynamic plugin loading from file system
+/// - plugin lifecycle management (load, unload, reload)
 /// - Secure isolate-based execution
 /// - Plugin dependency resolution
 /// - Event-driven communication

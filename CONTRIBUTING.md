@@ -1,8 +1,8 @@
-Thank you for contributing to vibecode!
+thank you for contributing to termisol!
 
-- Run tests locally: pip install -r requirements.txt && pytest
-- Follow the existing code style and add tests for new behavior.
+- run tests locally: pip install -r requirements.txt && pytest
+- keep your code comments simple and in all-lowercase
 - Open a pull request against master; CI will run tests automatically.
 
-For security: never commit secrets (API keys, passwords). Use a .env file and add it to .gitignore.
+for security: never commit secrets (API keys, passwords). use a .env file and add it to .gitignore.
 

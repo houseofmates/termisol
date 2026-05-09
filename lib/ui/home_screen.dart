@@ -684,6 +684,14 @@ class _HomeScreenState extends State<HomeScreen> {
         keywords: ['broadcast', 'input', 'sync', 'all tabs'],
         onExecute: _toggleBroadcastMode,
       ),
+      PaletteAction(
+        id: 'hints_mode',
+        title: 'hints mode',
+        subtitle: 'open urls and paths with keyboard shortcuts',
+        icon: Icons.lightbulb_outline,
+        keywords: ['hints', 'links', 'urls', 'open', 'keyboard'],
+        onExecute: _toggleHintsMode,
+      ),
     ];
   }
 
@@ -713,6 +721,11 @@ class _HomeScreenState extends State<HomeScreen> {
             control: true,
             shift: true,
           ): _toggleBroadcastMode,
+          const SingleActivator(
+            LogicalKeyboardKey.keyH,
+            control: true,
+            shift: true,
+          ): _toggleHintsMode,
         },
         child: Stack(
           children: [

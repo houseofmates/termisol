@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:xterm/xterm.dart' show Terminal, TerminalTheme, TerminalView, TerminalViewState, BufferPosition;
 import '../core/terminal_session.dart';
 import '../core/gpu_renderer.dart';
+import '../core/gpu/gpu_terminal_painter.dart';
 import '../core/deep_l_service.dart';
 import '../core/graphics_protocol_handler.dart';
 import '../config/pkm_theme.dart';

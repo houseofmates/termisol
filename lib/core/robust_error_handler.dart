@@ -564,7 +564,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Format error for logging
+  /// format error for logging
   String _formatErrorLog(ErrorReport report) {
     final buffer = StringBuffer();
     buffer.writeln('Error ID: ${report.id}');
@@ -587,7 +587,7 @@ class RobustErrorHandler {
     return buffer.toString();
   }
   
-  /// Handle log records
+  /// handle log records
   void _handleLogRecord(LogRecord record) {
     // Convert log records to error reports if they're severe enough
     if (record.level.value >= Level.SEVERE.value) {

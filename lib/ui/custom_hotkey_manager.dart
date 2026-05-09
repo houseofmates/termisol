@@ -171,7 +171,7 @@ class CustomHotkeyManager {
       final cleanedText = WhisperService.cleanTranscription(transcription);
       
       if (cleanedText.isNotEmpty) {
-        // Insert the processed text at cursor position
+        // insert the processed text at cursor position
         session.sendRawInput(cleanedText);
         _showFeedback('✅ Transcript processed and inserted');
       } else {

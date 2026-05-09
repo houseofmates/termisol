@@ -1,4 +1,3 @@
-import 'package:xterm/src/core/buffer/line.dart';
 import 'package:xterm/xterm.dart';
 
 class _PendingHyperlink {

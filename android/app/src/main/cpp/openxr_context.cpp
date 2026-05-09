@@ -153,8 +153,7 @@ bool OpenXrContext::PollEvents() {
   return true;
 }
 
-bool OpenXrContext::BeginFrame(XrTime& out_display_time,
-                               std::vector<XrCompositionLayerProjectionView>& out_views) {
+bool OpenXrContext::BeginFrame(XrTime& out_display_time, std::vector<FrameView>& out_views) {
   XrFrameWaitInfo wait_info{XR_TYPE_FRAME_WAIT_INFO};
   XrFrameState frame_state{XR_TYPE_FRAME_STATE};
   if (xrWaitFrame(session_, &wait_info, &frame_state) != XR_SUCCESS) return false;
@@ -178,27 +177,35 @@ bool OpenXrContext::BeginFrame(XrTime& out_display_time,
     int32_t image_index = 0;
     xrAcquireSwapchainImage(swapchains_[i].handle, &acquire_info, &image_index);
 
-    out_views[i] = {XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW};
-    out_views[i].pose = views[i].pose;
-    out_views[i].fov = views[i].fov;
-    out_views[i].subImage.swapchain = swapchains_[i].handle;
-    out_views[i].subImage.imageRect.offset = {0, 0};
-    out_views[i].subImage.imageRect.extent = {swapchains_[i].width, swapchains_[i].height};
+    out_views[i].projectionView = {XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW};
+    out_views[i].projectionView.pose = views[i].pose;
+    out_views[i].projectionView.fov = views[i].fov;
+    out_views[i].projectionView.subImage.swapchain = swapchains_[i].handle;
+    out_views[i].projectionView.subImage.imageRect.offset = {0, 0};
+    out_views[i].projectionView.subImage.imageRect.extent = {swapchains_[i].width, swapchains_[i].height};
+    out_views[i].framebufferTexture = swapchains_[i].images[image_index].image;
+    out_views[i].width = swapchains_[i].width;
+    out_views[i].height = swapchains_[i].height;
   }
   return true;
 }
 
-bool OpenXrContext::EndFrame(XrTime display_time,
-                             const std::vector<XrCompositionLayerProjectionView>& views) {
+bool OpenXrContext::EndFrame(XrTime display_time, const std::vector<FrameView>& views) {
   for (size_t i = 0; i < swapchains_.size(); ++i) {
     XrSwapchainImageReleaseInfo release_info{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
     xrReleaseSwapchainImage(swapchains_[i].handle, &release_info);
   }
 
+  std::vector<XrCompositionLayerProjectionView> projection_views;
+  projection_views.reserve(views.size());
+  for (const auto& v : views) {
+    projection_views.push_back(v.projectionView);
+  }
+
   XrCompositionLayerProjection projection_layer{XR_TYPE_COMPOSITION_LAYER_PROJECTION};
   projection_layer.space = reference_space_;
-  projection_layer.viewCount = static_cast<uint32_t>(views.size());
-  projection_layer.views = views.data();
+  projection_layer.viewCount = static_cast<uint32_t>(projection_views.size());
+  projection_layer.views = projection_views.data();
 
   const XrCompositionLayerBaseHeader* layers[] = {
       reinterpret_cast<const XrCompositionLayerBaseHeader*>(&projection_layer)};

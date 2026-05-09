@@ -9,7 +9,7 @@ import '../config/pkm_theme.dart';
 ///
 /// Channel: com.termisol/vr
 /// Methods (to be implemented natively):
-///   - initializeVr() -> Map<String, dynamic>
+///   - initializeVr() -> `Map<String, dynamic>`
 ///   - isVrSupported() -> bool
 ///   - startVrSession() -> bool
 ///   - stopVrSession() -> bool

@@ -79,7 +79,7 @@ class SmartAutoComplete {
       _saveTimer = Timer.periodic(const Duration(minutes: 5), (_) => _saveData());
     } catch (e) {
       // Fallback to in-memory storage if persistence fails
-      print('Warning: Failed to initialize auto-complete persistence: $e');
+      debugPrint('Warning: Failed to initialize auto-complete persistence: $e');
       _isInitialized = true;
     }
   }
@@ -295,7 +295,7 @@ class SmartAutoComplete {
       _recentCommands.clear();
       _recentCommands.addAll(historyJson);
     } catch (e) {
-      print('Warning: Failed to load command history: $e');
+      debugPrint('Warning: Failed to load command history: $e');
     }
   }
 
@@ -308,7 +308,7 @@ class SmartAutoComplete {
         _commandFrequency[key] = (value as num).toInt();
       });
     } catch (e) {
-      print('Warning: Failed to load command frequency: $e');
+      debugPrint('Warning: Failed to load command frequency: $e');
     }
   }
 
@@ -321,7 +321,7 @@ class SmartAutoComplete {
         _customCommands[key] = CommandSuggestion.fromJson(value as Map<String, dynamic>);
       });
     } catch (e) {
-      print('Warning: Failed to load custom commands: $e');
+      debugPrint('Warning: Failed to load custom commands: $e');
     }
   }
 
@@ -337,7 +337,7 @@ class SmartAutoComplete {
       await _prefs?.setStringList(_historyKey, _recentCommands.take(_maxHistorySize).toList());
       await _prefs?.setString(_frequencyKey, jsonEncode(_commandFrequency));
     } catch (e) {
-      print('Warning: Failed to save auto-complete data: $e');
+      debugPrint('Warning: Failed to save auto-complete data: $e');
     }
   }
 
@@ -351,7 +351,7 @@ class SmartAutoComplete {
       });
       await _prefs?.setString(_customCommandsKey, jsonEncode(customMap));
     } catch (e) {
-      print('Warning: Failed to save custom commands: $e');
+      debugPrint('Warning: Failed to save custom commands: $e');
     }
   }
 }

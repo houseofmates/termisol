@@ -162,7 +162,7 @@ class TermisolLogger {
     debug('User Interaction: $action', context);
   }
   
-  /// Get log stream for real-time monitoring
+  /// get log stream for real-time monitoring
   Stream<LogEntry> get logStream => _logStream.stream;
   
   /// Get debug events

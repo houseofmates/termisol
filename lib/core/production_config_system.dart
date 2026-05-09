@@ -437,7 +437,7 @@ class ProductionConfigSystem {
     _setNestedValue(map[key] as Map<String, dynamic>, remaining, value);
   }
 
-  /// Save configuration to persistent storage
+  /// save configuration to persistent storage
   Future<void> save() async {
     if (_configFile == null) return;
 
@@ -463,7 +463,7 @@ class ProductionConfigSystem {
     }
   }
 
-  /// Reset configuration to defaults
+  /// reset configuration to defaults
   Future<void> reset() async {
     _config.clear();
     _config.addAll(Map.from(_defaults));
@@ -485,7 +485,7 @@ class ProductionConfigSystem {
     debugPrint('Configuration reset to defaults');
   }
 
-  /// Export configuration for backup/sharing
+  /// export configuration for backup/sharing
   Future<String> export() async {
     return const JsonEncoder.withIndent('  ').convert(_config);
   }

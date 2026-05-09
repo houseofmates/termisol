@@ -16,7 +16,7 @@ import 'package:flutter/foundation.dart';
 class TermisolLogger {
   static const String _logDirectory = 'logs';
   static const int _maxLogFileSize = 10 * 1024 * 1024; // 10MB
-  static const int _maxLogFiles = 5;
+
   static const Duration _flushInterval = Duration(seconds: 5);
   
   static final TermisolLogger _instance = TermisolLogger._internal();

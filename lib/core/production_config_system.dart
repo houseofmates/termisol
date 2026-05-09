@@ -16,7 +16,6 @@ class ProductionConfigSystem {
   final Map<String, dynamic> _defaults = {};
   final Map<String, ConfigValidator> _validators = {};
 
-  SharedPreferences? _prefs;
   File? _configFile;
   bool _initialized = false;
   bool _autoSave = true;
@@ -151,7 +150,6 @@ class ProductionConfigSystem {
     if (_initialized) return;
 
     try {
-      _prefs = await SharedPreferences.getInstance();
       final configDir = await getApplicationDocumentsDirectory();
       _configFile = File('${configDir.path}/$configFileName');
 

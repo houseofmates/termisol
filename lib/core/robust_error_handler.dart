@@ -33,7 +33,6 @@ class RobustErrorHandler {
   Timer? _monitoringTimer;
   int _errorCount = 0;
   String? _lastError;
-  bool _isRecovering = false;
   
   // Additional state variables
   final DateTime _startTime = DateTime.now();
@@ -446,7 +445,7 @@ class RobustErrorHandler {
       // Clear state
       _errorCount = 0;
       _lastError = null;
-      _isRecovering = false;
+
       
       // Wait for cleanup
       await Future.delayed(const Duration(seconds: 1));

@@ -102,7 +102,7 @@ class ProductionConfigSystem {
         'is_vr': false, // will be set by vr detection
       },
 
-      // Feature flags
+      // feature flags
       'features': {
         'vr_support': false,
         'ai_assistant': true,

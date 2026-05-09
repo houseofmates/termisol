@@ -63,7 +63,7 @@ class WhisperService {
     }
   }
 
-  /// Transcribe audio bytes directly
+  /// transcribe audio bytes directly
   Future<String> transcribeAudioBytes(List<int> audioBytes, String filename) async {
     try {
       final request = http.MultipartRequest(

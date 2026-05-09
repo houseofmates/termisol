@@ -481,7 +481,7 @@ class RobustErrorHandler {
     }
   }
   
-  /// Check memory usage as a ratio of current rss to total system memory.
+  /// check memory usage as a ratio of current rss to total system memory.
   Future<double> _checkMemoryUsage() async {
     try {
       final rss = ProcessInfo.currentRss;

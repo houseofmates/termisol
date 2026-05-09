@@ -13,6 +13,8 @@ import 'throttled_renderer.dart';
 import 'optimized_text_buffer.dart';
 import 'lazy_terminal_output.dart';
 import 'smart_auto_complete.dart';
+import 'smart_command_chaining.dart';
+import 'semantic_search_engine.dart';
 import 'session_persistence.dart';
 import 'crash_recovery.dart';
 import 'long_command_notifier.dart';

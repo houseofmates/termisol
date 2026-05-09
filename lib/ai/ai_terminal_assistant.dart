@@ -6,8 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../core/production_config_system.dart';
 
-/// cloud-only AI terminal assistant.
-/// on android, detects a local gemma 4:4b model via common endpoints and falls back to it when the cloud API is unreachable.
+/// cloud-only ai terminal assistant.
+/// on android, detects a local gemma 4:4b model via common endpoints and falls back to it when the cloud api is unreachable.
 class NvidiaAITerminalAssistant {
   static const String nvidiaApiBaseUrl = 'https://api.nvidia.com/v1';
   static const Duration requestTimeout = Duration(seconds: 30);

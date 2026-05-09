@@ -152,7 +152,7 @@ class TermisolLogger {
     });
   }
   
-  /// Log performance metrics
+  /// log performance metrics
   void logPerformanceMetrics(Map<String, dynamic> metrics) {
     info('Performance Metrics', metrics);
   }

@@ -31,7 +31,7 @@ class AutoPushService {
     // load previous state
     await _loadState();
     
-    // Start monitoring
+    // start monitoring
     await _startMonitoring();
     
     // Setup signal handlers for graceful shutdown

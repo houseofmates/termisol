@@ -34,7 +34,7 @@ class RobustErrorHandler {
   int _errorCount = 0;
   String? _lastError;
   
-  // Additional state variables
+  // additional state variables
   final DateTime _startTime = DateTime.now();
   final List<dynamic> _pendingRequests = [];
   final Map<String, dynamic> _networkCache = {};

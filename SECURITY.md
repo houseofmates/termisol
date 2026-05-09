@@ -1,6 +1,6 @@
 # Security Policy
 
-If you believe you have found a security vulnerability, please report it privately to: security@houseofmates.space
+If you believe you have found a security vulnerability, please report it privately to: security@your-domain.com
 
 Do NOT open public issues for security vulnerabilities.
 

@@ -309,7 +309,7 @@ class ProductionConfigSystem {
         return true;
       }
       
-      // Check for SteamVR installation
+      // check for steamvr installation
       final steamvrPath = r'C:\Program Files (x86)\Steam\steamapps\common\SteamVR';
       final steamvrDir = Directory(steamvrPath);
       

@@ -60,7 +60,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   MouseCursor _mouseCursor = SystemMouseCursors.text;
   String _fontFamily = 'DroidSansMono';
 
-  // Autocomplete state
+  // autocomplete state
   List<String> _suggestions = [];
   bool _showSuggestions = false;
   String? _currentInput;

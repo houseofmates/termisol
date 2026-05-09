@@ -328,7 +328,7 @@ class ConsoleSink implements LogSink {
   
   @override
   void dispose() {
-    // Nothing to dispose for console
+    // nothing to dispose for console
   }
   
   String _getColorForLevel(LogLevel level) {

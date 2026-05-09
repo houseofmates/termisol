@@ -444,7 +444,7 @@ class _SettingsPageState extends State<SettingsPage>
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Expanded(
+          const Expanded(
             child: Text(
               'font family',
               style: const TextStyle(

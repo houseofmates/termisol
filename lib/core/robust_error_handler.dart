@@ -224,7 +224,7 @@ class RobustErrorHandler {
     // save current state
     await _emergencyStateSave();
     
-    // Clear caches
+    // clear caches
     await _clearAllCaches();
     
     // Restart affected services

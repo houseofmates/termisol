@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:xterm/xterm.dart' show BufferLine, CellContent, CellData, Terminal;
+import 'package:xterm/xterm.dart' show CellContent, CellData, Terminal;
 
 /// Encodes the visible terminal buffer into a compact binary format suitable
 /// for transmission to the native VR renderer.

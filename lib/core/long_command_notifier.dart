@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:termisol/core/logging_system.dart';
 
@@ -10,7 +11,7 @@ import 'package:termisol/core/logging_system.dart';
 /// - Configurable timeout (default 40 seconds)
 /// - Progress indication
 /// - Command cancellation support
-class LongCommandNotifier {
+class LongCommandNotifier extends ChangeNotifier {
   static const Duration _defaultTimeout = Duration(seconds: 40);
   static const String _notificationFile = 'termisol_long_commands.log';
   
@@ -63,7 +64,10 @@ class LongCommandNotifier {
       _activeCommands[command] = Timer(commandTimeout, () async {
         await _audioPlayer?.setSourceAsset('assets/notif.mp3');
         await _audioPlayer?.resume();
+        _activeCommands.remove(command);
+        notifyListeners();
       });
+      notifyListeners();
     } catch (e) {
       TermisolLogger().severe('Failed to log long command', null, e);
     }
@@ -75,6 +79,7 @@ class LongCommandNotifier {
     if (timer != null) {
       timer.cancel();
       _activeCommands.remove(command);
+      notifyListeners();
     }
   }
 
@@ -101,5 +106,6 @@ class LongCommandNotifier {
     
     _audioPlayer?.dispose();
     _isInitialized = false;
+    super.dispose();
   }
 }

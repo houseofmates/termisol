@@ -99,7 +99,7 @@ class ProductionConfigSystem {
         'is_desktop': defaultTargetPlatform == TargetPlatform.linux ||
                       defaultTargetPlatform == TargetPlatform.windows ||
                       defaultTargetPlatform == TargetPlatform.macOS,
-        'is_vr': false, // Will be set by VR detection
+        'is_vr': false, // will be set by vr detection
       },
 
       // Feature flags

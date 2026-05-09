@@ -214,7 +214,7 @@ class ProductionConfigSystem {
       _config['performance']['max_memory_mb'] = 1024;
     }
 
-    // Android optimizations
+    // android optimizations
     else if (Platform.isAndroid) {
       _config['performance'] ??= {};
       _config['performance']['gpu_acceleration'] = true;

@@ -309,7 +309,6 @@ class EnhancedClipboardManager {
       // Create a temporary file in the current working directory
       final currentDir = Directory.current.path;
       final targetPath = path.join(currentDir, fileName);
-      final targetFile = File(targetPath);
       
       // Copy image to current directory
       await imageFile.copy(targetPath);

@@ -323,7 +323,7 @@ class ConsoleSink implements LogSink {
   
   @override
   void flush() {
-    // Nothing to flush for console
+    // nothing to flush for console
   }
   
   @override

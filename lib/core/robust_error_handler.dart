@@ -838,7 +838,7 @@ extension RobustErrorHandlerHelpers on RobustErrorHandler {
     }
   }
   
-  /// Test basic connectivity
+  /// test basic connectivity
   Future<bool> _testBasicConnectivity() async {
     try {
       final result = await InternetAddress.lookup('google.com');
@@ -849,7 +849,7 @@ extension RobustErrorHandlerHelpers on RobustErrorHandler {
     }
   }
   
-  /// Get current memory usage
+  /// get current memory usage
   Map<String, dynamic> _getCurrentMemoryUsage() {
     try {
       final imageCache = PaintingBinding.instance.imageCache;

@@ -44,7 +44,7 @@ class RobustErrorHandler {
   
   Stream<ErrorReport> get errorStream => _errorController.stream;
   
-  // Configuration
+  // configuration
   final int _maxErrorHistory = 1000;
   final int _errorThreshold = 10; // Alert after 10 similar errors
   final Duration _errorWindow = const Duration(minutes: 5);

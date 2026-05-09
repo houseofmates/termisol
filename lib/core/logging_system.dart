@@ -417,7 +417,7 @@ class FileSink implements LogSink {
   }
 }
 
-/// Debug sink for enhanced debugging
+/// debug sink for enhanced debugging
 class DebugSink implements LogSink {
   final List<LogEntry> _entries = [];
   static const int _maxEntries = 1000;

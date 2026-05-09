@@ -560,7 +560,42 @@ class EnhancedClipboardManager {
       final file = File(filePath);
       return await file.length();
     } catch (e) {
+      debugPrint('Error getting file size: $e');
       return 0;
+    }
+  }
+
+  /// Parse image data from osascript output
+  Future<Uint8List?> _parseOsascriptImageData(String output) async {
+    try {
+      // osascript returns binary data in a specific format
+      // This is a simplified parser - real implementation would be more complex
+      final lines = output.split('\n');
+      final dataLines = lines.where((line) => line.trim().isNotEmpty).toList();
+      
+      if (dataLines.isEmpty) return null;
+      
+      // Convert to bytes (simplified approach)
+      final List<int> bytes = [];
+      for (final line in dataLines) {
+        final trimmed = line.trim();
+        if (trimmed.isNotEmpty) {
+          // Parse hex values or other format from osascript
+          // This is a placeholder for the actual parsing logic
+          final parts = trimmed.split(' ');
+          for (final part in parts) {
+            final value = int.tryParse(part);
+            if (value != null && value >= 0 && value <= 255) {
+              bytes.add(value);
+            }
+          }
+        }
+      }
+      
+      return bytes.isNotEmpty ? Uint8List.fromList(bytes) : null;
+    } catch (e) {
+      debugPrint('Error parsing osascript image data: $e');
+      return null;
     }
   }
 

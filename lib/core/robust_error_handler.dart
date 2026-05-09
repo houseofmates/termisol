@@ -482,20 +482,66 @@ class RobustErrorHandler {
     }
   }
   
-  /// Check memory usage
+  /// Check memory usage as a ratio of current rss to total system memory.
   Future<double> _checkMemoryUsage() async {
-    // Simplified memory check
-    return 0.5; // Placeholder
+    try {
+      final rss = ProcessInfo.currentRss;
+      final total = await _getTotalSystemMemory();
+      if (total <= 0) return 0.0;
+      return (rss / total).clamp(0.0, 1.0);
+    } catch (e) {
+      return 0.0;
+    }
   }
-  
-  /// Check disk space
+
+  Future<int> _getTotalSystemMemory() async {
+    if (Platform.isLinux || Platform.isAndroid) {
+      try {
+        final meminfo = await File('/proc/meminfo').readAsString();
+        final match = RegExp(r'MemTotal:\s+(\d+)\s+kB').firstMatch(meminfo);
+        if (match != null) {
+          final kb = int.parse(match.group(1)!);
+          return kb * 1024;
+        }
+      } catch (_) {}
+    } else if (Platform.isMacOS) {
+      try {
+        final result = await Process.run('sysctl', ['hw.memsize']);
+        final match = RegExp(r'hw.memsize:\s+(\d+)').firstMatch(result.stdout as String);
+        if (match != null) return int.parse(match.group(1)!);
+      } catch (_) {}
+    }
+    return 8 * 1024 * 1024 * 1024; // 8GB fallback
+  }
+
+  /// Check available disk space in MB.
   Future<double> _checkDiskSpace() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
-      final stat = await directory.stat();
-      return stat.size / (1024 * 1024); // Convert to MB
+      if (Platform.isLinux || Platform.isMacOS || Platform.isAndroid) {
+        final result = await Process.run('df', ['-k', directory.path]);
+        final lines = (result.stdout as String).trim().split('\n');
+        if (lines.length >= 2) {
+          final parts = lines.last.trim().split(RegExp(r'\s+'));
+          if (parts.length >= 4) {
+            final availableKb = int.tryParse(parts[3]) ?? 0;
+            return availableKb / 1024.0;
+          }
+        }
+      } else if (Platform.isWindows) {
+        final result = await Process.run('wmic', ['logicaldisk', 'get', 'freespace', ',', 'size', '/format:csv']);
+        final lines = (result.stdout as String).trim().split('\n');
+        for (final line in lines.skip(1)) {
+          final parts = line.split(',');
+          if (parts.length >= 3) {
+            final free = int.tryParse(parts[parts.length - 2]) ?? 0;
+            return free / (1024 * 1024);
+          }
+        }
+      }
+      return 1000.0;
     } catch (e) {
-      return 1000.0; // 1GB fallback
+      return 1000.0;
     }
   }
   

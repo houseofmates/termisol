@@ -545,7 +545,7 @@ class GraphicsProtocolHandler {
     }
   }
 
-  /// Handle Kitty graphics queries
+  /// handle kitty graphics queries
   String _handleKittyQuery(Map<String, String> params) {
     final query = params['q'];
 

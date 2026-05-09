@@ -83,7 +83,7 @@ class ProductionConfigSystem {
         'proxy_url': null,
       },
 
-      // Security settings
+      // security settings
       'security': {
         'enable_ssh_key_management': true,
         'auto_lock_timeout': 30,

@@ -194,22 +194,26 @@ class _HintsModeOverlayState extends State<HintsModeOverlay> {
   }
 
   Future<void> _executeHint(_HintMatch hint) async {
-    switch (hint.type) {
-      case _HintType.url:
-        final uri = Uri.parse(hint.text);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        }
-        break;
-      case _HintType.path:
-        await Clipboard.setData(ClipboardData(text: hint.text));
-        break;
-      case _HintType.email:
-        final uri = Uri.parse('mailto:${hint.text}');
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        }
-        break;
+    try {
+      switch (hint.type) {
+        case _HintType.url:
+          final uri = Uri.parse(hint.text);
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          }
+          break;
+        case _HintType.path:
+          await Clipboard.setData(ClipboardData(text: hint.text));
+          break;
+        case _HintType.email:
+          final uri = Uri.parse('mailto:${hint.text}');
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          }
+          break;
+      }
+    } on Exception catch (e, stack) {
+      debugPrint('executeHint failed: $e\n$stack');
     }
     widget.onClose();
   }

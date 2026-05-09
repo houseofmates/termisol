@@ -17,10 +17,10 @@ class _HyperlinkEntry {
   _HyperlinkEntry(this.line, this.startCol, this.endCol, this.url);
 }
 
-/// Handles OSC 8 hyperlinks in terminal output.
+/// handles osc 8 hyperlinks in terminal output.
 ///
-/// Parses OSC 8 escape sequences and maintains a map of buffer positions to URLs.
-/// Uses the terminal's [onPrivateOSC] callback for accurate position tracking.
+/// parses osc 8 escape sequences and maintains a map of buffer positions to urls.
+/// uses the terminal's [onprivateosc] callback for accurate position tracking.
 class HyperlinkHandler {
   Terminal? _terminal;
   final List<_PendingHyperlink> _pending = [];

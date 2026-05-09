@@ -2,14 +2,14 @@ import 'dart:typed_data';
 
 import 'package:xterm/xterm.dart' show CellContent, CellData, Terminal;
 
-/// Encodes the visible terminal buffer into a compact binary format suitable
-/// for transmission to the native VR renderer.
+/// encodes the visible terminal buffer into a compact binary format suitable
+/// for transmission to the native vr renderer.
 ///
-/// Each cell is encoded as 13 bytes:
-///   - codepoint : Uint32 (4 bytes)
-///   - foreground: Uint32 (4 bytes)
-///   - background: Uint32 (4 bytes)
-///   - flags     : Uint8  (1 byte)
+/// each cell is encoded as 13 bytes:
+///   - codepoint : uint32 (4 bytes)
+///   - foreground: uint32 (4 bytes)
+///   - background: uint32 (4 bytes)
+///   - flags     : uint8  (1 byte)
 class VrFrameEncoder {
   VrFrameEncoder({this.maxRows = 40, this.maxCols = 80});
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:xterm/xterm.dart';
 
-/// Theme mode options for termisol.
+/// theme mode options for termisol.
 enum TermisolThemeMode { dark, light, retro }
 
 /// strict pkm aesthetic constants for termisol.

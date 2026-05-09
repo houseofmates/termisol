@@ -5,16 +5,16 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:file_picker/file_picker.dart';
 
-/// A robust terminal text editor for termisol.
-/// Opens files from the `edit <filename>` command.
+/// a robust terminal text editor for termisol.
+/// opens files from the `edit <filename>` command.
 ///
-/// Features:
-/// - Line numbers gutter
-/// - Status bar (line:column, language, dirty indicator)
-/// - Keyboard shortcuts: Ctrl+S save, Ctrl+W close, Ctrl+O open, Ctrl+F find
-/// - Tab key inserts 2 spaces
-/// - Auto-indent on Enter
-/// - Consistent dark theme
+/// features:
+/// - line numbers gutter
+/// - status bar (line:column, language, dirty indicator)
+/// - keyboard shortcuts: ctrl+s save, ctrl+w close, ctrl+o open, ctrl+f find
+/// - tab key inserts 2 spaces
+/// - auto-indent on enter
+/// - consistent dark theme
 class EditTerminal extends StatefulWidget {
   final String filePath;
   final String initialContent;

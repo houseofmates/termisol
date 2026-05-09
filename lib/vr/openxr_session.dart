@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 
-/// Exception thrown when an OpenXR operation fails.
+/// exception thrown when an openxr operation fails.
 class OpenXrException implements Exception {
   final String message;
   OpenXrException(this.message);
@@ -11,10 +11,10 @@ class OpenXrException implements Exception {
   String toString() => 'OpenXrException: $message';
 }
 
-/// Types of input events that can be emitted by VR controllers.
+/// types of input events that can be emitted by vr controllers.
 enum VrInputType { trigger, thumbstick, grip, menu }
 
-/// A single input event from a VR controller.
+/// a single input event from a vr controller.
 class VrInputEvent {
   final VrInputType type;
   final double x;
@@ -38,7 +38,7 @@ class VrInputEvent {
   }
 }
 
-/// Encapsulates a snapshot of the terminal grid to be rendered in VR.
+/// encapsulates a snapshot of the terminal grid to be rendered in vr.
 class VrTerminalFrame {
   final int rows;
   final int cols;
@@ -51,7 +51,7 @@ class VrTerminalFrame {
   });
 }
 
-/// Manages the lifecycle of the native OpenXR session and provides a typed
+/// manages the lifecycle of the native openxr session and provides a typed
 /// interface over the `com.termisol/vr` platform channel.
 class OpenXrSession {
   static const MethodChannel _channel = MethodChannel('com.termisol/vr');

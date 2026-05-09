@@ -1,10 +1,10 @@
-/// Centralized prompt color configuration for all termisol backends.
+/// centralized prompt color configuration for all termisol backends.
 ///
 /// username@hostname: ~/directory $
 /// ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^
 ///     #f6b012            #35c7ff
 ///
-/// Main terminal text: #d8ba75
+/// main terminal text: #d8ba75
 class PromptConfig {
   PromptConfig._();
 

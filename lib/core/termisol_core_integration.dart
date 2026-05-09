@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 
-/// real-time performance metrics collected from Flutter's frame timing.
+/// real-time performance metrics collected from flutter's frame timing.
 class PerformanceMetrics {
   final double buildDurationMs;
   final double rasterDurationMs;
@@ -39,8 +39,8 @@ class FrameMetrics {
 
 /// termisol core integration system.
 ///
-/// collects real frame timing data via SchedulerBinding.addTimingsCallback
-/// and exposes a stream of PerformanceMetrics. no ghost integrations.
+/// collects real frame timing data via schedulerbinding.addtimingscallback
+/// and exposes a stream of performancemetrics. no ghost integrations.
 class TermisolCoreIntegration {
   static TermisolCoreIntegration? _instance;
   static TermisolCoreIntegration get instance => _instance ??= TermisolCoreIntegration._();
@@ -242,7 +242,7 @@ class TermisolCoreIntegration {
   }
 }
 
-/// Configuration for Termisol core.
+/// configuration for termisol core.
 class TermisolCoreConfig {
   final bool enableGpuAcceleration;
   final bool enableCloudAi;

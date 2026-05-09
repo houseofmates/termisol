@@ -18,11 +18,11 @@ abstract class TermisolPtyBackend {
   Future<void> terminate();
 
   /// Auto-detect the best backend for the current platform.
-  factory TermisolPtyBackend.autoDetect({String? workingDirectory}) {
+  factory TermisolPtyBackend.autoDetect({String? workingDirectory, Encoding encoding = utf8}) {
     if (Platform.isAndroid) {
       return AndroidShellBackend(workingDirectory: workingDirectory);
     }
-    return _PtyBackend(workingDirectory: workingDirectory);
+    return _PtyBackend(workingDirectory: workingDirectory, encoding: encoding);
   }
 }
 
@@ -30,6 +30,7 @@ class _PtyBackend implements TermisolPtyBackend {
   @override
   final String name = 'PTY Backend';
   final String? workingDirectory;
+  final Encoding encoding;
   PseudoTerminal? _pty;
   final _outputController = StreamController<List<int>>.broadcast();
   bool _isRunning = false;
@@ -38,7 +39,7 @@ class _PtyBackend implements TermisolPtyBackend {
   @override
   Stream<List<int>> get output => _outputController.stream;
 
-  _PtyBackend({this.workingDirectory});
+  _PtyBackend({this.workingDirectory, this.encoding = utf8});
 
   @override
   Future<void> start({int cols = 80, int rows = 24, String? workingDirectory}) async {
@@ -73,7 +74,7 @@ class _PtyBackend implements TermisolPtyBackend {
 
     _pty!.out.listen(
       (data) {
-        _safeAdd(utf8.encode(data));
+        _safeAdd(encoding.encode(data));
       },
       onError: (Object e) {
         if (kDebugMode) debugPrint('[pty] out error: $e');
@@ -85,15 +86,15 @@ class _PtyBackend implements TermisolPtyBackend {
 
     _pty!.exitCode.then((code) {
       _isRunning = false;
-      _safeAdd(utf8.encode('\r\n[process exited with code $code]\r\n'));
+      _safeAdd(encoding.encode('\r\n[process exited with code $code]\r\n'));
     });
 
     if (kDebugMode) debugPrint('[pty] started pty: $shell');
 
-    // Inject termisol-colored PS1 after shell initializes
+    // inject termisol-colored PS1 after shell initializes
     Future.delayed(const Duration(milliseconds: 200), () {
       if (_isRunning && _pty != null) {
-        write(utf8.encode("export PS1='${PromptConfig.bashPs1}'\n"));
+        write(encoding.encode("export PS1='${PromptConfig.bashPs1}'\n"));
       }
     });
   }
@@ -102,7 +103,7 @@ class _PtyBackend implements TermisolPtyBackend {
   void write(List<int> data) {
     if (_pty != null && _isRunning) {
       try {
-        _pty!.write(utf8.decode(data));
+        _pty!.write(encoding.decode(data));
       } catch (e) {
         if (kDebugMode) debugPrint('[pty] write error: $e');
       }

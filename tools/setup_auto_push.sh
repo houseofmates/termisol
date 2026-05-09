@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Setup script for amnesia-proof, restart-proof AutoPush system
-# This script installs the necessary components and sets up automatic restart
+# setup script for amnesia-proof, restart-proof autopush system
+# this script installs the necessary components and sets up automatic restart
 
 set -e
 

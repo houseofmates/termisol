@@ -88,7 +88,9 @@ class CommandAliasSystem {
 
     // Find the first word boundary
     final spaceIndex = trimmed.indexOf(' ');
-    final firstWord = spaceIndex == -1 ? trimmed : trimmed.substring(0, spaceIndex);
+    final firstWord = spaceIndex == -1
+        ? trimmed
+        : trimmed.substring(0, spaceIndex);
     final rest = spaceIndex == -1 ? '' : trimmed.substring(spaceIndex);
 
     final expansion = _aliases[firstWord];

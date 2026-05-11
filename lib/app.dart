@@ -74,8 +74,6 @@ class _TermisolAppState extends State<TermisolApp> {
             model.contains('oculus') ||
             manufacturer.contains('oculus');
       }
-    } on PlatformException catch (e) {
-      debugPrint('vr detection platform error: $e');
     } on Exception catch (e) {
       debugPrint('vr detection failed: $e');
     }
@@ -129,7 +127,7 @@ class _VrHomeState extends State<_VrHome> {
   }
 
   Future<void> _initSession() async {
-    final session = TerminalSession(id: 'vr_main', name: 'VR Terminal');
+    final session = TerminalSession(id: 'vr_main', name: 'vr terminal');
     try {
       await session.start();
       if (mounted) {

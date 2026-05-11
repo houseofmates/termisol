@@ -1,11 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:xterm/xterm.dart' show Terminal;
 import '../core/terminal_session.dart';
 import '../core/whisper_service.dart';
-import 'clipboard_manager.dart';
 import 'enhanced_clipboard_manager.dart';
 
 /// custom hotkey manager for termisol with user-defined bindings
@@ -70,8 +67,6 @@ class CustomHotkeyManager {
       return KeyEventResult.handled;
     }
     
-    // ctrl+z: undo (let it pass through to terminal)
-    // we'll ignore this to let the terminal handle undo
     
     // ctrl+a: copy all
     if (ctrl && !shift && event.logicalKey == LogicalKeyboardKey.keyA) {
@@ -107,7 +102,7 @@ class CustomHotkeyManager {
   }
   
   /// copy selected text to clipboard
-  void _handleCopy() async {
+  Future<void> _handleCopy() async {
     final success = await clipboard.copy();
     _showFeedback(success ? 'Copied to clipboard' : 'Copy failed');
   }
@@ -119,7 +114,7 @@ class CustomHotkeyManager {
   }
   
   /// paste from clipboard
-  void _handlePaste() async {
+  Future<void> _handlePaste() async {
     final result = await clipboard.paste();
     if (result.success) {
       _showFeedback(result.message);
@@ -129,7 +124,7 @@ class CustomHotkeyManager {
   }
   
   /// copy all terminal content
-  void _handleCopyAll() async {
+  Future<void> _handleCopyAll() async {
     final success = await clipboard.copyAll();
     _showFeedback(success ? 'All content copied to clipboard' : 'Copy all failed');
   }
@@ -151,7 +146,7 @@ class CustomHotkeyManager {
   }
   
   /// stop recording and process with whisper
-  void _stopRecording() async {
+  Future<void> _stopRecording() async {
     _isRecording = false;
     final audioBytes = _audioRecorder!.stopRecording();
     _showFeedback('🔍 Processing transcript with Whisper...');

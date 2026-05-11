@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -13,6 +14,11 @@ class AndroidShellBackend implements TermisolPtyBackend {
   final String name = 'Android Shell Backend';
   final String? workingDirectory;
   Process? _process;
+
+  @visibleForTesting
+  void setProcessForTesting(Process process) {
+    _process = process;
+  }
   final _outputController = StreamController<List<int>>.broadcast(sync: false);
   bool _isRunning = false;
   bool _isDisposed = false;

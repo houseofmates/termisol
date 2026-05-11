@@ -12,8 +12,9 @@ void main() {
       registry = ServiceRegistry.instance;
     });
 
-    testWidgets('Memory usage remains stable during tab operations',
-        (WidgetTester tester) async {
+    testWidgets('Memory usage remains stable during tab operations', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(TermisolApp(registry: registry));
       await tester.pumpAndSettle();
 
@@ -37,16 +38,23 @@ void main() {
           final currentMemory = await _getMemoryUsage();
           final memoryIncrease = currentMemory - initialMemory;
 
-          expect(memoryIncrease, lessThan(50 * 1024 * 1024), // 50MB limit
-              reason: 'Memory increase should be reasonable after $i tab operations');
+          expect(
+            memoryIncrease,
+            lessThan(50 * 1024 * 1024), // 50MB limit
+            reason:
+                'Memory increase should be reasonable after $i tab operations',
+          );
         }
       }
 
       final finalMemory = await _getMemoryUsage();
       final totalIncrease = finalMemory - initialMemory;
 
-      expect(totalIncrease, lessThan(100 * 1024 * 1024), // 100MB total limit
-          reason: 'Total memory increase should be bounded');
+      expect(
+        totalIncrease,
+        lessThan(100 * 1024 * 1024), // 100MB total limit
+        reason: 'Total memory increase should be bounded',
+      );
     });
 
     testWidgets('Long-running stability test', (WidgetTester tester) async {
@@ -79,8 +87,11 @@ void main() {
           final currentMemory = await _getMemoryUsage();
           final memoryIncrease = currentMemory - initialMemory;
 
-          expect(memoryIncrease, lessThan(200 * 1024 * 1024), // 200MB limit
-              reason: 'Memory should not grow unbounded during long running test');
+          expect(
+            memoryIncrease,
+            lessThan(200 * 1024 * 1024), // 200MB limit
+            reason: 'Memory should not grow unbounded during long running test',
+          );
         }
 
         // Small delay to prevent overwhelming the test
@@ -90,8 +101,11 @@ void main() {
       final finalMemory = await _getMemoryUsage();
       final totalIncrease = finalMemory - initialMemory;
 
-      expect(totalIncrease, lessThan(300 * 1024 * 1024), // 300MB total limit
-          reason: 'Long-running memory increase should be reasonable');
+      expect(
+        totalIncrease,
+        lessThan(300 * 1024 * 1024), // 300MB total limit
+        reason: 'Long-running memory increase should be reasonable',
+      );
     });
   });
 }
@@ -101,7 +115,12 @@ Future<int> _getMemoryUsage() async {
   try {
     // In a real implementation, this would use platform-specific APIs
     // For testing, we'll simulate memory readings
-    final process = await Process.run('ps', ['-o', 'rss=', '-p', pid.toString()]);
+    final process = await Process.run('ps', [
+      '-o',
+      'rss=',
+      '-p',
+      pid.toString(),
+    ]);
     if (process.exitCode == 0) {
       final memoryKB = int.tryParse(process.stdout.toString().trim()) ?? 0;
       return memoryKB * 1024; // Convert to bytes

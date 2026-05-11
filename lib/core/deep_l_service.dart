@@ -19,7 +19,8 @@ class DeepLTranslationService {
   String? _apiKey;
   bool _initialized = false;
 
-  bool get isAvailable => _initialized && _apiKey != null && _apiKey!.isNotEmpty;
+  bool get isAvailable =>
+      _initialized && _apiKey != null && _apiKey!.isNotEmpty;
 
   String? get apiKey => _apiKey;
 
@@ -128,10 +129,7 @@ class DeepLTranslationService {
           'Authorization': 'DeepL-Auth-Key $_apiKey',
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: {
-          'text': text,
-          'target_lang': 'EN',
-        },
+        body: {'text': text, 'target_lang': 'EN'},
       );
 
       if (response.statusCode == 200) {

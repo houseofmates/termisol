@@ -2,8 +2,10 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:xterm/xterm.dart' show BufferLine, BufferRange, TerminalPainter, TerminalStyle, TerminalTheme;
-import 'package:xterm/xterm.dart' show CellAttr, CellColor, CellContent, CellData;
+import 'package:xterm/xterm.dart'
+    show BufferLine, BufferRange, TerminalPainter, TerminalStyle, TerminalTheme;
+import 'package:xterm/xterm.dart'
+    show CellAttr, CellColor, CellContent, CellData;
 
 import 'color_resolver.dart';
 import 'line_picture_cache.dart';
@@ -69,7 +71,8 @@ class GpuTerminalPainter extends TerminalPainter {
       return;
     }
 
-    final hasSelection = selection != null && _lineIntersectsSelection(lineIndex, selection);
+    final hasSelection =
+        selection != null && _lineIntersectsSelection(lineIndex, selection);
     if (hasSelection) {
       _drawLineDirect(canvas, offset, line);
       return;
@@ -173,17 +176,26 @@ class GpuTerminalPainter extends TerminalPainter {
         fontFamily: textStyle.fontFamily,
         fontFamilyFallback: textStyle.fontFamilyFallback,
         color: color,
-        fontWeight: cellData.flags & CellAttr.bold != 0 ? FontWeight.bold : FontWeight.normal,
-        fontStyle: cellData.flags & CellAttr.italic != 0 ? FontStyle.italic : FontStyle.normal,
+        fontWeight: cellData.flags & CellAttr.bold != 0
+            ? FontWeight.bold
+            : FontWeight.normal,
+        fontStyle: cellData.flags & CellAttr.italic != 0
+            ? FontStyle.italic
+            : FontStyle.normal,
         decoration: TextDecoration.combine([
-          if (cellData.flags & CellAttr.underline != 0) TextDecoration.underline,
-          if (cellData.flags & CellAttr.strikethrough != 0) TextDecoration.lineThrough,
+          if (cellData.flags & CellAttr.underline != 0)
+            TextDecoration.underline,
+          if (cellData.flags & CellAttr.strikethrough != 0)
+            TextDecoration.lineThrough,
         ]),
       );
 
       final char = String.fromCharCode(codepoint);
       final paragraph = _getParagraph(char, style);
-      canvas.drawParagraph(paragraph, Offset(offset.dx + i * cellWidth, offset.dy));
+      canvas.drawParagraph(
+        paragraph,
+        Offset(offset.dx + i * cellWidth, offset.dy),
+      );
 
       if (width == 2) i++;
     }

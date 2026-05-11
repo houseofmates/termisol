@@ -14,7 +14,8 @@ class NvidiaAITerminalAssistant {
   static const int maxContextLength = 4096;
   static const int maxRetries = 3;
 
-  final StreamController<AIEvent> _eventController = StreamController.broadcast();
+  final StreamController<AIEvent> _eventController =
+      StreamController.broadcast();
   final List<AIConversation> _conversations = [];
   final Map<String, AIContext> _activeContexts = {};
   final http.Client _httpClient = http.Client();
@@ -85,7 +86,9 @@ class NvidiaAITerminalAssistant {
         if (response.statusCode == 200) {
           final body = response.body.toLowerCase();
           if (body.contains('gemma')) {
-            _localGemmaEndpoint = endpoint.replaceAll('/api/tags', '/api/generate').replaceAll('/v1/models', '/v1/chat/completions');
+            _localGemmaEndpoint = endpoint
+                .replaceAll('/api/tags', '/api/generate')
+                .replaceAll('/v1/models', '/v1/chat/completions');
             debugPrint('detected local gemma at $_localGemmaEndpoint');
             return;
           }
@@ -135,13 +138,17 @@ class NvidiaAITerminalAssistant {
       if (response.success) {
         _successfulRequests++;
         context.addMessage(AIMessage.assistant(response.output));
-        _eventController.add(AIEvent.responseGenerated(
-          contextId,
-          capability,
-          response.output.length,
-        ));
+        _eventController.add(
+          AIEvent.responseGenerated(
+            contextId,
+            capability,
+            response.output.length,
+          ),
+        );
       } else {
-        _eventController.add(AIEvent.requestFailed(contextId, capability, response.error!));
+        _eventController.add(
+          AIEvent.requestFailed(contextId, capability, response.error!),
+        );
       }
 
       return response;
@@ -163,7 +170,10 @@ class NvidiaAITerminalAssistant {
     AIContext context,
   ) {
     final config = ProductionConfigSystem();
-    final model = config.get<String>('ai.model', 'nvidia-llama-3.1-8b-instruct');
+    final model = config.get<String>(
+      'ai.model',
+      'nvidia-llama-3.1-8b-instruct',
+    );
     final maxTokens = config.get<int>('ai.max_tokens', 4096);
     final temperature = config.get<double>('ai.temperature', 0.7);
 
@@ -200,7 +210,9 @@ class NvidiaAITerminalAssistant {
     }
   }
 
-  Future<AIResponse> _makeAPIRequestWithRetry(Map<String, dynamic> request) async {
+  Future<AIResponse> _makeAPIRequestWithRetry(
+    Map<String, dynamic> request,
+  ) async {
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         final response = await _makeAPIRequest(request);
@@ -227,23 +239,25 @@ class NvidiaAITerminalAssistant {
       'Content-Type': 'application/json',
     };
 
-    final response = await _httpClient.post(
-      url,
-      headers: headers,
-      body: jsonEncode(request),
-    ).timeout(requestTimeout);
+    final response = await _httpClient
+        .post(url, headers: headers, body: jsonEncode(request))
+        .timeout(requestTimeout);
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final content = data['choices']?[0]?['message']?['content'] ?? '';
       return AIResponse.success(content.toString());
     } else {
-      throw Exception('API request failed: ${response.statusCode} ${response.body}');
+      throw Exception(
+        'API request failed: ${response.statusCode} ${response.body}',
+      );
     }
   }
 
   /// send request to local gemma endpoint on android.
-  Future<AIResponse> _makeLocalGemmaRequest(Map<String, dynamic> request) async {
+  Future<AIResponse> _makeLocalGemmaRequest(
+    Map<String, dynamic> request,
+  ) async {
     if (_localGemmaEndpoint == null) {
       return AIResponse.failure('no local gemma endpoint available');
     }
@@ -256,7 +270,11 @@ class NvidiaAITerminalAssistant {
     };
 
     final response = await _httpClient
-        .post(url, headers: {'Content-Type': 'application/json'}, body: jsonEncode(body))
+        .post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(body),
+        )
         .timeout(requestTimeout);
 
     if (response.statusCode == 200) {
@@ -264,7 +282,9 @@ class NvidiaAITerminalAssistant {
       final content = data['message']?['content'] ?? data['response'] ?? '';
       return AIResponse.success(content.toString());
     } else {
-      return AIResponse.failure('local gemma request failed: ${response.statusCode}');
+      return AIResponse.failure(
+        'local gemma request failed: ${response.statusCode}',
+      );
     }
   }
 
@@ -278,7 +298,8 @@ class NvidiaAITerminalAssistant {
 
     try {
       _getOrCreateContext(contextId);
-      final prompt = 'based on the current terminal session and input "$currentInput", suggest $maxSuggestions relevant terminal commands. return only the commands, one per line, no explanations.';
+      final prompt =
+          'based on the current terminal session and input "$currentInput", suggest $maxSuggestions relevant terminal commands. return only the commands, one per line, no explanations.';
 
       final response = await processText(
         input: prompt,
@@ -294,7 +315,9 @@ class NvidiaAITerminalAssistant {
             .take(maxSuggestions)
             .toList();
 
-        _eventController.add(AIEvent.suggestionsGenerated(contextId, suggestions.length));
+        _eventController.add(
+          AIEvent.suggestionsGenerated(contextId, suggestions.length),
+        );
         return suggestions;
       }
       return [];
@@ -314,7 +337,8 @@ class NvidiaAITerminalAssistant {
     }
 
     try {
-      final prompt = 'analyze this terminal output for errors, warnings, or opportunities for improvement:\n\n$output\n\nprovide a JSON response with: {"errors": [], "warnings": [], "suggestions": [], "summary": ""}';
+      final prompt =
+          'analyze this terminal output for errors, warnings, or opportunities for improvement:\n\n$output\n\nprovide a JSON response with: {"errors": [], "warnings": [], "suggestions": [], "summary": ""}';
 
       final response = await processText(
         input: prompt,
@@ -327,8 +351,10 @@ class NvidiaAITerminalAssistant {
           final data = jsonDecode(response.output);
           return AnalysisResult(
             errors: (data['errors'] as List<dynamic>?)?.cast<String>() ?? [],
-            warnings: (data['warnings'] as List<dynamic>?)?.cast<String>() ?? [],
-            suggestions: (data['suggestions'] as List<dynamic>?)?.cast<String>() ?? [],
+            warnings:
+                (data['warnings'] as List<dynamic>?)?.cast<String>() ?? [],
+            suggestions:
+                (data['suggestions'] as List<dynamic>?)?.cast<String>() ?? [],
             summary: (data['summary'] as String?) ?? '',
           );
         } catch (e) {
@@ -351,7 +377,8 @@ class NvidiaAITerminalAssistant {
     if (!_isInitialized && _localGemmaEndpoint == null) return null;
 
     try {
-      final prompt = 'generate $language code for: $description\n\ninclude proper error handling, comments, and follow best practices.';
+      final prompt =
+          'generate $language code for: $description\n\ninclude proper error handling, comments, and follow best practices.';
 
       final response = await processText(
         input: prompt,
@@ -464,15 +491,15 @@ class AIContext {
   }
 
   List<Map<String, String>> getRecentMessages(int maxLength) {
-    final recent = _messages.sublist(maxLength > _messages.length ? 0 : _messages.length - maxLength);
+    final recent = _messages.sublist(
+      maxLength > _messages.length ? 0 : _messages.length - maxLength,
+    );
 
-    return recent.map((msg) => {
-      'role': msg.role,
-      'content': msg.content,
-    }).toList();
+    return recent
+        .map((msg) => {'role': msg.role, 'content': msg.content})
+        .toList();
   }
 }
-
 
 /// analysis result for terminal output
 class AnalysisResult {
@@ -510,7 +537,8 @@ class AIEvent {
   final String? error;
   final int? count;
 
-  const AIEvent._(this.type, {
+  const AIEvent._(
+    this.type, {
     this.contextId,
     this.capability,
     this.length,
@@ -518,16 +546,26 @@ class AIEvent {
     this.count,
   });
 
-  factory AIEvent.responseGenerated(String contextId, AICapability capability, int length) {
-    return AIEvent._(AIEventType.responseGenerated,
+  factory AIEvent.responseGenerated(
+    String contextId,
+    AICapability capability,
+    int length,
+  ) {
+    return AIEvent._(
+      AIEventType.responseGenerated,
       contextId: contextId,
       capability: capability,
       length: length,
     );
   }
 
-  factory AIEvent.requestFailed(String contextId, AICapability capability, String error) {
-    return AIEvent._(AIEventType.requestFailed,
+  factory AIEvent.requestFailed(
+    String contextId,
+    AICapability capability,
+    String error,
+  ) {
+    return AIEvent._(
+      AIEventType.requestFailed,
       contextId: contextId,
       capability: capability,
       error: error,
@@ -535,7 +573,8 @@ class AIEvent {
   }
 
   factory AIEvent.suggestionsGenerated(String contextId, int count) {
-    return AIEvent._(AIEventType.suggestionsGenerated,
+    return AIEvent._(
+      AIEventType.suggestionsGenerated,
       contextId: contextId,
       count: count,
     );
@@ -594,7 +633,10 @@ class AIMessage {
     );
   }
 
-  factory AIMessage.assistant(String content, {Map<String, dynamic>? metadata}) {
+  factory AIMessage.assistant(
+    String content, {
+    Map<String, dynamic>? metadata,
+  }) {
     return AIMessage(
       role: 'assistant',
       content: content,

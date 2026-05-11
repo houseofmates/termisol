@@ -7,7 +7,9 @@ void main() {
   group('Performance Benchmarks', () {
     final registry = ServiceRegistry.instance;
 
-    testWidgets('Frame times under 16ms during normal typing', (WidgetTester tester) async {
+    testWidgets('Frame times under 16ms during normal typing', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(TermisolApp(registry: registry));
       await tester.pumpAndSettle();
 
@@ -21,17 +23,23 @@ void main() {
         await tester.pump();
         frameCount++;
 
-        if (stopwatch.elapsedMilliseconds > 1000) { // Measure over 1 second
+        if (stopwatch.elapsedMilliseconds > 1000) {
+          // Measure over 1 second
           break;
         }
       }
 
       final averageFrameTime = stopwatch.elapsedMilliseconds / frameCount;
-      expect(averageFrameTime, lessThan(16.0),
-          reason: 'Average frame time should be under 16ms for smooth 60fps');
+      expect(
+        averageFrameTime,
+        lessThan(16.0),
+        reason: 'Average frame time should be under 16ms for smooth 60fps',
+      );
     });
 
-    testWidgets('Frame times under 16ms during large file display', (WidgetTester tester) async {
+    testWidgets('Frame times under 16ms during large file display', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(TermisolApp(registry: registry));
       await tester.pumpAndSettle();
 
@@ -50,11 +58,16 @@ void main() {
       }
 
       final averageFrameTime = stopwatch.elapsedMilliseconds / frameCount;
-      expect(averageFrameTime, lessThan(16.0),
-          reason: 'Frame time should stay under 16ms even with large content');
+      expect(
+        averageFrameTime,
+        lessThan(16.0),
+        reason: 'Frame time should stay under 16ms even with large content',
+      );
     });
 
-    testWidgets('Frame times under 16ms during image display', (WidgetTester tester) async {
+    testWidgets('Frame times under 16ms during image display', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(TermisolApp(registry: registry));
       await tester.pumpAndSettle();
 
@@ -65,24 +78,25 @@ void main() {
         color: Colors.blue,
       );
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(body: largeImage),
-        ),
-      );
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: largeImage)));
 
       final stopwatch = Stopwatch()..start();
       int frameCount = 0;
 
       // Measure frame times while displaying large image
-      for (int i = 0; i < 60; i++) { // 1 second at 60fps
+      for (int i = 0; i < 60; i++) {
+        // 1 second at 60fps
         await tester.pump();
         frameCount++;
       }
 
       final averageFrameTime = stopwatch.elapsedMilliseconds / frameCount;
-      expect(averageFrameTime, lessThan(16.0),
-          reason: 'Frame time should stay under 16ms when displaying large images');
+      expect(
+        averageFrameTime,
+        lessThan(16.0),
+        reason:
+            'Frame time should stay under 16ms when displaying large images',
+      );
     });
   });
 }

@@ -22,11 +22,9 @@ class CrashRecovery {
   /// Record a command execution for health monitoring.
   void onCommand(String sessionId, String command) {
     final now = DateTime.now();
-    _commandHistory.add(_CommandRecord(
-      sessionId: sessionId,
-      command: command,
-      timestamp: now,
-    ));
+    _commandHistory.add(
+      _CommandRecord(sessionId: sessionId, command: command, timestamp: now),
+    );
 
     if (_commandHistory.length > _maxHistory) {
       _commandHistory.removeFirst();
@@ -59,7 +57,9 @@ class CrashRecovery {
     final inactiveDuration = DateTime.now().difference(health.lastActivity);
     if (inactiveDuration > const Duration(minutes: 5)) {
       if (kDebugMode) {
-        debugPrint('[CrashRecovery] Session $sessionId inactive for $inactiveDuration');
+        debugPrint(
+          '[CrashRecovery] Session $sessionId inactive for $inactiveDuration',
+        );
       }
     }
   }

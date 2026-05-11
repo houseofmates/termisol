@@ -13,12 +13,12 @@ class CustomHotkeyManager {
   final VoidCallback? onSaveFile;
   final VoidCallback? onSearch;
   final VoidCallback? onCopyAll;
-  
+
   // transcript recording state
   bool _isRecording = false;
   AudioRecorder? _audioRecorder;
   WhisperService? _whisperService;
-  
+
   CustomHotkeyManager({
     required this.session,
     required this.clipboard,
@@ -30,10 +30,10 @@ class CustomHotkeyManager {
     _audioRecorder = AudioRecorder();
     _initializeWhisper();
   }
-  
+
   Future<void> _initializeWhisper() async {
     _whisperService = WhisperService();
-    
+
     // check if server is available, fall back to mock if not
     final available = await _whisperService!.isServerAvailable();
     if (!available) {
@@ -41,26 +41,26 @@ class CustomHotkeyManager {
       _whisperService = MockWhisperService();
     }
   }
-  
+
   /// handle key events with custom bindings
   KeyEventResult handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
-    
+
     final ctrl = HardwareKeyboard.instance.isControlPressed;
     final shift = HardwareKeyboard.instance.isShiftPressed;
-    
+
     // ctrl+c: copy (instead of interrupt)
     if (ctrl && !shift && event.logicalKey == LogicalKeyboardKey.keyC) {
       _handleCopy();
       return KeyEventResult.handled;
     }
-    
+
     // ctrl+shift+c: original interrupt behavior
     if (ctrl && shift && event.logicalKey == LogicalKeyboardKey.keyC) {
       _handleInterrupt();
       return KeyEventResult.handled;
     }
-    
+
     // ctrl+v: paste
     if (ctrl && !shift && event.logicalKey == LogicalKeyboardKey.keyV) {
       _handlePaste();
@@ -73,46 +73,46 @@ class CustomHotkeyManager {
       _handleCopyAll();
       return KeyEventResult.handled;
     }
-    
+
     // ctrl+f: search
     if (ctrl && !shift && event.logicalKey == LogicalKeyboardKey.keyF) {
       onSearch?.call();
       return KeyEventResult.handled;
     }
-    
+
     // ctrl+b: toggle transcript recording
     if (ctrl && !shift && event.logicalKey == LogicalKeyboardKey.keyB) {
       _handleTranscriptToggle();
       return KeyEventResult.handled;
     }
-    
+
     // ctrl+s: save file
     if (ctrl && !shift && event.logicalKey == LogicalKeyboardKey.keyS) {
       onSaveFile?.call();
       return KeyEventResult.handled;
     }
-    
+
     // ctrl+n: new tab
     if (ctrl && !shift && event.logicalKey == LogicalKeyboardKey.keyN) {
       onNewTab?.call();
       return KeyEventResult.handled;
     }
-    
+
     return KeyEventResult.ignored;
   }
-  
+
   /// copy selected text to clipboard
   Future<void> _handleCopy() async {
     final success = await clipboard.copy();
     _showFeedback(success ? 'Copied to clipboard' : 'Copy failed');
   }
-  
+
   /// send interrupt signal (ctrl+c original behavior)
   void _handleInterrupt() {
     session.sendRawInput('\x03'); // ctrl+c character
     _showFeedback('Interrupt sent');
   }
-  
+
   /// paste from clipboard
   Future<void> _handlePaste() async {
     final result = await clipboard.paste();
@@ -122,13 +122,15 @@ class CustomHotkeyManager {
       _showFeedback('Paste failed: ${result.message}');
     }
   }
-  
+
   /// copy all terminal content
   Future<void> _handleCopyAll() async {
     final success = await clipboard.copyAll();
-    _showFeedback(success ? 'All content copied to clipboard' : 'Copy all failed');
+    _showFeedback(
+      success ? 'All content copied to clipboard' : 'Copy all failed',
+    );
   }
-  
+
   /// toggle transcript recording with whisper
   void _handleTranscriptToggle() {
     if (_isRecording) {
@@ -137,28 +139,28 @@ class CustomHotkeyManager {
       _startRecording();
     }
   }
-  
+
   /// start recording audio transcript
   void _startRecording() {
     _isRecording = true;
     _audioRecorder!.startRecording();
     _showFeedback('🎙️ Recording transcript... (Press Ctrl+B again to stop)');
   }
-  
+
   /// stop recording and process with whisper
   Future<void> _stopRecording() async {
     _isRecording = false;
     final audioBytes = _audioRecorder!.stopRecording();
     _showFeedback('🔍 Processing transcript with Whisper...');
-    
+
     try {
       final transcription = await _whisperService!.transcribeAudioBytes(
-        audioBytes, 
-        'recording_${DateTime.now().millisecondsSinceEpoch}.wav'
+        audioBytes,
+        'recording_${DateTime.now().millisecondsSinceEpoch}.wav',
       );
-      
+
       final cleanedText = WhisperService.cleanTranscription(transcription);
-      
+
       if (cleanedText.isNotEmpty) {
         // insert the processed text at cursor position
         session.sendRawInput(cleanedText);
@@ -170,19 +172,17 @@ class CustomHotkeyManager {
       _showFeedback('❌ Whisper processing failed: $e');
     }
   }
-  
-  
-  
+
   /// show feedback message (could be implemented as toast, status bar, etc.)
   void _showFeedback(String message) {
     // this would show a toast or status message
     // for now, we'll print to debug
     debugPrint('Termisol Hotkey: $message');
-    
+
     // in a real implementation, you could use:
     // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
-  
+
   /// dispose resources
   void dispose() {
     if (_isRecording) {
@@ -192,4 +192,3 @@ class CustomHotkeyManager {
     _whisperService = null;
   }
 }
-

@@ -32,7 +32,11 @@ class AndroidShellBackend implements TermisolPtyBackend {
   AndroidShellBackend({this.workingDirectory});
 
   @override
-  Future<void> start({int cols = 80, int rows = 24, String? workingDirectory}) async {
+  Future<void> start({
+    int cols = 80,
+    int rows = 24,
+    String? workingDirectory,
+  }) async {
     final env = await _buildEnvironment(cols, rows);
     await _startProcess(env);
   }
@@ -102,7 +106,8 @@ class AndroidShellBackend implements TermisolPtyBackend {
             break;
           }
         } catch (e) {
-          if (kDebugMode) debugPrint('[androidshell] probe error for ${probe.$1}: $e');
+          if (kDebugMode)
+            debugPrint('[androidshell] probe error for ${probe.$1}: $e');
           continue;
         }
       }
@@ -140,11 +145,14 @@ class AndroidShellBackend implements TermisolPtyBackend {
         onError: (e) => debugPrint('[androidshell] stderr error: $e'),
       );
 
-      unawaited(_process!.exitCode.then((code) {
-        if (kDebugMode) debugPrint('[androidshell] shell exited with code $code');
-        _isRunning = false;
-        _safeAdd(utf8.encode('\r\n[process exited: $code]\r\n'));
-      }));
+      unawaited(
+        _process!.exitCode.then((code) {
+          if (kDebugMode)
+            debugPrint('[androidshell] shell exited with code $code');
+          _isRunning = false;
+          _safeAdd(utf8.encode('\r\n[process exited: $code]\r\n'));
+        }),
+      );
 
       if (kDebugMode) debugPrint('[androidshell] started shell: $shell');
 
@@ -153,7 +161,11 @@ class AndroidShellBackend implements TermisolPtyBackend {
         if (!_isRunning || _isDisposed) return;
         final user = Platform.environment['USER'] ?? 'user';
         final host = Platform.environment['HOSTNAME'] ?? 'android';
-        final ps1 = PromptConfig.portablePs1(user: user, host: host, pwd: r'\$PWD');
+        final ps1 = PromptConfig.portablePs1(
+          user: user,
+          host: host,
+          pwd: r'\$PWD',
+        );
         _safeWriteStdin("export PS1='$ps1'\n");
         _safeAdd(utf8.encode('\r\n'));
       });
@@ -161,13 +173,17 @@ class AndroidShellBackend implements TermisolPtyBackend {
       if (kDebugMode) debugPrint('[androidshell] process error: ${e.message}');
       if (_retryCount < _maxRetries) {
         _retryCount++;
-        if (kDebugMode) debugPrint('[androidshell] retrying ($_retryCount/$_maxRetries)...');
+        if (kDebugMode)
+          debugPrint('[androidshell] retrying ($_retryCount/$_maxRetries)...');
         await _startProcess(env);
       } else {
-        _emitError('failed to start shell after $_maxRetries attempts: ${e.message}');
+        _emitError(
+          'failed to start shell after $_maxRetries attempts: ${e.message}',
+        );
       }
     } on FileSystemException catch (e) {
-      if (kDebugMode) debugPrint('[androidshell] filesystem error: ${e.message}');
+      if (kDebugMode)
+        debugPrint('[androidshell] filesystem error: ${e.message}');
       _emitError('permission denied: ${e.message}');
     } on Exception catch (e) {
       if (kDebugMode) debugPrint('[androidshell] unexpected error: $e');
@@ -236,7 +252,9 @@ class AndroidShellBackend implements TermisolPtyBackend {
             final runes = str.runes.toList();
             if (runes.isNotEmpty) {
               _lineBuffer.clear();
-              _lineBuffer.write(String.fromCharCodes(runes.sublist(0, runes.length - 1)));
+              _lineBuffer.write(
+                String.fromCharCodes(runes.sublist(0, runes.length - 1)),
+              );
             }
             _safeAdd(utf8.encode('\b \b'));
           }
@@ -249,7 +267,8 @@ class AndroidShellBackend implements TermisolPtyBackend {
             try {
               _process?.stdin.close();
             } catch (e) {
-              if (kDebugMode) debugPrint('[androidshell] stdin close error: $e');
+              if (kDebugMode)
+                debugPrint('[androidshell] stdin close error: $e');
             }
           }
         } else if (rune < 0x20) {
@@ -310,7 +329,8 @@ class AndroidShellBackend implements TermisolPtyBackend {
         try {
           _process?.kill(ProcessSignal.sigkill);
         } on Exception catch (e) {
-          if (kDebugMode) debugPrint('[androidshell] termination cleanup error: $e');
+          if (kDebugMode)
+            debugPrint('[androidshell] termination cleanup error: $e');
         }
       }
       _process = null;

@@ -15,7 +15,9 @@ class TestApp extends StatelessWidget {
         backgroundColor: const Color(0xFF1e1e1e),
         body: EditTerminal(
           filePath: '/test.txt',
-          initialContent: 'Test content\nLine 2\nLine 3\n' * 50, // Multiple lines to test scrolling
+          initialContent:
+              'Test content\nLine 2\nLine 3\n' *
+              50, // Multiple lines to test scrolling
         ),
       ),
     );

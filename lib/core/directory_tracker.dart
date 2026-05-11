@@ -8,7 +8,8 @@ import 'package:flutter/foundation.dart';
 class DirectoryTracker {
   final ValueNotifier<String> directory = ValueNotifier<String>('');
 
-  String? get currentDirectory => directory.value.isEmpty ? null : directory.value;
+  String? get currentDirectory =>
+      directory.value.isEmpty ? null : directory.value;
 
   final StringBuffer _buffer = StringBuffer();
   static const int _maxBufferSize = 4096;

@@ -12,7 +12,12 @@ class FocusManager {
   final FocusNode focusNode = FocusNode();
   bool _listening = false;
 
-  FocusManager(this.terminal, this.controller, this.onFocusChanged, this.onFocusEvent);
+  FocusManager(
+    this.terminal,
+    this.controller,
+    this.onFocusChanged,
+    this.onFocusEvent,
+  );
 
   void initialize() {
     if (!_listening) {

@@ -18,7 +18,10 @@ abstract class TermisolPtyBackend {
   Future<void> terminate();
 
   /// Auto-detect the best backend for the current platform.
-  factory TermisolPtyBackend.autoDetect({String? workingDirectory, Encoding encoding = utf8}) {
+  factory TermisolPtyBackend.autoDetect({
+    String? workingDirectory,
+    Encoding encoding = utf8,
+  }) {
     if (Platform.isAndroid) {
       return AndroidShellBackend(workingDirectory: workingDirectory);
     }
@@ -44,7 +47,11 @@ class _PtyBackend implements TermisolPtyBackend {
   _PtyBackend({this.workingDirectory, this.encoding = utf8});
 
   @override
-  Future<void> start({int cols = 80, int rows = 24, String? workingDirectory}) async {
+  Future<void> start({
+    int cols = 80,
+    int rows = 24,
+    String? workingDirectory,
+  }) async {
     String shell;
 
     if (Platform.isLinux) {
@@ -88,10 +95,12 @@ class _PtyBackend implements TermisolPtyBackend {
       },
     );
 
-    unawaited(_pty!.exitCode.then((code) {
-      _isRunning = false;
-      _safeAdd(encoding.encode('\r\n[process exited with code $code]\r\n'));
-    }));
+    unawaited(
+      _pty!.exitCode.then((code) {
+        _isRunning = false;
+        _safeAdd(encoding.encode('\r\n[process exited with code $code]\r\n'));
+      }),
+    );
 
     if (kDebugMode) debugPrint('[pty] started pty: $shell');
 
@@ -177,7 +186,8 @@ String _resolveHome(String path) {
         '.';
   }
   if (path.startsWith('~/')) {
-    final home = Platform.environment['HOME'] ??
+    final home =
+        Platform.environment['HOME'] ??
         Platform.environment['USERPROFILE'] ??
         '.';
     return path.replaceFirst('~', home);

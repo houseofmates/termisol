@@ -128,7 +128,6 @@ class _CommandPaletteState extends State<CommandPalette> {
   }
 
   void _handleKey(KeyEvent event) {
-    if (event is! KeyDownEvent) return;
     switch (event.logicalKey) {
       case LogicalKeyboardKey.escape:
         widget.onClose();

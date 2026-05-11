@@ -4,24 +4,18 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-<<<<<<< HEAD
-=======
     strategy:
       matrix:
         python-version: ["3.10"]
->>>>>>> pr-5
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
       - name: Install deps
-<<<<<<< HEAD
-        run: flutter pub get
-=======
         run: |
+          flutter pub get
           python -m pip install --upgrade pip pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
->>>>>>> pr-5
       - name: Run tests
         run: make test-unit

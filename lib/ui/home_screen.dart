@@ -63,7 +63,8 @@ class _HomeScreenState extends State<HomeScreen> {
       final prefs = await SharedPreferences.getInstance();
       if (mounted) {
         setState(() {
-          _showPerformanceOverlay = prefs.getBool('show_performance_overlay') ?? false;
+          _showPerformanceOverlay =
+              prefs.getBool('show_performance_overlay') ?? false;
         });
       }
     } catch (e) {
@@ -102,9 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       listenFor: const Duration(seconds: 30),
       pauseFor: const Duration(seconds: 5),
-      listenOptions: SpeechListenOptions(
-        partialResults: false,
-      ),
+      listenOptions: SpeechListenOptions(partialResults: false),
     );
 
     if (mounted) {
@@ -176,10 +175,12 @@ class _HomeScreenState extends State<HomeScreen> {
         _startDictation();
         break;
       case 'copy':
-        if (_activeSession != null) unawaited(_activeSession!.clipboardManager.copy());
+        if (_activeSession != null)
+          unawaited(_activeSession!.clipboardManager.copy());
         break;
       case 'paste':
-        if (_activeSession != null) unawaited(_activeSession!.clipboardManager.paste());
+        if (_activeSession != null)
+          unawaited(_activeSession!.clipboardManager.paste());
         break;
       case 'selectAll':
         _activeSession?.clipboardManager.selectAll();
@@ -233,9 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
         );
         final success = response.success;
         final output = response.output;
-        return success && output.isNotEmpty
-            ? output
-            : 'AI service unavailable';
+        return success && output.isNotEmpty ? output : 'AI service unavailable';
       }
       return 'AI service not configured';
     } on Exception catch (e, stack) {
@@ -245,10 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _createInitialTab() {
-    final session = TerminalSession(
-      id: '0',
-      name: 'Terminal',
-    );
+    final session = TerminalSession(id: '0', name: 'Terminal');
     session.onAiQuery = _handleAiQuery;
     session.onEditCommand = _handleEditCommand;
     session.onInputIntercepted = (input) => _broadcastToOtherTabs(input);
@@ -335,10 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (index < 0 || index >= _tabs.length) return;
     final source = _tabs[index];
     final newTabId = _nextTabId();
-    final newTab = TerminalSession(
-      id: newTabId,
-      name: '${source.name} copy',
-    );
+    final newTab = TerminalSession(id: newTabId, name: '${source.name} copy');
     newTab.onAiQuery = _handleAiQuery;
     newTab.onEditCommand = _handleEditCommand;
     newTab.onInputIntercepted = (input) => _broadcastToOtherTabs(input);
@@ -424,10 +417,7 @@ class _HomeScreenState extends State<HomeScreen> {
         PopupMenuItem(
           value: 'new',
           onTap: _addTab,
-          child: const Text(
-            '+ new',
-            style: TextStyle(color: PkmTheme.text),
-          ),
+          child: const Text('+ new', style: TextStyle(color: PkmTheme.text)),
         ),
         PopupMenuItem(
           value: 'duplicate',
@@ -441,19 +431,13 @@ class _HomeScreenState extends State<HomeScreen> {
         PopupMenuItem(
           value: 'rename',
           onTap: () => _renameTab(index),
-          child: const Text(
-            'rename',
-            style: TextStyle(color: PkmTheme.text),
-          ),
+          child: const Text('rename', style: TextStyle(color: PkmTheme.text)),
         ),
         const PopupMenuDivider(),
         PopupMenuItem(
           value: 'close',
           onTap: () => _closeTab(index),
-          child: const Text(
-            'close',
-            style: TextStyle(color: PkmTheme.text),
-          ),
+          child: const Text('close', style: TextStyle(color: PkmTheme.text)),
         ),
         PopupMenuItem(
           value: 'closeOthers',
@@ -577,17 +561,15 @@ class _HomeScreenState extends State<HomeScreen> {
         final name = data['name'] as String? ?? 'Terminal';
         final workingDirectory = data['workingDirectory'] as String?;
 
-        final session = TerminalSession(
-          id: id,
-          name: name,
-        );
+        final session = TerminalSession(id: id, name: name);
         session.onAiQuery = _handleAiQuery;
         session.onEditCommand = _handleEditCommand;
         session.onInputIntercepted = (input) => _broadcastToOtherTabs(input);
         session.directory.addListener(_onDirectoryChanged);
         await session.start(workingDirectory: workingDirectory);
 
-        final history = (data['commandHistory'] as List<dynamic>?)?.cast<String>();
+        final history = (data['commandHistory'] as List<dynamic>?)
+            ?.cast<String>();
         if (history != null) {
           for (final cmd in history.reversed) {
             await session.commandHistory.add(cmd);
@@ -608,9 +590,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
         if (!mounted) {
           session.directory.removeListener(_onDirectoryChanged);
-          unawaited(session.disposeSession().catchError((e) {
-            debugPrint('restore dispose error: $e');
-          }));
+          unawaited(
+            session.disposeSession().catchError((e) {
+              debugPrint('restore dispose error: $e');
+            }),
+          );
           return;
         }
 
@@ -642,8 +626,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     });
   }
-
-
 
   void _togglePerformanceOverlay() {
     setState(() => _showPerformanceOverlay = !_showPerformanceOverlay);
@@ -818,302 +800,329 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Column(
               children: [
-              // Top toolbar
-              Container(
-                height: 50,
-                color: PkmTheme.terminalBg,
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: _addTab,
-                      icon: const Icon(Icons.add, color: PkmTheme.primary),
-                      tooltip: 'New Tab',
-                    ),
-                    IconButton(
-                      onPressed: _toggleBroadcastMode,
-                      icon: Icon(
-                        Icons.campaign,
-                        color: _broadcastMode ? Colors.orange : PkmTheme.primary,
-                      ),
-                      tooltip: 'Toggle Broadcast Input (Ctrl+Shift+B)',
-                    ),
-                    IconButton(
-                      onPressed: _showSettings,
-                      icon: const Icon(Icons.settings, color: PkmTheme.primary),
-                      tooltip: 'Settings',
-                    ),
-                    IconButton(
-                      onPressed: _toggleSearch,
-                      icon: const Icon(Icons.search, color: PkmTheme.primary),
-                      tooltip: 'Search (Ctrl+Shift+F)',
-                    ),
-                    const Spacer(),
-                    const Text(
-                      'Termisol Terminal',
-                      style: TextStyle(
-                        color: PkmTheme.primary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: _toggleCommandPalette,
-                      icon: const Icon(Icons.keyboard_command_key, color: PkmTheme.primary),
-                      tooltip: 'Command Palette (Ctrl+Shift+P)',
-                    ),
-                  ],
-                ),
-              ),
-              // Tab bar
-              Container(
-                height: PkmTheme.tabBarHeight,
-                color: _broadcastMode
-                    ? const Color(0xFF1a0f00)
-                    : PkmTheme.background,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: ReorderableListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        buildDefaultDragHandles: false,
-                        onReorder: _onReorder,
-                        itemCount: _tabs.length,
-                        proxyDecorator: (child, index, animation) {
-                          return AnimatedBuilder(
-                            animation: animation,
-                            builder: (context, child) {
-                              return Material(
-                                color: Colors.transparent,
-                                child: child,
-                              );
-                            },
-                            child: child,
-                          );
-                        },
-                        itemBuilder: (context, index) {
-                          final tab = _tabs[index];
-                          final isActive = _activeTab == tab.id;
-                          return ConstrainedBox(
-                            key: ValueKey(tab.id),
-                            constraints: const BoxConstraints(
-                              minWidth: 120,
-                              maxWidth: 220,
-                            ),
-                            child: Container(
-                              height: PkmTheme.tabBarHeight,
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 2,
-                                vertical: 4,
-                              ),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: isActive
-                                      ? PkmTheme.tabActiveBg
-                                      : PkmTheme.tabInactiveBg,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: isActive
-                                      ? Border.all(
-                                          color: PkmTheme.primary,
-                                          width: 1.5,
-                                        )
-                                      : null,
-                                ),
-                                child: Row(
-                                  children: [
-                                    // Drag handle
-                                    ReorderableDragStartListener(
-                                      index: index,
-                                      child: Container(
-                                        width: 20,
-                                        height: double.infinity,
-                                        color: Colors.transparent,
-                                        child: Center(
-                                          child: Icon(
-                                            Icons.drag_indicator,
-                                            size: 12,
-                                            color: PkmTheme.text.withValues(
-                                              alpha: 0.3,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    // Tab content (tap + right-click)
-                                    Expanded(
-                                      child: GestureDetector(
-                                        onTap: () => _switchTab(index),
-                                        onSecondaryTapUp: (details) =>
-                                            _showTabContextMenu(details, index),
-                                        child: Container(
-                                          height: double.infinity,
-                                          alignment: Alignment.centerLeft,
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Flexible(
-                                                child: Text(
-                                                  _tabDisplayName(tab),
-                                                  style: TextStyle(
-                                                    color: isActive
-                                                        ? PkmTheme.primary
-                                                        : PkmTheme.text,
-                                                    fontWeight: isActive
-                                                        ? FontWeight.bold
-                                                        : FontWeight.normal,
-                                                    fontFamily: PkmTheme.fontUi,
-                                                  ),
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                              AnimatedBuilder(
-                                                animation: tab.longCommandNotifier,
-                                                builder: (context, child) {
-                                                  final hasLongRunning = tab.longCommandNotifier.activeCommands.isNotEmpty;
-                                                  return Container(
-                                                    width: 6,
-                                                    height: 6,
-                                                    margin: const EdgeInsets.only(left: 4),
-                                                    decoration: BoxDecoration(
-                                                      color: hasLongRunning ? Colors.orange : Colors.transparent,
-                                                      shape: BoxShape.circle,
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    // Close button
-                                    InkWell(
-                                      onTap: () => _closeTab(index),
-                                      child: SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: Icon(
-                                          Icons.close,
-                                          size: 14,
-                                          color: PkmTheme.text.withValues(
-                                            alpha: 0.7,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: _addTab,
-                      icon: const Icon(Icons.add, color: PkmTheme.primary),
-                      tooltip: 'New Tab',
-                    ),
-                  ],
-                ),
-              ),
-              if (_broadcastMode)
+                // Top toolbar
                 Container(
-                  height: 24,
-                  color: Colors.orange.withValues(alpha: 0.9),
+                  height: 50,
+                  color: PkmTheme.terminalBg,
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.campaign, size: 14, color: Colors.black),
-                      const SizedBox(width: 6),
-                      Text(
-                        'BROADCASTING TO ${_tabs.length} TAB${_tabs.length == 1 ? '' : 'S'}',
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          fontFamily: PkmTheme.fontUi,
+                      IconButton(
+                        onPressed: _addTab,
+                        icon: const Icon(Icons.add, color: PkmTheme.primary),
+                        tooltip: 'New Tab',
+                      ),
+                      IconButton(
+                        onPressed: _toggleBroadcastMode,
+                        icon: Icon(
+                          Icons.campaign,
+                          color: _broadcastMode
+                              ? Colors.orange
+                              : PkmTheme.primary,
                         ),
+                        tooltip: 'Toggle Broadcast Input (Ctrl+Shift+B)',
+                      ),
+                      IconButton(
+                        onPressed: _showSettings,
+                        icon: const Icon(
+                          Icons.settings,
+                          color: PkmTheme.primary,
+                        ),
+                        tooltip: 'Settings',
+                      ),
+                      IconButton(
+                        onPressed: _toggleSearch,
+                        icon: const Icon(Icons.search, color: PkmTheme.primary),
+                        tooltip: 'Search (Ctrl+Shift+F)',
+                      ),
+                      const Spacer(),
+                      const Text(
+                        'Termisol Terminal',
+                        style: TextStyle(
+                          color: PkmTheme.primary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        onPressed: _toggleCommandPalette,
+                        icon: const Icon(
+                          Icons.keyboard_command_key,
+                          color: PkmTheme.primary,
+                        ),
+                        tooltip: 'Command Palette (Ctrl+Shift+P)',
                       ),
                     ],
                   ),
                 ),
-// terminal area
-              Expanded(
-                child: IndexedStack(
-                        index: _tabs.indexWhere((tab) => tab.id == _activeTab),
-                        children: _tabs.map((tab) {
-                          return Container(
-                            key: ValueKey(tab.id),
+                // Tab bar
+                Container(
+                  height: PkmTheme.tabBarHeight,
+                  color: _broadcastMode
+                      ? const Color(0xFF1a0f00)
+                      : PkmTheme.background,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ReorderableListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          buildDefaultDragHandles: false,
+                          onReorder: _onReorder,
+                          itemCount: _tabs.length,
+                          proxyDecorator: (child, index, animation) {
+                            return AnimatedBuilder(
+                              animation: animation,
+                              builder: (context, child) {
+                                return Material(
+                                  color: Colors.transparent,
+                                  child: child,
+                                );
+                              },
+                              child: child,
+                            );
+                          },
+                          itemBuilder: (context, index) {
+                            final tab = _tabs[index];
+                            final isActive = _activeTab == tab.id;
+                            return ConstrainedBox(
+                              key: ValueKey(tab.id),
+                              constraints: const BoxConstraints(
+                                minWidth: 120,
+                                maxWidth: 220,
+                              ),
+                              child: Container(
+                                height: PkmTheme.tabBarHeight,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 2,
+                                  vertical: 4,
+                                ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: isActive
+                                        ? PkmTheme.tabActiveBg
+                                        : PkmTheme.tabInactiveBg,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: isActive
+                                        ? Border.all(
+                                            color: PkmTheme.primary,
+                                            width: 1.5,
+                                          )
+                                        : null,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      // Drag handle
+                                      ReorderableDragStartListener(
+                                        index: index,
+                                        child: Container(
+                                          width: 20,
+                                          height: double.infinity,
+                                          color: Colors.transparent,
+                                          child: Center(
+                                            child: Icon(
+                                              Icons.drag_indicator,
+                                              size: 12,
+                                              color: PkmTheme.text.withValues(
+                                                alpha: 0.3,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      // Tab content (tap + right-click)
+                                      Expanded(
+                                        child: GestureDetector(
+                                          onTap: () => _switchTab(index),
+                                          onSecondaryTapUp: (details) =>
+                                              _showTabContextMenu(
+                                                details,
+                                                index,
+                                              ),
+                                          child: Container(
+                                            height: double.infinity,
+                                            alignment: Alignment.centerLeft,
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Flexible(
+                                                  child: Text(
+                                                    _tabDisplayName(tab),
+                                                    style: TextStyle(
+                                                      color: isActive
+                                                          ? PkmTheme.primary
+                                                          : PkmTheme.text,
+                                                      fontWeight: isActive
+                                                          ? FontWeight.bold
+                                                          : FontWeight.normal,
+                                                      fontFamily:
+                                                          PkmTheme.fontUi,
+                                                    ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                                AnimatedBuilder(
+                                                  animation:
+                                                      tab.longCommandNotifier,
+                                                  builder: (context, child) {
+                                                    final hasLongRunning = tab
+                                                        .longCommandNotifier
+                                                        .activeCommands
+                                                        .isNotEmpty;
+                                                    return Container(
+                                                      width: 6,
+                                                      height: 6,
+                                                      margin:
+                                                          const EdgeInsets.only(
+                                                            left: 4,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: hasLongRunning
+                                                            ? Colors.orange
+                                                            : Colors
+                                                                  .transparent,
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      // Close button
+                                      InkWell(
+                                        onTap: () => _closeTab(index),
+                                        child: SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: Icon(
+                                            Icons.close,
+                                            size: 14,
+                                            color: PkmTheme.text.withValues(
+                                              alpha: 0.7,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: _addTab,
+                        icon: const Icon(Icons.add, color: PkmTheme.primary),
+                        tooltip: 'New Tab',
+                      ),
+                    ],
+                  ),
+                ),
+                if (_broadcastMode)
+                  Container(
+                    height: 24,
+                    color: Colors.orange.withValues(alpha: 0.9),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.campaign,
+                          size: 14,
+                          color: Colors.black,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'BROADCASTING TO ${_tabs.length} TAB${_tabs.length == 1 ? '' : 'S'}',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            fontFamily: PkmTheme.fontUi,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                // terminal area
+                Expanded(
+                  child: IndexedStack(
+                    index: _tabs.indexWhere((tab) => tab.id == _activeTab),
+                    children: _tabs.map((tab) {
+                      return Container(
+                        key: ValueKey(tab.id),
+                        color: PkmTheme.terminalBg.withValues(
+                          alpha: PkmTheme.bgOpacity.value,
+                        ),
+                        padding: EdgeInsets.zero,
+                        child: Container(
+                          constraints: const BoxConstraints.expand(),
+                          decoration: BoxDecoration(
                             color: PkmTheme.terminalBg.withValues(
                               alpha: PkmTheme.bgOpacity.value,
                             ),
-                            padding: EdgeInsets.zero,
-                            child: Container(
-                              constraints: const BoxConstraints.expand(),
-                              decoration: BoxDecoration(
-                                color: PkmTheme.terminalBg.withValues(
-                                  alpha: PkmTheme.bgOpacity.value,
-                                ),
-                                border: Border.all(
-                                  color: PkmTheme.primary.withValues(alpha: 0.3),
-                                ),
-                                borderRadius: BorderRadius.zero,
-                              ),
-                              child: TermisolTerminalView(
-                                session: tab,
-                                focusNode: _tabFocusNodes[tab.id],
-                                scrollController: _tabScrollControllers[tab.id],
-                                onNewTab: _addTab,
-                                onCloseTab: () => _closeTab(
-                                  _tabs.indexWhere((t) => t.id == tab.id),
-                                ),
-                              ),
+                            border: Border.all(
+                              color: PkmTheme.primary.withValues(alpha: 0.3),
                             ),
-                          );
-                        }).toList(),
-                      ),
+                            borderRadius: BorderRadius.zero,
+                          ),
+                          child: TermisolTerminalView(
+                            session: tab,
+                            focusNode: _tabFocusNodes[tab.id],
+                            scrollController: _tabScrollControllers[tab.id],
+                            onNewTab: _addTab,
+                            onCloseTab: () => _closeTab(
+                              _tabs.indexWhere((t) => t.id == tab.id),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
+            // Command palette overlay
+            if (_showCommandPalette)
+              CommandPalette(
+                actions: _buildPaletteActions(),
+                onClose: () => setState(() => _showCommandPalette = false),
               ),
-            ],
-          ),
-          // Command palette overlay
-          if (_showCommandPalette)
-            CommandPalette(
-              actions: _buildPaletteActions(),
-              onClose: () => setState(() => _showCommandPalette = false),
-            ),
-          // Search overlay
-          if (_showSearch && _activeSession != null)
-            TerminalSearchOverlay(
-              terminal: _activeSession!.terminal,
-              onClose: () => setState(() => _showSearch = false),
-              scrollController: _tabScrollControllers[_activeSession!.id],
-              session: _activeSession,
-            ),
-           // Command history search overlay
-           if (_showHistorySearch && _activeSession != null)
-             CommandHistorySearch(
-               session: _activeSession!,
-               onClose: () => setState(() => _showHistorySearch = false),
-             ),
-          // Performance overlay
-          if (_showPerformanceOverlay)
-            TermisolPerformanceOverlay(
-              onDismiss: () => setState(() => _showPerformanceOverlay = false),
-            ),
-          // Hints mode overlay
-          if (_showHintsMode && _activeSession != null)
-            Positioned.fill(
-              child: HintsModeOverlay(
+            // Search overlay
+            if (_showSearch && _activeSession != null)
+              TerminalSearchOverlay(
                 terminal: _activeSession!.terminal,
-                onClose: () => setState(() => _showHintsMode = false),
+                onClose: () => setState(() => _showSearch = false),
+                scrollController: _tabScrollControllers[_activeSession!.id],
+                session: _activeSession,
               ),
-            ),
+            // Command history search overlay
+            if (_showHistorySearch && _activeSession != null)
+              CommandHistorySearch(
+                session: _activeSession!,
+                onClose: () => setState(() => _showHistorySearch = false),
+              ),
+            // Performance overlay
+            if (_showPerformanceOverlay)
+              TermisolPerformanceOverlay(
+                onDismiss: () =>
+                    setState(() => _showPerformanceOverlay = false),
+              ),
+            // Hints mode overlay
+            if (_showHintsMode && _activeSession != null)
+              Positioned.fill(
+                child: HintsModeOverlay(
+                  terminal: _activeSession!.terminal,
+                  onClose: () => setState(() => _showHintsMode = false),
+                ),
+              ),
           ],
         ),
       ),
     );
   }
-
 }

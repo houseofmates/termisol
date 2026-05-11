@@ -26,11 +26,7 @@ Future<void> _setupErrorHandling() async {
   };
 
   PlatformDispatcher.instance.onError = (error, stack) {
-    RobustErrorHandler().handleError(
-      error,
-      stack,
-      context: 'Platform Error',
-    );
+    RobustErrorHandler().handleError(error, stack, context: 'Platform Error');
     _showErrorDialog(error.toString());
     return true;
   };
@@ -43,7 +39,8 @@ Future<void> _logError(String type, String error, StackTrace? stack) async {
     final logFile = File('${directory.path}/termisol_crash_log.txt');
 
     final timestamp = DateTime.now().toIso8601String();
-    final logEntry = '''
+    final logEntry =
+        '''
 [$timestamp] $type:
 Error: $error
 Stack Trace:
@@ -132,12 +129,15 @@ void main() async {
   await registry.initializeCritical();
 
   if (kDebugMode) debugPrint('termisol started');
-  runZonedGuarded(() {
-    runApp(TermisolApp(registry: registry));
-  }, (error, stackTrace) async {
-    await _logError('Uncaught Error', error.toString(), stackTrace);
-    _showErrorDialog(error.toString());
-  });
+  runZonedGuarded(
+    () {
+      runApp(TermisolApp(registry: registry));
+    },
+    (error, stackTrace) async {
+      await _logError('Uncaught Error', error.toString(), stackTrace);
+      _showErrorDialog(error.toString());
+    },
+  );
 }
 
 /// register services that are actually used in the working ui path.
@@ -145,8 +145,14 @@ ServiceRegistry _registerServices() {
   final r = ServiceRegistry.instance;
 
   r.register(TermisolFeatures.terminalCore, () => true);
-  r.register(TermisolFeatures.aiAssistant, () => ServiceFactories.createAIAssistant());
-  r.register(TermisolFeatures.productionConfigSystem, () => ServiceFactories.createConfigSystem());
+  r.register(
+    TermisolFeatures.aiAssistant,
+    () => ServiceFactories.createAIAssistant(),
+  );
+  r.register(
+    TermisolFeatures.productionConfigSystem,
+    () => ServiceFactories.createConfigSystem(),
+  );
   r.register(TermisolFeatures.fileManager, () => true);
 
   return r;

@@ -32,7 +32,9 @@ class SessionPersistence {
   Directory? _crashDir;
   String? _deviceId;
 
-  final _sessionController = StreamController<SessionEvent>.broadcast(sync: false);
+  final _sessionController = StreamController<SessionEvent>.broadcast(
+    sync: false,
+  );
   Stream<SessionEvent> get events => _sessionController.stream;
 
   static const int _maxBackups = 50;
@@ -124,10 +126,12 @@ class SessionPersistence {
         _recoveryMode = true;
         await _createCrashReport();
         await crashIndicator.delete();
-        _sessionController.add(SessionEvent(
-          type: SessionEventType.crashDetected,
-          data: {'recovery_mode': true},
-        ));
+        _sessionController.add(
+          SessionEvent(
+            type: SessionEventType.crashDetected,
+            data: {'recovery_mode': true},
+          ),
+        );
       }
 
       await crashIndicator.writeAsString(DateTime.now().toIso8601String());
@@ -186,7 +190,9 @@ class SessionPersistence {
               await entity.delete();
             }
           } catch (e, stack) {
-            debugPrint('Failed to load session from ${entity.path}: $e\n$stack');
+            debugPrint(
+              'Failed to load session from ${entity.path}: $e\n$stack',
+            );
           }
         }
       }
@@ -240,9 +246,11 @@ class SessionPersistence {
   void _startAutoSave() {
     _autoSaveTimer?.cancel();
     _autoSaveTimer = Timer.periodic(_autoSaveInterval, (_) {
-      unawaited(_performAutoSave().catchError((e) {
-        debugPrint('Auto-save failed: $e');
-      }));
+      unawaited(
+        _performAutoSave().catchError((e) {
+          debugPrint('Auto-save failed: $e');
+        }),
+      );
     });
 
     debugPrint('Auto-save started (${_autoSaveInterval.inMinutes} minutes)');
@@ -252,21 +260,25 @@ class SessionPersistence {
     await _saveAllSessions();
     await _createBackup();
 
-    _sessionController.add(SessionEvent(
-      type: SessionEventType.autoSaved,
-      data: {
-        'sessions_count': _sessions.length,
-        'timestamp': DateTime.now().toIso8601String(),
-      },
-    ));
+    _sessionController.add(
+      SessionEvent(
+        type: SessionEventType.autoSaved,
+        data: {
+          'sessions_count': _sessions.length,
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+      ),
+    );
   }
 
   void _startCleanupTimer() {
     _cleanupTimer?.cancel();
     _cleanupTimer = Timer.periodic(const Duration(hours: 1), (_) {
-      unawaited(_performCleanup().catchError((e) {
-        debugPrint('Cleanup failed: $e');
-      }));
+      unawaited(
+        _performCleanup().catchError((e) {
+          debugPrint('Cleanup failed: $e');
+        }),
+      );
     });
   }
 
@@ -356,17 +368,20 @@ class SessionPersistence {
     _sessions[sessionId] = session;
     await _saveSession(session);
 
-    _sessionController.add(SessionEvent(
-      type: SessionEventType.sessionCreated,
-      sessionId: sessionId,
-      data: session.toJson(),
-    ));
+    _sessionController.add(
+      SessionEvent(
+        type: SessionEventType.sessionCreated,
+        sessionId: sessionId,
+        data: session.toJson(),
+      ),
+    );
 
     debugPrint('Created session: $sessionId');
     return sessionId;
   }
 
-  Future<void> updateSession(String sessionId, {
+  Future<void> updateSession(
+    String sessionId, {
     String? title,
     String? content,
     String? workingDirectory,
@@ -390,20 +405,21 @@ class SessionPersistence {
 
     await _saveSession(session);
 
-    _sessionController.add(SessionEvent(
-      type: SessionEventType.sessionUpdated,
-      sessionId: sessionId,
-      data: session.toJson(),
-    ));
+    _sessionController.add(
+      SessionEvent(
+        type: SessionEventType.sessionUpdated,
+        sessionId: sessionId,
+        data: session.toJson(),
+      ),
+    );
   }
 
   Future<void> removeSession(String sessionId) async {
     await _removeSession(sessionId);
 
-    _sessionController.add(SessionEvent(
-      type: SessionEventType.sessionRemoved,
-      sessionId: sessionId,
-    ));
+    _sessionController.add(
+      SessionEvent(type: SessionEventType.sessionRemoved, sessionId: sessionId),
+    );
   }
 
   Future<void> _removeSession(String sessionId) async {
@@ -430,17 +446,21 @@ class SessionPersistence {
 
   Future<void> saveSessions(List<ui.TerminalSession> sessions) async {
     final prefs = await SharedPreferences.getInstance();
-    final data = sessions.map((s) => {
-      'id': s.id,
-      'name': s.name,
-      'workingDirectory': s.directory.value ?? '',
-      'commandHistory': s.commandHistory.commands,
-      'terminalDimensions': {
-        'cols': s.terminal.viewWidth,
-        'rows': s.terminal.viewHeight,
-      },
-      'scrollback': s.terminal.buffer.getText(),
-    }).toList();
+    final data = sessions
+        .map(
+          (s) => {
+            'id': s.id,
+            'name': s.name,
+            'workingDirectory': s.directory.value ?? '',
+            'commandHistory': s.commandHistory.commands,
+            'terminalDimensions': {
+              'cols': s.terminal.viewWidth,
+              'rows': s.terminal.viewHeight,
+            },
+            'scrollback': s.terminal.buffer.getText(),
+          },
+        )
+        .toList();
     await prefs.setString(_prefsKey, jsonEncode(data));
   }
 
@@ -450,7 +470,9 @@ class SessionPersistence {
     if (jsonStr == null || jsonStr.isEmpty) return [];
     final list = jsonDecode(jsonStr);
     if (list is! List<dynamic>) return [];
-    return list.map((e) => e is Map<String, dynamic> ? e : <String, dynamic>{}).toList();
+    return list
+        .map((e) => e is Map<String, dynamic> ? e : <String, dynamic>{})
+        .toList();
   }
 
   static Future<void> clear() async {
@@ -582,13 +604,15 @@ class SessionPersistence {
         await _saveSession(session);
       }
 
-      _sessionController.add(SessionEvent(
-        type: SessionEventType.backupRestored,
-        data: {
-          'backup_id': backupId,
-          'sessions_restored': backup.sessions.length,
-        },
-      ));
+      _sessionController.add(
+        SessionEvent(
+          type: SessionEventType.backupRestored,
+          data: {
+            'backup_id': backupId,
+            'sessions_restored': backup.sessions.length,
+          },
+        ),
+      );
 
       debugPrint('Restored from backup: $backupId');
       return true;
@@ -852,10 +876,18 @@ class SessionBackup {
 
 Map<String, Map<String, dynamic>> _mapStringMap(dynamic value) {
   if (value is Map<String, dynamic>) {
-    return value.map((k, v) => MapEntry(k, v is Map<String, dynamic> ? v : <String, dynamic>{}));
+    return value.map(
+      (k, v) =>
+          MapEntry(k, v is Map<String, dynamic> ? v : <String, dynamic>{}),
+    );
   }
   if (value is Map<dynamic, dynamic>) {
-    return value.map((k, v) => MapEntry(k.toString(), v is Map<String, dynamic> ? v : <String, dynamic>{}));
+    return value.map(
+      (k, v) => MapEntry(
+        k.toString(),
+        v is Map<String, dynamic> ? v : <String, dynamic>{},
+      ),
+    );
   }
   return {};
 }
@@ -913,11 +945,7 @@ class SessionEvent {
   final String? sessionId;
   final Map<String, dynamic>? data;
 
-  SessionEvent({
-    required this.type,
-    this.sessionId,
-    this.data,
-  });
+  SessionEvent({required this.type, this.sessionId, this.data});
 }
 
 class SessionStatistics {

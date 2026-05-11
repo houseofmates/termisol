@@ -14,7 +14,8 @@ class SmartCommandChaining {
   final Map<String, CommandGraph> _patterns = {};
   final Map<String, CommandStatistics> _statistics = {};
   final List<CommandSession> _recentSessions = [];
-  final StreamController<ChainSuggestion> _suggestionController = StreamController<ChainSuggestion>.broadcast();
+  final StreamController<ChainSuggestion> _suggestionController =
+      StreamController<ChainSuggestion>.broadcast();
   Timer? _decayTimer;
   int _totalCommands = 0;
 
@@ -30,18 +31,29 @@ class SmartCommandChaining {
     try {
       await _loadPersistedPatterns();
       _decayTimer = Timer.periodic(_decayInterval, (_) => _applyDecay());
-      debugPrint('SmartCommandChaining initialized ($_totalCommands commands tracked)');
+      debugPrint(
+        'SmartCommandChaining initialized ($_totalCommands commands tracked)',
+      );
     } catch (e) {
       debugPrint('Failed to initialize SmartCommandChaining: $e');
     }
   }
 
-  void recordCommand(String sessionId, String command, {String? cwd, int? exitCode, Duration? duration}) {
+  void recordCommand(
+    String sessionId,
+    String command, {
+    String? cwd,
+    int? exitCode,
+    Duration? duration,
+  }) {
     _totalCommands++;
     command = command.trim();
     if (command.isEmpty) return;
 
-    final stats = _statistics.putIfAbsent(command, () => CommandStatistics(command: command));
+    final stats = _statistics.putIfAbsent(
+      command,
+      () => CommandStatistics(command: command),
+    );
     stats.count++;
     if (exitCode != null && exitCode == 0) stats.successCount++;
     if (duration != null) stats.totalDuration += duration;
@@ -49,13 +61,17 @@ class SmartCommandChaining {
 
     final CommandSession activeSession = _getOrCreateSession(sessionId, cwd);
 
-    final previousCommand = activeSession.commands.isNotEmpty ? activeSession.commands.last : null;
-    activeSession.commands.add(CommandEntry(
-      command: command,
-      timestamp: DateTime.now(),
-      cwd: cwd,
-      exitCode: exitCode,
-    ));
+    final previousCommand = activeSession.commands.isNotEmpty
+        ? activeSession.commands.last
+        : null;
+    activeSession.commands.add(
+      CommandEntry(
+        command: command,
+        timestamp: DateTime.now(),
+        cwd: cwd,
+        exitCode: exitCode,
+      ),
+    );
     if (activeSession.commands.length > 200) {
       activeSession.commands.removeRange(0, 50);
     }
@@ -65,26 +81,37 @@ class SmartCommandChaining {
     }
 
     if (activeSession.commands.length >= 2) {
-      for (int depth = 3; depth <= min(_maxPatternDepth, activeSession.commands.length); depth++) {
-        final recent = activeSession.commands.sublist(activeSession.commands.length - depth);
-        final prefix = recent.sublist(0, recent.length - 1).map((e) => e.command).join('|');
+      for (
+        int depth = 3;
+        depth <= min(_maxPatternDepth, activeSession.commands.length);
+        depth++
+      ) {
+        final recent = activeSession.commands.sublist(
+          activeSession.commands.length - depth,
+        );
+        final prefix = recent
+            .sublist(0, recent.length - 1)
+            .map((e) => e.command)
+            .join('|');
         final next = recent.last.command;
         _updatePattern(prefix, next);
       }
     }
   }
 
-  List<ChainSuggestion> suggestNext(String currentCommand, {int maxSuggestions = 5}) {
+  List<ChainSuggestion> suggestNext(
+    String currentCommand, {
+    int maxSuggestions = 5,
+  }) {
     currentCommand = currentCommand.trim();
     if (currentCommand.isEmpty) return [];
 
     final graph = _patterns[currentCommand];
     if (graph == null) return [];
 
-    final candidates = graph.transitions.entries
-        .where((e) => e.value > 0)
-        .toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final candidates =
+        graph.transitions.entries.where((e) => e.value > 0).toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
 
     final totalWeight = candidates.fold(0.0, (sum, e) => sum + e.value);
     return candidates.take(maxSuggestions).map((e) {
@@ -94,21 +121,26 @@ class SmartCommandChaining {
         confidence: totalWeight > 0 ? e.value / totalWeight : 0.0,
         frequency: e.value,
         totalUsage: stats?.count ?? 0,
-        successRate: stats != null ? (stats.successCount / max(stats.count, 1)) : 0.0,
+        successRate: stats != null
+            ? (stats.successCount / max(stats.count, 1))
+            : 0.0,
       );
     }).toList();
   }
 
-  List<ChainSuggestion> suggestChain(List<String> context, {int maxDepth = 5, int topK = 3}) {
+  List<ChainSuggestion> suggestChain(
+    List<String> context, {
+    int maxDepth = 5,
+    int topK = 3,
+  }) {
     if (context.isEmpty) return [];
     final key = context.join('|');
     final graph = _patterns[key];
     if (graph == null) return suggestNext(context.last, maxSuggestions: topK);
 
-    final candidates = graph.transitions.entries
-        .where((e) => e.value > 0)
-        .toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final candidates =
+        graph.transitions.entries.where((e) => e.value > 0).toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
 
     final totalWeight = candidates.fold(0.0, (sum, e) => sum + e.value);
     return candidates.take(topK).map((e) {
@@ -118,21 +150,25 @@ class SmartCommandChaining {
         confidence: totalWeight > 0 ? e.value / totalWeight : 0.0,
         frequency: e.value,
         totalUsage: stats?.count ?? 0,
-        successRate: stats != null ? (stats.successCount / max(stats.count, 1)) : 0.0,
+        successRate: stats != null
+            ? (stats.successCount / max(stats.count, 1))
+            : 0.0,
       );
     }).toList();
   }
 
   List<CommandStatistics> getPopularCommands({int limit = 20}) {
-    return _statistics.values
-        .where((s) => s.count > 0)
-        .toList()
+    return _statistics.values.where((s) => s.count > 0).toList()
       ..sort((a, b) => b.count.compareTo(a.count));
   }
 
   List<String> findSimilarCommands(String command, {double threshold = 0.6}) {
     return _statistics.keys
-        .where((k) => _levenshteinSimilarity(k.toLowerCase(), command.toLowerCase()) >= threshold)
+        .where(
+          (k) =>
+              _levenshteinSimilarity(k.toLowerCase(), command.toLowerCase()) >=
+              threshold,
+        )
         .toList()
       ..sort((a, b) {
         final sa = _statistics[a]?.count ?? 0;
@@ -168,13 +204,19 @@ class SmartCommandChaining {
   }
 
   CommandSession _getOrCreateSession(String sessionId, String? cwd) {
-    CommandSession? session = _recentSessions.firstWhereOrNull((s) => s.id == sessionId);
+    CommandSession? session = _recentSessions.firstWhereOrNull(
+      (s) => s.id == sessionId,
+    );
     if (session != null) {
       session.lastActivity = DateTime.now();
       if (cwd != null) session.cwd = cwd;
       return session;
     }
-    session = CommandSession(id: sessionId, cwd: cwd ?? '/', lastActivity: DateTime.now());
+    session = CommandSession(
+      id: sessionId,
+      cwd: cwd ?? '/',
+      lastActivity: DateTime.now(),
+    );
     _recentSessions.add(session);
     if (_recentSessions.length > _maxSessions) {
       _recentSessions.removeRange(0, _recentSessions.length - _maxSessions);
@@ -185,7 +227,10 @@ class SmartCommandChaining {
   double _levenshteinSimilarity(String a, String b) {
     if (a.isEmpty && b.isEmpty) return 1.0;
     if (a.isEmpty || b.isEmpty) return 0.0;
-    final distances = List.generate(a.length + 1, (i) => List.filled(b.length + 1, 0));
+    final distances = List.generate(
+      a.length + 1,
+      (i) => List.filled(b.length + 1, 0),
+    );
     for (int i = 0; i <= a.length; i++) {
       distances[i][0] = i;
     }
@@ -195,7 +240,10 @@ class SmartCommandChaining {
     for (int i = 1; i <= a.length; i++) {
       for (int j = 1; j <= b.length; j++) {
         final cost = a[i - 1] == b[j - 1] ? 0 : 1;
-        distances[i][j] = min(distances[i - 1][j] + 1, min(distances[i][j - 1] + 1, distances[i - 1][j - 1] + cost));
+        distances[i][j] = min(
+          distances[i - 1][j] + 1,
+          min(distances[i][j - 1] + 1, distances[i - 1][j - 1] + cost),
+        );
       }
     }
     final distance = distances[a.length][b.length];
@@ -205,7 +253,8 @@ class SmartCommandChaining {
   void _applyDecay() {
     for (final graph in _patterns.values) {
       for (final key in graph.transitions.keys.toList()) {
-        graph.transitions[key] = (graph.transitions[key]! * _decayFactor).round();
+        graph.transitions[key] = (graph.transitions[key]! * _decayFactor)
+            .round();
         if (graph.transitions[key]! <= 0) {
           graph.transitions.remove(key);
         }
@@ -220,7 +269,10 @@ class SmartCommandChaining {
       if (patternsData != null) {
         final data = json.decode(patternsData) as Map<String, dynamic>;
         for (final entry in data.entries) {
-          final graph = CommandGraph.fromJson(entry.key, Map<String, dynamic>.from(entry.value as Map));
+          final graph = CommandGraph.fromJson(
+            entry.key,
+            Map<String, dynamic>.from(entry.value as Map),
+          );
           _patterns[entry.key] = graph;
         }
       }
@@ -228,7 +280,9 @@ class SmartCommandChaining {
       if (statsData != null) {
         final data = json.decode(statsData) as Map<String, dynamic>;
         for (final entry in data.entries) {
-          _statistics[entry.key] = CommandStatistics.fromJson(Map<String, dynamic>.from(entry.value as Map));
+          _statistics[entry.key] = CommandStatistics.fromJson(
+            Map<String, dynamic>.from(entry.value as Map),
+          );
         }
       }
     } catch (e) {
@@ -261,8 +315,8 @@ class CommandGraph {
   DateTime lastUsed;
 
   CommandGraph({required this.command, Map<String, int>? transitions})
-      : transitions = transitions ?? {},
-        lastUsed = DateTime.now();
+    : transitions = transitions ?? {},
+      lastUsed = DateTime.now();
 
   Map<String, dynamic> toJson() => {
     'command': command,
@@ -272,9 +326,12 @@ class CommandGraph {
 
   factory CommandGraph.fromJson(String command, Map<String, dynamic> json) {
     return CommandGraph(
-      command: command,
-      transitions: Map<String, int>.from((json['transitions'] as Map?) ?? {}),
-    )..lastUsed = DateTime.tryParse((json['lastUsed'] as String?) ?? '') ?? DateTime.now();
+        command: command,
+        transitions: Map<String, int>.from((json['transitions'] as Map?) ?? {}),
+      )
+      ..lastUsed =
+          DateTime.tryParse((json['lastUsed'] as String?) ?? '') ??
+          DateTime.now();
   }
 }
 
@@ -294,7 +351,8 @@ class CommandStatistics {
   }) : lastUsed = lastUsed ?? DateTime.now();
 
   double get successRate => count > 0 ? successCount / count : 0.0;
-  Duration get averageDuration => count > 0 ? totalDuration ~/ count : Duration.zero;
+  Duration get averageDuration =>
+      count > 0 ? totalDuration ~/ count : Duration.zero;
 
   Map<String, dynamic> toJson() => {
     'command': command,
@@ -309,8 +367,12 @@ class CommandStatistics {
       command: json['command'] as String,
       count: json['count'] as int? ?? 0,
       successCount: json['successCount'] as int? ?? 0,
-      totalDuration: Duration(milliseconds: json['totalDurationMs'] as int? ?? 0),
-      lastUsed: DateTime.tryParse((json['lastUsed'] as String?) ?? '') ?? DateTime.now(),
+      totalDuration: Duration(
+        milliseconds: json['totalDurationMs'] as int? ?? 0,
+      ),
+      lastUsed:
+          DateTime.tryParse((json['lastUsed'] as String?) ?? '') ??
+          DateTime.now(),
     );
   }
 }
@@ -321,8 +383,12 @@ class CommandSession {
   DateTime lastActivity;
   final List<CommandEntry> commands;
 
-  CommandSession({required this.id, this.cwd = '/', required this.lastActivity, List<CommandEntry>? commands})
-      : commands = commands ?? [];
+  CommandSession({
+    required this.id,
+    this.cwd = '/',
+    required this.lastActivity,
+    List<CommandEntry>? commands,
+  }) : commands = commands ?? [];
 }
 
 class CommandEntry {
@@ -331,7 +397,12 @@ class CommandEntry {
   final String? cwd;
   final int? exitCode;
 
-  CommandEntry({required this.command, required this.timestamp, this.cwd, this.exitCode});
+  CommandEntry({
+    required this.command,
+    required this.timestamp,
+    this.cwd,
+    this.exitCode,
+  });
 }
 
 class ChainSuggestion {

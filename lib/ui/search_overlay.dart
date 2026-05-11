@@ -200,8 +200,9 @@ class _TerminalSearchOverlayState extends State<TerminalSearchOverlay> {
                           hintStyle: const TextStyle(color: PkmTheme.secondary),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.zero,
-                          suffixText:
-                              _totalMatches > 0 ? '$_currentMatch/$_totalMatches' : '',
+                          suffixText: _totalMatches > 0
+                              ? '$_currentMatch/$_totalMatches'
+                              : '',
                           suffixStyle: const TextStyle(
                             color: PkmTheme.primary,
                             fontFamily: PkmTheme.fontTerminal,
@@ -220,11 +221,16 @@ class _TerminalSearchOverlayState extends State<TerminalSearchOverlay> {
                     icon: Icon(
                       Icons.psychology,
                       size: 18,
-                      color: _semanticSearch ? PkmTheme.primary : PkmTheme.secondary,
+                      color: _semanticSearch
+                          ? PkmTheme.primary
+                          : PkmTheme.secondary,
                     ),
                     tooltip: 'semantic search',
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
                   ),
                   IconButton(
                     onPressed: () {
@@ -234,32 +240,58 @@ class _TerminalSearchOverlayState extends State<TerminalSearchOverlay> {
                     icon: Icon(
                       Icons.search,
                       size: 18,
-                      color: _caseSensitive ? PkmTheme.primary : PkmTheme.secondary,
+                      color: _caseSensitive
+                          ? PkmTheme.primary
+                          : PkmTheme.secondary,
                     ),
                     tooltip: 'case sensitive',
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
                   ),
                   IconButton(
                     onPressed: _prevMatch,
-                    icon: const Icon(Icons.arrow_upward, color: PkmTheme.secondary, size: 18),
+                    icon: const Icon(
+                      Icons.arrow_upward,
+                      color: PkmTheme.secondary,
+                      size: 18,
+                    ),
                     tooltip: 'previous (shift+enter)',
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
                   ),
                   IconButton(
                     onPressed: _nextMatch,
-                    icon: const Icon(Icons.arrow_downward, color: PkmTheme.secondary, size: 18),
+                    icon: const Icon(
+                      Icons.arrow_downward,
+                      color: PkmTheme.secondary,
+                      size: 18,
+                    ),
                     tooltip: 'next (enter)',
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
                   ),
                   IconButton(
                     onPressed: widget.onClose,
-                    icon: const Icon(Icons.close, color: PkmTheme.secondary, size: 18),
+                    icon: const Icon(
+                      Icons.close,
+                      color: PkmTheme.secondary,
+                      size: 18,
+                    ),
                     tooltip: 'close (escape)',
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
                   ),
                 ],
               ),

@@ -6,7 +6,8 @@ import 'package:xterm/xterm.dart' show CellColor, PaletteBuilder, TerminalTheme;
 /// maintains a 256-color palette built from the active [terminaltheme] and
 /// handles the four cellcolor encoding types: normal, named, palette, and rgb.
 class TerminalColorResolver {
-  TerminalColorResolver(this._theme) : _palette = PaletteBuilder(_theme).build();
+  TerminalColorResolver(this._theme)
+    : _palette = PaletteBuilder(_theme).build();
 
   TerminalTheme _theme;
   List<Color> _palette;

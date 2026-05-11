@@ -10,7 +10,8 @@ class ProductionConfigSystem {
   static const String configFileName = 'termisol_config.json';
   static const String backupFileName = 'termisol_config.backup.json';
 
-  final StreamController<ConfigChangeEvent> _changeController = StreamController.broadcast();
+  final StreamController<ConfigChangeEvent> _changeController =
+      StreamController.broadcast();
   final Map<String, dynamic> _config = {};
   final Map<String, dynamic> _defaults = {};
   final Map<String, ConfigValidator> _validators = {};
@@ -94,11 +95,13 @@ class ProductionConfigSystem {
       // device-specific settings
       'device': {
         'platform': defaultTargetPlatform.name,
-        'is_mobile': defaultTargetPlatform == TargetPlatform.android ||
-                     defaultTargetPlatform == TargetPlatform.iOS,
-        'is_desktop': defaultTargetPlatform == TargetPlatform.linux ||
-                      defaultTargetPlatform == TargetPlatform.windows ||
-                      defaultTargetPlatform == TargetPlatform.macOS,
+        'is_mobile':
+            defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS,
+        'is_desktop':
+            defaultTargetPlatform == TargetPlatform.linux ||
+            defaultTargetPlatform == TargetPlatform.windows ||
+            defaultTargetPlatform == TargetPlatform.macOS,
         'is_vr': false, // will be set by vr detection
       },
 
@@ -125,21 +128,27 @@ class ProductionConfigSystem {
     _validators['performance.max_memory_mb'] = (value) {
       final memory = value as num?;
       if (memory == null || memory < 64 || memory > 4096) {
-        throw const ConfigValidationError('Memory limit must be between 64MB and 4GB');
+        throw const ConfigValidationError(
+          'Memory limit must be between 64MB and 4GB',
+        );
       }
     };
 
     _validators['terminal.scrollback_lines'] = (value) {
       final lines = value as num?;
       if (lines == null || lines < 100 || lines > 100000) {
-        throw const ConfigValidationError('Scrollback lines must be between 100 and 100,000');
+        throw const ConfigValidationError(
+          'Scrollback lines must be between 100 and 100,000',
+        );
       }
     };
 
     _validators['ai.max_tokens'] = (value) {
       final tokens = value as num?;
       if (tokens == null || tokens < 128 || tokens > 32768) {
-        throw const ConfigValidationError('Max tokens must be between 128 and 32,768');
+        throw const ConfigValidationError(
+          'Max tokens must be between 128 and 32,768',
+        );
       }
     };
   }
@@ -213,7 +222,6 @@ class ProductionConfigSystem {
       _config['performance']['target_fps'] = 60;
       _config['performance']['max_memory_mb'] = 1024;
     }
-
     // android optimizations
     else if (Platform.isAndroid) {
       _config['performance'] ??= {};
@@ -222,7 +230,6 @@ class ProductionConfigSystem {
       _config['performance']['max_memory_mb'] = 256;
       _config['performance']['adaptive_frame_pacing'] = true;
     }
-
     // oculus quest 2 optimizations
     else if (_isVrPlatform()) {
       _config['performance'] ??= {};
@@ -234,7 +241,6 @@ class ProductionConfigSystem {
       _config['features'] ??= {};
       _config['features']['vr_support'] = true;
     }
-
     // windows optimizations
     else if (Platform.isWindows) {
       _config['performance'] ??= {};
@@ -251,10 +257,10 @@ class ProductionConfigSystem {
         // check for oculus/quest devices
         final isOculus = Platform.environment['OCULUS_VR']?.isNotEmpty ?? false;
         final isQuest = Platform.environment['QUEST_VR']?.isNotEmpty ?? false;
-        
+
         // check for vr-specific system properties
         final hasVrFeature = _checkAndroidVRFeatures();
-        
+
         return isOculus || isQuest || hasVrFeature;
       } else if (Platform.isWindows) {
         // check for windows mixed reality or steamvr
@@ -263,14 +269,14 @@ class ProductionConfigSystem {
         // check for linux vr support (openxr, etc.)
         return _checkLinuxVRSupport();
       }
-      
+
       return false;
     } catch (e) {
       debugPrint('VR platform detection failed: $e');
       return false;
     }
   }
-  
+
   /// check android vr features
   bool _checkAndroidVRFeatures() {
     try {
@@ -280,46 +286,47 @@ class ProductionConfigSystem {
         'ro.product.model',
         'ro.build.product',
       ];
-      
+
       for (final feature in vrFeatures) {
         final value = Platform.environment[feature];
-        if (value != null && 
+        if (value != null &&
             (value.toLowerCase().contains('quest') ||
-             value.toLowerCase().contains('oculus') ||
-             value.toLowerCase().contains('vr'))) {
+                value.toLowerCase().contains('oculus') ||
+                value.toLowerCase().contains('vr'))) {
           return true;
         }
       }
-      
+
       return false;
     } catch (e) {
       debugPrint('Android VR feature check failed: $e');
       return false;
     }
   }
-  
+
   /// check windows vr support
   bool _checkWindowsVRSupport() {
     try {
       // check for windows mixed reality runtime
       final wmrPath = r'C:\Program Files\Windows Mixed Reality';
       final wmrDir = Directory(wmrPath);
-      
+
       if (wmrDir.existsSync()) {
         return true;
       }
-      
+
       // check for steamvr installation
-      final steamvrPath = r'C:\Program Files (x86)\Steam\steamapps\common\SteamVR';
+      final steamvrPath =
+          r'C:\Program Files (x86)\Steam\steamapps\common\SteamVR';
       final steamvrDir = Directory(steamvrPath);
-      
+
       return steamvrDir.existsSync();
     } catch (e) {
       debugPrint('Windows VR support check failed: $e');
       return false;
     }
   }
-  
+
   /// check linux vr support
   bool _checkLinuxVRSupport() {
     try {
@@ -329,20 +336,20 @@ class ProductionConfigSystem {
         '/usr/local/lib/libopenxr_loader.so',
         '/usr/lib/libopenxr_loader.so.1',
       ];
-      
+
       for (final path in openxrPaths) {
         final file = File(path);
         if (file.existsSync()) {
           return true;
         }
       }
-      
+
       // check for monado runtime
       final monadoFile = File('/usr/lib/libmonado.so');
       if (monadoFile.existsSync()) {
         return true;
       }
-      
+
       return false;
     } catch (e) {
       debugPrint('Linux VR support check failed: $e');
@@ -353,7 +360,10 @@ class ProductionConfigSystem {
   void _deepMerge(Map<String, dynamic> target, Map<String, dynamic> source) {
     for (final entry in source.entries) {
       if (target[entry.key] is Map && entry.value is Map) {
-        _deepMerge(target[entry.key] as Map<String, dynamic>, entry.value as Map<String, dynamic>);
+        _deepMerge(
+          target[entry.key] as Map<String, dynamic>,
+          entry.value as Map<String, dynamic>,
+        );
       } else {
         target[entry.key] = entry.value;
       }
@@ -406,12 +416,14 @@ class ProductionConfigSystem {
     _setNestedValue(_config, keys, value);
 
     // emit change event
-    _changeController.add(ConfigChangeEvent(
-      key: key,
-      oldValue: oldValue,
-      newValue: value,
-      timestamp: DateTime.now(),
-    ));
+    _changeController.add(
+      ConfigChangeEvent(
+        key: key,
+        oldValue: oldValue,
+        newValue: value,
+        timestamp: DateTime.now(),
+      ),
+    );
 
     // auto-save if enabled
     if (_autoSave) {
@@ -421,7 +433,11 @@ class ProductionConfigSystem {
     debugPrint('Config updated: $key = $value');
   }
 
-  void _setNestedValue(Map<String, dynamic> map, List<String> keys, dynamic value) {
+  void _setNestedValue(
+    Map<String, dynamic> map,
+    List<String> keys,
+    dynamic value,
+  ) {
     if (keys.length == 1) {
       map[keys[0]] = value;
       return;
@@ -456,7 +472,6 @@ class ProductionConfigSystem {
 
       _lastSaveTime = DateTime.now();
       debugPrint('Configuration saved successfully');
-
     } catch (e) {
       debugPrint('Failed to save configuration: $e');
       // could implement retry logic here
@@ -470,13 +485,15 @@ class ProductionConfigSystem {
     _applyPlatformOverrides();
 
     // emit reset event
-    _changeController.add(ConfigChangeEvent(
-      key: '*',
-      oldValue: null,
-      newValue: null,
-      timestamp: DateTime.now(),
-      isReset: true,
-    ));
+    _changeController.add(
+      ConfigChangeEvent(
+        key: '*',
+        oldValue: null,
+        newValue: null,
+        timestamp: DateTime.now(),
+        isReset: true,
+      ),
+    );
 
     if (_autoSave) {
       await save();
@@ -505,20 +522,21 @@ class ProductionConfigSystem {
       _applyPlatformOverrides();
 
       // emit import event
-      _changeController.add(ConfigChangeEvent(
-        key: '*',
-        oldValue: null,
-        newValue: null,
-        timestamp: DateTime.now(),
-        isImport: true,
-      ));
+      _changeController.add(
+        ConfigChangeEvent(
+          key: '*',
+          oldValue: null,
+          newValue: null,
+          timestamp: DateTime.now(),
+          isImport: true,
+        ),
+      );
 
       if (_autoSave) {
         await save();
       }
 
       debugPrint('Configuration imported successfully');
-
     } catch (e) {
       throw ConfigImportError('Failed to import configuration: $e');
     }

@@ -75,11 +75,13 @@ class _CopyModeOverlayState extends State<CopyModeOverlay> {
           !lineText.toLowerCase().contains(_searchQuery.toLowerCase())) {
         continue;
       }
-      mappings.add(_LineMapping(
-        displayStart: offset,
-        displayEnd: offset + lineText.length,
-        bufferLine: i,
-      ));
+      mappings.add(
+        _LineMapping(
+          displayStart: offset,
+          displayEnd: offset + lineText.length,
+          bufferLine: i,
+        ),
+      );
       builder.write(lineText);
       offset += lineText.length;
       if (i < height - 1) {
@@ -114,10 +116,17 @@ class _CopyModeOverlayState extends State<CopyModeOverlay> {
     CellOffset? endOffset;
 
     for (final mapping in display.mappings) {
-      if (beginOffset == null && start >= mapping.displayStart && start <= mapping.displayEnd) {
-        beginOffset = CellOffset(start - mapping.displayStart, mapping.bufferLine);
+      if (beginOffset == null &&
+          start >= mapping.displayStart &&
+          start <= mapping.displayEnd) {
+        beginOffset = CellOffset(
+          start - mapping.displayStart,
+          mapping.bufferLine,
+        );
       }
-      if (endOffset == null && end >= mapping.displayStart && end <= mapping.displayEnd) {
+      if (endOffset == null &&
+          end >= mapping.displayStart &&
+          end <= mapping.displayEnd) {
         endOffset = CellOffset(end - mapping.displayStart, mapping.bufferLine);
       }
     }

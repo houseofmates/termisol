@@ -160,7 +160,9 @@ class _CommandPaletteState extends State<CommandPalette> {
             decoration: BoxDecoration(
               color: PkmTheme.popup,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: PkmTheme.primary.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: PkmTheme.primary.withValues(alpha: 0.3),
+              ),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -182,7 +184,10 @@ class _CommandPaletteState extends State<CommandPalette> {
                       decoration: InputDecoration(
                         hintText: 'type a command...',
                         hintStyle: const TextStyle(color: PkmTheme.secondary),
-                        prefixIcon: const Icon(Icons.search, color: PkmTheme.primary),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: PkmTheme.primary,
+                        ),
                         suffixText: '${_filtered.length}',
                         suffixStyle: const TextStyle(
                           color: PkmTheme.secondary,
@@ -190,17 +195,24 @@ class _CommandPaletteState extends State<CommandPalette> {
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: PkmTheme.primary.withValues(alpha: 0.3)),
+                          borderSide: BorderSide(
+                            color: PkmTheme.primary.withValues(alpha: 0.3),
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: PkmTheme.primary.withValues(alpha: 0.3)),
+                          borderSide: BorderSide(
+                            color: PkmTheme.primary.withValues(alpha: 0.3),
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(4),
                           borderSide: const BorderSide(color: PkmTheme.primary),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 14,
+                        ),
                       ),
                       onChanged: _filter,
                     ),
@@ -235,14 +247,18 @@ class _CommandPaletteState extends State<CommandPalette> {
                               onTap: () => _execute(action),
                               child: Container(
                                 height: 48,
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
                                 decoration: BoxDecoration(
                                   color: isSelected
                                       ? PkmTheme.primary.withValues(alpha: 0.15)
                                       : Colors.transparent,
                                   border: Border(
                                     left: BorderSide(
-                                      color: isSelected ? PkmTheme.primary : Colors.transparent,
+                                      color: isSelected
+                                          ? PkmTheme.primary
+                                          : Colors.transparent,
                                       width: 3,
                                     ),
                                   ),
@@ -251,22 +267,30 @@ class _CommandPaletteState extends State<CommandPalette> {
                                   children: [
                                     Icon(
                                       action.icon,
-                                      color: isSelected ? PkmTheme.primary : PkmTheme.secondary,
+                                      color: isSelected
+                                          ? PkmTheme.primary
+                                          : PkmTheme.secondary,
                                       size: 20,
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             action.title,
                                             style: TextStyle(
-                                              color: isSelected ? PkmTheme.text : PkmTheme.text,
+                                              color: isSelected
+                                                  ? PkmTheme.text
+                                                  : PkmTheme.text,
                                               fontSize: 14,
                                               fontFamily: PkmTheme.fontUi,
-                                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                              fontWeight: isSelected
+                                                  ? FontWeight.w600
+                                                  : FontWeight.normal,
                                             ),
                                           ),
                                           if (action.subtitle.isNotEmpty)

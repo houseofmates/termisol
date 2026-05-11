@@ -36,7 +36,8 @@ class KittyGraphicsManager {
   bool get isEnabled => _enabled;
 
   /// Display an inline image using Kitty graphics protocol.
-  Future<void> displayImage(Uint8List imageData, {
+  Future<void> displayImage(
+    Uint8List imageData, {
     int width = 80,
     int height = 24,
     String format = 'png',
@@ -52,7 +53,7 @@ class KittyGraphicsManager {
 
       // Convert image to base64
       final base64Image = base64Encode(imageData);
-      
+
       // Build Kitty graphics command
       final command = [
         'a=T', // Transmit to terminal
@@ -61,9 +62,9 @@ class KittyGraphicsManager {
         's=$width,v=$height', // Dimensions
         'C=1', // More control data
       ];
-      
+
       final header = 'G${command.join(',')};';
-      
+
       // Send in chunks to avoid terminal buffer limits
       const chunkSize = 4096;
       for (int i = 0; i < base64Image.length; i += chunkSize) {
@@ -71,13 +72,12 @@ class KittyGraphicsManager {
         final chunk = base64Image.substring(i, end);
         final isLast = end >= base64Image.length;
         final chunkHeader = isLast ? 'm=1;' : 'm=0;';
-        
+
         terminal.write('\x1b_G$header${chunkHeader}$chunk\x1b\\');
       }
-      
+
       _imageId++;
       debugPrint('🖼️ Displayed Kitty image (${width}x$height)');
-      
     } catch (e) {
       debugPrint('❌ Error displaying Kitty image: $e');
     }
@@ -94,7 +94,7 @@ class KittyGraphicsManager {
   /// Handle Kitty graphics responses.
   void handleResponse(String response) {
     if (!_enabled) return;
-    
+
     // Parse Kitty graphics responses for debugging
     if (response.startsWith('\x1b_G')) {
       debugPrint('📡 Kitty graphics response: $response');

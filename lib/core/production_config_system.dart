@@ -111,6 +111,13 @@ class ProductionConfigSystem {
         'docker_integration': false,
         'git_integration': true,
       },
+
+      // whisper settings
+      'whisper': {
+        'url': 'https://localhost:9000',
+        'timeout': 30,
+        'enabled': false,
+      },
     });
   }
 
@@ -140,6 +147,20 @@ class ProductionConfigSystem {
       final tokens = value as num?;
       if (tokens == null || tokens < 128 || tokens > 32768) {
         throw const ConfigValidationError('Max tokens must be between 128 and 32,768');
+      }
+    };
+
+    _validators['whisper.url'] = (value) {
+      final urlStr = value as String?;
+      if (urlStr == null || urlStr.isEmpty) {
+        throw const ConfigValidationError('Whisper URL cannot be empty');
+      }
+      final uri = Uri.tryParse(urlStr);
+      if (uri == null) {
+        throw const ConfigValidationError('Invalid Whisper URL format');
+      }
+      if (uri.scheme != 'https' && uri.host != 'localhost' && uri.host != '127.0.0.1') {
+        throw const ConfigValidationError('Whisper URL must use HTTPS for non-local addresses');
       }
     };
   }

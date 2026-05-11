@@ -269,23 +269,6 @@ class _EditTerminalState extends State<EditTerminal> {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
     final ctrl = HardwareKeyboard.instance.isControlPressed;
     final shift = HardwareKeyboard.instance.isShiftPressed;
-
-    if (ctrl && event.logicalKey == LogicalKeyboardKey.keyS) {
-      unawaited(_saveFile());
-      return KeyEventResult.handled;
-    }
-    if (ctrl && event.logicalKey == LogicalKeyboardKey.keyW) {
-      widget.onClose?.call();
-      return KeyEventResult.handled;
-    }
-    if (ctrl && event.logicalKey == LogicalKeyboardKey.keyO) {
-      unawaited(_openFile());
-      return KeyEventResult.handled;
-    }
-    if (ctrl && event.logicalKey == LogicalKeyboardKey.keyF) {
-      setState(() => _showFind = !_showFind);
-      return KeyEventResult.handled;
-    }
     if (event.logicalKey == LogicalKeyboardKey.tab) {
       _insertTab();
       return KeyEventResult.handled;

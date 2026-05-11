@@ -27,8 +27,9 @@ class PkmTheme {
   static const double mobileTopPadding = 0.0;
 
   /// Singleton notifier for the active theme mode.
-  static final ValueNotifier<TermisolThemeMode> themeMode =
-      ValueNotifier(TermisolThemeMode.dark);
+  static final ValueNotifier<TermisolThemeMode> themeMode = ValueNotifier(
+    TermisolThemeMode.dark,
+  );
 
   /// Singleton notifier for terminal background opacity.
   static final ValueNotifier<double> bgOpacity = ValueNotifier(1.0);
@@ -124,8 +125,7 @@ class PkmTheme {
   };
 
   /// Returns the active Material theme based on [themeMode].
-  static ThemeData get activeMaterialTheme =>
-      materialThemes[themeMode.value]!;
+  static ThemeData get activeMaterialTheme => materialThemes[themeMode.value]!;
 
   static ThemeData _buildDarkTheme() {
     return ThemeData.dark().copyWith(
@@ -136,12 +136,8 @@ class PkmTheme {
         surfaceContainerHighest: tabActiveBg,
       ),
       scaffoldBackgroundColor: background,
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: popup,
-      ),
-      dialogTheme: const DialogThemeData(
-        backgroundColor: popup,
-      ),
+      bottomSheetTheme: const BottomSheetThemeData(backgroundColor: popup),
+      dialogTheme: const DialogThemeData(backgroundColor: popup),
     );
   }
 
@@ -155,9 +151,7 @@ class PkmTheme {
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: Colors.white,
       ),
-      dialogTheme: const DialogThemeData(
-        backgroundColor: Colors.white,
-      ),
+      dialogTheme: const DialogThemeData(backgroundColor: Colors.white),
     );
   }
 
@@ -173,9 +167,7 @@ class PkmTheme {
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: Color(0xFF000000),
       ),
-      dialogTheme: const DialogThemeData(
-        backgroundColor: Color(0xFF000000),
-      ),
+      dialogTheme: const DialogThemeData(backgroundColor: Color(0xFF000000)),
     );
   }
 }

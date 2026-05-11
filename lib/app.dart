@@ -63,12 +63,16 @@ class _TermisolAppState extends State<TermisolApp> {
 
       if (Platform.isAndroid && !isVr) {
         const channel = MethodChannel('com.termisol/vr');
-        final buildInfo = await channel.invokeMethod<Map<dynamic, dynamic>>('getBuildInfo');
+        final buildInfo = await channel.invokeMethod<Map<dynamic, dynamic>>(
+          'getBuildInfo',
+        );
         final model = (buildInfo?['model'] as String? ?? '').toLowerCase();
-        final manufacturer = (buildInfo?['manufacturer'] as String? ?? '').toLowerCase();
-        isVr = model.contains('quest') ||
-               model.contains('oculus') ||
-               manufacturer.contains('oculus');
+        final manufacturer = (buildInfo?['manufacturer'] as String? ?? '')
+            .toLowerCase();
+        isVr =
+            model.contains('quest') ||
+            model.contains('oculus') ||
+            manufacturer.contains('oculus');
       }
     } on PlatformException catch (e) {
       debugPrint('vr detection platform error: $e');
@@ -97,7 +101,9 @@ class _TermisolAppState extends State<TermisolApp> {
       title: 'termisol',
       debugShowCheckedModeBanner: false,
       theme: theme,
-      home: _isVr ? _VrHome(registry: widget.registry) : HomeScreen(registry: widget.registry),
+      home: _isVr
+          ? _VrHome(registry: widget.registry)
+          : HomeScreen(registry: widget.registry),
     );
   }
 }
@@ -123,10 +129,7 @@ class _VrHomeState extends State<_VrHome> {
   }
 
   Future<void> _initSession() async {
-    final session = TerminalSession(
-      id: 'vr_main',
-      name: 'VR Terminal',
-    );
+    final session = TerminalSession(id: 'vr_main', name: 'VR Terminal');
     try {
       await session.start();
       if (mounted) {
@@ -156,9 +159,7 @@ class _VrHomeState extends State<_VrHome> {
     if (_starting) {
       return Container(
         color: Colors.black,
-        child: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        child: const Center(child: CircularProgressIndicator()),
       );
     }
 

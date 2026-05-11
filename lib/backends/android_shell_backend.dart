@@ -1,3 +1,11 @@
+
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
+import '../core/pty_backend.dart';
+import '../core/prompt_config.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -10,9 +18,14 @@ import '../core/prompt_config.dart';
 /// bootstrap.
 class AndroidShellBackend implements TermisolPtyBackend {
   @override
-  final String name = 'Android Shell Backend';
+  final String name = 'android shell backend';
   final String? workingDirectory;
   Process? _process;
+
+  @visibleForTesting
+  void setProcessForTesting(Process process) {
+    _process = process;
+  }
   final _outputController = StreamController<List<int>>.broadcast(sync: false);
   bool _isRunning = false;
   bool _isDisposed = false;

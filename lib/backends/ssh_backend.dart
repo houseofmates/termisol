@@ -39,11 +39,16 @@ class SshBackend implements TermisolPtyBackend {
   });
 
   @override
-  Future<void> start({int cols = 80, int rows = 24, String? workingDirectory}) async {
+  Future<void> start({
+    int cols = 80,
+    int rows = 24,
+    String? workingDirectory,
+  }) async {
     try {
       final socket = await SSHSocket.connect(host, port).timeout(
         const Duration(seconds: 15),
-        onTimeout: () => throw Exception('SSH connection timed out to $host:$port'),
+        onTimeout: () =>
+            throw Exception('SSH connection timed out to $host:$port'),
       );
 
       List<SSHKeyPair>? identities;

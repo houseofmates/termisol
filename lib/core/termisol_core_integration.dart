@@ -43,7 +43,8 @@ class FrameMetrics {
 /// and exposes a stream of performancemetrics. no ghost integrations.
 class TermisolCoreIntegration {
   static TermisolCoreIntegration? _instance;
-  static TermisolCoreIntegration get instance => _instance ??= TermisolCoreIntegration._();
+  static TermisolCoreIntegration get instance =>
+      _instance ??= TermisolCoreIntegration._();
 
   TermisolCoreIntegration._();
 
@@ -116,9 +117,15 @@ class TermisolCoreIntegration {
 
       final recent = getRecentMetrics();
       if (recent.isNotEmpty) {
-        final avgFrameTime = recent.fold<double>(0.0, (s, m) => s + m.totalFrameTimeMs) / recent.length;
-        final avgBuildTime = recent.fold<double>(0.0, (s, m) => s + m.buildDurationMs) / recent.length;
-        final avgRasterTime = recent.fold<double>(0.0, (s, m) => s + m.rasterDurationMs) / recent.length;
+        final avgFrameTime =
+            recent.fold<double>(0.0, (s, m) => s + m.totalFrameTimeMs) /
+            recent.length;
+        final avgBuildTime =
+            recent.fold<double>(0.0, (s, m) => s + m.buildDurationMs) /
+            recent.length;
+        final avgRasterTime =
+            recent.fold<double>(0.0, (s, m) => s + m.rasterDurationMs) /
+            recent.length;
         final avgFps = avgFrameTime > 0 ? 1000.0 / avgFrameTime : 0.0;
 
         frameMetrics.value = FrameMetrics(
@@ -174,10 +181,14 @@ class TermisolCoreIntegration {
   void _checkThermalState() {
     if (_frameTimings.length >= 60) {
       final recentFrames = _frameTimings.sublist(_frameTimings.length - 60);
-      final avgFrameTime = recentFrames.fold<double>(0.0, (sum, m) => sum + m.totalFrameTimeMs) / recentFrames.length;
+      final avgFrameTime =
+          recentFrames.fold<double>(0.0, (sum, m) => sum + m.totalFrameTimeMs) /
+          recentFrames.length;
 
       if (avgFrameTime > 20.0) {
-        debugPrint('[perf] high average frame time detected: consider reducing quality');
+        debugPrint(
+          '[perf] high average frame time detected: consider reducing quality',
+        );
       }
     }
   }
@@ -189,7 +200,9 @@ class TermisolCoreIntegration {
       final rssMb = (info['rss'] as int? ?? 0) / (1024 * 1024);
 
       if (rssMb > 512) {
-        debugPrint('[perf] process RSS > 512MB: consider clearing scrollback or image caches');
+        debugPrint(
+          '[perf] process RSS > 512MB: consider clearing scrollback or image caches',
+        );
       }
     } catch (e) {
       // process info not available on this platform
@@ -198,10 +211,7 @@ class TermisolCoreIntegration {
 
   Map<String, dynamic> _getProcessInfo() {
     try {
-      return {
-        'rss': ProcessInfo.currentRss,
-        'maxRss': ProcessInfo.maxRss,
-      };
+      return {'rss': ProcessInfo.currentRss, 'maxRss': ProcessInfo.maxRss};
     } catch (e) {
       return {};
     }
@@ -210,7 +220,9 @@ class TermisolCoreIntegration {
   /// get the last N performance samples.
   List<PerformanceMetrics> getRecentMetrics({int count = 60}) {
     if (_frameTimings.length <= count) return List.unmodifiable(_frameTimings);
-    return List.unmodifiable(_frameTimings.sublist(_frameTimings.length - count));
+    return List.unmodifiable(
+      _frameTimings.sublist(_frameTimings.length - count),
+    );
   }
 
   /// get average frame time over the last N samples.

@@ -55,14 +55,18 @@ class VrTerminalFrame {
 /// interface over the `com.termisol/vr` platform channel.
 class OpenXrSession {
   static const MethodChannel _channel = MethodChannel('com.termisol/vr');
-  static const EventChannel _eventChannel = EventChannel('com.termisol/vr/events');
+  static const EventChannel _eventChannel = EventChannel(
+    'com.termisol/vr/events',
+  );
 
   static Stream<VrInputEvent>? _inputStream;
 
   /// Initialize the native OpenXR runtime.
   static Future<bool> initialize() async {
     try {
-      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>('initializeVr');
+      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+        'initializeVr',
+      );
       return result?['success'] as bool? ?? false;
     } on PlatformException catch (e) {
       throw OpenXrException('initialization failed: ${e.message}');
@@ -103,9 +107,9 @@ class OpenXrSession {
 
   /// Stream of controller input events from the native runtime.
   static Stream<VrInputEvent> get inputEvents {
-    _inputStream ??= _eventChannel
-        .receiveBroadcastStream()
-        .map((dynamic data) => VrInputEvent.fromMap(data as Map<dynamic, dynamic>));
+    _inputStream ??= _eventChannel.receiveBroadcastStream().map(
+      (dynamic data) => VrInputEvent.fromMap(data as Map<dynamic, dynamic>),
+    );
     return _inputStream!;
   }
 

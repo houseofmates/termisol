@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/terminal_session.dart';
 import '../core/whisper_service.dart';
+import '../core/service_registry.dart';
+import '../core/production_config_system.dart';
+import 'clipboard_manager.dart';
 import 'enhanced_clipboard_manager.dart';
 
 /// custom hotkey manager for termisol with user-defined bindings
@@ -32,8 +35,30 @@ class CustomHotkeyManager {
   }
 
   Future<void> _initializeWhisper() async {
-    _whisperService = WhisperService();
+    final config = ServiceRegistry.instance.get<ProductionConfigSystem>(TermisolFeatures.productionConfigSystem);
 
+    if (config != null) {
+      if (!config.initialized) {
+        await config.initialize();
+      }
+
+      final enabled = config.get<bool>('whisper.enabled') ?? false;
+      if (!enabled) {
+        debugPrint('Termisol: Whisper service is disabled in config');
+        return;
+      }
+
+      final url = config.get<String>('whisper.url') ?? 'https://localhost:9000';
+      final timeoutSeconds = config.get<int>('whisper.timeout') ?? 30;
+
+      _whisperService = WhisperService(
+        serverUrl: url,
+        timeout: Duration(seconds: timeoutSeconds),
+      );
+    } else {
+      _whisperService = WhisperService();
+    }
+    
     // check if server is available, fall back to mock if not
     final available = await _whisperService!.isServerAvailable();
     if (!available) {

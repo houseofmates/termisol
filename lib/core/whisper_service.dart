@@ -10,9 +10,14 @@ class WhisperService {
   final Duration timeout;
 
   WhisperService({
-    this.serverUrl = 'http://192.168.x.x:9000',
+    this.serverUrl = 'https://localhost:9000',
     this.timeout = const Duration(seconds: 30),
-  });
+  }) {
+    final uri = Uri.parse(serverUrl);
+    if (uri.scheme == 'http' && uri.host != 'localhost' && uri.host != '127.0.0.1') {
+      throw ArgumentError('Whisper service must use HTTPS for non-local connections');
+    }
+  }
 
   /// check if whisper server is available
   Future<bool> isServerAvailable() async {

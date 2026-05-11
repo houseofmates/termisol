@@ -85,10 +85,7 @@ class TerminalBackgroundPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()..color = color,
-    );
+    canvas.drawRect(Offset.zero & size, Paint()..color = color);
   }
 
   @override

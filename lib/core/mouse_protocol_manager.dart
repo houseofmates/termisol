@@ -89,7 +89,8 @@ class MouseProtocolManager {
       if (parts.length >= 3) {
         final buttonCode = int.tryParse(parts[0].substring(3)) ?? 0;
         final x = int.tryParse(parts[1]) ?? 0;
-        final y = int.tryParse(parts[2].substring(0, parts[2].indexOf('M'))) ?? 0;
+        final y =
+            int.tryParse(parts[2].substring(0, parts[2].indexOf('M'))) ?? 0;
 
         // Determine button and action
         final button = _getButtonName(buttonCode);
@@ -98,7 +99,9 @@ class MouseProtocolManager {
         if (kDebugMode) debugPrint('Mouse: $button $action at ($x, $y)');
 
         // Handle URL clicks (highlight mode)
-        if (_currentMode == TermisolMouseMode.highlight && button == 'left' && action == 'press') {
+        if (_currentMode == TermisolMouseMode.highlight &&
+            button == 'left' &&
+            action == 'press') {
           _handleUrlClick(x, y);
         }
       }

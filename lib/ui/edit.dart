@@ -57,40 +57,44 @@ class _EditTerminalState extends State<EditTerminal> {
   String get _language {
     final ext = p.extension(_filename).toLowerCase();
     return const {
-      '.dart': 'dart',
-      '.js': 'javascript',
-      '.ts': 'typescript',
-      '.py': 'python',
-      '.rs': 'rust',
-      '.go': 'go',
-      '.c': 'c',
-      '.h': 'c',
-      '.cpp': 'cpp',
-      '.cc': 'cpp',
-      '.hpp': 'cpp',
-      '.java': 'java',
-      '.kt': 'kotlin',
-      '.swift': 'swift',
-      '.rb': 'ruby',
-      '.php': 'php',
-      '.sh': 'bash',
-      '.bash': 'bash',
-      '.json': 'json',
-      '.yaml': 'yaml',
-      '.yml': 'yaml',
-      '.xml': 'xml',
-      '.html': 'html',
-      '.css': 'css',
-      '.md': 'markdown',
-      '.sql': 'sql',
-    }[ext] ?? 'plaintext';
+          '.dart': 'dart',
+          '.js': 'javascript',
+          '.ts': 'typescript',
+          '.py': 'python',
+          '.rs': 'rust',
+          '.go': 'go',
+          '.c': 'c',
+          '.h': 'c',
+          '.cpp': 'cpp',
+          '.cc': 'cpp',
+          '.hpp': 'cpp',
+          '.java': 'java',
+          '.kt': 'kotlin',
+          '.swift': 'swift',
+          '.rb': 'ruby',
+          '.php': 'php',
+          '.sh': 'bash',
+          '.bash': 'bash',
+          '.json': 'json',
+          '.yaml': 'yaml',
+          '.yml': 'yaml',
+          '.xml': 'xml',
+          '.html': 'html',
+          '.css': 'css',
+          '.md': 'markdown',
+          '.sql': 'sql',
+        }[ext] ??
+        'plaintext';
   }
 
   int get _cursorLine {
     final text = _controller.text;
     final sel = _controller.selection;
     if (!sel.isValid || sel.baseOffset < 0) return 1;
-    final beforeCursor = text.substring(0, sel.baseOffset.clamp(0, text.length));
+    final beforeCursor = text.substring(
+      0,
+      sel.baseOffset.clamp(0, text.length),
+    );
     return '\n'.allMatches(beforeCursor).length + 1;
   }
 
@@ -240,7 +244,9 @@ class _EditTerminalState extends State<EditTerminal> {
     if (query.isEmpty) return;
     final text = _controller.text;
     final sel = _controller.selection;
-    final start = sel.isValid && sel.baseOffset >= 0 ? sel.baseOffset : text.length;
+    final start = sel.isValid && sel.baseOffset >= 0
+        ? sel.baseOffset
+        : text.length;
     final idx = text.lastIndexOf(query, start - 1);
     if (idx >= 0) {
       _controller.selection = TextSelection(
@@ -316,7 +322,10 @@ class _EditTerminalState extends State<EditTerminal> {
       final endLine = text.indexOf('\n', sel.end);
       final endPos = endLine == -1 ? text.length : endLine;
       final selectedBlock = text.substring(startLine, endPos);
-      final indented = selectedBlock.split('\n').map((l) => ' ' * _tabSize + l).join('\n');
+      final indented = selectedBlock
+          .split('\n')
+          .map((l) => ' ' * _tabSize + l)
+          .join('\n');
       sb.write(text.substring(0, startLine));
       sb.write(indented);
       sb.write(text.substring(endPos));
@@ -335,12 +344,15 @@ class _EditTerminalState extends State<EditTerminal> {
     if (!sel.isValid || sel.start < 0 || sel.end < 0) {
       // Invalid selection: just append newline at end.
       _controller.text = '${_controller.text}\n';
-      _controller.selection = TextSelection.collapsed(offset: _controller.text.length);
+      _controller.selection = TextSelection.collapsed(
+        offset: _controller.text.length,
+      );
       return;
     }
     if (!sel.isCollapsed) {
       // Replace selection with newline.
-      _controller.text = '${_controller.text.substring(0, sel.start)}\n${_controller.text.substring(sel.end)}';
+      _controller.text =
+          '${_controller.text.substring(0, sel.start)}\n${_controller.text.substring(sel.end)}';
       _controller.selection = TextSelection.collapsed(offset: sel.start + 1);
       return;
     }
@@ -351,13 +363,15 @@ class _EditTerminalState extends State<EditTerminal> {
     final indent = indentMatch?.group(1) ?? '';
 
     // Auto-indent after opening braces
-    final extraIndent = (line.trimRight().endsWith('{') ||
+    final extraIndent =
+        (line.trimRight().endsWith('{') ||
             line.trimRight().endsWith('(') ||
             line.trimRight().endsWith('['))
         ? ' ' * _tabSize
         : '';
 
-    final newText = '${text.substring(0, sel.start)}\n$indent$extraIndent${text.substring(sel.start)}';
+    final newText =
+        '${text.substring(0, sel.start)}\n$indent$extraIndent${text.substring(sel.start)}';
 
     _controller.value = TextEditingValue(
       text: newText,
@@ -376,7 +390,8 @@ class _EditTerminalState extends State<EditTerminal> {
     final endPos = lineEnd == -1 ? text.length : lineEnd;
     final line = text.substring(lineStart, endPos);
 
-    final newText = '${text.substring(0, endPos)}\n$line${text.substring(endPos)}';
+    final newText =
+        '${text.substring(0, endPos)}\n$line${text.substring(endPos)}';
 
     _controller.value = TextEditingValue(
       text: newText,
@@ -494,17 +509,29 @@ class _EditTerminalState extends State<EditTerminal> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.keyboard_arrow_up, color: _accentColor, size: 20),
+                    icon: const Icon(
+                      Icons.keyboard_arrow_up,
+                      color: _accentColor,
+                      size: 20,
+                    ),
                     tooltip: 'previous',
                     onPressed: _findPrevious,
                   ),
                   IconButton(
-                    icon: const Icon(Icons.keyboard_arrow_down, color: _accentColor, size: 20),
+                    icon: const Icon(
+                      Icons.keyboard_arrow_down,
+                      color: _accentColor,
+                      size: 20,
+                    ),
                     tooltip: 'next',
                     onPressed: _findNext,
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: _accentColor, size: 20),
+                    icon: const Icon(
+                      Icons.close,
+                      color: _accentColor,
+                      size: 20,
+                    ),
                     tooltip: 'close find',
                     onPressed: () => setState(() => _showFind = false),
                   ),
@@ -514,14 +541,26 @@ class _EditTerminalState extends State<EditTerminal> {
           Expanded(
             child: CallbackShortcuts(
               bindings: {
-                const SingleActivator(LogicalKeyboardKey.keyS, control: true):
-                    () => unawaited(_saveFile()),
-                const SingleActivator(LogicalKeyboardKey.keyW, control: true):
-                    () => widget.onClose?.call(),
-                const SingleActivator(LogicalKeyboardKey.keyO, control: true):
-                    () => unawaited(_openFile()),
-                const SingleActivator(LogicalKeyboardKey.keyF, control: true):
-                    () => setState(() => _showFind = !_showFind),
+                const SingleActivator(
+                  LogicalKeyboardKey.keyS,
+                  control: true,
+                ): () =>
+                    unawaited(_saveFile()),
+                const SingleActivator(
+                  LogicalKeyboardKey.keyW,
+                  control: true,
+                ): () =>
+                    widget.onClose?.call(),
+                const SingleActivator(
+                  LogicalKeyboardKey.keyO,
+                  control: true,
+                ): () =>
+                    unawaited(_openFile()),
+                const SingleActivator(
+                  LogicalKeyboardKey.keyF,
+                  control: true,
+                ): () =>
+                    setState(() => _showFind = !_showFind),
               },
               child: Focus(
                 autofocus: true,

@@ -3,7 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:xterm/xterm.dart' show CellOffset, TerminalStyle, TerminalTheme, TerminalView, TerminalViewState;
+import 'package:xterm/xterm.dart'
+    show
+        CellOffset,
+        TerminalStyle,
+        TerminalTheme,
+        TerminalView,
+        TerminalViewState;
 import '../core/terminal_session.dart';
 import '../core/gpu_renderer.dart';
 
@@ -209,15 +215,15 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
 
     if (ctrl &&
         (event.logicalKey == LogicalKeyboardKey.equal ||
-         event.logicalKey == LogicalKeyboardKey.numpadAdd ||
-         (shift && event.logicalKey == LogicalKeyboardKey.equal))) {
+            event.logicalKey == LogicalKeyboardKey.numpadAdd ||
+            (shift && event.logicalKey == LogicalKeyboardKey.equal))) {
       _zoomIn();
       return KeyEventResult.handled;
     }
 
     if (ctrl &&
         (event.logicalKey == LogicalKeyboardKey.minus ||
-         event.logicalKey == LogicalKeyboardKey.numpadSubtract)) {
+            event.logicalKey == LogicalKeyboardKey.numpadSubtract)) {
       _zoomOut();
       return KeyEventResult.handled;
     }
@@ -225,7 +231,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     if (ctrl &&
         !shift &&
         (event.logicalKey == LogicalKeyboardKey.digit0 ||
-         event.logicalKey == LogicalKeyboardKey.numpad0)) {
+            event.logicalKey == LogicalKeyboardKey.numpad0)) {
       _zoomReset();
       return KeyEventResult.handled;
     }
@@ -292,14 +298,15 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     // Check if we're in an editor session
     final buffer = widget.session.terminal.buffer;
     if (buffer.height == 0) return;
-    
+
     final lastLine = buffer.lines[buffer.height - 1].getText();
-    
+
     // Try to detect if we're in an editor by checking common editor patterns
-    final isInEditor = RegExp(r'(nano|vi|vim|edit|emacs|code)\s+').hasMatch(lastLine) ||
-                      lastLine.contains('-- INSERT --') ||
-                      lastLine.contains('Normal mode');
-    
+    final isInEditor =
+        RegExp(r'(nano|vi|vim|edit|emacs|code)\s+').hasMatch(lastLine) ||
+        lastLine.contains('-- INSERT --') ||
+        lastLine.contains('Normal mode');
+
     if (isInEditor) {
       // Send Ctrl+S to save in most editors
       widget.session.sendRawInput('\x13'); // Ctrl+S
@@ -321,9 +328,9 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   void _copyAllContent() {
     final buffer = widget.session.terminal.buffer;
     if (buffer.height == 0) return;
-    
+
     final allText = buffer.getText();
-    
+
     Clipboard.setData(ClipboardData(text: allText));
     debugPrint('Termisol: All content copied to clipboard');
   }
@@ -354,9 +361,13 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     if (terminalViewState == null) return;
 
     try {
-      final cellOffset = terminalViewState.renderTerminal.getCellOffset(event.localPosition);
+      final cellOffset = terminalViewState.renderTerminal.getCellOffset(
+        event.localPosition,
+      );
       final url = widget.session.getHyperlinkAt(cellOffset.y, cellOffset.x);
-      final newCursor = url != null ? SystemMouseCursors.click : SystemMouseCursors.text;
+      final newCursor = url != null
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.text;
       if (_mouseCursor != newCursor) {
         setState(() => _mouseCursor = newCursor);
       }
@@ -380,27 +391,33 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   Widget build(BuildContext context) {
     return GpuRenderer.wrapWithGpuBoundary(
       child: Container(
-        color: PkmTheme.terminalBg.withValues(
-          alpha: PkmTheme.bgOpacity.value,
-        ),
+        color: PkmTheme.terminalBg.withValues(alpha: PkmTheme.bgOpacity.value),
         child: Stack(
           children: [
             CallbackShortcuts(
               bindings: {
-                const SingleActivator(LogicalKeyboardKey.keyC, control: true):
-                    () => _handleCtrlC(),
+                const SingleActivator(
+                  LogicalKeyboardKey.keyC,
+                  control: true,
+                ): () =>
+                    _handleCtrlC(),
                 const SingleActivator(
                   LogicalKeyboardKey.keyC,
                   control: true,
                   shift: true,
-                ): () => _handleCtrlShiftC(),
-                const SingleActivator(LogicalKeyboardKey.keyV, control: true):
-                    () => _clipboard.paste(),
+                ): () =>
+                    _handleCtrlShiftC(),
+                const SingleActivator(
+                  LogicalKeyboardKey.keyV,
+                  control: true,
+                ): () =>
+                    _clipboard.paste(),
                 const SingleActivator(
                   LogicalKeyboardKey.keyV,
                   control: true,
                   shift: true,
-                ): () => _clipboard.pasteBracketed(),
+                ): () =>
+                    _clipboard.pasteBracketed(),
               },
               child: MouseRegion(
                 onHover: _handleHover,
@@ -420,7 +437,8 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
                   onKeyEvent: _handleKeyEvent,
                   padding: EdgeInsets.zero,
                   onTapUp: _handleTapUp,
-                  onSecondaryTapUp: (details, offset) => _showContextMenu(context, details.globalPosition),
+                  onSecondaryTapUp: (details, offset) =>
+                      _showContextMenu(context, details.globalPosition),
                   painter: GpuRenderer.instance.createPainter(
                     theme: termisolTerminalTheme,
                     textStyle: TerminalStyle(
@@ -432,9 +450,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
               ),
             ),
             // Graphics overlay positioned over terminal
-            Positioned.fill(
-              child: _buildGraphicsOverlay(),
-            ),
+            Positioned.fill(child: _buildGraphicsOverlay()),
             if (_isCopyMode)
               Positioned.fill(
                 child: CopyModeOverlay(
@@ -452,7 +468,10 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
                   borderRadius: BorderRadius.circular(4),
                   elevation: 4,
                   child: Container(
-                    constraints: const BoxConstraints(maxWidth: 300, maxHeight: 200),
+                    constraints: const BoxConstraints(
+                      maxWidth: 300,
+                      maxHeight: 200,
+                    ),
                     child: ListView.builder(
                       shrinkWrap: true,
                       itemCount: _suggestions.length,
@@ -527,7 +546,9 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
               if (snapshot.hasData && snapshot.data != null) {
                 return Container(
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: Colors.grey.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Image.memory(
                     snapshot.data!,
@@ -549,10 +570,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     final charWidth = _fontSize * 0.6;
     final charHeight = _fontSize * 1.2;
 
-    return Offset(
-      charPosition.dx * charWidth,
-      charPosition.dy * charHeight,
-    );
+    return Offset(charPosition.dx * charWidth, charPosition.dy * charHeight);
   }
 
   Future<void> _handleCtrlC() async {
@@ -576,17 +594,9 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     final items = <PopupMenuEntry<void>>[];
 
     if (hasSel) {
+      items.add(_menuItem(label: 'copy', onTap: () async => _clipboard.copy()));
       items.add(
-        _menuItem(
-          label: 'copy',
-          onTap: () async => _clipboard.copy(),
-        ),
-      );
-      items.add(
-        _menuItem(
-          label: 'copy all',
-          onTap: () async => _clipboard.copyAll(),
-        ),
+        _menuItem(label: 'copy all', onTap: () async => _clipboard.copyAll()),
       );
       if (widget.onSummarize != null) {
         items.add(
@@ -611,16 +621,10 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
       );
       items.add(const PopupMenuDivider());
       items.add(
-        _menuItem(
-          label: 'new tab',
-          onTap: () => widget.onNewTab?.call(),
-        ),
+        _menuItem(label: 'new tab', onTap: () => widget.onNewTab?.call()),
       );
       items.add(
-        _menuItem(
-          label: 'new window',
-          onTap: () => widget.onNewWindow?.call(),
-        ),
+        _menuItem(label: 'new window', onTap: () => widget.onNewWindow?.call()),
       );
     } else {
       items.add(
@@ -630,22 +634,13 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
         ),
       );
       items.add(
-        _menuItem(
-          label: 'new tab',
-          onTap: () => widget.onNewTab?.call(),
-        ),
+        _menuItem(label: 'new tab', onTap: () => widget.onNewTab?.call()),
       );
       items.add(
-        _menuItem(
-          label: 'new window',
-          onTap: () => widget.onNewWindow?.call(),
-        ),
+        _menuItem(label: 'new window', onTap: () => widget.onNewWindow?.call()),
       );
       items.add(
-        _menuItem(
-          label: 'close tab',
-          onTap: () => widget.onCloseTab?.call(),
-        ),
+        _menuItem(label: 'close tab', onTap: () => widget.onCloseTab?.call()),
       );
     }
 

@@ -88,7 +88,9 @@ class LongCommandNotifier extends ChangeNotifier {
 
   Map<String, bool> get activeCommands {
     return Map.fromEntries(
-      _activeCommands.entries.map((entry) => MapEntry(entry.key, entry.value.isActive)),
+      _activeCommands.entries.map(
+        (entry) => MapEntry(entry.key, entry.value.isActive),
+      ),
     );
   }
 

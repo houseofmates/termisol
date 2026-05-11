@@ -41,7 +41,11 @@ class VrFrameEncoder {
 
       for (var c = 0; c < lineLength; c++) {
         line.getCellData(c, cellData);
-        view.setUint32(offset, cellData.content & CellContent.codepointMask, Endian.little);
+        view.setUint32(
+          offset,
+          cellData.content & CellContent.codepointMask,
+          Endian.little,
+        );
         view.setUint32(offset + 4, cellData.foreground, Endian.little);
         view.setUint32(offset + 8, cellData.background, Endian.little);
         view.setUint8(offset + 12, cellData.flags);

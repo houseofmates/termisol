@@ -4,15 +4,12 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.10']
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.0'
-      - name: Install dependencies
-        run: make deps
+          channel: 'stable'
+      - name: Install deps
+        run: flutter pub get
       - name: Run tests
-        run: pip install pytest && pytest -q
+        run: make test-unit

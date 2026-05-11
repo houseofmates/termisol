@@ -127,7 +127,7 @@ class _VrHomeState extends State<_VrHome> {
   }
 
   Future<void> _initSession() async {
-    final session = TerminalSession(id: 'vr_main', name: 'VR Terminal');
+    final session = TerminalSession(id: 'vr_main', name: 'vr terminal');
     try {
       await session.start();
       if (mounted) {

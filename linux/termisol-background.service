@@ -1,0 +1,26 @@
+[Unit]
+Description=Termisol Background Service
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/opt/termisol/termisol --background
+Restart=always
+RestartSec=5
+Environment=DISPLAY=:0
+Environment=XDG_SESSION_TYPE=x11
+
+# Security restrictions
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/%u/.termisol
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+DevicePolicy=closed
+
+[Install]
+WantedBy=default.target

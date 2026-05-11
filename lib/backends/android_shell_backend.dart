@@ -18,7 +18,7 @@ import '../core/prompt_config.dart';
 /// bootstrap.
 class AndroidShellBackend implements TermisolPtyBackend {
   @override
-  final String name = 'Android Shell Backend';
+  final String name = 'android shell backend';
   final String? workingDirectory;
   Process? _process;
 

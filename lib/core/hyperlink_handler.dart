@@ -45,7 +45,9 @@ class HyperlinkHandler {
     _cleanupDetached();
     for (final entry in _entries) {
       if (!entry.line.attached) continue;
-      if (entry.line.index == line && column >= entry.startCol && column < entry.endCol) {
+      if (entry.line.index == line &&
+          column >= entry.startCol &&
+          column < entry.endCol) {
         return entry.url;
       }
     }
@@ -73,11 +75,7 @@ class HyperlinkHandler {
 
     if (url.isNotEmpty) {
       // OSC 8 open sequence: ESC ] 8 ; params ; URI ST
-      _pending.add(_PendingHyperlink(
-        buffer.currentLine,
-        buffer.cursorX,
-        url,
-      ));
+      _pending.add(_PendingHyperlink(buffer.currentLine, buffer.cursorX, url));
     } else {
       // OSC 8 close sequence: ESC ] 8 ; params ; ST
       if (_pending.isEmpty) return;
@@ -92,35 +90,38 @@ class HyperlinkHandler {
     }
   }
 
-  void _storeHyperlink(_PendingHyperlink pending, BufferLine endLine, int endCol) {
+  void _storeHyperlink(
+    _PendingHyperlink pending,
+    BufferLine endLine,
+    int endCol,
+  ) {
     if (pending.startLine == endLine) {
       // Single-line hyperlink.
       if (endCol > pending.startCol) {
-        _entries.add(_HyperlinkEntry(
-          pending.startLine,
-          pending.startCol,
-          endCol,
-          pending.url,
-        ));
+        _entries.add(
+          _HyperlinkEntry(
+            pending.startLine,
+            pending.startCol,
+            endCol,
+            pending.url,
+          ),
+        );
       }
     } else {
       // Multi-line hyperlink.
       final width = _terminal!.viewWidth;
       // Start line: from start column to end of line.
-      _entries.add(_HyperlinkEntry(
-        pending.startLine,
-        pending.startCol,
-        width,
-        pending.url,
-      ));
+      _entries.add(
+        _HyperlinkEntry(
+          pending.startLine,
+          pending.startCol,
+          width,
+          pending.url,
+        ),
+      );
       // End line: from beginning to end column.
       if (endLine.attached) {
-        _entries.add(_HyperlinkEntry(
-          endLine,
-          0,
-          endCol,
-          pending.url,
-        ));
+        _entries.add(_HyperlinkEntry(endLine, 0, endCol, pending.url));
       }
       // Note: intermediate full lines between start and end are not tracked.
       // This is sufficient for common tools like `ls --hyperlink=auto`.

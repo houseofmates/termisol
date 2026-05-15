@@ -97,7 +97,9 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   border: Border(
-                    bottom: BorderSide(color: PkmTheme.primary.withValues(alpha: 0.3)),
+                    bottom: BorderSide(
+                      color: PkmTheme.primary.withValues(alpha: 0.3),
+                    ),
                   ),
                 ),
                 child: KeyboardListener(
@@ -116,7 +118,10 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
                         color: PkmTheme.text.withValues(alpha: 0.5),
                         fontFamily: PkmTheme.fontUi,
                       ),
-                      prefixIcon: const Icon(Icons.search, color: PkmTheme.primary),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: PkmTheme.primary,
+                      ),
                       border: InputBorder.none,
                     ),
                     autofocus: true,
@@ -177,7 +182,9 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
                                     Text(
                                       'enter to select',
                                       style: TextStyle(
-                                        color: PkmTheme.text.withValues(alpha: 0.4),
+                                        color: PkmTheme.text.withValues(
+                                          alpha: 0.4,
+                                        ),
                                         fontFamily: PkmTheme.fontUi,
                                         fontSize: 12,
                                       ),
@@ -194,7 +201,9 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   border: Border(
-                    top: BorderSide(color: PkmTheme.primary.withValues(alpha: 0.2)),
+                    top: BorderSide(
+                      color: PkmTheme.primary.withValues(alpha: 0.2),
+                    ),
                   ),
                 ),
                 child: const Row(

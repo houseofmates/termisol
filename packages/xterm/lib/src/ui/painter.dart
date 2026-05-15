@@ -183,7 +183,8 @@ class TerminalPainter {
   }
 
   @pragma('vm:prefer-inline')
-  void paintCell(Canvas canvas, Offset offset, CellData cellData, {bool isSelected = false}) {
+  void paintCell(Canvas canvas, Offset offset, CellData cellData,
+      {bool isSelected = false}) {
     paintCellBackground(canvas, offset, cellData);
     paintCellForeground(canvas, offset, cellData, isSelected: isSelected);
   }
@@ -191,12 +192,15 @@ class TerminalPainter {
   /// Paints the character in the cell represented by [cellData] to [canvas] at
   /// [offset].
   @pragma('vm:prefer-inline')
-  void paintCellForeground(Canvas canvas, Offset offset, CellData cellData, {bool isSelected = false}) {
+  void paintCellForeground(Canvas canvas, Offset offset, CellData cellData,
+      {bool isSelected = false}) {
     final charCode = cellData.content & CellContent.codepointMask;
     if (charCode == 0) return;
 
-    final cacheKey = cellData.getHash() ^ _textScaler.hashCode ^ (isSelected ? 1 : 0);
-    var paragraph = isSelected ? null : _paragraphCache.getLayoutFromCache(cacheKey);
+    final cacheKey =
+        cellData.getHash() ^ _textScaler.hashCode ^ (isSelected ? 1 : 0);
+    var paragraph =
+        isSelected ? null : _paragraphCache.getLayoutFromCache(cacheKey);
 
     if (paragraph == null) {
       final cellFlags = cellData.flags;

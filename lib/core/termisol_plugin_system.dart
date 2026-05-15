@@ -9,17 +9,9 @@ class PluginMessage {
   final String method;
   final Map<String, dynamic> args;
 
-  PluginMessage({
-    required this.id,
-    required this.method,
-    this.args = const {},
-  });
+  PluginMessage({required this.id, required this.method, this.args = const {}});
 
-  Map<String, dynamic> toMap() => {
-        'id': id,
-        'method': method,
-        'args': args,
-      };
+  Map<String, dynamic> toMap() => {'id': id, 'method': method, 'args': args};
 }
 
 /// termisol plugin system
@@ -38,7 +30,8 @@ class TermisolPluginSystem {
   final Map<String, SendPort> _sendPorts = {};
   final Map<String, ReceivePort> _receivePorts = {};
   final Map<String, PluginManifest> _manifests = {};
-  final StreamController<PluginSystemEvent> _eventController = StreamController.broadcast();
+  final StreamController<PluginSystemEvent> _eventController =
+      StreamController.broadcast();
 
   bool _isInitialized = false;
   final String _pluginsDirectory = 'plugins';
@@ -64,17 +57,21 @@ class TermisolPluginSystem {
       await _loadAllPlugins();
 
       _isInitialized = true;
-      _eventController.add(PluginSystemEvent(
-        PluginSystemEventType.systemInitialized,
-        'Plugin system initialized with ${_plugins.length} plugins',
-        data: {'pluginCount': _plugins.length},
-      ));
+      _eventController.add(
+        PluginSystemEvent(
+          PluginSystemEventType.systemInitialized,
+          'Plugin system initialized with ${_plugins.length} plugins',
+          data: {'pluginCount': _plugins.length},
+        ),
+      );
     } catch (e, stack) {
-      _eventController.add(PluginSystemEvent(
-        PluginSystemEventType.error,
-        'Failed to initialize plugin system: $e',
-        data: {'error': e.toString(), 'stack': stack.toString()},
-      ));
+      _eventController.add(
+        PluginSystemEvent(
+          PluginSystemEventType.error,
+          'Failed to initialize plugin system: $e',
+          data: {'error': e.toString(), 'stack': stack.toString()},
+        ),
+      );
       rethrow;
     }
   }
@@ -84,10 +81,12 @@ class TermisolPluginSystem {
     try {
       final file = File(pluginPath);
       if (!await file.exists()) {
-        _eventController.add(PluginSystemEvent(
-          PluginSystemEventType.loadFailed,
-          'Plugin file not found: $pluginPath',
-        ));
+        _eventController.add(
+          PluginSystemEvent(
+            PluginSystemEventType.loadFailed,
+            'Plugin file not found: $pluginPath',
+          ),
+        );
         return false;
       }
 
@@ -95,39 +94,50 @@ class TermisolPluginSystem {
       final manifest = _parsePluginManifest(content);
 
       if (manifest == null) {
-        _eventController.add(PluginSystemEvent(
-          PluginSystemEventType.loadFailed,
-          'Invalid plugin manifest in $pluginPath',
-        ));
+        _eventController.add(
+          PluginSystemEvent(
+            PluginSystemEventType.loadFailed,
+            'Invalid plugin manifest in $pluginPath',
+          ),
+        );
         return false;
       }
 
       // check for conflicts
       if (_plugins.containsKey(manifest.id)) {
-        _eventController.add(PluginSystemEvent(
-          PluginSystemEventType.loadFailed,
-          'Plugin ${manifest.id} already loaded',
-        ));
+        _eventController.add(
+          PluginSystemEvent(
+            PluginSystemEventType.loadFailed,
+            'Plugin ${manifest.id} already loaded',
+          ),
+        );
         return false;
       }
 
       // validate dependencies
       if (!await _validateDependencies(manifest)) {
-        _eventController.add(PluginSystemEvent(
-          PluginSystemEventType.loadFailed,
-          'Missing dependencies for plugin ${manifest.id}',
-          data: {'plugin': manifest.id, 'dependencies': manifest.dependencies},
-        ));
+        _eventController.add(
+          PluginSystemEvent(
+            PluginSystemEventType.loadFailed,
+            'Missing dependencies for plugin ${manifest.id}',
+            data: {
+              'plugin': manifest.id,
+              'dependencies': manifest.dependencies,
+            },
+          ),
+        );
         return false;
       }
 
       // create plugin isolate
       final isolate = await _createPluginIsolate(manifest, content);
       if (isolate == null) {
-        _eventController.add(PluginSystemEvent(
-          PluginSystemEventType.loadFailed,
-          'Failed to create isolate for plugin ${manifest.id}',
-        ));
+        _eventController.add(
+          PluginSystemEvent(
+            PluginSystemEventType.loadFailed,
+            'Failed to create isolate for plugin ${manifest.id}',
+          ),
+        );
         return false;
       }
 
@@ -146,19 +156,23 @@ class TermisolPluginSystem {
       // initialize plugin
       await plugin.initialize();
 
-      _eventController.add(PluginSystemEvent(
-        PluginSystemEventType.pluginLoaded,
-        'Plugin loaded: ${manifest.name} (${manifest.version})',
-        data: {'plugin': manifest.id, 'version': manifest.version},
-      ));
+      _eventController.add(
+        PluginSystemEvent(
+          PluginSystemEventType.pluginLoaded,
+          'Plugin loaded: ${manifest.name} (${manifest.version})',
+          data: {'plugin': manifest.id, 'version': manifest.version},
+        ),
+      );
 
       return true;
     } catch (e) {
-      _eventController.add(PluginSystemEvent(
-        PluginSystemEventType.loadFailed,
-        'Failed to load plugin from $pluginPath: $e',
-        data: {'path': pluginPath, 'error': e.toString()},
-      ));
+      _eventController.add(
+        PluginSystemEvent(
+          PluginSystemEventType.loadFailed,
+          'Failed to load plugin from $pluginPath: $e',
+          data: {'path': pluginPath, 'error': e.toString()},
+        ),
+      );
       return false;
     }
   }
@@ -191,10 +205,12 @@ class TermisolPluginSystem {
     _receivePorts.remove(pluginId);
     _manifests.remove(pluginId);
 
-    _eventController.add(PluginSystemEvent(
-      PluginSystemEventType.pluginUnloaded,
-      'Plugin unloaded: $pluginId',
-    ));
+    _eventController.add(
+      PluginSystemEvent(
+        PluginSystemEventType.pluginUnloaded,
+        'Plugin unloaded: $pluginId',
+      ),
+    );
   }
 
   /// reload a plugin
@@ -214,7 +230,11 @@ class TermisolPluginSystem {
   }
 
   /// execute plugin method
-  Future<dynamic> executePlugin(String pluginId, String method, [Map<String, dynamic>? args]) async {
+  Future<dynamic> executePlugin(
+    String pluginId,
+    String method, [
+    Map<String, dynamic>? args,
+  ]) async {
     final plugin = _plugins[pluginId];
     if (plugin == null) {
       throw Exception('Plugin not found: $pluginId');
@@ -292,7 +312,10 @@ class TermisolPluginSystem {
 
       for (final line in lines) {
         final trimmed = line.trim();
-        if (trimmed.isEmpty || trimmed.startsWith('//') || trimmed.startsWith('#')) continue;
+        if (trimmed.isEmpty ||
+            trimmed.startsWith('//') ||
+            trimmed.startsWith('#'))
+          continue;
 
         final parts = trimmed.split('=');
         if (parts.length == 2) {
@@ -334,7 +357,10 @@ class TermisolPluginSystem {
     return true;
   }
 
-  Future<Isolate?> _createPluginIsolate(PluginManifest manifest, String code) async {
+  Future<Isolate?> _createPluginIsolate(
+    PluginManifest manifest,
+    String code,
+  ) async {
     ReceivePort? receivePort;
     try {
       receivePort = ReceivePort();
@@ -354,9 +380,11 @@ class TermisolPluginSystem {
       _isolates[manifest.id] = isolate;
 
       // wait for plugin initialization
-      final initMessage = await receivePort.firstWhere((message) {
-        return message is Map && message['type'] == 'initialized';
-      }).timeout(_isolateTimeout);
+      final initMessage = await receivePort
+          .firstWhere((message) {
+            return message is Map && message['type'] == 'initialized';
+          })
+          .timeout(_isolateTimeout);
 
       if (initMessage is Map && initMessage['sendPort'] is SendPort) {
         _sendPorts[manifest.id] = initMessage['sendPort'] as SendPort;
@@ -380,7 +408,9 @@ class TermisolPluginSystem {
 
 /// plugin isolate entry point
 void _pluginIsolateMain(Map<String, dynamic> args) {
-  final manifest = PluginManifest.fromJson(args['manifest'] as Map<String, dynamic>);
+  final manifest = PluginManifest.fromJson(
+    args['manifest'] as Map<String, dynamic>,
+  );
   final parentSendPort = args['sendPort'] as SendPort;
 
   final plugin = _IsolatePlugin(manifest: manifest);
@@ -403,11 +433,7 @@ void _pluginIsolateMain(Map<String, dynamic> args) {
             final args = message['args'] as Map<String, dynamic>? ?? {};
 
             final result = await plugin.execute(method, args);
-            parentSendPort.send({
-              'type': 'result',
-              'id': id,
-              'data': result,
-            });
+            parentSendPort.send({'type': 'result', 'id': id, 'data': result});
           } catch (e) {
             final id = message['id'] as String? ?? '';
             parentSendPort.send({
@@ -573,7 +599,9 @@ class SimplePlugin implements Plugin {
       if (message == null) {
         for (final entry in _pendingRequests.entries.toList()) {
           if (!entry.value.isCompleted) {
-            entry.value.completeError(Exception('plugin isolate terminated unexpectedly'));
+            entry.value.completeError(
+              Exception('plugin isolate terminated unexpectedly'),
+            );
           }
         }
         _pendingRequests.clear();
@@ -583,7 +611,9 @@ class SimplePlugin implements Plugin {
       if (message is List && message.isNotEmpty) {
         for (final entry in _pendingRequests.entries.toList()) {
           if (!entry.value.isCompleted) {
-            entry.value.completeError(Exception('plugin isolate error: ${message[0]}'));
+            entry.value.completeError(
+              Exception('plugin isolate error: ${message[0]}'),
+            );
           }
         }
         _pendingRequests.clear();
@@ -599,7 +629,9 @@ class SimplePlugin implements Plugin {
         if (type == 'result') {
           completer.complete(message['data']);
         } else if (type == 'error') {
-          completer.completeError(Exception(message['error']?.toString() ?? 'unknown isolate error'));
+          completer.completeError(
+            Exception(message['error']?.toString() ?? 'unknown isolate error'),
+          );
         } else {
           completer.completeError(Exception('unknown response type: $type'));
         }
@@ -607,7 +639,10 @@ class SimplePlugin implements Plugin {
     });
   }
 
-  Future<dynamic> _executeInIsolate(String method, Map<String, dynamic> args) async {
+  Future<dynamic> _executeInIsolate(
+    String method,
+    Map<String, dynamic> args,
+  ) async {
     if (_isDisposed) {
       throw Exception('plugin has been disposed');
     }
@@ -626,7 +661,9 @@ class SimplePlugin implements Plugin {
     });
 
     try {
-      return await completer.future.timeout(TermisolPluginSystem._isolateTimeout);
+      return await completer.future.timeout(
+        TermisolPluginSystem._isolateTimeout,
+      );
     } on TimeoutException {
       _pendingRequests.remove(requestId);
       throw Exception('isolate execution timed out for method $method');
@@ -689,11 +726,8 @@ class PluginSystemEvent {
   final Map<String, dynamic>? data;
   final DateTime timestamp;
 
-  PluginSystemEvent(
-    this.type,
-    this.message, {
-    this.data,
-  }) : timestamp = DateTime.now();
+  PluginSystemEvent(this.type, this.message, {this.data})
+    : timestamp = DateTime.now();
 }
 
 enum PluginSystemEventType {

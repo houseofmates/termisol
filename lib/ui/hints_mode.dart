@@ -83,13 +83,15 @@ class _HintsModeOverlayState extends State<HintsModeOverlay> {
 
       // Find URLs
       for (final match in _urlRegex.allMatches(lineText)) {
-        matches.add(_HintMatch(
-          text: match.group(0)!,
-          type: _HintType.url,
-          line: line,
-          start: match.start,
-          end: match.end,
-        ));
+        matches.add(
+          _HintMatch(
+            text: match.group(0)!,
+            type: _HintType.url,
+            line: line,
+            start: match.start,
+            end: match.end,
+          ),
+        );
       }
 
       // Find emails
@@ -97,13 +99,15 @@ class _HintsModeOverlayState extends State<HintsModeOverlay> {
         if (_overlapsExisting(matches, line, match.start, match.end)) {
           continue;
         }
-        matches.add(_HintMatch(
-          text: match.group(0)!,
-          type: _HintType.email,
-          line: line,
-          start: match.start,
-          end: match.end,
-        ));
+        matches.add(
+          _HintMatch(
+            text: match.group(0)!,
+            type: _HintType.email,
+            line: line,
+            start: match.start,
+            end: match.end,
+          ),
+        );
       }
 
       // Find paths
@@ -115,13 +119,15 @@ class _HintsModeOverlayState extends State<HintsModeOverlay> {
         if (_overlapsExisting(matches, line, start, end)) {
           continue;
         }
-        matches.add(_HintMatch(
-          text: path,
-          type: _HintType.path,
-          line: line,
-          start: start,
-          end: end,
-        ));
+        matches.add(
+          _HintMatch(
+            text: path,
+            type: _HintType.path,
+            line: line,
+            start: start,
+            end: end,
+          ),
+        );
       }
     }
 
@@ -186,8 +192,8 @@ class _HintsModeOverlayState extends State<HintsModeOverlay> {
     }
 
     final hasPrefix = _hints.asMap().keys.any(
-          (i) => _hintLabel(i).startsWith(_typedLetters),
-        );
+      (i) => _hintLabel(i).startsWith(_typedLetters),
+    );
     if (!hasPrefix) {
       setState(() => _typedLetters = '');
     }

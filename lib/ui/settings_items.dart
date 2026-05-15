@@ -175,7 +175,10 @@ class _SettingsStringFieldState extends State<SettingsStringField> {
                   borderRadius: BorderRadius.circular(4),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
               ),
               onSubmitted: widget.onChanged,
               onEditingComplete: () => widget.onChanged(_controller.text),

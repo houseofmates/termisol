@@ -1,0 +1,152 @@
+<h1 align="center"> align="center">termisol - the unbreakable terminal emulator</h1>
+
+A cross-platform terminal emulator with AI integration, designed to be crash-proof and feature-complete for power users.
+
+<h2 align="center"> align="center">🚀 features</h2>
+
+<h3 align="center"> align="center">core terminal features</h3>
+- **Multi-tab & Split-pane**: Unlimited tabs and flexible split layouts
+- **AI Hints**: Contextual AI assistance for commands and errors
+- **Command Palette**: Fuzzy search for commands and history
+- **Broadcasting**: Send commands to multiple terminals simultaneously
+- **GPU Acceleration**: Hardware-accelerated rendering for smooth performance
+
+<h3 align="center"> align="center">Unbreakable Architecture
+- **Crash-Proof Session Persistence**: Atomic writes with SHA-256 checksums and backup rotation
+- **Service Mode & Auto-Start**: Background service with system tray integration
+- **Re-attachable PTY**: Socket-based session management survives GUI restarts
+- **Self-Update Mechanism**: Automatic updates with cryptographic verification
+- **Robust Error Handling**: Comprehensive crash logging and recovery
+
+<h3 align="center"> align="center">AI Integration
+- **Local-First**: Works with Ollama for offline operation
+- **Inline Error Explanation**: Non-blocking tooltips explain command failures
+- **Natural Language Commands**: "show disk usage" → suggests `du -sh * | sort -rh`
+- **Cloud Fallback**: Optional API key configuration for cloud models
+
+<h3 align="center"> align="center">Accessibility
+- **Screen Reader Support**: Full TTS integration with system accessibility
+- **High Contrast Mode**: Automatic color adjustment for visibility
+- **Color Blind Support**: 5 types (protanopia, deuteranopia, etc.)
+- **Keyboard Navigation**: Complete keyboard-only operation support
+
+<h3 align="center"> align="center">Professional Integration
+- **One-Command Installer**: Automated setup with system integration
+- **Linux Desktop Integration**: Systemd services, MIME types, protocol handlers
+- **Cross-Platform**: Linux, macOS, Windows with native optimizations
+
+<h2 align="center"> align="center">🛠️ Installation
+
+<h3 align="center"> align="center">Quick Install (Recommended)
+```bash
+curl -fsSL https://raw.githubusercontent.com/termisol/termisol/main/scripts/install.sh | bash
+```
+
+<h3 align="center"> align="center">Manual Install
+```bash
+<h1 align="center"> align="center">Clone and build
+git clone https://github.com/termisol/termisol.git
+cd termisol
+flutter pub get
+flutter build linux
+
+<h1 align="center"> align="center">Install binary
+sudo cp build/linux/x64/release/bundle/termisol /opt/termisol/
+sudo ln -s /opt/termisol/termisol /usr/local/bin/termisol
+
+<h1 align="center"> align="center">Install desktop integration
+sudo cp debian_build/usr/share/applications/termisol.desktop /usr/share/applications/
+sudo cp linux/termisol-background.service /etc/systemd/user/
+systemctl --user enable termisol-background
+systemctl --user start termisol-background
+```
+
+<h2 align="center"> align="center">🎯 Usage
+
+<h3 align="center"> align="center">Basic Operations
+- `Ctrl+T`: New tab
+- `Ctrl+Shift+T`: New window
+- `Ctrl+Shift+P`: Command palette
+- `Ctrl+Shift+H`: Toggle AI hints
+- `Ctrl+Shift+B`: Broadcast mode
+
+<h3 align="center"> align="center">AI Features
+- **Error Explanation**: Hover over failed commands for AI suggestions
+- **Natural Language**: Type "how do I find large files" in command palette
+- **Context Help**: Right-click commands for AI explanations
+
+<h3 align="center"> align="center">Session Management
+- Sessions automatically save every 30 seconds
+- Restore sessions after crashes or restarts
+- Export/import session configurations
+
+<h3 align="center"> align="center">Accessibility Shortcuts
+- `Ctrl+Alt+A`: Toggle screen reader
+- `Ctrl+Alt+H`: Toggle high contrast
+- `Ctrl+Alt+F/D`: Increase/decrease font size
+
+<h2 align="center"> align="center">🏗️ Architecture
+
+<h3 align="center"> align="center">Modular Design
+```
+lib/
+├── core/           # Core services and persistence
+├── ui/             # User interface components
+├── ai/             # AI integration and services
+├── backends/        # Platform-specific backends
+└── config/          # Configuration and theming
+```
+
+<h3 align="center"> align="center">Key Components
+- **CrashProofPersistence**: Atomic session storage with backup rotation
+- **ReattachablePtyManager**: Socket-based PTY session management
+- **BackgroundService**: System tray and auto-start functionality
+- **LocalAIService**: Ollama integration with offline capabilities
+- **AccessibilityFeatures**: Complete accessibility system
+
+<h2 align="center"> align="center">🧪 Testing
+
+Run comprehensive test suite:
+```bash
+flutter test test/crash_proof_persistence_test.dart
+flutter test test/reattachable_pty_test.dart
+flutter test
+```
+
+<h2 align="center"> align="center">📊 Performance
+
+- **Startup**: < 500ms cold start
+- **Memory**: < 50MB idle, < 200MB with 10 tabs
+- **CPU**: < 1% idle, efficient GPU rendering
+- **Storage**: < 100MB with full history
+
+<h2 align="center"> align="center">🔧 Configuration
+
+Settings are stored in `~/.termisol/`:
+- `config.json`: User preferences
+- `sessions/`: Persistent session data
+- `backups/`: Automatic backup rotation
+- `crashes/`: Crash reports and recovery data
+
+<h2 align="center"> align="center">🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass
+5. Submit a pull request
+
+<h2 align="center"> align="center">📄 License
+
+MIT License - see LICENSE file for details
+
+<h2 align="center"> align="center">🙏 Acknowledgments
+
+- Flutter team for the excellent framework
+- xterm.dart for terminal emulation
+- Ollama project for local AI capabilities
+- The open-source community for inspiration and feedback
+
+---
+
+**Termisol** - Simple on the surface, unbreakable underneath.

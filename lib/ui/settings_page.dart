@@ -9,10 +9,7 @@ import 'settings_items.dart';
 class SettingsPage extends StatefulWidget {
   final ServiceRegistry registry;
 
-  const SettingsPage({
-    super.key,
-    required this.registry,
-  });
+  const SettingsPage({super.key, required this.registry});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -644,11 +641,7 @@ class _SettingsPageState extends State<SettingsPage>
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
                       children: [
-                        Icon(
-                          statusIcon,
-                          color: statusColor,
-                          size: 16,
-                        ),
+                        Icon(statusIcon, color: statusColor, size: 16),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -764,14 +757,24 @@ class _SettingsPageState extends State<SettingsPage>
 
   Widget _palettePreview() {
     const colors = [
-      Color(0xFF000000), Color(0xFFFF0000), Color(0xFF00CC00),
-      Color(0xFFCCCC00), Color(0xFF0000FF), Color(0xFFFF00FF),
-      Color(0xFF00CCCC), Color(0xFFE5E5E5),
+      Color(0xFF000000),
+      Color(0xFFFF0000),
+      Color(0xFF00CC00),
+      Color(0xFFCCCC00),
+      Color(0xFF0000FF),
+      Color(0xFFFF00FF),
+      Color(0xFF00CCCC),
+      Color(0xFFE5E5E5),
     ];
     const brightColors = [
-      Color(0xFF808080), Color(0xFFFF0000), Color(0xFF00FF00),
-      Color(0xFFFFFF00), Color(0xFF6666FF), Color(0xFFFF00FF),
-      Color(0xFF00FFFF), Color(0xFFFFFFFF),
+      Color(0xFF808080),
+      Color(0xFFFF0000),
+      Color(0xFF00FF00),
+      Color(0xFFFFFF00),
+      Color(0xFF6666FF),
+      Color(0xFFFF00FF),
+      Color(0xFF00FFFF),
+      Color(0xFFFFFFFF),
     ];
 
     return Container(

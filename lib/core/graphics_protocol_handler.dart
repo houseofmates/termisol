@@ -124,8 +124,8 @@ class GraphicsProtocolHandler {
     final terminal = _terminal;
     if (terminal == null) return;
     final original = terminal.onOutput;
-    terminal.onOutput = (data) {
-      final processed = processOutput(
+    terminal.onOutput = (data) async {
+      final processed = await processOutput(
         data,
         terminal.buffer.cursorX,
         terminal.buffer.cursorY,
@@ -246,53 +246,83 @@ class GraphicsProtocolHandler {
   }
 
   /// process terminal output for graphics protocol sequences
-  String processOutput(String output, int cursorX, int cursorY) {
+  Future<String> processOutput(String output, int cursorX, int cursorY) async {
     if (!_isInitialized) return output;
 
     String processed = output;
 
     // process sixel sequences
-    processed = _processSixelSequences(processed, cursorX, cursorY);
+    processed = await _processSixelSequences(processed, cursorX, cursorY);
 
     // process kitty graphics sequences
-    processed = _processKittySequences(processed, cursorX, cursorY);
+    processed = await _processKittySequences(processed, cursorX, cursorY);
 
     return processed;
   }
 
   /// process sixel graphics sequences in output
-  String _processSixelSequences(String output, int cursorX, int cursorY) {
+  Future<String> _processSixelSequences(
+    String output,
+    int cursorX,
+    int cursorY,
+  ) async {
     if (!_sixelEnabled) return output;
 
     // look for sixel dcs sequences: esc p ... esc \
     final sixelRegex = RegExp(r'\x1bP([0-9;]*)(.*?)\x1b\\', dotAll: true);
-    return output.replaceAllMapped(sixelRegex, (match) {
+    final matches = sixelRegex.allMatches(output).toList();
+    if (matches.isEmpty) return output;
+
+    final buffer = StringBuffer();
+    int lastEnd = 0;
+    for (final match in matches) {
+      buffer.write(output.substring(lastEnd, match.start));
       final params = match.group(1) ?? '';
       final data = match.group(2) ?? '';
       final response = handleSixel('\x1bP$params$data\x1b\\', cursorX, cursorY);
-      return response.isNotEmpty ? response : '';
-    });
+      buffer.write(response);
+      lastEnd = match.end;
+    }
+    buffer.write(output.substring(lastEnd));
+    return buffer.toString();
   }
 
   /// process kitty graphics sequences in output
-  String _processKittySequences(String output, int cursorX, int cursorY) {
+  Future<String> _processKittySequences(
+    String output,
+    int cursorX,
+    int cursorY,
+  ) async {
     if (!_kittyProtocolEnabled) return output;
 
     // look for kitty sequences: esc _ g ... esc \
     final kittyRegex = RegExp(r'\x1b_G([^\\]*)\x1b\\', dotAll: true);
-    return output.replaceAllMapped(kittyRegex, (match) {
+    final matches = kittyRegex.allMatches(output).toList();
+    if (matches.isEmpty) return output;
+
+    final buffer = StringBuffer();
+    int lastEnd = 0;
+    for (final match in matches) {
+      buffer.write(output.substring(lastEnd, match.start));
       final data = match.group(1) ?? '';
-      final response = handleKittyProtocol(
+      final response = await handleKittyProtocol(
         '\x1b_G$data\x1b\\',
         cursorX,
         cursorY,
       );
-      return response.isNotEmpty ? response : '';
-    });
+      buffer.write(response);
+      lastEnd = match.end;
+    }
+    buffer.write(output.substring(lastEnd));
+    return buffer.toString();
   }
 
   /// handle kitty graphics protocol
-  String handleKittyProtocol(String sequence, int cursorX, int cursorY) {
+  Future<String> handleKittyProtocol(
+    String sequence,
+    int cursorX,
+    int cursorY,
+  ) async {
     if (!_kittyProtocolEnabled) return '';
 
     try {
@@ -300,7 +330,7 @@ class GraphicsProtocolHandler {
       final match = RegExp(r'_G[^\\]*\\').firstMatch(sequence);
       if (match != null) {
         final params = match.group(0)!;
-        return _processKittyGraphics(params, cursorX, cursorY);
+        return await _processKittyGraphics(params, cursorX, cursorY);
       }
     } catch (e) {
       debugPrint('Failed to handle Kitty protocol: $e');
@@ -310,7 +340,11 @@ class GraphicsProtocolHandler {
   }
 
   /// process kitty graphics parameters
-  String _processKittyGraphics(String params, int cursorX, int cursorY) {
+  Future<String> _processKittyGraphics(
+    String params,
+    int cursorX,
+    int cursorY,
+  ) async {
     final paramMap = <String, String>{};
     final pairs = params.substring(2, params.length - 1).split(',');
 
@@ -327,7 +361,7 @@ class GraphicsProtocolHandler {
       case 'a': // action
         return _handleKittyAction(paramMap, cursorX, cursorY);
       case 't': // transmission
-        return _handleKittyTransmission(paramMap, cursorX, cursorY);
+        return await _handleKittyTransmission(paramMap, cursorX, cursorY);
       case 'q': // query
         return _handleKittyQuery(paramMap);
       default:
@@ -413,11 +447,11 @@ class GraphicsProtocolHandler {
   }
 
   /// handle kitty graphics transmission
-  String _handleKittyTransmission(
+  Future<String> _handleKittyTransmission(
     Map<String, String> params,
     int cursorX,
     int cursorY,
-  ) {
+  ) async {
     // handle image data transmission
     final format = params['t'] ?? 'f';
     final id = params['i'] ?? _nextImageId.toString();
@@ -427,7 +461,12 @@ class GraphicsProtocolHandler {
       case 'f': // direct transmission
         return _processDirectTransmission(params, id, cursorX, cursorY);
       case 't': // temporary file
-        return _processTemporaryFileTransmission(params, id, cursorX, cursorY);
+        return await _processTemporaryFileTransmission(
+          params,
+          id,
+          cursorX,
+          cursorY,
+        );
       default:
         return '';
     }
@@ -487,12 +526,12 @@ class GraphicsProtocolHandler {
   }
 
   /// process temporary file transmission
-  String _processTemporaryFileTransmission(
+  Future<String> _processTemporaryFileTransmission(
     Map<String, String> params,
     String id,
     int cursorX,
     int cursorY,
-  ) {
+  ) async {
     try {
       final data = params['d'];
       final format = params['f'] ?? '100';
@@ -505,7 +544,7 @@ class GraphicsProtocolHandler {
       final cacheDir = _cacheDir ?? Directory.systemTemp.path;
       final filePath = '$cacheDir/kitty_temp_$id.tmp';
       final file = File(filePath);
-      file.writeAsBytesSync(bytes);
+      await file.writeAsBytes(bytes);
       _tempFilePaths.add(filePath);
 
       if (_imageCache.containsKey(id)) {

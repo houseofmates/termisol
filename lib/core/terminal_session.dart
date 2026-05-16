@@ -214,30 +214,30 @@ class TerminalSession extends ChangeNotifier {
 
       bracketedPaste.enable();
 
-      _outputSub = _backend!.output.listen(
-        (data) {
-          final text = utf8.decode(data, allowMalformed: true);
-          final normalized = text.contains('\x1b')
-              ? text
-              : text.replaceAll('\r\n', '\n').replaceAll('\n', '\r\n');
+      _outputSub = _backend!.output.asyncMap((data) async {
+        final text = utf8.decode(data, allowMalformed: true);
+        final normalized = text.contains('\x1b')
+            ? text
+            : text.replaceAll('\r\n', '\n').replaceAll('\n', '\r\n');
 
-          final processedText = graphicsHandler.processOutput(
-            normalized,
-            terminal.viewWidth,
-            terminal.viewHeight,
-          );
-          trueColor.processOutput(text);
+        final processedText = await graphicsHandler.processOutput(
+          normalized,
+          terminal.viewWidth,
+          terminal.viewHeight,
+        );
+        trueColor.processOutput(text);
 
-          throttledRenderer.write(processedText);
-          _directoryTracker.processOutput(text);
-          _extractUrls(text);
-          _hyperlinkHandler.processOutput(text);
-          _semanticSearch.indexDocument('terminal_output', id, text, metadata: {
-            'timestamp': DateTime.now().toIso8601String(),
-            'session_id': id,
-          });
-          onOutputReceived?.call(text);
-        },
+        throttledRenderer.write(processedText);
+        _directoryTracker.processOutput(text);
+        _extractUrls(text);
+        _hyperlinkHandler.processOutput(text);
+        _semanticSearch.indexDocument('terminal_output', id, text, metadata: {
+          'timestamp': DateTime.now().toIso8601String(),
+          'session_id': id,
+        });
+        onOutputReceived?.call(text);
+      }).listen(
+        null,
         onError: (Object e) {
           _error = e.toString();
           terminal.write('\r\n[backend error: $e]\r\n');

@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:xterm/xterm.dart' show CellOffset, TerminalMouseButton, TerminalMouseButtonState;
+import 'package:xterm/xterm.dart'
+    show CellOffset, TerminalMouseButton, TerminalMouseButtonState;
 
 import '../core/terminal_session.dart';
 import 'openxr_session.dart';
@@ -63,9 +64,12 @@ class _VrTerminalViewState extends State<VrTerminalView> {
       }
 
       // Subscribe to controller input events from the native runtime.
-      OpenXrSession.inputEvents.listen(_onVrInput, onError: (Object e) {
-        debugPrint('VR input stream error: $e');
-      });
+      OpenXrSession.inputEvents.listen(
+        _onVrInput,
+        onError: (Object e) {
+          debugPrint('VR input stream error: $e');
+        },
+      );
 
       final started = await OpenXrSession.startSession();
       if (!started) {
@@ -98,11 +102,13 @@ class _VrTerminalViewState extends State<VrTerminalView> {
     final terminal = widget.session.terminal;
     final frame = _encoder.encode(terminal);
     unawaited(
-      OpenXrSession.submitFrame(VrTerminalFrame(
-        rows: terminal.viewHeight,
-        cols: terminal.viewWidth,
-        cells: frame,
-      )),
+      OpenXrSession.submitFrame(
+        VrTerminalFrame(
+          rows: terminal.viewHeight,
+          cols: terminal.viewWidth,
+          cells: frame,
+        ),
+      ),
     );
   }
 

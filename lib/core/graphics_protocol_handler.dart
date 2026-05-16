@@ -57,7 +57,6 @@ class GraphicsProtocolHandler {
   String? _cacheDir;
   final List<String> _tempFilePaths = [];
 
-
   // rendering optimization
   final Map<String, ui.Picture> _pictureCache = {};
   final Map<int, List<ui.Rect>> _damageRegions = {};

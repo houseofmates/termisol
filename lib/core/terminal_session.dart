@@ -74,19 +74,32 @@ class TerminalSession extends ChangeNotifier {
 
   void Function(String output)? onOutputReceived;
 
-  Future<List<String>> getCommandSuggestions(String currentInput, {int maxSuggestions = 5}) async {
+  Future<List<String>> getCommandSuggestions(
+    String currentInput, {
+    int maxSuggestions = 5,
+  }) async {
     final suggestions = await _autoComplete.getSuggestions(currentInput);
     return suggestions.map((s) => s.command).take(maxSuggestions).toList();
   }
 
-  List<String> getChainedSuggestions(String currentCommand, {int maxSuggestions = 5}) {
-    final suggestions = _commandChaining.suggestNext(currentCommand, maxSuggestions: maxSuggestions);
+  List<String> getChainedSuggestions(
+    String currentCommand, {
+    int maxSuggestions = 5,
+  }) {
+    final suggestions = _commandChaining.suggestNext(
+      currentCommand,
+      maxSuggestions: maxSuggestions,
+    );
     return suggestions.map((s) => s.command).toList();
   }
 
   List<String> searchTerminalOutput(String query, {int maxResults = 10}) {
     try {
-      final results = _semanticSearch.search('terminal_output', query, maxResults: maxResults);
+      final results = _semanticSearch.search(
+        'terminal_output',
+        query,
+        maxResults: maxResults,
+      );
       return results.map((result) => result.content).toList();
     } on Exception catch (e, stack) {
       debugPrint('Semantic search failed: $e\n$stack');
@@ -137,7 +150,12 @@ class TerminalSession extends ChangeNotifier {
     _pluginSystem = TermisolPluginSystem();
 
     bracketedPaste = BracketedPasteManager(terminal, controller);
-    focusManager = FocusManager(terminal, controller, onFocusChanged, onFocusEvent);
+    focusManager = FocusManager(
+      terminal,
+      controller,
+      onFocusChanged,
+      onFocusEvent,
+    );
     trueColor = TrueColorManager(terminal, controller);
     kittyGraphics = KittyGraphicsManager(terminal, controller);
     mouseProtocol = MouseProtocolManager(terminal, controller);
@@ -149,9 +167,11 @@ class TerminalSession extends ChangeNotifier {
     _hyperlinkHandler.attach(terminal);
 
     _aliasSystem = CommandAliasSystem.instance;
-    unawaited(_aliasSystem.load().catchError((e, stack) {
-      debugPrint('Alias system load failed: $e\n$stack');
-    }));
+    unawaited(
+      _aliasSystem.load().catchError((e, stack) {
+        debugPrint('Alias system load failed: $e\n$stack');
+      }),
+    );
 
     _directoryTracker = DirectoryTracker();
     _directoryNotifier = ValueNotifier<String?>(null);
@@ -163,14 +183,18 @@ class TerminalSession extends ChangeNotifier {
     trueColor.enable();
     kittyGraphics.enable();
     mouseProtocol.enable(TermisolMouseMode.any);
-    unawaited(_initLigatureFont().catchError((e, stack) {
-      debugPrint('Ligature font init failed: $e\n$stack');
-    }));
+    unawaited(
+      _initLigatureFont().catchError((e, stack) {
+        debugPrint('Ligature font init failed: $e\n$stack');
+      }),
+    );
 
     _crashRecovery.startHealthMonitoring(id);
     _sessionPersistence.setAutoSaveEnabled(true);
 
-    TermisolCoreIntegration.instance.activeConfig.addListener(_onCoreConfigChanged);
+    TermisolCoreIntegration.instance.activeConfig.addListener(
+      _onCoreConfigChanged,
+    );
   }
 
   void _onCoreConfigChanged() {
@@ -194,7 +218,9 @@ class TerminalSession extends ChangeNotifier {
     if (_connected) return;
 
     try {
-      _backend = TermisolPtyBackend.autoDetect(workingDirectory: workingDirectory);
+      _backend = TermisolPtyBackend.autoDetect(
+        workingDirectory: workingDirectory,
+      );
 
       await _backend!.start();
       _connected = true;
@@ -284,13 +310,17 @@ class TerminalSession extends ChangeNotifier {
       if (bufferText.startsWith('/ai ')) {
         final query = bufferText.substring(4).trim();
         unawaited(
-          onAiQuery?.call(query).then((response) {
-            if (_isDisposed) return;
-            terminal.write('\r\n[AI Response]\r\n$response\r\n');
-          }).catchError((e) {
-            if (_isDisposed) return;
-            terminal.write('\r\n[AI Error: $e]\r\n');
-          }) ?? Future<void>.value(),
+          onAiQuery
+                  ?.call(query)
+                  .then((response) {
+                    if (_isDisposed) return;
+                    terminal.write('\r\n[AI Response]\r\n$response\r\n');
+                  })
+                  .catchError((e) {
+                    if (_isDisposed) return;
+                    terminal.write('\r\n[AI Error: $e]\r\n');
+                  }) ??
+              Future<void>.value(),
         );
         return;
       }
@@ -299,19 +329,25 @@ class TerminalSession extends ChangeNotifier {
         final filePath = bufferText.substring(5).trim();
         unawaited(
           onEditCommand?.call(filePath).catchError((e) {
-            if (_isDisposed) return;
-            terminal.write('\r\n[Edit Error: $e]\r\n');
-          }) ?? Future<void>.value(),
+                if (_isDisposed) return;
+                terminal.write('\r\n[Edit Error: $e]\r\n');
+              }) ??
+              Future<void>.value(),
         );
         return;
       }
 
       if (bufferText.isNotEmpty) {
-        unawaited(commandHistory.add(bufferText).catchError((e) {
-          debugPrint('commandHistory.add error: $e');
-        }));
+        unawaited(
+          commandHistory.add(bufferText).catchError((e) {
+            debugPrint('commandHistory.add error: $e');
+          }),
+        );
         _autoComplete.addToHistory(bufferText);
-        _commandNotifier.notifyLongCommand(bufferText, timeout: const Duration(seconds: 10));
+        _commandNotifier.notifyLongCommand(
+          bufferText,
+          timeout: const Duration(seconds: 10),
+        );
         _commandChaining.recordCommand(id, bufferText, cwd: directory.value);
       }
     }
@@ -337,6 +373,7 @@ class TerminalSession extends ChangeNotifier {
   }
 
   void resize(int cols, int rows) {
+    if (cols <= 0 || rows <= 0) return;
     terminal.resize(cols, rows);
     try {
       _backend?.resize(cols, rows);
@@ -350,10 +387,7 @@ class TerminalSession extends ChangeNotifier {
     for (final match in matches) {
       final url = match.group(0)!;
       if (!detectedUrls.any((d) => d.url == url)) {
-        detectedUrls.add(DetectedUrl(
-          url: url,
-          detectedAt: DateTime.now(),
-        ));
+        detectedUrls.add(DetectedUrl(url: url, detectedAt: DateTime.now()));
         if (detectedUrls.length > 100) {
           detectedUrls.removeAt(0);
         }
@@ -393,9 +427,11 @@ class TerminalSession extends ChangeNotifier {
     detectedUrls.addAll(other.detectedUrls);
 
     for (final cmd in other.commandHistory.commands) {
-      unawaited(commandHistory.add(cmd).catchError((e) {
-        debugPrint('copyFrom commandHistory.add error: $e');
-      }));
+      unawaited(
+        commandHistory.add(cmd).catchError((e) {
+          debugPrint('copyFrom commandHistory.add error: $e');
+        }),
+      );
     }
 
     _directoryTracker.directory.value = other.directory.value ?? '';
@@ -408,7 +444,10 @@ class TerminalSession extends ChangeNotifier {
   void applyCoreConfig(TermisolCoreConfig config) {
     try {
       terminal.buffer.lines.maxLength = config.maxScrollbackLines;
-      ligatureFont.setFont(ligatureFont.currentFont, enableLigatures: config.enableGpuAcceleration);
+      ligatureFont.setFont(
+        ligatureFont.currentFont,
+        enableLigatures: config.enableGpuAcceleration,
+      );
       throttledRenderer.setTargetFps(config.targetFps);
     } on Exception catch (e, stack) {
       debugPrint('failed to apply core config: $e\n$stack');
@@ -451,14 +490,18 @@ class TerminalSession extends ChangeNotifier {
     bracketedPaste.disable();
     await _pluginSystem.dispose();
     _hyperlinkHandler.dispose();
-    TermisolCoreIntegration.instance.activeConfig.removeListener(_onCoreConfigChanged);
+    TermisolCoreIntegration.instance.activeConfig.removeListener(
+      _onCoreConfigChanged,
+    );
   }
 
   @override
   void dispose() {
-    unawaited(disposeSession().catchError((e, stack) {
-      debugPrint('disposeSession error: $e\n$stack');
-    }));
+    unawaited(
+      disposeSession().catchError((e, stack) {
+        debugPrint('disposeSession error: $e\n$stack');
+      }),
+    );
     super.dispose();
   }
 }

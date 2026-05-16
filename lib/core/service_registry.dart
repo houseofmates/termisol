@@ -21,7 +21,9 @@ class ServiceRegistry {
   final Queue<String> _initQueue = Queue();
 
   /// Register a service factory without creating it yet.
-  void register<T>(String name, FutureOr<T> Function() factory, {
+  void register<T>(
+    String name,
+    FutureOr<T> Function() factory, {
     bool enabled = true,
     List<String> dependsOn = const [],
     Duration timeout = const Duration(seconds: 10),
@@ -51,7 +53,8 @@ class ServiceRegistry {
 
     // Check dependencies first
     for (final dep in entry.dependsOn) {
-      if (_health[dep] == ServiceHealth.failed || _health[dep] == ServiceHealth.disabled) {
+      if (_health[dep] == ServiceHealth.failed ||
+          _health[dep] == ServiceHealth.disabled) {
         _health[name] = ServiceHealth.dependencyFailed;
         debugPrint('⚠️ $name skipped: dependency $dep unavailable');
         return null;
@@ -90,7 +93,8 @@ class ServiceRegistry {
     if (entry._future != null) return await entry._future as T?;
 
     for (final dep in entry.dependsOn) {
-      if (_health[dep] == ServiceHealth.failed || _health[dep] == ServiceHealth.disabled) {
+      if (_health[dep] == ServiceHealth.failed ||
+          _health[dep] == ServiceHealth.disabled) {
         _health[name] = ServiceHealth.dependencyFailed;
         return null;
       }
@@ -178,7 +182,14 @@ class ServiceRegistry {
   }
 }
 
-enum ServiceHealth { unknown, disabled, initializing, healthy, failed, dependencyFailed }
+enum ServiceHealth {
+  unknown,
+  disabled,
+  initializing,
+  healthy,
+  failed,
+  dependencyFailed,
+}
 
 class _ServiceEntry<T> {
   final String name;
@@ -207,7 +218,10 @@ class TermisolFeatures {
   static const String fileManager = 'file_manager';
 
   static List<String> get all => [
-    terminalCore, aiAssistant, productionConfigSystem, fileManager,
+    terminalCore,
+    aiAssistant,
+    productionConfigSystem,
+    fileManager,
   ];
 
   static List<String> get critical => [terminalCore];

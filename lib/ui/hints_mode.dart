@@ -182,8 +182,6 @@ class _HintsModeOverlayState extends State<HintsModeOverlay> {
   }
 
   void _checkHint() {
-    if (_typedLetters.isEmpty) return;
-
     for (int i = 0; i < _hints.length; i++) {
       if (_hintLabel(i) == _typedLetters) {
         _executeHint(_hints[i]);

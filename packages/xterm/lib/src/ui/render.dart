@@ -45,11 +45,12 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
         _alwaysShowCursor = alwaysShowCursor,
         _onEditableRect = onEditableRect,
         _composingText = composingText,
-        _painter = customPainter ?? TerminalPainter(
-          theme: theme,
-          textStyle: textStyle,
-          textScaler: textScaler,
-        );
+        _painter = customPainter ??
+            TerminalPainter(
+              theme: theme,
+              textStyle: textStyle,
+              textScaler: textScaler,
+            );
 
   Terminal _terminal;
   set terminal(Terminal terminal) {

@@ -9,33 +9,27 @@ void main() {
       // Generate 1000 random ANSI sequences
       for (int i = 0; i < 1000; i++) {
         final sequence = _generateRandomANSISquence(random);
-        expect(
-          () => _parseANSISquence(sequence),
-          returnsNormally,
-          reason: 'Parser should not crash on random sequence: $sequence',
-        );
+        expect(() => _parseANSISquence(sequence), returnsNormally,
+            reason: 'Parser should not crash on random sequence: $sequence');
       }
     });
 
     test('Terminal parser handles malformed ANSI sequences', () {
       final malformedSequences = [
-        '\x1b[', // Incomplete sequence
-        '\x1b[;', // Empty parameters
-        '\x1b[999999m', // Very large parameter
+        '\x1b[',           // Incomplete sequence
+        '\x1b[;',          // Empty parameters
+        '\x1b[999999m',    // Very large parameter
         '\x1b[1;2;3;4;5;6;7;8;9;10m', // Many parameters
-        '\x1b[m', // No parameters
-        '\x1b[1;m', // Empty parameter in middle
+        '\x1b[m',          // No parameters
+        '\x1b[1;m',        // Empty parameter in middle
         '\x1b[1;2;3mtext\x1b[4;5;6m', // Multiple sequences
         '\x1b[38;5;256m', // Out of range color
-        '\x1b[48;5;0m', // Valid but edge case
+        '\x1b[48;5;0m',   // Valid but edge case
       ];
 
       for (final sequence in malformedSequences) {
-        expect(
-          () => _parseANSISquence(sequence),
-          returnsNormally,
-          reason: 'Parser should handle malformed sequence: $sequence',
-        );
+        expect(() => _parseANSISquence(sequence), returnsNormally,
+            reason: 'Parser should handle malformed sequence: $sequence');
       }
     });
 
@@ -52,11 +46,8 @@ void main() {
       ];
 
       for (final sequence in edgeCases) {
-        expect(
-          () => _parseANSISquence(sequence),
-          returnsNormally,
-          reason: 'Parser should handle edge case: $sequence',
-        );
+        expect(() => _parseANSISquence(sequence), returnsNormally,
+            reason: 'Parser should handle edge case: $sequence');
       }
     });
   });

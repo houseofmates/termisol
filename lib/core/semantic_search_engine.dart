@@ -29,7 +29,10 @@ class SemanticSearchEngine {
       if (!await dir.exists()) {
         await dir.create(recursive: true);
       }
-      _cacheTimer = Timer.periodic(const Duration(minutes: 5), (_) => _rebuildIdfCache());
+      _cacheTimer = Timer.periodic(
+        const Duration(minutes: 5),
+        (_) => _rebuildIdfCache(),
+      );
       debugPrint('SemanticSearchEngine initialized');
     } on Exception catch (e, stack) {
       debugPrint('Failed to initialize SemanticSearchEngine: $e\n$stack');
@@ -37,7 +40,12 @@ class SemanticSearchEngine {
     }
   }
 
-  void indexDocument(String collection, String docId, String content, {Map<String, dynamic>? metadata}) {
+  void indexDocument(
+    String collection,
+    String docId,
+    String content, {
+    Map<String, dynamic>? metadata,
+  }) {
     final index = _getOrCreateIndex(collection);
     final isUpdate = index.documents.containsKey(docId);
     if (isUpdate) {
@@ -63,7 +71,10 @@ class SemanticSearchEngine {
       index.totalTokens += tokens.length;
       _totalDocuments++;
     } else {
-      index.totalTokens = index.documents.values.fold(0, (sum, d) => sum + d.tokens.length);
+      index.totalTokens = index.documents.values.fold(
+        0,
+        (sum, d) => sum + d.tokens.length,
+      );
     }
     _updateInvertedIndex(collection, docId, termFrequencies, ngramSet);
   }
@@ -75,11 +86,20 @@ class SemanticSearchEngine {
     index?.documents.remove(docId);
     if (hadDoc) {
       _totalDocuments = max(0, _totalDocuments - 1);
-      index?.totalTokens = index.documents.values.fold(0, (sum, d) => sum + d.tokens.length);
+      index?.totalTokens = index.documents.values.fold(
+        0,
+        (sum, d) => sum + d.tokens.length,
+      );
     }
   }
 
-  List<SearchResult> search(String collection, String query, {int? maxResults, double minScore = 0.01, List<String>? filters}) {
+  List<SearchResult> search(
+    String collection,
+    String query, {
+    int? maxResults,
+    double minScore = 0.01,
+    List<String>? filters,
+  }) {
     maxResults ??= _maxResults;
     final index = _indexes[collection];
     if (index == null || index.documents.isEmpty) return [];
@@ -99,15 +119,19 @@ class SemanticSearchEngine {
       if (filters != null && filters.isNotEmpty) {
         if (!_matchesFilters(doc, filters)) continue;
       }
-      final score = _scoreBM25(doc, queryTokens, avgLength, collection) + _scoreNgrams(doc, query) * 0.3;
+      final score =
+          _scoreBM25(doc, queryTokens, avgLength, collection) +
+          _scoreNgrams(doc, query) * 0.3;
       if (score >= minScore) {
-        results.add(SearchResult(
-          documentId: docId,
-          score: score,
-          content: doc.content,
-          metadata: doc.metadata,
-          snippets: _generateSnippets(doc.content, queryTokens),
-        ));
+        results.add(
+          SearchResult(
+            documentId: docId,
+            score: score,
+            content: doc.content,
+            metadata: doc.metadata,
+            snippets: _generateSnippets(doc.content, queryTokens),
+          ),
+        );
       }
     }
 
@@ -115,15 +139,29 @@ class SemanticSearchEngine {
     return results.take(maxResults).toList();
   }
 
-  SearchResult? findSimilar(String collection, String docId, {int maxResults = 5, double minScore = 0.1}) {
+  SearchResult? findSimilar(
+    String collection,
+    String docId, {
+    int maxResults = 5,
+    double minScore = 0.1,
+  }) {
     final index = _indexes[collection];
     if (index == null) return null;
     final doc = index.documents[docId];
     if (doc == null) return null;
-    return search(collection, doc.content, maxResults: maxResults, minScore: minScore).firstWhereOrNull((r) => r.documentId != docId);
+    return search(
+      collection,
+      doc.content,
+      maxResults: maxResults,
+      minScore: minScore,
+    ).firstWhereOrNull((r) => r.documentId != docId);
   }
 
-  List<String> suggest(String collection, String prefix, {int maxSuggestions = 10}) {
+  List<String> suggest(
+    String collection,
+    String prefix, {
+    int maxSuggestions = 10,
+  }) {
     final index = _indexes[collection];
     if (index == null) return [];
     final results = <String>{};
@@ -152,15 +190,17 @@ class SemanticSearchEngine {
       if (entry.value.documents.isEmpty) continue;
       final file = File('$_indexPath/${entry.key}_index.json');
       try {
-        final data = entry.value.documents.map((k, v) => MapEntry(k, {
-          'id': v.id,
-          'content': v.content,
-          'tokens': v.tokens,
-          'termFrequencies': v.termFrequencies,
-          'ngrams': v.ngrams.toList(),
-          'metadata': v.metadata,
-          'indexedAt': v.indexedAt.toIso8601String(),
-        }));
+        final data = entry.value.documents.map(
+          (k, v) => MapEntry(k, {
+            'id': v.id,
+            'content': v.content,
+            'tokens': v.tokens,
+            'termFrequencies': v.termFrequencies,
+            'ngrams': v.ngrams.toList(),
+            'metadata': v.metadata,
+            'indexedAt': v.indexedAt.toIso8601String(),
+          }),
+        );
         await file.writeAsString(json.encode(data));
       } on Exception catch (e, stack) {
         debugPrint('Failed to persist index ${entry.key}: $e\n$stack');
@@ -169,11 +209,22 @@ class SemanticSearchEngine {
   }
 
   DocumentIndex _getOrCreateIndex(String collection) {
-    return _indexes.putIfAbsent(collection, () => DocumentIndex(name: collection));
+    return _indexes.putIfAbsent(
+      collection,
+      () => DocumentIndex(name: collection),
+    );
   }
 
-  void _updateInvertedIndex(String collection, String docId, Map<String, int> termFrequencies, Set<String> ngrams) {
-    final inverted = _invertedIndexes.putIfAbsent(collection, () => InvertedIndex());
+  void _updateInvertedIndex(
+    String collection,
+    String docId,
+    Map<String, int> termFrequencies,
+    Set<String> ngrams,
+  ) {
+    final inverted = _invertedIndexes.putIfAbsent(
+      collection,
+      () => InvertedIndex(),
+    );
     for (final term in termFrequencies.keys) {
       inverted.terms.putIfAbsent(term, () => {});
       inverted.terms[term]!.add(docId);
@@ -212,14 +263,21 @@ class SemanticSearchEngine {
         if (token.length < n) continue;
         final ngramDocs = inverted.ngrams[token.substring(0, n)];
         if (ngramDocs != null && ngramDocs.isNotEmpty) {
-          candidates = candidates == null ? {...ngramDocs} : candidates.union(ngramDocs);
+          candidates = candidates == null
+              ? {...ngramDocs}
+              : candidates.union(ngramDocs);
         }
       }
     }
     return candidates ?? {};
   }
 
-  double _scoreBM25(IndexedDocument doc, List<String> queryTokens, double avgLength, String collection) {
+  double _scoreBM25(
+    IndexedDocument doc,
+    List<String> queryTokens,
+    double avgLength,
+    String collection,
+  ) {
     double score = 0.0;
     final docLength = doc.tokens.length.toDouble();
     final index = _indexes[collection];
@@ -228,10 +286,13 @@ class SemanticSearchEngine {
       final tf = doc.termFrequencies[token]?.toDouble() ?? 0.0;
       if (tf == 0) continue;
       final inverted = _invertedIndexes[collection];
-      final df = inverted == null ? 1 : (inverted.terms[token]?.length ?? 1).toDouble();
+      final df = inverted == null
+          ? 1
+          : (inverted.terms[token]?.length ?? 1).toDouble();
       final idf = log((collectionDocCount - df + 0.5) / (df + 0.5) + 1.0);
       final numerator = tf * (_k1 + 1);
-      final denominator = tf + _k1 * (1 - _b + _b * (docLength / max(avgLength, 1)));
+      final denominator =
+          tf + _k1 * (1 - _b + _b * (docLength / max(avgLength, 1)));
       score += idf * (numerator / denominator);
     }
     return score;
@@ -271,11 +332,13 @@ class SemanticSearchEngine {
         if (pos == -1) break;
         final snippetStart = max(0, pos - 30);
         final snippetEnd = min(content.length, pos + token.length + 30);
-        snippets.add(Snippet(
-          text: content.substring(snippetStart, snippetEnd),
-          position: snippetStart,
-          length: snippetEnd - snippetStart,
-        ));
+        snippets.add(
+          Snippet(
+            text: content.substring(snippetStart, snippetEnd),
+            position: snippetStart,
+            length: snippetEnd - snippetStart,
+          ),
+        );
         startPos = pos + 1;
       }
     }
@@ -284,7 +347,8 @@ class SemanticSearchEngine {
   }
 
   List<String> _tokenize(String text) {
-    return text.toLowerCase()
+    return text
+        .toLowerCase()
         .replaceAll(RegExp(r'[^a-z0-9\s_\-/\.]'), ' ')
         .split(RegExp(r'\s+'))
         .where((t) => t.isNotEmpty)
@@ -307,7 +371,9 @@ class SemanticSearchEngine {
     for (final inverted in _invertedIndexes.values) {
       for (final entry in inverted.terms.entries) {
         final df = entry.value.length.toDouble();
-        _idfCache[entry.key] = log((_totalDocuments - df + 0.5) / (df + 0.5) + 1.0);
+        _idfCache[entry.key] = log(
+          (_totalDocuments - df + 0.5) / (df + 0.5) + 1.0,
+        );
       }
     }
   }
@@ -327,8 +393,8 @@ class DocumentIndex {
   int totalTokens;
 
   DocumentIndex({required this.name, Map<String, IndexedDocument>? documents})
-      : documents = documents ?? {},
-        totalTokens = 0;
+    : documents = documents ?? {},
+      totalTokens = 0;
 }
 
 class InvertedIndex {

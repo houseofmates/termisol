@@ -28,12 +28,12 @@ class ThrottledRenderer {
   /// Schedule a render if not already rendering.
   void _scheduleRender() {
     if (_isRendering) return;
-    
+
     final now = DateTime.now().millisecondsSinceEpoch;
     if (now - _lastRenderTime < _frameInterval.inMilliseconds) {
       return; // Too soon since last render
     }
-    
+
     _renderTimer?.cancel();
     _renderTimer = Timer(_frameInterval, _render);
   }
@@ -41,19 +41,21 @@ class ThrottledRenderer {
   /// Render pending output immediately.
   void _render() {
     if (_pendingOutput.isEmpty) return;
-    
+
     _isRendering = true;
     _lastRenderTime = DateTime.now().millisecondsSinceEpoch;
-    
+
     try {
       // Batch all pending output
       final batch = _pendingOutput.join();
       _pendingOutput.clear();
-      
+
       // Send to terminal in one go
       terminal.write(batch);
-      
-      debugPrint('🎬 Rendered ${batch.length} chars in ${DateTime.now().millisecondsSinceEpoch - _lastRenderTime}ms');
+
+      debugPrint(
+        '🎬 Rendered ${batch.length} chars in ${DateTime.now().millisecondsSinceEpoch - _lastRenderTime}ms',
+      );
     } catch (e) {
       debugPrint('❌ Render error: $e');
     } finally {

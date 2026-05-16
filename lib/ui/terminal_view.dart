@@ -1,28 +1,26 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:xterm/xterm.dart' show CellOffset, TerminalStyle, TerminalTheme, TerminalView, TerminalViewState;
+import 'package:xterm/xterm.dart';
 import '../core/terminal_session.dart';
 import '../core/gpu_renderer.dart';
-
 import '../core/deep_l_service.dart';
 import '../core/graphics_protocol_handler.dart';
 import '../config/pkm_theme.dart';
 import 'clipboard_manager.dart';
 import 'copy_mode_overlay.dart';
-import 'custom_hotkey_manager.dart';
-import 'enhanced_clipboard_manager.dart';
 
-/// active terminal theme based on the current [pkmtheme.thememode].
+/// Active terminal theme based on the current [PkmTheme.themeMode].
 TerminalTheme get termisolTerminalTheme => PkmTheme.activeTerminalTheme;
 
 const _defaultTerminalFontSize = 14.0;
 const _minFontSize = 8.0;
 const _maxFontSize = 32.0;
 
-/// gpu-optimized terminal widget for termisol
+/// gpu-optimized terminal widget for termisol.
 class TermisolTerminalView extends StatefulWidget {
   final TerminalSession session;
   final bool autofocus;
@@ -51,9 +49,7 @@ class TermisolTerminalView extends StatefulWidget {
 
 class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   late final TerminalClipboardManager _clipboard;
-  late final EnhancedClipboardManager _enhancedClipboard;
   late final GraphicsProtocolHandler _graphicsHandler;
-  late final CustomHotkeyManager _hotkeyManager;
   final _deepL = DeepLTranslationService();
   final _terminalViewKey = GlobalKey<TerminalViewState>();
   bool _isSummarizing = false;
@@ -61,14 +57,14 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   bool _isCopyMode = false;
   double _fontSize = _defaultTerminalFontSize;
   MouseCursor _mouseCursor = SystemMouseCursors.text;
-  String _fontFamily = 'DroidSansMono';
+  String _fontFamily = 'monospace';
 
-  // autocomplete state
+  // Autocomplete state
   List<String> _suggestions = [];
   bool _showSuggestions = false;
   String? _currentInput;
 
-  // command chaining state
+  // Command chaining state
   List<String> _chainSuggestions = [];
   bool _showChainSuggestions = false;
   void Function(String)? _originalOnOutput;
@@ -87,18 +83,6 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     _clipboard = TerminalClipboardManager(
       widget.session.terminal,
       widget.session.controller,
-    );
-    _enhancedClipboard = EnhancedClipboardManager(
-      terminal: widget.session.terminal,
-      controller: widget.session.controller,
-    );
-    _hotkeyManager = CustomHotkeyManager(
-      session: widget.session,
-      clipboard: _enhancedClipboard,
-      onNewTab: widget.onNewTab,
-      onSaveFile: _saveCurrentFile,
-      onSearch: _showSearchOverlay,
-      onCopyAll: _copyAllContent,
     );
     widget.session.addListener(_onSessionChanged);
     _loadTerminalStyle();
@@ -138,8 +122,6 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     widget.session.onOutputReceived = _originalOnOutput;
     _graphicsHandler.dispose();
     _clipboard.dispose();
-    _enhancedClipboard.dispose();
-    _hotkeyManager.dispose();
     super.dispose();
   }
 
@@ -158,7 +140,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
       setState(() => _fontSize = savedSize.clamp(_minFontSize, _maxFontSize));
     }
     final savedFont = prefs.getString('termisol_font_family');
-    if (savedFont != null && mounted) {
+    if (savedFont != null && savedFont.isNotEmpty && savedFont != 'DroidSansMono' && mounted) {
       setState(() => _fontFamily = savedFont);
     }
     final savedOpacity = prefs.getDouble('termisol_bg_opacity');
@@ -200,12 +182,6 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
-    // First try custom hotkey manager
-    final customResult = _hotkeyManager.handleKeyEvent(node, event);
-    if (customResult == KeyEventResult.handled) {
-      return KeyEventResult.handled;
-    }
-
     final ctrl = HardwareKeyboard.instance.isControlPressed;
     final shift = HardwareKeyboard.instance.isShiftPressed;
 
@@ -244,6 +220,14 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
       });
     }
 
+    // Ctrl+A = select all
+    if (ctrl &&
+        !shift &&
+        event.logicalKey == LogicalKeyboardKey.keyA) {
+      _clipboard.selectAll();
+      return KeyEventResult.handled;
+    }
+
     return KeyEventResult.ignored;
   }
 
@@ -273,7 +257,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
         _showSuggestions = suggestions.isNotEmpty;
       });
     } on Exception catch (e, stack) {
-      debugPrint('autocomplete failed: $e\n$stack');
+      if (kDebugMode) debugPrint('autocomplete failed: $e\n$stack');
     } finally {
       _autocompleteInProgress = false;
     }
@@ -287,47 +271,6 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
     }
     widget.session.sendRawInput('$suggestion\r');
     setState(() => _showSuggestions = false);
-  }
-
-  /// Save the currently opened file (for edit or nano)
-  Future<void> _saveCurrentFile() async {
-    // Check if we're in an editor session
-    final buffer = widget.session.terminal.buffer;
-    if (buffer.height == 0) return;
-    
-    final lastLine = buffer.lines[buffer.height - 1].getText();
-    
-    // Try to detect if we're in an editor by checking common editor patterns
-    final isInEditor = RegExp(r'(nano|vi|vim|edit|emacs|code)\s+').hasMatch(lastLine) ||
-                      lastLine.contains('-- INSERT --') ||
-                      lastLine.contains('Normal mode');
-    
-    if (isInEditor) {
-      // Send Ctrl+S to save in most editors
-      widget.session.sendRawInput('\x13'); // Ctrl+S
-      debugPrint('Termisol: Save command sent to editor');
-    } else {
-      debugPrint('Termisol: Not in an editor session');
-    }
-  }
-
-  /// Show search overlay
-  void _showSearchOverlay() {
-    // This would integrate with the existing search functionality
-    // For now, we'll send Ctrl+F to the terminal which many apps support
-    widget.session.sendRawInput('\x06'); // Ctrl+F
-    debugPrint('Termisol: Search command sent');
-  }
-
-  /// Copy all terminal content
-  void _copyAllContent() {
-    final buffer = widget.session.terminal.buffer;
-    if (buffer.height == 0) return;
-    
-    final allText = buffer.getText();
-    
-    Clipboard.setData(ClipboardData(text: allText));
-    debugPrint('Termisol: All content copied to clipboard');
   }
 
   void _sendChainCommand(String command) {
@@ -363,7 +306,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
         setState(() => _mouseCursor = newCursor);
       }
     } on Exception catch (e, stack) {
-      debugPrint('hover handling failed: $e\n$stack');
+      if (kDebugMode) debugPrint('hover error: $e');
     }
   }
 
@@ -374,7 +317,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
     } on Exception catch (e, stack) {
-      debugPrint('launch url failed: $e\n$stack');
+      if (kDebugMode) debugPrint('hover error: $e');
     }
   }
 
@@ -423,19 +366,13 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
                   padding: EdgeInsets.zero,
                   onTapUp: _handleTapUp,
                   onSecondaryTapUp: (details, offset) => _showContextMenu(context, details.globalPosition),
-                  painter: GpuRenderer.instance.createPainter(
-                    theme: termisolTerminalTheme,
-                    textStyle: TerminalStyle(
-                      fontFamily: _fontFamily,
-                      fontSize: _fontSize,
-                    ),
-                  ),
                 ),
               ),
             ),
-            // Graphics overlay positioned over terminal
-            Positioned.fill(
-              child: _buildGraphicsOverlay(),
+            // Graphics overlay positioned over terminal (pass-through so taps/clicks work)
+            IgnorePointer(
+              ignoring: true,
+              child: Positioned.fill(child: _buildGraphicsOverlay()),
             ),
             if (_isCopyMode)
               Positioned.fill(
@@ -579,16 +516,13 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
 
     if (hasSel) {
       items.add(
-        _menuItem(
-          label: 'copy',
-          onTap: () async => _clipboard.copy(),
-        ),
+        _menuItem(label: 'copy', onTap: () async => _clipboard.copy()),
       );
       items.add(
-        _menuItem(
-          label: 'copy all',
-          onTap: () async => _clipboard.copyAll(),
-        ),
+        _menuItem(label: 'paste', onTap: () async => _clipboard.paste()),
+      );
+      items.add(
+        _menuItem(label: 'copy all', onTap: () async => _clipboard.copyAll()),
       );
       if (widget.onSummarize != null) {
         items.add(
@@ -613,16 +547,10 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
       );
       items.add(const PopupMenuDivider());
       items.add(
-        _menuItem(
-          label: 'new tab',
-          onTap: () => widget.onNewTab?.call(),
-        ),
+        _menuItem(label: 'new tab', onTap: () => widget.onNewTab?.call()),
       );
       items.add(
-        _menuItem(
-          label: 'new window',
-          onTap: () => widget.onNewWindow?.call(),
-        ),
+        _menuItem(label: 'new window', onTap: () => widget.onNewWindow?.call()),
       );
     } else {
       items.add(
@@ -632,22 +560,16 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
         ),
       );
       items.add(
-        _menuItem(
-          label: 'new tab',
-          onTap: () => widget.onNewTab?.call(),
-        ),
+        _menuItem(label: 'paste', onTap: () async => _clipboard.paste()),
       );
       items.add(
-        _menuItem(
-          label: 'new window',
-          onTap: () => widget.onNewWindow?.call(),
-        ),
+        _menuItem(label: 'new tab', onTap: () => widget.onNewTab?.call()),
       );
       items.add(
-        _menuItem(
-          label: 'close tab',
-          onTap: () => widget.onCloseTab?.call(),
-        ),
+        _menuItem(label: 'new window', onTap: () => widget.onNewWindow?.call()),
+      );
+      items.add(
+        _menuItem(label: 'close tab', onTap: () => widget.onCloseTab?.call()),
       );
     }
 
@@ -660,6 +582,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
         position.dy + 1,
       ),
       color: PkmTheme.popup,
+      popUpAnimationStyle: AnimationStyle.noAnimation,
       items: items,
     );
   }
@@ -686,7 +609,6 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   }
 
   Future<void> _runSummarize() async {
-    if (_isSummarizing || widget.onSummarize == null) return;
     setState(() => _isSummarizing = true);
 
     try {
@@ -701,7 +623,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
         );
       }
     } on Exception catch (e, stack) {
-      debugPrint('summary failed: $e\n$stack');
+      if (kDebugMode) debugPrint('summary failed: $e\n$stack');
       widget.session.terminal.write(
         '\r\n\x1b[31m[summary failed: $e]\x1b[0m\r\n',
       );
@@ -735,10 +657,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
         );
       }
     } on Exception catch (e, stack) {
-      debugPrint('translation error: $e\n$stack');
-      widget.session.terminal.write(
-        '\r\n\x1b[31m[translation error: $e]\x1b[0m\r\n',
-      );
+      if (kDebugMode) debugPrint('translation error: $e\n$stack');
     } finally {
       if (mounted) setState(() => _isTranslating = false);
     }

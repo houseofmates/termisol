@@ -25,7 +25,11 @@ class PromptConfig {
 
   /// Portable PS1 for shells that don't support \\u/\\h/\\w (e.g. Android /system/bin/sh).
   /// Callers should substitute USER, HOST, and PWD before sending.
-  static String portablePs1({required String user, required String host, required String pwd}) {
+  static String portablePs1({
+    required String user,
+    required String host,
+    required String pwd,
+  }) {
     return '$_usernameColor$user@$host$_reset:$_directoryColor$pwd$_reset$_promptCharColor\$$_reset ';
   }
 

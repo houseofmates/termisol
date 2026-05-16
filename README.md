@@ -1,8 +1,8 @@
-# termisol
+<h1 align="center">termisol</h1>
 
 a terminal emulator built with flutter. it uses the real `xterm.dart` package for terminal emulation and `pty` for shell integration. ai features are cloud-only via nvidia nim, with an optional local gemma 4:4b fallback on android if a local llm server is detected.
 
-## what it actually does
+<h2 align="center">what it actually does</h2>
 
 - **terminal emulation**: full xterm-256color via the `xterm.dart` package, with a real pty backend
 - **tabs**: create, close, reorder, rename, duplicate, close-others, close-to-the-right
@@ -26,12 +26,12 @@ a terminal emulator built with flutter. it uses the real `xterm.dart` package fo
 - **zoom**: `ctrl+=` / `ctrl+-` / `ctrl+0` to change font size
 - **text editor**: built-in editor with syntax highlighting via `flutter_highlight`
 
-## what it does not do
+<h2 align="center">what it does not do</h2>
 
 - **no offline AI on desktop**: desktop builds are cloud-only. no quantized model is bundled
 - **no sixel/kitty/iterm2 graphics in the terminal grid**: `GraphicsProtocolHandler` exists but is not wired into the active `TerminalView`
 
-## recent fixes (2026-05-08)
+<h2 align="center">recent fixes (2026-05-08)</h2>
 
 - **split panes**: fully implemented with draggable dividers, double-click to equalize, min-size enforcement
 - **directory tracking**: real-time cwd detection via osc 7 and prompt parsing
@@ -48,7 +48,7 @@ a terminal emulator built with flutter. it uses the real `xterm.dart` package fo
 - **tab management**: duplicate tab, close others, close to the right, long-command indicators
 - **codebase cleanup**: 120+ placeholder files moved to `unused/`, 0 compilation errors
 
-## architecture
+<h2 align="center">architecture</h2>
 
 ```
 lib/
@@ -57,7 +57,7 @@ lib/
 ├── core/
 │   ├── terminal_session.dart     # wraps xterm terminal + pty backend
 │   ├── pty_backend.dart          # cross-platform pty
-│   ├── directory_tracker.dart    # cwd detection for tab titles
+│   ├──_directory_tracker.dart    # cwd detection for tab titles
 │   ├── command_alias_system.dart # alias expansion
 │   ├── session_persistence.dart  # save/restore tabs
 │   ├── hyperlink_handler.dart    # osc 8 hyperlink tracking
@@ -83,14 +83,14 @@ lib/
     └── pty/                      # local pty package
 ```
 
-## getting started
+<h2 align="center">getting started</h2>
 
 ```bash
 flutter pub get
 flutter run -d linux      # or android, windows, macos
 ```
 
-## configuration
+<h2 align="center">configuration</h2>
 
 settings are stored in `sharedpreferences`. key settings:
 
@@ -107,7 +107,7 @@ ai:
   model: "nvidia-llama-3.1-8b-instruct"
 ```
 
-## keyboard shortcuts
+<h2 align="center">keyboard shortcuts</h2>
 
 | shortcut | action |
 |----------|--------|
@@ -131,11 +131,11 @@ ai:
 | `ctrl+=` / `ctrl+-` | zoom in / out |
 | `ctrl+0` | reset zoom |
 
-## ai usage
+<h2 align="center">ai usage</h2>
 
 type `/ai <question>` in the terminal. on desktop, this always goes to nvidia nim. on android, if the cloud request fails and a local gemma endpoint was detected at startup, it falls back to the local model.
 
-## security
+<h2 align="center">security</h2>
 
 if you believe you, or an ai agent that you coordinate has found a security vulnerability, please report it privately to: john@houseofmates.space
 
@@ -143,21 +143,21 @@ do not open public issues for security vulnerabilities.
 
 we will try to respond promptly and provide coordination for fixes as soon as we can
 
-## license
+<h2 align="center">license</h2>
 
 mates license
 
 copyright (c) 2026 house of mates
 
 permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "software"), to fork the existing 
-codebase or utilize the code from it in one's own projects so long as financial profit is 
+of this software and associated documentation files (the \"software\"), to fork the existing
+codebase or utilize the code from it in one's own projects so long as financial profit is
 not to be gained by said code/software created by the code.
 
-termisol is provided "as is", without warranty of any kind, express or
+termisol is provided \"as is\", without warranty of any kind, express or
 implied, including but not limited to the warranties of merchantability,
 fitness for a particular purpose and noninfringement. in no event shall the house of mates
-system be liable for any claim, damages or other liability, whether in an action of 
+system be liable for any claim, damages or other liability, whether in an action of
 contract, tort or otherwise, arising from, out of or in connection with the software or the
 use or other dealings in the software. termisol was initially, and only made to be used
 by the house of mates system. other users were never in mind for this project, and you

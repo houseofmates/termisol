@@ -8,13 +8,19 @@ import 'package:file_picker/file_picker.dart';
 /// a robust terminal text editor for termisol.
 /// opens files from the `edit <filename>` command.
 ///
-/// features:
-/// - line numbers gutter
-/// - status bar (line:column, language, dirty indicator)
-/// - keyboard shortcuts: ctrl+s save, ctrl+w close, ctrl+o open, ctrl+f find
-/// - tab key inserts 2 spaces
-/// - auto-indent on enter
-/// - consistent dark theme
+/// keyboard shortcuts:
+///   ctrl + z   undo
+///   ctrl + x   redo
+///   ctrl + s   save
+///   ctrl + w   close
+///   ctrl + o   open file
+///   ctrl + f   toggle find
+///   ctrl + v   paste
+///   ctrl + c   copy selection
+///   ctrl + a   select all
+///   ctrl + shift + d   duplicate line
+///   tab               insert / indent 2 spaces
+///   enter             newline with auto-indent
 class EditTerminal extends StatefulWidget {
   final String filePath;
   final String initialContent;
@@ -44,6 +50,11 @@ class _EditTerminalState extends State<EditTerminal> {
   Timer? _saveMessageTimer;
   final _findController = TextEditingController();
   bool _showFind = false;
+  // undo / redo stacks
+  final List<String> _undoStack = [];
+  final List<String> _redoStack = [];
+  bool _isUndoRedo = false; // guard: don't record undo/redo onto the undo stack
+  static const _maxUndo = 200;
 
   static const _tabSize = 2;
   static const _bgColor = Color(0xFF0a0a0a);
@@ -128,10 +139,18 @@ class _EditTerminalState extends State<EditTerminal> {
       if (!_dirty && _controller.text != widget.initialContent) {
         setState(() => _dirty = true);
       }
+      // save state for undo (only on user edits, not during undo/redo)
+      if (!_isUndoRedo) {
+        _saveToUndoStack(_controller.text);
+      }
     });
 
     if (widget.initialContent.isEmpty && widget.filePath.isNotEmpty) {
       _loadFile();
+    }
+    // seed undo stack with initial state
+    if (_undoStack.isEmpty) {
+      _undoStack.add(widget.initialContent);
     }
   }
 
@@ -140,6 +159,65 @@ class _EditTerminalState extends State<EditTerminal> {
         _lineNumScrollController.offset != _textScrollController.offset) {
       _lineNumScrollController.jumpTo(_textScrollController.offset);
     }
+  }
+
+  void _saveToUndoStack(String text) {
+    // don't save consecutive identical states
+    if (_undoStack.isNotEmpty && _undoStack.last == text) return;
+    _undoStack.add(text);
+    if (_undoStack.length > _maxUndo) {
+      _undoStack.removeRange(0, _undoStack.length - _maxUndo);
+    }
+    // clear redo stack on new user action
+    _redoStack.clear();
+  }
+
+  void _undo() {
+    if (_undoStack.length <= 1) return;
+    _isUndoRedo = true;
+    _redoStack.add(_undoStack.removeLast());
+    final previous = _undoStack.last;
+    _controller.text = previous;
+    _controller.selection = TextSelection.collapsed(offset: previous.length);
+    _isUndoRedo = false;
+  }
+
+  void _redo() {
+    if (_redoStack.isEmpty) return;
+    _isUndoRedo = true;
+    final next = _redoStack.removeLast();
+    _undoStack.add(next);
+    _controller.text = next;
+    _controller.selection = TextSelection.collapsed(offset: next.length);
+    _isUndoRedo = false;
+  }
+
+  Future<void> _copy() async {
+    final sel = _controller.selection;
+    if (!sel.isValid || sel.isCollapsed) return;
+    final text = _controller.text.substring(sel.start, sel.end);
+    await Clipboard.setData(ClipboardData(text: text));
+  }
+
+  Future<void> _paste() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    if (data == null || data.text == null) return;
+    final sel = _controller.selection;
+    final text = _controller.text;
+    final insert = data.text!;
+    final newText = text.replaceRange(sel.start, sel.end, insert);
+    final newOffset = sel.start + insert.length;
+    _controller.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newOffset),
+    );
+  }
+
+  void _selectAll() {
+    _controller.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: _controller.text.length,
+    );
   }
 
   Future<void> _loadFile() async {
@@ -525,6 +603,14 @@ class _EditTerminalState extends State<EditTerminal> {
             child: CallbackShortcuts(
               bindings: {
                 const SingleActivator(
+                  LogicalKeyboardKey.keyZ,
+                  control: true,
+                ): () => _undo(),
+                const SingleActivator(
+                  LogicalKeyboardKey.keyX,
+                  control: true,
+                ): () => _redo(),
+                const SingleActivator(
                   LogicalKeyboardKey.keyS,
                   control: true,
                 ): () =>
@@ -544,6 +630,18 @@ class _EditTerminalState extends State<EditTerminal> {
                   control: true,
                 ): () =>
                     setState(() => _showFind = !_showFind),
+                const SingleActivator(
+                  LogicalKeyboardKey.keyV,
+                  control: true,
+                ): () => _paste(),
+                const SingleActivator(
+                  LogicalKeyboardKey.keyC,
+                  control: true,
+                ): () => unawaited(_copy()),
+                const SingleActivator(
+                  LogicalKeyboardKey.keyA,
+                  control: true,
+                ): () => _selectAll(),
               },
               child: Focus(
                 autofocus: true,

@@ -25,6 +25,9 @@ a terminal emulator built with flutter. it uses the real `xterm.dart` package fo
 - **command palette**: `ctrl+shift+p` fuzzy-finds all available actions
 - **zoom**: `ctrl+=` / `ctrl+-` / `ctrl+0` to change font size
 - **text editor**: built-in editor with syntax highlighting via `flutter_highlight`
+  - shortcuts: `ctrl+z` undo, `ctrl+x` redo, `ctrl+s` save, `ctrl+w` close,
+    `ctrl+o` open, `ctrl+f` find, `ctrl+v` paste, `ctrl+c` copy, `ctrl+a` select all,
+    `ctrl+shift+d` duplicate line, `tab` indent, `enter` newline with auto-indent
 
 <h2 align="center">what it does not do</h2>
 

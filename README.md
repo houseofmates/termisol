@@ -36,7 +36,7 @@ none of this was accidental. every feature is there because it is what the work 
 - **long command notifications** — audio alert and tab indicator when a command runs longer than 40 seconds
 - **command palette** — ctrl+shift+p fuzzy-finds all available actions
 - **zoom** — ctrl+= / ctrl+- / ctrl+0 to change font size
-- **built-in editor** — syntax highlighting, ctrl+z undo, ctrl+s save, ctrl+w close, tab indent, auto-reindent on enter
+- **built-in editor** — full undo/redo, copy/paste/select-all; `ctrl+z` undo, `ctrl+x` redo, `ctrl+v` paste, `ctrl+c` copy selection, `ctrl+a` select all, `ctrl+s` save, `ctrl+o` open, `ctrl+w` close, `ctrl+f` find, `ctrl+shift+d` duplicate line; tab inserts / indents 2 spaces, enter newlines with auto-reindent
 
 ## what it is not for
 
@@ -97,6 +97,9 @@ you can also reach the ai settings from inside the app through the settings page
 | ctrl+= / ctrl+- | zoom in / out |
 | ctrl+0 | reset zoom |
 | /ai <query> | ask nvidia nim a question |
+
+> **in the built-in editor** (`edit <filename>`) the following shortcuts apply:  
+> `ctrl+z` undo · `ctrl+x` redo · `ctrl+v` paste · `ctrl+c` copy selection · `ctrl+a` select all · `ctrl+s` save · `ctrl+o` open · `ctrl+w` close · `ctrl+f` find · `ctrl+shift+d` duplicate line · `tab` indent 2 spaces · `enter` newline with auto-reindent
 
 <h1 align="center">license</h1>
 

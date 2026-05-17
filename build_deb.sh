@@ -65,15 +65,28 @@ cp -r "$BUNDLE"/* "$PKG_DIR/usr/lib/${PKG_NAME}/"
 # wrapper script in /usr/bin
 cat > "$PKG_DIR/usr/bin/termisol" <<'WRAPPER'
 #!/bin/bash
-# if launched without a display, print a helpful message
-if [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
+set -u
+
+_have_display() {
+    [ -n "${DISPLAY:-}" ] && return 0
+    [ -n "${WAYLAND_DISPLAY:-}" ] && return 0
+    # xdg-desktop-portal / snapcraft may clear DISPLAY/WAYLAND_DISPLAY.
+    # loginctl -> seat0 -> first session -> Display=
+    local sess display
+    sess=$(loginctl show-seat seat0 -p Sessions 2>/dev/null | cut -d= -f2)
+    [ -z "$sess" ] && return 1
+    display=$(loginctl show-session "$sess" -p Display 2>/dev/null | cut -d= -f2)
+    [ -n "$display" ] && export DISPLAY="$display" && return 0
+    return 1
+}
+
+if ! _have_display; then
     echo "error: no display detected. termisol requires a graphical session."
     echo "       install with: sudo dpkg -i termisol.deb"
     echo "       then launch from your applications menu or run: termisol"
     exit 1
 fi
 
-# helper: find a software rasterizer (llvmpipe or swrast)
 _find_swrast() {
     for path in \
         /usr/lib/x86_64-linux-gnu/dri/llvmpipe_dri.so \
@@ -91,12 +104,9 @@ _find_swrast() {
     return 1
 }
 
-# first attempt: hardware rendering (run in subshell with job-control
-# disabled so bash doesn't print ugly "aborted (core dumped)" messages).
 (set +m; /usr/lib/termisol/termisol "$@" 2>/tmp/termisol-error.log)
 exit_code=$?
 
-# if it failed, force mesa software rendering
 if [ $exit_code -ne 0 ]; then
     swrast=$(_find_swrast)
     if [ -n "$swrast" ]; then
@@ -113,7 +123,8 @@ if [ $exit_code -ne 0 ]; then
         exit $exit_code
     fi
 fi
-WRAPPER
+WRAPPER'
+#!/bin/bash
 chmod +x "$PKG_DIR/usr/bin/termisol"
 
 # desktop entry

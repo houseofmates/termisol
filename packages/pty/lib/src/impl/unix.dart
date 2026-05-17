@@ -20,6 +20,19 @@ void _setNonblock(int fd) {
   }
 }
 
+/// Disable ECHO on the PTY slave while keeping ICANON (canonical mode).
+/// ECHO off means typed characters are NOT echoed to the PTY output stream.
+/// ICANON on means bash still handles line editing (backspace, etc.).
+void _disableEcho() {
+  final attr = calloc<termios>();
+  final ret = unix.tcgetattr(0, attr);
+  if (ret == 0) {
+    attr.ref.c_lflag = attr.ref.c_lflag & ~consts.ECHO | consts.ICANON;
+    unix.tcsetattr(0, consts.TCSANOW, attr);
+  }
+  calloc.free(attr);
+}
+
 class PtyCoreUnix implements PtyCore {
   factory PtyCoreUnix.start(
     String executable,
@@ -71,6 +84,10 @@ class PtyCoreUnix implements PtyCore {
     if (pid < 0) {
       throw PtyException('fork failed.');
     } else if (pid == 0) {
+      // Disable terminal echo in the child process (before bash runs).
+      // Must keep ICANON (canonical mode) so bash handles line-editing normally.
+      _disableEcho();
+
       // set working directory
       if (workingDirectory != null) {
         unix.chdir(workingDirectory.toNativeUtf8());

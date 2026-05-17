@@ -5,7 +5,6 @@ import 'package:xterm/xterm.dart';
 import 'pty_backend.dart';
 import 'bracketed_paste_manager.dart';
 import 'focus_manager.dart';
-import 'truecolor_manager.dart';
 import 'kitty_graphics_manager.dart';
 import 'mouse_protocol_manager.dart';
 import 'ligature_font_manager.dart';
@@ -50,7 +49,7 @@ class TerminalSession extends ChangeNotifier {
   bool _connected = false;
   String? _error;
   final CommandHistory commandHistory = CommandHistory();
-  StreamSubscription<List<int>>? _outputSub;
+  StreamSubscription<dynamic>? _outputSub;
   late final CommandAliasSystem _aliasSystem;
   late final DirectoryTracker _directoryTracker;
   late final ValueNotifier<String?> _directoryNotifier;
@@ -64,7 +63,6 @@ class TerminalSession extends ChangeNotifier {
   void Function(String)? onNotification;
 
   late final FocusManager focusManager;
-  late final TrueColorManager trueColor;
   late final KittyGraphicsManager kittyGraphics;
   late final MouseProtocolManager mouseProtocol;
   late final LigatureFontManager ligatureFont;
@@ -156,7 +154,6 @@ class TerminalSession extends ChangeNotifier {
       onFocusChanged,
       onFocusEvent,
     );
-    trueColor = TrueColorManager(terminal, controller);
     kittyGraphics = KittyGraphicsManager(terminal, controller);
     mouseProtocol = MouseProtocolManager(terminal, controller);
     ligatureFont = LigatureFontManager(terminal, controller);
@@ -180,7 +177,6 @@ class TerminalSession extends ChangeNotifier {
     });
 
     focusManager.enableFocusEvents();
-    trueColor.enable();
     kittyGraphics.enable();
     mouseProtocol.enable(TermisolMouseMode.any);
     unawaited(
@@ -240,7 +236,7 @@ class TerminalSession extends ChangeNotifier {
 
       bracketedPaste.enable();
 
-      _outputSub = _backend!.output.asyncMap((data) async {
+      final rawStream = _backend!.output.asyncMap((data) async {
         final text = utf8.decode(data, allowMalformed: true);
         final normalized = text.contains('\x1b')
             ? text
@@ -251,8 +247,6 @@ class TerminalSession extends ChangeNotifier {
           terminal.viewWidth,
           terminal.viewHeight,
         );
-        trueColor.processOutput(text);
-
         throttledRenderer.write(processedText);
         _directoryTracker.processOutput(text);
         _extractUrls(text);
@@ -262,7 +256,8 @@ class TerminalSession extends ChangeNotifier {
           'session_id': id,
         });
         onOutputReceived?.call(text);
-      }).listen(
+      });
+      _outputSub = rawStream.listen(
         null,
         onError: (Object e) {
           _error = e.toString();
@@ -481,7 +476,6 @@ class TerminalSession extends ChangeNotifier {
     _autoComplete.dispose();
     clipboardManager.dispose();
     focusManager.dispose();
-    trueColor.dispose();
     kittyGraphics.dispose();
     mouseProtocol.dispose();
     ligatureFont.dispose();

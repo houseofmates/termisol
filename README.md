@@ -249,5 +249,5 @@ see [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 ---
 
 <p align="center">
-  built with flutter • powered by xterm.dart • AI by NVIDIA NIM
+  built with [flutter](https://flutter.dev/) • powered by [xterm.dart](https://github.com/TerminalStudio/xterm.dart) • AI by [NVIDIA NIM](https://build.nvidia.com/)
 </p>

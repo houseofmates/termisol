@@ -528,67 +528,76 @@ class ReattachablePtyManager {
 
 class PtySession {
   final String id;
-  final PseudoTerminal pty;
+  PseudoTerminal? _pty;
   final String workingDirectory;
   final String shell;
   final Map<String, String> environment;
   DateTime createdAt;
   DateTime lastActivity;
   bool _isAlive = true;
+  final bool _needsRecovery;
 
   PtySession({
     required this.id,
-    required this.pty,
+    required PseudoTerminal? pty,
     required this.workingDirectory,
     required this.shell,
     required this.environment,
     required this.createdAt,
     required this.lastActivity,
-  });
+    bool needsRecovery = false,
+  }) : _pty = pty, _needsRecovery = needsRecovery;
+
+  bool get needsRecovery => _needsRecovery && _pty == null;
 
   Stream<List<int>> get output {
-    return pty.out.map((data) {
+    if (_pty == null) return const Stream.empty();
+    return _pty!.out.map((data) {
       lastActivity = DateTime.now();
       return utf8.encode(data) as List<int>;
     });
   }
 
-  bool get isAlive => _isAlive && pty.exitCode == null;
+  bool get isAlive {
+    if (_pty == null) return false;
+    return _isAlive && _pty!.exitCode == null;
+  }
 
   bool get isValid {
-    return id.isNotEmpty && 
-           workingDirectory.isNotEmpty && 
+    return id.isNotEmpty &&
+           workingDirectory.isNotEmpty &&
            shell.isNotEmpty &&
            DateTime.now().difference(lastActivity) < const Duration(hours: 24);
   }
 
   void write(List<int> data) {
-    if (_isAlive && pty.exitCode == null) {
-      try {
-        pty.write(utf8.decode(data));
-      } catch (e) {
-        debugPrint('Failed to write to PTY ${id}: $e');
-      }
+    if (_pty == null || !_isAlive) return;
+    if (_pty!.exitCode != null) return;
+    try {
+      _pty!.write(utf8.decode(data));
+    } catch (e) {
+      debugPrint('Failed to write to PTY $id: $e');
     }
   }
 
   void resize(int cols, int rows) {
-    if (_isAlive && pty.exitCode == null) {
-      try {
-        pty.resize(cols, rows);
-      } catch (e) {
-        debugPrint('Failed to resize PTY ${id}: $e');
-      }
+    if (_pty == null || !_isAlive) return;
+    if (_pty!.exitCode != null) return;
+    try {
+      _pty!.resize(cols, rows);
+    } catch (e) {
+      debugPrint('Failed to resize PTY $id: $e');
     }
   }
 
   Future<void> terminate() async {
+    _isAlive = false;
+    if (_pty == null) return;
     try {
-      _isAlive = false;
-      pty.kill();
-      await pty.exitCode.timeout(const Duration(seconds: 5));
+      _pty!.kill();
+      await _pty!.exitCode.timeout(const Duration(seconds: 5));
     } catch (e) {
-      debugPrint('Failed to terminate PTY ${id}: $e');
+      debugPrint('Failed to terminate PTY $id: $e');
     }
   }
 
@@ -600,16 +609,17 @@ class PtySession {
         'created_at': createdAt.toIso8601String(),
         'last_activity': lastActivity.toIso8601String(),
         'is_alive': isAlive,
-        'exit_code': pty.exitCode,
+        'exit_code': _pty?.exitCode,
       };
 
   factory PtySession.fromJson(Map<String, dynamic> json) => PtySession(
-        id: json['id'],
-        pty: null, // PTY will be recreated on recovery
-        workingDirectory: json['working_directory'],
-        shell: json['shell'],
+        id: json['id'] as String? ?? '',
+        pty: null,
+        workingDirectory: json['working_directory'] as String? ?? '',
+        shell: json['shell'] as String? ?? '',
         environment: Map<String, String>.from(json['environment'] ?? {}),
-        createdAt: DateTime.parse(json['created_at']),
-        lastActivity: DateTime.parse(json['last_activity']),
+        createdAt: DateTime.tryParse(json['created_at'] as String? ?? '') ?? DateTime.now(),
+        lastActivity: DateTime.tryParse(json['last_activity'] as String? ?? '') ?? DateTime.now(),
+        needsRecovery: true,
       );
 }

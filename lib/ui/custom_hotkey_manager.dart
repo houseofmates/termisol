@@ -8,6 +8,8 @@ import '../core/production_config_system.dart';
 import 'clipboard_manager.dart';
 import 'enhanced_clipboard_manager.dart';
 
+typedef FeedbackCallback = void Function(String message);
+
 /// custom hotkey manager for termisol with user-defined bindings
 class CustomHotkeyManager {
   final TerminalSession session;
@@ -16,8 +18,8 @@ class CustomHotkeyManager {
   final VoidCallback? onSaveFile;
   final VoidCallback? onSearch;
   final VoidCallback? onCopyAll;
+  final FeedbackCallback? onFeedback;
 
-  // transcript recording state
   bool _isRecording = false;
   AudioRecorder? _audioRecorder;
   WhisperService? _whisperService;
@@ -29,6 +31,7 @@ class CustomHotkeyManager {
     this.onSaveFile,
     this.onSearch,
     this.onCopyAll,
+    this.onFeedback,
   }) {
     _audioRecorder = AudioRecorder();
     _initializeWhisper();
@@ -198,14 +201,12 @@ class CustomHotkeyManager {
     }
   }
 
-  /// show feedback message (could be implemented as toast, status bar, etc.)
   void _showFeedback(String message) {
-    // this would show a toast or status message
-    // for now, we'll print to debug
-    debugPrint('Termisol Hotkey: $message');
-
-    // in a real implementation, you could use:
-    // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    if (onFeedback != null) {
+      onFeedback!(message);
+    } else {
+      session.onNotification?.call(message);
+    }
   }
 
   /// dispose resources

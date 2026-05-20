@@ -168,11 +168,8 @@ class AccessibilityFeatures {
   }
 
   void _speak(String text) {
-    // TODO: Implement TTS using platform channels
-    debugPrint('TTS: $text');
-  }
-    } catch (e) {
-      debugPrint('Failed to check Linux accessibility: $e');
+    if (_tts != null && _screenReaderEnabled) {
+      _tts!.speak(text);
     }
   }
 

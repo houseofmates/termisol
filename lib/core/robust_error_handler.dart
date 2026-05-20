@@ -348,10 +348,6 @@ class RobustErrorHandler {
       // Reset connection timeouts
       _connectionTimeouts.clear();
 
-      // Cancel pending requests
-      for (final request in _pendingRequests) {
-        request.cancel();
-      }
       _pendingRequests.clear();
 
       // Wait for network to stabilize

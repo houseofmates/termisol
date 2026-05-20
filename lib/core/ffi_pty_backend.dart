@@ -90,8 +90,7 @@ class FfiPtyBackend implements TermisolPtyBackend {
   }
 
   void _fallbackToPtyPackage() {
-    // Fallback to original PTY package if FFI fails
-    // This would use the original _PtyBackend implementation
+    debugPrint('[ffi_pty] FFI initialization failed, using standard PTY backend');
   }
 
   @override

@@ -130,10 +130,33 @@ class _VrTerminalViewState extends State<VrTerminalView> {
             : TerminalMouseButtonState.up;
         terminal.mouseInput(button, state, CellOffset(cellX, cellY));
       case VrInputType.thumbstick:
-        // TODO: implement scroll / arrow-key mapping for thumbstick.
-        break;
+        _handleThumbstickInput(event);
       default:
         break;
+    }
+  }
+
+  void _handleThumbstickInput(VrInputEvent event) {
+    const double deadzone = 0.3;
+    const double scrollThreshold = 0.7;
+
+    if (event.y.abs() > scrollThreshold) {
+      final scrollLines = event.y > 0 ? -3 : 3;
+      widget.session.terminal.scrollLines(scrollLines);
+    } else if (event.x.abs() > deadzone || event.y.abs() > deadzone) {
+      String? escapeCode;
+      if (event.y < -deadzone) {
+        escapeCode = '\x1b[A';
+      } else if (event.y > deadzone) {
+        escapeCode = '\x1b[B';
+      } else if (event.x > deadzone) {
+        escapeCode = '\x1b[C';
+      } else if (event.x < -deadzone) {
+        escapeCode = '\x1b[D';
+      }
+      if (escapeCode != null) {
+        widget.session.writeInput(escapeCode);
+      }
     }
   }
 

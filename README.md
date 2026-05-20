@@ -1,199 +1,211 @@
-<h1 align="center">Termisol</h1>
+<h1 align="center">termisol</h1>
 
 <p align="center">
-  <strong>A modern, GPU-accelerated terminal emulator built with Flutter</strong>
+  <strong>a modern, GPU-accelerated terminal emulator built with flutter</strong>
 </p>
 
 <p align="center">
-  Cross-platform • AI-powered • VR-ready • Designed for developers who demand more
+  cross-platform • AI-powered • VR-ready • designed for developers who demand more
 </p>
 
 ---
 
-## Overview
+<h2 align="center">overview</h2>
 
-Termisol is a feature-rich terminal emulator that breaks from the GTK/Qt mold by leveraging Flutter's cross-platform capabilities and Skia/Impeller GPU rendering. It provides true **xterm-256color** emulation via the xterm.dart package with a real PTY backend, delivering a responsive terminal experience across Linux, macOS, Windows, Android, and Meta Quest VR.
+termisol is a feature-rich terminal emulator that breaks from the GTK/Qt mold by leveraging flutter's cross-platform capabilities and skia/impeller GPU rendering. it provides true **xterm-256color** emulation via the xterm.dart package with a real PTY backend, delivering a responsive terminal experience across linux, macOS, windows, android, and meta quest VR.
 
-## Key Features
+<h2 align="center">key features</h2>
 
-### Terminal Emulation
-- **xterm-256color** — Full ANSI/VT100 terminal emulation with 256-color support
-- **Real PTY backend** — Native pseudo-terminal on desktop, process-based on Android
-- **GPU-accelerated rendering** — Skia/Impeller backend targeting 60 FPS
-- **50,000-line scrollback** — Configurable with memory-efficient compression
-- **Bracketed paste mode** — Safe multiline paste handling
-- **OSC 8 hyperlinks** — Ctrl+click to open URLs from terminal output
+<h3 align="center">terminal emulation</h3>
 
-### Tab & Pane Management
-- **Tabbed interface** — Create, close, rename, duplicate, reorder tabs via drag
-- **Split panes** — Horizontal and vertical splits with draggable dividers
-- **Session persistence** — Restore previous tabs and working directories on restart
-- **Directory tracking** — Tab titles auto-update via OSC 7 and prompt parsing
-- **Broadcast input** — Send keystrokes to all tabs simultaneously (Ctrl+Shift+B)
+- **xterm-256color** — full ANSI/VT100 terminal emulation with 256-color support
+- **real PTY backend** — native pseudo-terminal on desktop, process-based on android
+- **GPU-accelerated rendering** — skia/impeller backend targeting 60 FPS
+- **50,000-line scrollback** — configurable with memory-efficient compression
+- **bracketed paste mode** — safe multiline paste handling
+- **OSC 8 hyperlinks** — ctrl+click to open URLs from terminal output
 
-### AI Integration
-- **NVIDIA NIM API** — Cloud AI via `/ai <query>` command with multiple model support
-- **Local fallback** — Android auto-detects local Gemma 4:4b LLM server if cloud unavailable
-- **Command assistance** — Get explanations, suggestions, and error analysis
+<h3 align="center">tab & pane management</h3>
 
-### Developer Tools
-- **Built-in editor** — Full-featured text editor with undo/redo, syntax highlighting, find/replace
-- **Command aliases** — Configure shortcuts (e.g., `g` → `git`, `gs` → `git status`)
-- **Smart autocomplete** — Command suggestions based on history and context
-- **Search** — Find text in terminal buffer with case-sensitivity toggle
-- **Copy mode** — Scrollable, selectable view of terminal history (Ctrl+Shift+C)
-- **Hints mode** — Letter overlays on URLs/paths for quick keyboard access (Ctrl+Shift+H)
-- **Command palette** — Fuzzy-find all actions (Ctrl+Shift+P)
+- **tabbed interface** — create, close, rename, duplicate, reorder tabs via drag
+- **split panes** — horizontal and vertical splits with draggable dividers
+- **session persistence** — restore previous tabs and working directories on restart
+- **directory tracking** — tab titles auto-update via OSC 7 and prompt parsing
+- **broadcast input** — send keystrokes to all tabs simultaneously (ctrl+shift+B)
 
-### Customization
-- **Themes** — Dark, Light, and Retro (amber-on-black CRT aesthetic)
-- **Fonts** — Cascadia Code, Fira Code, JetBrains Mono, Source Code Pro, Droid Sans Mono
-- **Opacity** — Background transparency slider (50-100%)
-- **Zoom** — Font size control (Ctrl+=/Ctrl+-/Ctrl+0)
-- **Ligatures** — Programming ligature support in compatible fonts
+<h3 align="center">AI integration</h3>
 
-### Accessibility
-- **Screen reader support** — TTS integration for interface elements
-- **High contrast mode** — Enhanced visibility option
-- **Color blind modes** — Protanopia, deuteranopia, tritanopia filters
-- **Keyboard navigation** — Full keyboard control with customizable shortcuts
-- **Font/cursor scaling** — Adjustable sizes for visibility
+- **NVIDIA NIM API** — cloud AI via `/ai <query>` command with multiple model support
+- **local fallback** — android auto-detects local gemma 4:4b LLM server if cloud unavailable
+- **command assistance** — get explanations, suggestions, and error analysis
 
-### Platform-Specific Features
-- **Linux/macOS/Windows** — Native window management with proper title bar
-- **Android** — Landscape/portrait support, immersive mode
-- **Meta Quest VR** — OpenXR integration with controller input mapping
+<h3 align="center">developer tools</h3>
 
-### Performance & Reliability
-- **GPU rendering** — Sub-16ms frame times for smooth scrolling
-- **Ring buffer scrollback** — Memory-efficient with automatic compression
-- **Crash recovery** — Session state saved for automatic restoration
-- **Health monitoring** — Built-in diagnostics and error reporting
+- **built-in editor** — full-featured text editor with undo/redo, syntax highlighting, find/replace
+- **command aliases** — configure shortcuts (e.g., `g` → `git`, `gs` → `git status`)
+- **smart autocomplete** — command suggestions based on history and context
+- **search** — find text in terminal buffer with case-sensitivity toggle
+- **copy mode** — scrollable, selectable view of terminal history (ctrl+shift+C)
+- **hints mode** — letter overlays on URLs/paths for quick keyboard access (ctrl+shift+H)
+- **command palette** — fuzzy-find all actions (ctrl+shift+P)
 
-## Installation
+<h3 align="center">customization</h3>
 
-### Prerequisites
-- Flutter SDK 3.29.0+ with Dart 3.11.0+
-- Platform-specific build tools (Xcode, Android Studio, Visual Studio, etc.)
+- **themes** — dark, light, and retro (amber-on-black CRT aesthetic)
+- **fonts** — cascadia code, fira code, jetbrains mono, source code pro, droid sans mono
+- **opacity** — background transparency slider (50-100%)
+- **zoom** — font size control (ctrl+=/ctrl+-/ctrl+0)
+- **ligatures** — programming ligature support in compatible fonts
 
-### Build from Source
+<h3 align="center">accessibility</h3>
+
+- **screen reader support** — TTS integration for interface elements
+- **high contrast mode** — enhanced visibility option
+- **color blind modes** — protanopia, deuteranopia, tritanopia filters
+- **keyboard navigation** — full keyboard control with customizable shortcuts
+- **font/cursor scaling** — adjustable sizes for visibility
+
+<h3 align="center">platform-specific features</h3>
+
+- **linux/macOS/windows** — native window management with proper title bar
+- **android** — landscape/portrait support, immersive mode
+- **meta quest VR** — openXR integration with controller input mapping
+
+<h3 align="center">performance & reliability</h3>
+
+- **GPU rendering** — sub-16ms frame times for smooth scrolling
+- **ring buffer scrollback** — memory-efficient with automatic compression
+- **crash recovery** — session state saved for automatic restoration
+- **health monitoring** — built-in diagnostics and error reporting
+
+<h2 align="center">installation</h2>
+
+<h3 align="center">prerequisites</h3>
+
+- flutter SDK 3.29.0+ with dart 3.11.0+
+- platform-specific build tools (xcode, android studio, visual studio, etc.)
+
+<h3 align="center">build from source</h3>
 
 ```bash
-# Clone the repository
+# clone the repository
 git clone https://github.com/your-username/termisol.git
 cd termisol
 
-# Install dependencies
+# install dependencies
 flutter pub get
 
-# Run in development
+# run in development
 flutter run -d linux      # or: android, windows, macos
 
-# Build release
+# build release
 flutter build linux --release
 flutter build apk --release
 flutter build windows --release
 flutter build macos --release
 ```
 
-### Debian Package
+<h3 align="center">debian package</h3>
 
 ```bash
 ./build_deb.sh
 sudo dpkg -i termisol_*.deb
 ```
 
-### Android APK
+<h3 align="center">android APK</h3>
 
 ```bash
 ./build_apk.sh
 # APK output: build/app/outputs/flutter-apk/app-release.apk
 ```
 
-## Configuration
+<h2 align="center">configuration</h2>
 
-Settings are stored via SharedPreferences and persisted across sessions. Configure through the in-app settings page or programmatically:
+settings are stored via sharedpreferences and persisted across sessions. configure through the in-app settings page or programmatically:
 
-| Setting | Default | Description |
+| setting | default | description |
 |---------|---------|-------------|
-| `scrollback_lines` | 50000 | Maximum scrollback buffer size |
-| `font_size` | 14.0 | Terminal font size |
-| `font_family` | DroidSansMono | Terminal font |
-| `bg_opacity` | 1.0 | Background opacity (0.5-1.0) |
-| `ai.enabled` | true | Enable AI features |
+| `scrollback_lines` | 50000 | maximum scrollback buffer size |
+| `font_size` | 14.0 | terminal font size |
+| `font_family` | DroidSansMono | terminal font |
+| `bg_opacity` | 1.0 | background opacity (0.5-1.0) |
+| `ai.enabled` | true | enable AI features |
 | `ai.api_key` | — | NVIDIA NIM API key |
 
-## Keyboard Shortcuts
+<h2 align="center">keyboard shortcuts</h2>
 
-### Terminal
-| Shortcut | Action |
+<h3 align="center">terminal</h3>
+
+| shortcut | action |
 |----------|--------|
-| Ctrl+N | New tab |
-| Ctrl+T | Duplicate tab |
-| Ctrl+W | Close tab |
-| Ctrl+Shift+W | Close all other tabs |
-| Ctrl+Tab | Next tab |
-| Ctrl+C | Copy selection |
-| Ctrl+Shift+C | Send interrupt (SIGINT) |
-| Ctrl+V | Paste |
-| Ctrl+A | Select all / Copy all content |
-| Ctrl+F | Find in terminal |
-| Ctrl+Shift+P | Command palette |
-| Ctrl+Shift+O | Toggle performance overlay |
-| Ctrl+Shift+B | Toggle broadcast input |
-| Ctrl+Shift+H | Hints mode |
-| Ctrl+= / Ctrl+- | Zoom in / out |
-| Ctrl+0 | Reset zoom |
+| ctrl+N | new tab |
+| ctrl+T | duplicate tab |
+| ctrl+W | close tab |
+| ctrl+shift+W | close all other tabs |
+| ctrl+tab | next tab |
+| ctrl+C | copy selection |
+| ctrl+shift+C | send interrupt (SIGINT) |
+| ctrl+V | paste |
+| ctrl+A | select all / copy all content |
+| ctrl+F | find in terminal |
+| ctrl+shift+P | command palette |
+| ctrl+shift+O | toggle performance overlay |
+| ctrl+shift+B | toggle broadcast input |
+| ctrl+shift+H | hints mode |
+| ctrl+= / ctrl+- | zoom in / out |
+| ctrl+0 | reset zoom |
 
-### Built-in Editor (`edit <filename>`)
-| Shortcut | Action |
+<h3 align="center">built-in editor (`edit <filename>`)</h3>
+
+| shortcut | action |
 |----------|--------|
-| Ctrl+Z | Undo |
-| Ctrl+X | Redo |
-| Ctrl+C | Copy |
-| Ctrl+V | Paste |
-| Ctrl+A | Select all |
-| Ctrl+S | Save |
-| Ctrl+O | Open file |
-| Ctrl+W | Close editor |
-| Ctrl+F | Find |
-| Ctrl+Shift+D | Duplicate line |
-| Tab | Indent (2 spaces) |
+| ctrl+Z | undo |
+| ctrl+X | redo |
+| ctrl+C | copy |
+| ctrl+V | paste |
+| ctrl+A | select all |
+| ctrl+S | save |
+| ctrl+O | open file |
+| ctrl+W | close editor |
+| ctrl+F | find |
+| ctrl+shift+D | duplicate line |
+| tab | indent (2 spaces) |
 
-### Accessibility
-| Shortcut | Action |
+<h3 align="center">accessibility</h3>
+
+| shortcut | action |
 |----------|--------|
-| Ctrl+Alt+A | Toggle screen reader |
-| Ctrl+Alt+H | Toggle high contrast |
-| Ctrl+Alt+F | Increase font scale |
-| Ctrl+Alt+D | Decrease font scale |
+| ctrl+alt+A | toggle screen reader |
+| ctrl+alt+H | toggle high contrast |
+| ctrl+alt+F | increase font scale |
+| ctrl+alt+D | decrease font scale |
 
-## AI Commands
+<h2 align="center">AI commands</h2>
 
 ```bash
-# Ask a question
+# ask a question
 /ai how do I find files larger than 100MB?
 
-# Get command help
+# get command help
 /ai explain: git rebase -i HEAD~3
 
-# Debug errors
+# debug errors
 /ai why is this failing: [paste error message]
 ```
 
-## Architecture
+<h2 align="center">architecture</h2>
 
 ```
 lib/
-├── main.dart              # Entry point with error handling
-├── app.dart               # Root MaterialApp with VR detection
-├── core/                  # Core terminal functionality
+├── main.dart              # entry point with error handling
+├── app.dart               # root materialapp with VR detection
+├── core/                  # core terminal functionality
 │   ├── terminal_session.dart
 │   ├── pty_backend.dart
 │   ├── service_registry.dart
 │   ├── gpu_renderer.dart
 │   └── ...
-├── ui/                    # User interface widgets
+├── ui/                    # user interface widgets
 │   ├── home_screen.dart
 │   ├── terminal_view.dart
 │   ├── settings_page.dart
@@ -204,38 +216,38 @@ lib/
 ├── vr/                    # VR support
 │   ├── vr_terminal_view.dart
 │   └── openxr_session.dart
-└── config/                # Theming and configuration
+└── config/                # theming and configuration
     └── pkm_theme.dart
 
 packages/
-├── pty/                   # Platform-specific PTY bindings
-└── xterm/                 # Terminal emulation library
+├── pty/                   # platform-specific PTY bindings
+└── xterm/                 # terminal emulation library
 ```
 
-## Technical Highlights
+<h2 align="center">technical highlights</h2>
 
-- **Service Registry Pattern** — Lazy-loading dependency injection reduces startup time
-- **Ring Buffer Scrollback** — Memory-efficient with gzip compression for old lines
-- **Throttled Rendering** — Frame rate control prevents GPU saturation
-- **Backpressure Flow Control** — Handles high-throughput output without blocking
-- **Session Persistence** — Automatic state saving with crash recovery
+- **service registry pattern** — lazy-loading dependency injection reduces startup time
+- **ring buffer scrollback** — memory-efficient with gzip compression for old lines
+- **throttled rendering** — frame rate control prevents GPU saturation
+- **backpressure flow control** — handles high-throughput output without blocking
+- **session persistence** — automatic state saving with crash recovery
 
-## Limitations
+<h2 align="center">limitations</h2>
 
-- **Desktop AI is cloud-only** — No bundled local model; requires NVIDIA NIM API access
-- **Graphics protocols** — Sixel/Kitty/iTerm2 image protocols not rendered in terminal grid
-- **Android local AI** — Opt-in; requires separate LLM server app running locally
+- **desktop AI is cloud-only** — no bundled local model; requires NVIDIA NIM API access
+- **graphics protocols** — sixel/kitty/iTerm2 image protocols not rendered in terminal grid
+- **android local AI** — opt-in; requires separate LLM server app running locally
 
-## Contributing
+<h2 align="center">contributing</h2>
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
+see [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 
-## License
+<h2 align="center">license</h2>
 
-[The Mates License](LICENSE)
+[the mates license](LICENSE)
 
 ---
 
 <p align="center">
-  Built with Flutter • Powered by xterm.dart • AI by NVIDIA NIM
+  built with flutter • powered by xterm.dart • AI by NVIDIA NIM
 </p>

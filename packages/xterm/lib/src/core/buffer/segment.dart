@@ -3,17 +3,17 @@ import 'package:xterm/src/core/buffer/range.dart';
 
 /// a buffersegment represents a range within a line.
 class BufferSegment {
-  /// The range that this segment belongs to.
+  /// the range that this segment belongs to.
   final BufferRange range;
 
-  /// The line that this segment resides on.
+  /// the line that this segment resides on.
   final int line;
 
-  /// The start position of this segment. [null] means the start of the line.
+  /// the start position of this segment. [null] means the start of the line.
   final int? start;
 
-  /// The end position of this segment. [null] means the end of the line.
-  /// Should be greater than or equal to [start].
+  /// the end position of this segment. [null] means the end of the line.
+  /// should be greater than or equal to [start].
   final int? end;
 
   const BufferSegment(this.range, this.line, this.start, this.end)

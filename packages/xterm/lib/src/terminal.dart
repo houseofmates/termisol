@@ -26,48 +26,48 @@ import 'package:xterm/src/utils/circular_buffer.dart';
 /// translating user input into escape sequences that the application can
 /// understand.
 class Terminal with Observable implements TerminalState, EscapeHandler {
-  /// The number of lines that the scrollback buffer can hold. If the buffer
+  /// the number of lines that the scrollback buffer can hold. if the buffer
   /// exceeds this size, the lines at the top of the buffer will be removed.
   final int maxLines;
 
-  /// Function that is called when the program requests the terminal to ring
-  /// the bell. If not set, the terminal will do nothing.
+  /// function that is called when the program requests the terminal to ring
+  /// the bell. if not set, the terminal will do nothing.
   void Function()? onBell;
 
-  /// Function that is called when the program requests the terminal to change
+  /// function that is called when the program requests the terminal to change
   /// the title of the window to [title].
   void Function(String title)? onTitleChange;
 
-  /// Function that is called when the program requests the terminal to change
+  /// function that is called when the program requests the terminal to change
   /// the icon of the window. [icon] is the name of the icon.
   void Function(String icon)? onIconChange;
 
-  /// Function that is called when the terminal emits data to the underlying
-  /// program. This is typically caused by user inputs from [textInput],
-  /// [keyInput], [mouseInput], or [paste].
+  /// function that is called when the terminal emits data to the underlying
+  /// program. this is typically caused by user inputs from [textinput],
+  /// [keyinput], [mouseinput], or [paste].
   void Function(String data)? onOutput;
 
-  /// Function that is called when the dimensions of the terminal change.
+  /// function that is called when the dimensions of the terminal change.
   void Function(int width, int height, int pixelWidth, int pixelHeight)?
       onResize;
 
-  /// The [TerminalInputHandler] used by this terminal. [defaultInputHandler] is
-  /// used when not specified. User of this class can provide their own
-  /// implementation of [TerminalInputHandler] or extend [defaultInputHandler]
-  /// with [CascadeInputHandler].
+  /// the [terminalinputhandler] used by this terminal. [defaultinputhandler] is
+  /// used when not specified. user of this class can provide their own
+  /// implementation of [terminalinputhandler] or extend [defaultinputhandler]
+  /// with [cascadeinputhandler].
   TerminalInputHandler? inputHandler;
 
   TerminalMouseHandler? mouseHandler;
 
-  /// The callback that is called when the terminal receives a unrecognized
+  /// the callback that is called when the terminal receives a unrecognized
   /// escape sequence.
   void Function(String code, List<String> args)? onPrivateOSC;
 
-  /// Flag to toggle os specific behaviors.
+  /// flag to toggle os specific behaviors.
   final TerminalTargetPlatform platform;
 
-  /// Characters that break selection when double clicking. If not set, the
-  /// [Buffer.defaultWordSeparators] will be used.
+  /// characters that break selection when double clicking. if not set, the
+  /// [buffer.defaultwordseparators] will be used.
   final Set<int>? wordSeparators;
 
   Terminal({
@@ -107,7 +107,7 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
 
   final _tabStops = TabStops();
 
-  /// The last character written to the buffer. Used to implement some escape
+  /// the last character written to the buffer. used to implement some escape
   /// sequences that repeat the last character.
   var _precedingCodepoint = 0;
 
@@ -149,11 +149,11 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
 
   /* state getters */
 
-  /// Number of cells in a terminal row.
+  /// number of cells in a terminal row.
   @override
   int get viewWidth => _viewWidth;
 
-  /// Number of rows in this terminal.
+  /// number of rows in this terminal.
   @override
   int get viewHeight => _viewHeight;
 
@@ -202,8 +202,8 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
   @override
   bool get bracketedPasteMode => _bracketedPasteMode;
 
-  /// Current active buffer of the terminal. This is initially [mainBuffer] and
-  /// can be switched back and forth from [altBuffer] to [mainBuffer] when
+  /// current active buffer of the terminal. this is initially [mainbuffer] and
+  /// can be switched back and forth from [altbuffer] to [mainbuffer] when
   /// the underlying program requests it.
   Buffer get buffer => _buffer;
 
@@ -213,27 +213,27 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
 
   bool get isUsingAltBuffer => _buffer == _altBuffer;
 
-  /// Lines of the active buffer.
+  /// lines of the active buffer.
   IndexAwareCircularBuffer<BufferLine> get lines => _buffer.lines;
 
-  /// Whether the terminal performs reflow when the viewport size changes or
+  /// whether the terminal performs reflow when the viewport size changes or
   /// simply truncates lines. true by default.
   @override
   bool reflowEnabled;
 
-  /// Writes the data from the underlying program to the terminal. Calling this
-  /// updates the states of the terminal and emits events such as [onBell] or
-  /// [onTitleChange] when the escape sequences in [data] request it.
+  /// writes the data from the underlying program to the terminal. calling this
+  /// updates the states of the terminal and emits events such as [onbell] or
+  /// [ontitlechange] when the escape sequences in [data] request it.
   void write(String data) {
     _parser.write(data);
     notifyListeners();
   }
 
-  /// Sends a key event to the underlying program.
+  /// sends a key event to the underlying program.
   ///
-  /// See also:
-  /// - [charInput]
-  /// - [textInput]
+  /// see also:
+  /// - [charinput]
+  /// - [textinput]
   /// - [paste]
   bool keyInput(
     TerminalKey key, {
@@ -261,12 +261,12 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
     return false;
   }
 
-  /// Similary to [keyInput], but takes a character as input instead of a
-  /// [TerminalKey].
+  /// similary to [keyinput], but takes a character as input instead of a
+  /// [terminalkey].
   ///
-  /// See also:
-  /// - [keyInput]
-  /// - [textInput]
+  /// see also:
+  /// - [keyinput]
+  /// - [textinput]
   /// - [paste]
   bool charInput(
     int charCode, {
@@ -301,23 +301,23 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
     return false;
   }
 
-  /// Sends regular text input to the underlying program.
+  /// sends regular text input to the underlying program.
   ///
-  /// See also:
-  /// - [keyInput]
-  /// - [charInput]
+  /// see also:
+  /// - [keyinput]
+  /// - [charinput]
   /// - [paste]
   void textInput(String text) {
     onOutput?.call(text);
   }
 
-  /// Similar to [textInput], except that when the program tells the terminal
-  /// that it supports [bracketedPasteMode], the text is wrapped in escape
-  /// sequences to indicate that it is a paste operation. Prefer this method
-  /// over [textInput] when pasting text.
+  /// similar to [textinput], except that when the program tells the terminal
+  /// that it supports [bracketedpastemode], the text is wrapped in escape
+  /// sequences to indicate that it is a paste operation. prefer this method
+  /// over [textinput] when pasting text.
   ///
-  /// See also:
-  /// - [textInput]
+  /// see also:
+  /// - [textinput]
   void paste(String text) {
     if (_bracketedPasteMode) {
       onOutput?.call(_emitter.bracketedPaste(text));
@@ -326,7 +326,7 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
     }
   }
 
-  // Handle a mouse event and return true if it was handled.
+  // handle a mouse event and return true if it was handled.
   bool mouseInput(
     TerminalMouseButton button,
     TerminalMouseButtonState buttonState,
@@ -346,8 +346,8 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
     return false;
   }
 
-  /// Resize the terminal screen. [newWidth] and [newHeight] should be greater
-  /// than 0. Text reflow is currently not implemented and will be avaliable in
+  /// resize the terminal screen. [newwidth] and [newheight] should be greater
+  /// than 0. text reflow is currently not implemented and will be avaliable in
   /// the future.
   @override
   void resize(
@@ -409,7 +409,7 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
       _buffer.setCursorX(nextStop);
     } else {
       _buffer.setCursorX(_viewWidth);
-      _buffer.cursorGoForward(); // Enter pending-wrap state
+      _buffer.cursorGoForward(); // enter pending-wrap state
     }
   }
 

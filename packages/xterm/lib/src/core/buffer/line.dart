@@ -132,7 +132,7 @@ class BufferLine with IndexedItem {
     _data[offset + _cellContent] = 0;
   }
 
-  /// Erase cells whose index satisfies [start] <= index < [end]. Erased cells
+  /// erase cells whose index satisfies [start] <= index < [end]. erased cells
   /// are filled with [style].
   void eraseRange(int start, int end, CursorStyle style) {
     // reset cell one to the left if start is second cell of a wide char
@@ -151,7 +151,7 @@ class BufferLine with IndexedItem {
     }
   }
 
-  /// Remove [count] cells starting at [start]. Cells that are empty after the
+  /// remove [count] cells starting at [start]. cells that are empty after the
   /// removal are filled with [style].
   void removeCells(int start, int count, [CursorStyle? style]) {
     assert(start >= 0 && start < _length);
@@ -176,7 +176,7 @@ class BufferLine with IndexedItem {
       eraseCell(start - 1, style);
     }
 
-    // Update anchors, remove anchors that are inside the removed range.
+    // update anchors, remove anchors that are inside the removed range.
     for (var i = 0; i < _anchors.length; i++) {
       final anchor = _anchors[i];
       if (anchor.x >= start) {
@@ -189,7 +189,7 @@ class BufferLine with IndexedItem {
     }
   }
 
-  /// Inserts [count] cells at [start]. New cells are initialized with [style].
+  /// inserts [count] cells at [start]. new cells are initialized with [style].
   void insertCells(int start, int count, [CursorStyle? style]) {
     style ??= CursorStyle.empty;
 
@@ -215,13 +215,13 @@ class BufferLine with IndexedItem {
       eraseCell(_length - 1, style);
     }
 
-    // Update anchors, move anchors that are after the inserted range.
+    // update anchors, move anchors that are after the inserted range.
     for (var i = 0; i < _anchors.length; i++) {
       final anchor = _anchors[i];
       if (anchor.x >= start + count) {
         anchor.reposition(anchor.x + count);
 
-        // Remove anchors that are now outside the buffer.
+        // remove anchors that are now outside the buffer.
         if (anchor.x >= _length) {
           anchor.dispose();
         }
@@ -256,7 +256,7 @@ class BufferLine with IndexedItem {
     }
   }
 
-  /// Returns the offset of the last cell that has content from the start of
+  /// returns the offset of the last cell that has content from the start of
   /// the line.
   int getTrimmedLength([int? cols]) {
     final maxCols = _data.length ~/ _cellSize;
@@ -284,15 +284,15 @@ class BufferLine with IndexedItem {
     return 0;
   }
 
-  /// Copies [len] cells from [src] starting at [srcCol] to [dstCol] at this
+  /// copies [len] cells from [src] starting at [srccol] to [dstcol] at this
   /// line.
   void copyFrom(BufferLine src, int srcCol, int dstCol, int len) {
     resize(dstCol + len);
 
-    // data.setRange(
-    //   dstCol * _cellSize,
-    //   (dstCol + len) * _cellSize,
-    //   Uint32List.sublistView(src.data, srcCol * _cellSize, len * _cellSize),
+    // data.setrange(
+    //   dstcol * _cellsize,
+    //   (dstcol + len) * _cellsize,
+    //   uint32list.sublistview(src.data, srccol * _cellsize, len * _cellsize),
     // );
 
     var srcOffset = srcCol * _cellSize;

@@ -13,131 +13,131 @@ abstract class Ascii {
    * non-printable ascii characters
    */
 
-  ///  Null character
+  ///  null character
   static const NULL = 00;
 
-  ///  Start of Header
+  ///  start of header
   static const SOH = 01;
 
-  ///  Start of Text
+  ///  start of text
   static const STX = 02;
 
-  ///  End of Text, hearts card suit
+  ///  end of text, hearts card suit
   static const ETX = 03;
 
-  ///  End of Transmission, diamonds card suit
+  ///  end of transmission, diamonds card suit
   static const EOT = 04;
 
-  ///  Enquiry, clubs card suit
+  ///  enquiry, clubs card suit
   static const ENQ = 05;
 
-  ///  Acknowledgement, spade card suit
+  ///  acknowledgement, spade card suit
   static const ACK = 06;
 
-  ///  Bell
+  ///  bell
   static const BEL = 07;
 
-  ///  Backspace
+  ///  backspace
   static const BS = 08;
 
-  ///  Horizontal Tab
+  ///  horizontal tab
   static const HT = 09;
 
-  ///  Line feed
+  ///  line feed
   static const LF = 10;
 
-  ///  Vertical Tab, male symbol, symbol for Mars
+  ///  vertical tab, male symbol, symbol for mars
   static const VT = 11;
 
-  ///  Form feed, female symbol, symbol for Venus
+  ///  form feed, female symbol, symbol for venus
   static const FF = 12;
 
-  ///  Carriage return
+  ///  carriage return
   static const CR = 13;
 
-  ///  Shift Out
+  ///  shift out
   static const SO = 14;
 
-  ///  Shift In
+  ///  shift in
   static const SI = 15;
 
-  ///  Data link escape
+  ///  data link escape
   static const DLE = 16;
 
-  ///  Device control 1
+  ///  device control 1
   static const DC1 = 17;
 
-  ///  Device control 2
+  ///  device control 2
   static const DC2 = 18;
 
-  ///  Device control 3
+  ///  device control 3
   static const DC3 = 19;
 
-  ///  Device control 4
+  ///  device control 4
   static const DC4 = 20;
 
-  ///  NAK Negative-acknowledge
+  ///  nak negative-acknowledge
   static const NAK = 21;
 
-  ///  Synchronous idle
+  ///  synchronous idle
   static const SYN = 22;
 
-  ///  End of trans. block
+  ///  end of trans. block
   static const ETB = 23;
 
-  ///  Cancel
+  ///  cancel
   static const CAN = 24;
 
-  ///  End of medium
+  ///  end of medium
   static const EM = 25;
 
-  ///  Substitute
+  ///  substitute
   static const SUB = 26;
 
-  ///  Escape
+  ///  escape
   static const ESC = 27;
 
-  ///  File separator
+  ///  file separator
   static const FS = 28;
 
-  ///  Group separator
+  ///  group separator
   static const GS = 29;
 
-  ///  Record separator
+  ///  record separator
   static const RS = 30;
 
-  ///  Unit separator
+  ///  unit separator
   static const US = 31;
 
-  ///  Delete
+  ///  delete
   static const DEL = 127;
 
   /*
    * printable ascii characters
    */
 
-  /// Space " "
+  /// space " "
   static const space = 32;
 
-  /// Exclamation mark "!"
+  /// exclamation mark "!"
   static const exclamationMark = 33;
 
-  /// Double quotes '"'
+  /// double quotes '"'
   static const doubleQuotes = 34;
 
-  /// Number sign '#'
+  /// number sign '#'
   static const numberSign = 35;
 
-  /// Dollar sign '$'
+  /// dollar sign '$'
   static const dollarSign = 36;
 
-  /// Percent sign '%'
+  /// percent sign '%'
   static const percentSign = 37;
 
-  /// Ampersand '&'
+  /// ampersand '&'
   static const ampersand = 38;
 
-  /// Single quote "'"
+  /// single quote "'"
   static const singleQuote = 39;
 
   /// round brackets or parentheses, opening round bracket '('
@@ -146,22 +146,22 @@ abstract class Ascii {
   /// parentheses or round brackets, closing parentheses ')'
   static const closeParentheses = 41;
 
-  /// Asterisk '*'
+  /// asterisk '*'
   static const asterisk = 42;
 
-  /// Plus sign '+'
+  /// plus sign '+'
   static const plus = 43;
 
-  /// Comma ","
+  /// comma ","
   static const comma = 44;
 
-  /// Hyphen , minus sign '-'
+  /// hyphen , minus sign '-'
   static const minus = 45;
 
-  /// Dot, full stop '.'
+  /// dot, full stop '.'
   static const dot = 46;
 
-  /// Slash , forward slash , fraction bar , division slash '/'
+  /// slash , forward slash , fraction bar , division slash '/'
   static const slash = 47;
 
   /// number zero
@@ -194,199 +194,199 @@ abstract class Ascii {
   /// number nine
   static const num9 = 57;
 
-  /// Colon ':'
+  /// colon ':'
   static const colon = 58;
 
-  /// Semicolon ';'
+  /// semicolon ';'
   static const semicolon = 59;
 
-  /// Less-than sign '<'
+  /// less-than sign '<'
   static const lessThan = 60;
 
-  /// Equals sign '='
+  /// equals sign '='
   static const equal = 61;
 
-  /// Greater-than sign ; Inequality sign '>'
+  /// greater-than sign ; inequality sign '>'
   static const greaterThan = 62;
 
-  /// Question mark '?'
+  /// question mark '?'
   static const questionMark = 63;
 
-  /// At sign '@'
+  /// at sign '@'
   static const atSign = 64;
 
-  /// Capital letter A
+  /// capital letter a
   static const A = 65;
 
-  /// Capital letter B
+  /// capital letter b
   static const B = 66;
 
-  /// Capital letter C
+  /// capital letter c
   static const C = 67;
 
-  /// Capital letter D
+  /// capital letter d
   static const D = 68;
 
-  /// Capital letter E
+  /// capital letter e
   static const E = 69;
 
-  /// Capital letter F
+  /// capital letter f
   static const F = 70;
 
-  /// Capital letter G
+  /// capital letter g
   static const G = 71;
 
-  /// Capital letter H
+  /// capital letter h
   static const H = 72;
 
-  /// Capital letter I
+  /// capital letter i
   static const I = 73;
 
-  /// Capital letter J
+  /// capital letter j
   static const J = 74;
 
-  /// Capital letter K
+  /// capital letter k
   static const K = 75;
 
-  /// Capital letter L
+  /// capital letter l
   static const L = 76;
 
-  /// Capital letter M
+  /// capital letter m
   static const M = 77;
 
-  /// Capital letter N
+  /// capital letter n
   static const N = 78;
 
-  /// Capital letter O
+  /// capital letter o
   static const O = 79;
 
-  /// Capital letter P
+  /// capital letter p
   static const P = 80;
 
-  /// Capital letter Q
+  /// capital letter q
   static const Q = 81;
 
-  /// Capital letter R
+  /// capital letter r
   static const R = 82;
 
-  /// Capital letter S
+  /// capital letter s
   static const S = 83;
 
-  /// Capital letter T
+  /// capital letter t
   static const T = 84;
 
-  /// Capital letter U
+  /// capital letter u
   static const U = 85;
 
-  /// Capital letter V
+  /// capital letter v
   static const V = 86;
 
-  /// Capital letter W
+  /// capital letter w
   static const W = 87;
 
-  /// Capital letter X
+  /// capital letter x
   static const X = 88;
 
-  /// Capital letter Y
+  /// capital letter y
   static const Y = 89;
 
-  /// Capital letter Z
+  /// capital letter z
   static const Z = 90;
 
   /// square brackets or box brackets, opening bracket '['
   static const openBracket = 91;
 
-  /// Backslash , reverse slash '\\'
+  /// backslash , reverse slash '\\'
   static const backslash = 92;
 
   /// box brackets or square brackets, closing bracket ']'
   static const closeBracket = 93;
 
-  /// Circumflex accent or Caret  '^'
+  /// circumflex accent or caret  '^'
   static const caret = 94;
 
   /// underscore , understrike , underbar or low line '_'
   static const underscore = 95;
 
-  /// Grave accent  '`'
+  /// grave accent  '`'
   static const graveAccent = 96;
 
-  /// Lowercase letter a , minuscule a
+  /// lowercase letter a , minuscule a
   static const a = 97;
 
-  /// Lowercase letter b , minuscule b
+  /// lowercase letter b , minuscule b
   static const b = 98;
 
-  /// Lowercase letter c , minuscule c
+  /// lowercase letter c , minuscule c
   static const c = 99;
 
-  /// Lowercase letter d , minuscule d
+  /// lowercase letter d , minuscule d
   static const d = 100;
 
-  /// Lowercase letter e , minuscule e
+  /// lowercase letter e , minuscule e
   static const e = 101;
 
-  /// Lowercase letter f , minuscule f
+  /// lowercase letter f , minuscule f
   static const f = 102;
 
-  /// Lowercase letter g , minuscule g
+  /// lowercase letter g , minuscule g
   static const g = 103;
 
-  /// Lowercase letter h , minuscule h
+  /// lowercase letter h , minuscule h
   static const h = 104;
 
-  /// Lowercase letter i , minuscule i
+  /// lowercase letter i , minuscule i
   static const i = 105;
 
-  /// Lowercase letter j , minuscule j
+  /// lowercase letter j , minuscule j
   static const j = 106;
 
-  /// Lowercase letter k , minuscule k
+  /// lowercase letter k , minuscule k
   static const k = 107;
 
-  /// Lowercase letter l , minuscule l
+  /// lowercase letter l , minuscule l
   static const l = 108;
 
-  /// Lowercase letter m , minuscule m
+  /// lowercase letter m , minuscule m
   static const m = 109;
 
-  /// Lowercase letter n , minuscule n
+  /// lowercase letter n , minuscule n
   static const n = 110;
 
-  /// Lowercase letter o , minuscule o
+  /// lowercase letter o , minuscule o
   static const o = 111;
 
-  /// Lowercase letter p , minuscule p
+  /// lowercase letter p , minuscule p
   static const p = 112;
 
-  /// Lowercase letter q , minuscule q
+  /// lowercase letter q , minuscule q
   static const q = 113;
 
-  /// Lowercase letter r , minuscule r
+  /// lowercase letter r , minuscule r
   static const r = 114;
 
-  /// Lowercase letter s , minuscule s
+  /// lowercase letter s , minuscule s
   static const s = 115;
 
-  /// Lowercase letter t , minuscule t
+  /// lowercase letter t , minuscule t
   static const t = 116;
 
-  /// Lowercase letter u , minuscule u
+  /// lowercase letter u , minuscule u
   static const u = 117;
 
-  /// Lowercase letter v , minuscule v
+  /// lowercase letter v , minuscule v
   static const v = 118;
 
-  /// Lowercase letter w , minuscule w
+  /// lowercase letter w , minuscule w
   static const w = 119;
 
-  /// Lowercase letter x , minuscule x
+  /// lowercase letter x , minuscule x
   static const x = 120;
 
-  /// Lowercase letter y , minuscule y
+  /// lowercase letter y , minuscule y
   static const y = 121;
 
-  /// Lowercase letter z , minuscule z
+  /// lowercase letter z , minuscule z
   static const z = 122;
 
   /// braces or curly brackets, opening braces '{'
@@ -398,6 +398,6 @@ abstract class Ascii {
   /// curly brackets or braces, closing curly brackets '}'
   static const closeBrace = 125;
 
-  /// Tilde ; swung dash '~'
+  /// tilde ; swung dash '~'
   static const tilde = 126;
 }

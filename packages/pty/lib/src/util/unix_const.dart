@@ -12,7 +12,7 @@ class LinuxConst implements BsdConst {
 
   final TCSANOW = 0;
 
-  final ICANON = 2; // canonical mode — must keep this ON for bash
+  final ICANON = 2; // canonical mode — must keep this on for bash
   final ECHO = 8;   // terminal echo — disable this
 
   final WNOHANG = 1;
@@ -86,7 +86,7 @@ class BsdConst {
 
   final TCSANOW = 0;
 
-  final ICANON = 1; // canonical mode — must keep this ON for bash
+  final ICANON = 1; // canonical mode — must keep this on for bash
   final ECHO = 16;  // terminal echo — disable this
 
   final WNOHANG = 1;

@@ -14,7 +14,7 @@ class TerminalClipboardManager {
 
   TerminalClipboardManager(this.terminal, this.controller);
 
-  /// Returns true if the terminal has an active text selection.
+  /// returns true if the terminal has an active text selection.
   bool get hasSelection {
     try {
       return controller.selection != null;
@@ -23,7 +23,7 @@ class TerminalClipboardManager {
     }
   }
 
-  /// Get the currently selected text, or empty string.
+  /// get the currently selected text, or empty string.
   String get selectedText {
     try {
       final selection = controller.selection;
@@ -34,7 +34,7 @@ class TerminalClipboardManager {
     }
   }
 
-  /// Copy selection to system clipboard.
+  /// copy selection to system clipboard.
   Future<bool> copy() async {
     if (!hasSelection) return false;
     try {
@@ -46,7 +46,7 @@ class TerminalClipboardManager {
     }
   }
 
-  /// Paste system clipboard into terminal.
+  /// paste system clipboard into terminal.
   Future<bool> paste() async {
     try {
       final data = await Clipboard.getData(Clipboard.kTextPlain);
@@ -61,7 +61,7 @@ class TerminalClipboardManager {
     }
   }
 
-  /// Paste with bracketed mode (sends ESC[200~ ... ESC[201~).
+  /// paste with bracketed mode (sends esc[200~ ... esc[201~).
   Future<bool> pasteBracketed() async {
     try {
       final data = await Clipboard.getData(Clipboard.kTextPlain);
@@ -76,7 +76,7 @@ class TerminalClipboardManager {
     }
   }
 
-  /// Copy all text in the terminal buffer to the system clipboard.
+  /// copy all text in the terminal buffer to the system clipboard.
   Future<bool> copyAll() async {
     try {
       final text = terminal.buffer.getText();
@@ -89,8 +89,8 @@ class TerminalClipboardManager {
     }
   }
 
-  /// Select all text in the terminal buffer.
-  /// Note: xterm.dart selection requires CellAnchors; this is a best-effort.
+  /// select all text in the terminal buffer.
+  /// note: xterm.dart selection requires cellanchors; this is a best-effort.
   void selectAll() {
     try {
       final buffer = terminal.buffer;
@@ -110,12 +110,12 @@ class TerminalClipboardManager {
     }
   }
 
-  /// Send SIGINT (Ctrl+C) to the PTY.
+  /// send sigint (ctrl+c) to the pty.
   void sendSigInt() {
     terminal.write('\x03');
   }
 
-  /// Check if the system clipboard contains text.
+  /// check if the system clipboard contains text.
   Future<bool> hasClipboardText() async {
     try {
       final data = await Clipboard.getData(Clipboard.kTextPlain);
@@ -125,8 +125,8 @@ class TerminalClipboardManager {
     }
   }
 
-  /// Dispose resources
+  /// dispose resources
   void dispose() {
-    // No resources to dispose for now
+    // no resources to dispose for now
   }
 }

@@ -80,7 +80,7 @@ int hashValues(
                                     result = _Jenkins.combine(result, arg19);
                                     if (!identical(arg20, _hashEnd)) {
                                       result = _Jenkins.combine(result, arg20);
-                                      // I can see my house from here!
+                                      // i can see my house from here!
                                     }
                                   }
                                 }

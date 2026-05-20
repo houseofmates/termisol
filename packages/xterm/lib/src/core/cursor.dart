@@ -102,7 +102,7 @@ class CursorStyle {
   }
 
   void resetForegroundColor() {
-    foreground = 0; // | CellColor.normal;
+    foreground = 0; // | cellcolor.normal;
   }
 
   void setBackgroundColor16(int color) {
@@ -118,7 +118,7 @@ class CursorStyle {
   }
 
   void resetBackgroundColor() {
-    background = 0; // | CellColor.normal;
+    background = 0; // | cellcolor.normal;
   }
 
   void reset() {

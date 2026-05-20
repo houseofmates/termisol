@@ -16,7 +16,7 @@ class EnhancedClipboardManager {
   final TerminalController controller;
   final String tempDir;
 
-  // Configuration
+  // configuration
   final int maxTextLength;
   final int maxFileSizeMB;
   final Duration pasteDelay;
@@ -25,14 +25,14 @@ class EnhancedClipboardManager {
     required this.terminal,
     required this.controller,
     this.tempDir = '/tmp/termisol_clipboard',
-    this.maxTextLength = 1000000, // 1MB text
-    this.maxFileSizeMB = 50, // 50MB files
+    this.maxTextLength = 1000000, // 1mb text
+    this.maxFileSizeMB = 50, // 50mb files
     this.pasteDelay = const Duration(milliseconds: 100),
   }) {
     _ensureTempDir();
   }
 
-  /// Ensure temporary directory exists
+  /// ensure temporary directory exists
   void _ensureTempDir() {
     final dir = Directory(tempDir);
     if (!dir.existsSync()) {
@@ -40,12 +40,12 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Get clipboard content type and data
+  /// get clipboard content type and data
   Future<ClipboardContent> getClipboardContent() async {
     try {
       final data = await Clipboard.getData(Clipboard.kTextPlain);
 
-      // Check for text content
+      // check for text content
       if (data?.text != null && data!.text!.isNotEmpty) {
         return ClipboardContent(
           type: ClipboardContentType.text,
@@ -54,7 +54,7 @@ class EnhancedClipboardManager {
         );
       }
 
-      // On desktop platforms, check for file content
+      // on desktop platforms, check for file content
       if (!kIsWeb &&
           (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
         final fileContent = await _getClipboardFiles();
@@ -63,7 +63,7 @@ class EnhancedClipboardManager {
         }
       }
 
-      // Check for image content (platform-specific)
+      // check for image content (platform-specific)
       final imageContent = await _getClipboardImage();
       if (imageContent != null) {
         return imageContent;
@@ -76,10 +76,10 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Get files from clipboard (Windows/Linux/MacOS)
+  /// get files from clipboard (windows/linux/macos)
   Future<ClipboardContent?> _getClipboardFiles() async {
     try {
-      // Windows: Use clipboard file API
+      // windows: use clipboard file api
       if (Platform.isWindows) {
         final result = await Process.run('powershell', [
           '-Command',
@@ -101,9 +101,9 @@ class EnhancedClipboardManager {
         }
       }
 
-      // Linux: Use xclip to get file list
+      // linux: use xclip to get file list
       if (Platform.isLinux) {
-        // Check if xclip is available
+        // check if xclip is available
         try {
           final whichResult = await Process.run('which', ['xclip']);
           if (whichResult.exitCode != 0) {
@@ -142,7 +142,7 @@ class EnhancedClipboardManager {
         }
       }
 
-      // macOS: Use applescript to get file paths
+      // macos: use applescript to get file paths
       if (Platform.isMacOS) {
         final script = '''
           tell application "Finder"
@@ -180,10 +180,10 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Get image from clipboard
+  /// get image from clipboard
   Future<ClipboardContent?> _getClipboardImage() async {
     try {
-      // Platform-specific image detection
+      // platform-specific image detection
       if (Platform.isMacOS) {
         final script = '''
           tell application "System Events"
@@ -201,7 +201,7 @@ class EnhancedClipboardManager {
           if (result.exitCode == 0) {
             final output = result.stdout as String;
             if (output.isNotEmpty) {
-              // Parse the binary data from osascript output
+              // parse the binary data from osascript output
               final imageData = await _parseOsascriptImageData(output);
               if (imageData != null) {
                 return ClipboardContent(
@@ -219,7 +219,7 @@ class EnhancedClipboardManager {
         }
       }
 
-      // For other platforms, we'd need additional implementations
+      // for other platforms, we'd need additional implementations
       return null;
     } catch (e) {
       debugPrint('Error getting clipboard image: $e');
@@ -227,7 +227,7 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Enhanced paste with support for all content types
+  /// enhanced paste with support for all content types
   Future<PasteResult> paste() async {
     try {
       final content = await getClipboardContent();
@@ -253,14 +253,14 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Paste text content with large block support
+  /// paste text content with large block support
   Future<PasteResult> _pasteText(String text) async {
     if (text.length > maxTextLength) {
       return await _pasteLargeText(text);
     }
 
     try {
-      // Use bracketed paste mode for better compatibility
+      // use bracketed paste mode for better compatibility
       terminal.paste(text);
       await Future.delayed(pasteDelay);
 
@@ -275,13 +275,13 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Paste large text blocks with progress indication
+  /// paste large text blocks with progress indication
   Future<PasteResult> _pasteLargeText(String text) async {
     try {
-      final chunks = _splitTextIntoChunks(text, 8192); // 8KB chunks
+      final chunks = _splitTextIntoChunks(text, 8192); // 8kb chunks
       int totalPasted = 0;
 
-      // Show progress in terminal
+      // show progress in terminal
       terminal.write(
         '\n\r📋 Pasting large text block (${text.length} chars)...\n\r',
       );
@@ -291,17 +291,17 @@ class EnhancedClipboardManager {
         terminal.paste(chunk);
         totalPasted += chunk.length;
 
-        // Update progress
+        // update progress
         final progress = ((i + 1) / chunks.length * 100).round();
         terminal.write(
           '\r\033[KProgress: $progress% (${totalPasted}/${text.length} chars)',
         );
 
-        // Small delay to prevent overwhelming the terminal
+        // small delay to prevent overwhelming the terminal
         await Future.delayed(Duration(milliseconds: 50));
       }
 
-      // Clear progress line and show completion
+      // clear progress line and show completion
       terminal.write(
         '\r\033[K✅ Pasted $totalPasted characters successfully\n\r',
       );
@@ -320,7 +320,7 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Split text into manageable chunks
+  /// split text into manageable chunks
   List<String> _splitTextIntoChunks(String text, int chunkSize) {
     final chunks = <String>[];
     for (int i = 0; i < text.length; i += chunkSize) {
@@ -330,7 +330,7 @@ class EnhancedClipboardManager {
     return chunks;
   }
 
-  /// Paste file from clipboard
+  /// paste file from clipboard
   Future<PasteResult> _pasteFile(String filePath) async {
     try {
       final file = File(filePath);
@@ -353,7 +353,7 @@ class EnhancedClipboardManager {
         );
       }
 
-      // Determine file type and handle accordingly
+      // determine file type and handle accordingly
       final mimeType = lookupMimeType(filePath) ?? 'application/octet-stream';
 
       if (mimeType.startsWith('image/')) {
@@ -370,7 +370,7 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Paste image data directly
+  /// paste image data directly
   Future<PasteResult> _pasteImage(Uint8List imageData, String format) async {
     try {
       final fileName =
@@ -384,7 +384,7 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Paste image file
+  /// paste image file
   Future<PasteResult> _pasteImageFile(
     File imageFile,
     String fileName,
@@ -394,19 +394,19 @@ class EnhancedClipboardManager {
       final fileSize = await imageFile.length();
       final fileSizeMB = fileSize / (1024 * 1024);
 
-      // Show image info in terminal
+      // show image info in terminal
       terminal.write(
         '\n\r🖼️  Detected image: $fileName (${fileSizeMB.toStringAsFixed(1)}MB)\n\r',
       );
 
-      // Create a temporary file in the current working directory
+      // create a temporary file in the current working directory
       final currentDir = Directory.current.path;
       final targetPath = path.join(currentDir, fileName);
 
-      // Copy image to current directory
+      // copy image to current directory
       await imageFile.copy(targetPath);
 
-      // Generate appropriate terminal command based on image type
+      // generate appropriate terminal command based on image type
       String command;
       if (mimeType.contains('png')) {
         command =
@@ -414,7 +414,7 @@ class EnhancedClipboardManager {
             base64.encode(await imageFile.readAsBytes()) +
             '\x07';
       } else {
-        // For other image formats, just show the path
+        // for other image formats, just show the path
         command = '📁 Image saved to: $targetPath';
       }
 
@@ -439,7 +439,7 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Paste GIF file with special handling
+  /// paste gif file with special handling
   Future<PasteResult> _pasteGifFile(
     File gifFile,
     String fileName,
@@ -453,16 +453,16 @@ class EnhancedClipboardManager {
         '\n\r🎬 Detected GIF: $fileName (${fileSizeMB.toStringAsFixed(1)}MB)\n\r',
       );
 
-      // Save GIF to current directory
+      // save gif to current directory
       final currentDir = Directory.current.path;
       final targetPath = path.join(currentDir, fileName);
       await gifFile.copy(targetPath);
 
-      // Show GIF preview info
+      // show gif preview info
       terminal.write('📁 GIF saved to: $targetPath\n\r');
       terminal.write('💡 You can view with: open $targetPath\n\r');
 
-      // Try to extract GIF info and display
+      // try to extract gif info and display
       if (Platform.isMacOS || Platform.isLinux) {
         terminal.write('🔍 Analyzing GIF...\n\r');
         await _analyzeGifFile(targetPath);
@@ -484,7 +484,7 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Paste video file
+  /// paste video file
   Future<PasteResult> _pasteVideoFile(
     File videoFile,
     String fileName,
@@ -498,14 +498,14 @@ class EnhancedClipboardManager {
         '\n\r🎥 Detected video: $fileName (${fileSizeMB.toStringAsFixed(1)}MB)\n\r',
       );
 
-      // Save video to current directory
+      // save video to current directory
       final currentDir = Directory.current.path;
       final targetPath = path.join(currentDir, fileName);
       await videoFile.copy(targetPath);
 
       terminal.write('📁 Video saved to: $targetPath\n\r');
 
-      // Show video info and playback suggestions
+      // show video info and playback suggestions
       terminal.write('💡 Playback suggestions:\n\r');
       terminal.write('   • mpv $targetPath\n\r');
       terminal.write('   • vlc $targetPath\n\r');
@@ -529,7 +529,7 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Paste generic file
+  /// paste generic file
   Future<PasteResult> _pasteGenericFile(
     File file,
     String fileName,
@@ -543,14 +543,14 @@ class EnhancedClipboardManager {
         '\n\r📄 Detected file: $fileName (${fileSizeMB.toStringAsFixed(1)}MB)\n\r',
       );
 
-      // Save file to current directory
+      // save file to current directory
       final currentDir = Directory.current.path;
       final targetPath = path.join(currentDir, fileName);
       await file.copy(targetPath);
 
       terminal.write('📁 File saved to: $targetPath\n\r');
 
-      // Show file-specific suggestions
+      // show file-specific suggestions
       if (mimeType.contains('pdf')) {
         terminal.write('💡 Open with: xdg-open $targetPath\n\r');
       } else if (mimeType.contains('text')) {
@@ -577,7 +577,7 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Get file size
+  /// get file size
   Future<int> _getFileSize(String filePath) async {
     try {
       final file = File(filePath);
@@ -588,23 +588,23 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Parse image data from osascript output
+  /// parse image data from osascript output
   Future<Uint8List?> _parseOsascriptImageData(String output) async {
     try {
       // osascript returns binary data in a specific format
-      // This is a simplified parser - real implementation would be more complex
+      // this is a simplified parser - real implementation would be more complex
       final lines = output.split('\n');
       final dataLines = lines.where((line) => line.trim().isNotEmpty).toList();
 
       if (dataLines.isEmpty) return null;
 
-      // Convert to bytes (simplified approach)
+      // convert to bytes (simplified approach)
       final List<int> bytes = [];
       for (final line in dataLines) {
         final trimmed = line.trim();
         if (trimmed.isNotEmpty) {
-          // Parse hex values or other format from osascript
-          // This is a placeholder for the actual parsing logic
+          // parse hex values or other format from osascript
+          // this is a placeholder for the actual parsing logic
           final parts = trimmed.split(' ');
           for (final part in parts) {
             final value = int.tryParse(part);
@@ -622,7 +622,7 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Copy selection to clipboard (enhanced)
+  /// copy selection to clipboard (enhanced)
   Future<bool> copy() async {
     try {
       final selection = controller.selection;
@@ -639,7 +639,7 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Copy all content (enhanced)
+  /// copy all content (enhanced)
   Future<bool> copyAll() async {
     try {
       final text = terminal.buffer.getText();
@@ -653,13 +653,13 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Check if clipboard has content
+  /// check if clipboard has content
   Future<bool> hasContent() async {
     final content = await getClipboardContent();
     return content.type != ClipboardContentType.empty;
   }
 
-  /// Get clipboard summary
+  /// get clipboard summary
   Future<String> getClipboardSummary() async {
     final content = await getClipboardContent();
 
@@ -682,7 +682,7 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Clean up temporary files
+  /// clean up temporary files
   Future<void> cleanup() async {
     try {
       final dir = Directory(tempDir);
@@ -694,17 +694,17 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Analyze GIF file for metadata
+  /// analyze gif file for metadata
   Future<void> _analyzeGifFile(String filePath) async {
     try {
       final file = File(filePath);
       final bytes = await file.readAsBytes();
 
-      // Simple GIF analysis - look for animated GIF signature
+      // simple gif analysis - look for animated gif signature
       if (bytes.length < 6) return;
 
-      // Check if animated (multiple images)
-      final isAnimated = bytes.length > 1000; // Simple heuristic
+      // check if animated (multiple images)
+      final isAnimated = bytes.length > 1000; // simple heuristic
       final estimatedFrames = isAnimated ? 'multiple' : '1';
 
       terminal.write('📊 GIF Analysis:\n\r');
@@ -718,9 +718,9 @@ class EnhancedClipboardManager {
     }
   }
 
-  /// Dispose resources
+  /// dispose resources
   void dispose() {
-    // No specific resources to dispose
+    // no specific resources to dispose
   }
 }
 

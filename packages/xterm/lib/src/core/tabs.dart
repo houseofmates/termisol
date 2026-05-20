@@ -10,7 +10,7 @@ class TabStops {
     _initialize();
   }
 
-  /// Initializes the tab stops to the default 8 column intervals.
+  /// initializes the tab stops to the default 8 column intervals.
   void _initialize() {
     const interval = 8;
     for (var i = 0; i < _kMaxColumns; i += interval) {
@@ -18,7 +18,7 @@ class TabStops {
     }
   }
 
-  /// Finds the next tab stop index, which satisfies [start] <= index < [end].
+  /// finds the next tab stop index, which satisfies [start] <= index < [end].
   int? find(int start, int end) {
     if (start >= end) {
       return null;
@@ -32,35 +32,35 @@ class TabStops {
     return null;
   }
 
-  /// Sets the tab stop at [index]. If there is already a tab stop at [index],
+  /// sets the tab stop at [index]. if there is already a tab stop at [index],
   /// this method does nothing.
   ///
-  /// See also:
-  /// * [clearAt] which does the opposite.
+  /// see also:
+  /// * [clearat] which does the opposite.
   void setAt(int index) {
     assert(index >= 0 && index < _kMaxColumns);
     _stops[index] = true;
   }
 
-  /// Clears the tab stop at [index]. If there is no tab stop at [index], this
+  /// clears the tab stop at [index]. if there is no tab stop at [index], this
   /// method does nothing.
   void clearAt(int index) {
     assert(index >= 0 && index < _kMaxColumns);
     _stops[index] = false;
   }
 
-  /// Clears all tab stops without resetting them to the default 8 column
+  /// clears all tab stops without resetting them to the default 8 column
   /// intervals.
   void clearAll() {
     _stops.fillRange(0, _kMaxColumns, false);
   }
 
-  /// Returns true if there is a tab stop at [index].
+  /// returns true if there is a tab stop at [index].
   bool isSetAt(int index) {
     return _stops[index];
   }
 
-  /// Resets the tab stops to the default 8 column intervals.
+  /// resets the tab stops to the default 8 column intervals.
   void reset() {
     clearAll();
     _initialize();

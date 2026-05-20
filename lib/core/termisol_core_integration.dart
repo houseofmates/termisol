@@ -87,7 +87,7 @@ class TermisolCoreIntegration {
     return true;
   }
 
-  /// start real performance monitoring using Flutter's frame timings callback.
+  /// start real performance monitoring using flutter's frame timings callback.
   void _startRealPerformanceMonitoring() {
     SchedulerBinding.instance.addTimingsCallback((List<FrameTiming> timings) {
       for (final timing in timings) {
@@ -193,7 +193,7 @@ class TermisolCoreIntegration {
     }
   }
 
-  /// check memory pressure using available platform APIs.
+  /// check memory pressure using available platform apis.
   void _checkMemoryPressure() {
     try {
       final info = _getProcessInfo();
@@ -217,7 +217,7 @@ class TermisolCoreIntegration {
     }
   }
 
-  /// get the last N performance samples.
+  /// get the last n performance samples.
   List<PerformanceMetrics> getRecentMetrics({int count = 60}) {
     if (_frameTimings.length <= count) return List.unmodifiable(_frameTimings);
     return List.unmodifiable(
@@ -225,7 +225,7 @@ class TermisolCoreIntegration {
     );
   }
 
-  /// get average frame time over the last N samples.
+  /// get average frame time over the last n samples.
   double getAverageFrameTimeMs({int samples = 60}) {
     final recent = getRecentMetrics(count: samples);
     if (recent.isEmpty) return 0.0;

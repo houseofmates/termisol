@@ -53,99 +53,99 @@ class TerminalView extends StatefulWidget {
     this.simulateScroll = true,
   });
 
-  /// The underlying terminal that this widget renders.
+  /// the underlying terminal that this widget renders.
   final Terminal terminal;
 
   final TerminalController? controller;
 
-  /// The theme to use for this terminal.
+  /// the theme to use for this terminal.
   final TerminalTheme theme;
 
-  /// The style to use for painting characters.
+  /// the style to use for painting characters.
   final TerminalStyle textStyle;
 
   final TextScaler? textScaler;
 
-  /// Padding around the inner [Scrollable] widget.
+  /// padding around the inner [scrollable] widget.
   final EdgeInsets? padding;
 
-  /// Scroll controller for the inner [Scrollable] widget.
+  /// scroll controller for the inner [scrollable] widget.
   final ScrollController? scrollController;
 
-  /// Should this widget automatically notify the underlying terminal when its
+  /// should this widget automatically notify the underlying terminal when its
   /// size changes. [true] by default.
   final bool autoResize;
 
-  /// Opacity of the terminal background. Set to 0 to make the terminal
+  /// opacity of the terminal background. set to 0 to make the terminal
   /// background transparent.
   final double backgroundOpacity;
 
-  /// An optional focus node to use as the focus node for this widget.
+  /// an optional focus node to use as the focus node for this widget.
   final FocusNode? focusNode;
 
-  /// True if this widget will be selected as the initial focus when no other
+  /// true if this widget will be selected as the initial focus when no other
   /// node in its scope is currently focused.
   final bool autofocus;
 
-  /// Callback for when the user taps on the terminal.
+  /// callback for when the user taps on the terminal.
   final void Function(TapUpDetails, CellOffset)? onTapUp;
 
-  /// Function called when the user taps on the terminal with a secondary
+  /// function called when the user taps on the terminal with a secondary
   /// button.
   final void Function(TapDownDetails, CellOffset)? onSecondaryTapDown;
 
-  /// Function called when the user stops holding down a secondary button.
+  /// function called when the user stops holding down a secondary button.
   final void Function(TapUpDetails, CellOffset)? onSecondaryTapUp;
 
-  /// The mouse cursor for mouse pointers that are hovering over the terminal.
-  /// [SystemMouseCursors.text] by default.
+  /// the mouse cursor for mouse pointers that are hovering over the terminal.
+  /// [systemmousecursors.text] by default.
   final MouseCursor mouseCursor;
 
-  /// The type of information for which to optimize the text input control.
-  /// [TextInputType.emailAddress] by default.
+  /// the type of information for which to optimize the text input control.
+  /// [textinputtype.emailaddress] by default.
   final TextInputType keyboardType;
 
-  /// The appearance of the keyboard. [Brightness.dark] by default.
+  /// the appearance of the keyboard. [brightness.dark] by default.
   ///
-  /// This setting is only honored on iOS devices.
+  /// this setting is only honored on ios devices.
   final Brightness keyboardAppearance;
 
-  /// The type of cursor to use. [TerminalCursorType.block] by default.
+  /// the type of cursor to use. [terminalcursortype.block] by default.
   final TerminalCursorType cursorType;
 
-  /// Whether to always show the cursor. This is useful for debugging.
+  /// whether to always show the cursor. this is useful for debugging.
   /// [false] by default.
   final bool alwaysShowCursor;
 
-  /// Workaround to detect delete key for platforms and IMEs that does not
-  /// emit hardware delete event. Prefered on mobile platforms. [false] by
+  /// workaround to detect delete key for platforms and imes that does not
+  /// emit hardware delete event. prefered on mobile platforms. [false] by
   /// default.
   final bool deleteDetection;
 
-  /// Shortcuts for this terminal. This has higher priority than input handler
-  /// of the terminal If not provided, [defaultTerminalShortcuts] will be used.
+  /// shortcuts for this terminal. this has higher priority than input handler
+  /// of the terminal if not provided, [defaultterminalshortcuts] will be used.
   final Map<ShortcutActivator, Intent>? shortcuts;
 
-  /// Keyboard event handler of the terminal. This has higher priority than
+  /// keyboard event handler of the terminal. this has higher priority than
   /// [shortcuts] and input handler of the terminal.
   final FocusOnKeyEventCallback? onKeyEvent;
 
-  /// True if no input should send to the terminal.
+  /// true if no input should send to the terminal.
   final bool readOnly;
 
-  /// True if only hardware keyboard events should be used as input. This will
+  /// true if only hardware keyboard events should be used as input. this will
   /// also prevent any on-screen keyboard to be shown.
   final bool hardwareKeyboardOnly;
 
-  /// Optional custom painter. When provided it replaces the default
-  /// [TerminalPainter] used by the internal [RenderTerminal].
+  /// optional custom painter. when provided it replaces the default
+  /// [terminalpainter] used by the internal [renderterminal].
   final TerminalPainter? painter;
 
-  /// If true, when the terminal is in alternate buffer (for example running
+  /// if true, when the terminal is in alternate buffer (for example running
   /// vim, man, etc), if the application does not declare that it can handle
   /// scrolling, the terminal will simulate scrolling by sending up/down arrow
-  /// keys to the application. This is standard behavior for most terminal
-  /// emulators. True by default.
+  /// keys to the application. this is standard behavior for most terminal
+  /// emulators. true by default.
   final bool simulateScroll;
 
   @override
@@ -281,7 +281,7 @@ class TerminalViewState extends State<TerminalView> {
         child: child,
       );
     } else if (!widget.readOnly) {
-      // Only listen for key input from a hardware keyboard.
+      // only listen for key input from a hardware keyboard.
       child = CustomKeyboardListener(
         child: child,
         focusNode: _focusNode,
@@ -381,9 +381,9 @@ class TerminalViewState extends State<TerminalView> {
   void _onInsert(String text) {
     final key = charToTerminalKey(text.trim());
 
-    // On mobile platforms there is no guarantee that virtual keyboard will
-    // generate hardware key events. So we need first try to send the key
-    // as a hardware key event. If it fails, then we send it as a text input.
+    // on mobile platforms there is no guarantee that virtual keyboard will
+    // generate hardware key events. so we need first try to send the key
+    // as a hardware key event. if it fails, then we send it as a text input.
     final consumed = key == null ? false : widget.terminal.keyInput(key);
 
     if (!consumed) {

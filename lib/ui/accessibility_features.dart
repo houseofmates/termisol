@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../config/pkm_theme.dart';
 
-/// Comprehensive accessibility system with screen reader, high contrast, and navigation support.
+/// comprehensive accessibility system with screen reader, high contrast, and navigation support.
 class AccessibilityFeatures {
   static final AccessibilityFeatures _instance = AccessibilityFeatures._internal();
   factory AccessibilityFeatures() => _instance;
@@ -90,7 +90,7 @@ class AccessibilityFeatures {
 
   Future<void> _setupSystemAccessibility() async {
     try {
-      // Check system accessibility settings
+      // check system accessibility settings
       if (Platform.isAndroid) {
         await _checkAndroidAccessibility();
       } else if (Platform.isIOS) {
@@ -182,7 +182,7 @@ class AccessibilityFeatures {
   bool _handleKeyEvent(KeyEvent event) {
     if (!_keyboardNavigation) return false;
 
-    // Handle accessibility keyboard shortcuts
+    // handle accessibility keyboard shortcuts
     if (event is KeyDownEvent) {
       final isCtrl = HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlLeft) ||
                       HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlRight);
@@ -191,16 +191,16 @@ class AccessibilityFeatures {
 
       if (isCtrl && isAlt) {
         switch (event.logicalKey.keyId) {
-          case 0x00000061: // A key
+          case 0x00000061: // a key
             _toggleScreenReader();
             return true;
-          case 0x00000068: // H key
+          case 0x00000068: // h key
             _toggleHighContrast();
             return true;
-          case 0x00000066: // F key
+          case 0x00000066: // f key
             _increaseFontScale();
             return true;
-          case 0x00000064: // D key
+          case 0x00000064: // d key
             _decreaseFontScale();
             return true;
         }
@@ -438,40 +438,40 @@ class AccessibilityFeatures {
 
     switch (_colorBlindType) {
       case ColorBlindType.protanopia:
-        // Red-blind: shift reds to yellows/greens
+        // red-blind: shift reds to yellows/greens
         if (hsl.hue >= 0 && hsl.hue <= 60 || hsl.hue >= 300) {
           return HSLColor.fromAHSL(
             color.opacity,
-            60, // Shift to yellow-green
+            60, // shift to yellow-green
             hsl.saturation * 0.8,
             hsl.lightness,
           ).toColor();
         }
         break;
       case ColorBlindType.deuteranopia:
-        // Green-blind: shift greens to yellows/blues
+        // green-blind: shift greens to yellows/blues
         if (hsl.hue >= 60 && hsl.hue <= 180) {
           return HSLColor.fromAHSL(
             color.opacity,
-            hsl.hue > 120 ? 240 : 30, // Shift to blue or yellow
+            hsl.hue > 120 ? 240 : 30, // shift to blue or yellow
             hsl.saturation * 0.8,
             hsl.lightness,
           ).toColor();
         }
         break;
       case ColorBlindType.tritanopia:
-        // Blue-blind: shift blues to yellows/greens
+        // blue-blind: shift blues to yellows/greens
         if (hsl.hue >= 180 && hsl.hue <= 300) {
           return HSLColor.fromAHSL(
             color.opacity,
-            120, // Shift to green
+            120, // shift to green
             hsl.saturation * 0.8,
             hsl.lightness,
           ).toColor();
         }
         break;
       case ColorBlindType.achromatopsia:
-        // Complete color blindness: convert to grayscale
+        // complete color blindness: convert to grayscale
         return color.withOpacity(color.opacity);
       case ColorBlindType.none:
         break;
@@ -522,13 +522,13 @@ class AccessibilityFeatures {
 
 enum ColorBlindType {
   none,
-  protanopia,    // Red-blind
-  deuteranopia,  // Green-blind
-  tritanopia,    // Blue-blind
-  achromatopsia, // Complete color blindness
+  protanopia,    // red-blind
+  deuteranopia,  // green-blind
+  tritanopia,    // blue-blind
+  achromatopsia, // complete color blindness
 }
 
-/// Accessibility settings widget for configuration UI.
+/// accessibility settings widget for configuration ui.
 class AccessibilitySettingsWidget extends StatefulWidget {
   final AccessibilityFeatures accessibility;
 

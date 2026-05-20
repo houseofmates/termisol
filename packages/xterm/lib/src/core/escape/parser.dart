@@ -19,10 +19,10 @@ class EscapeParser {
 
   final _queue = ByteConsumer();
 
-  /// Start of sequence or character being processed. Useful for debugging.
+  /// start of sequence or character being processed. useful for debugging.
   var tokenBegin = 0;
 
-  /// End of sequence or character being processed. Useful for debugging.
+  /// end of sequence or character being processed. useful for debugging.
   int get tokenEnd => _queue.totalConsumed;
 
   void write(String chunk) {
@@ -63,8 +63,8 @@ class EscapeParser {
     sbcHandler();
   }
 
-  /// Processes a sequence of characters that starts with an escape character.
-  /// Returns [true] if the sequence was processed, [false] if it was not.
+  /// processes a sequence of characters that starts with an escape character.
+  /// returns [true] if the sequence was processed, [false] if it was not.
   bool _processEscape() {
     if (_queue.isEmpty) return false;
 
@@ -100,18 +100,18 @@ class EscapeParser {
     'E'.charCode: _escHandleNextLine,
     'H'.charCode: _escHandleTabSet,
     'M'.charCode: _escHandleReverseIndex,
-    // 'P'.charCode: _unsupportedHandler, // Sixel
-    // 'c'.charCode: _unsupportedHandler,
-    // '#'.charCode: _unsupportedHandler,
-    '('.charCode: _escHandleDesignateCharset0, //  SCS - G0
-    ')'.charCode: _escHandleDesignateCharset1, //  SCS - G1
-    // '*'.charCode: _voidHandler(1), // TODO: G2 (vt220)
-    // '+'.charCode: _voidHandler(1), // TODO: G3 (vt220)
-    '>'.charCode: _escHandleResetAppKeypadMode, // TODO: Normal Keypad
-    '='.charCode: _escHandleSetAppKeypadMode, // TODO: Application Keypad
+    // 'p'.charcode: _unsupportedhandler, // sixel
+    // 'c'.charcode: _unsupportedhandler,
+    // '#'.charcode: _unsupportedhandler,
+    '('.charCode: _escHandleDesignateCharset0, //  scs - g0
+    ')'.charCode: _escHandleDesignateCharset1, //  scs - g1
+    // '*'.charcode: _voidhandler(1), // todo: g2 (vt220)
+    // '+'.charcode: _voidhandler(1), // todo: g3 (vt220)
+    '>'.charCode: _escHandleResetAppKeypadMode, // todo: normal keypad
+    '='.charCode: _escHandleSetAppKeypadMode, // todo: application keypad
   });
 
-  /// `ESC 7` Save Cursor (DECSC)
+  /// `esc 7` save cursor (decsc)
   ///
   /// https://terminalguide.namepad.de/seq/a_esc_a7/
   bool _escHandleSaveCursor() {
@@ -119,7 +119,7 @@ class EscapeParser {
     return true;
   }
 
-  /// `ESC 8` Restore Cursor (DECRC)
+  /// `esc 8` restore cursor (decrc)
   ///
   /// https://terminalguide.namepad.de/seq/a_esc_a8/
   bool _escHandleRestoreCursor() {
@@ -127,7 +127,7 @@ class EscapeParser {
     return true;
   }
 
-  /// `ESC D` Index (IND)
+  /// `esc d` index (ind)
   ///
   /// https://terminalguide.namepad.de/seq/a_esc_cd/
   bool _escHandleIndex() {
@@ -135,7 +135,7 @@ class EscapeParser {
     return true;
   }
 
-  /// `ESC E` Next Line (NEL)
+  /// `esc e` next line (nel)
   ///
   /// https://terminalguide.namepad.de/seq/a_esc_ce/
   bool _escHandleNextLine() {
@@ -143,7 +143,7 @@ class EscapeParser {
     return true;
   }
 
-  /// `ESC H` Horizontal Tab Set (HTS)
+  /// `esc h` horizontal tab set (hts)
   ///
   /// https://terminalguide.namepad.de/seq/a_esc_ch/
   bool _escHandleTabSet() {
@@ -151,7 +151,7 @@ class EscapeParser {
     return true;
   }
 
-  /// `ESC M` Reverse Index (RI)
+  /// `esc m` reverse index (ri)
   ///
   /// https://terminalguide.namepad.de/seq/a_esc_cm/
   bool _escHandleReverseIndex() {
@@ -173,7 +173,7 @@ class EscapeParser {
     return true;
   }
 
-  /// `ESC >` Reset Application Keypad Mode (DECKPNM)
+  /// `esc >` reset application keypad mode (deckpnm)
   ///
   /// https://terminalguide.namepad.de/seq/a_esc_x3c_greater_than/
   bool _escHandleSetAppKeypadMode() {
@@ -181,7 +181,7 @@ class EscapeParser {
     return true;
   }
 
-  /// `ESC =` Set Application Keypad Mode (DECKPAM)
+  /// `esc =` set application keypad mode (deckpam)
   ///
   /// https://terminalguide.namepad.de/seq/a_esc_x3d_equals/
   bool _escHandleResetAppKeypadMode() {
@@ -204,12 +204,12 @@ class EscapeParser {
     return true;
   }
 
-  /// The last parsed [_Csi]. This is a mutable singletion by design to reduce
+  /// the last parsed [_csi]. this is a mutable singletion by design to reduce
   /// object allocations.
   final _csi = _Csi(finalByte: 0, params: []);
 
-  /// Parse a CSI from the head of the queue. Return false if the CSI isn't
-  /// complete. After a CSI is successfully parsed, [_csi] is updated.
+  /// parse a csi from the head of the queue. return false if the csi isn't
+  /// complete. after a csi is successfully parsed, [_csi] is updated.
   bool _consumeCsi() {
     if (_queue.isEmpty) {
       return false;
@@ -217,7 +217,7 @@ class EscapeParser {
 
     _csi.params.clear();
 
-    // test whether the csi is a `CSI ? Ps ...` or `CSI Ps ...`
+    // test whether the csi is a `csi ? ps ...` or `csi ps ...`
     final prefix = _queue.peek();
     if (prefix >= Ascii.colon && prefix <= Ascii.questionMark) {
       _csi.prefix = prefix;
@@ -229,7 +229,7 @@ class EscapeParser {
     var param = 0;
     var hasParam = false;
     while (true) {
-      // The sequence isn't completed, just ignore it.
+      // the sequence isn't completed, just ignore it.
       if (_queue.isEmpty) {
         return false;
       }
@@ -268,7 +268,7 @@ class EscapeParser {
   }
 
   late final _csiHandlers = FastLookupTable<_CsiHandler>({
-    // 'a'.codeUnitAt(0): _csiHandleCursorHorizontalRelative,
+    // 'a'.codeunitat(0): _csihandlecursorhorizontalrelative,
     'b'.codeUnitAt(0): _csiHandleRepeatPreviousCharacter,
     'c'.codeUnitAt(0): _csiHandleSendDeviceAttributes,
     'd'.codeUnitAt(0): _csiHandleLinePositionAbsolute,
@@ -299,18 +299,18 @@ class EscapeParser {
     '@'.codeUnitAt(0): _csiHandleInsertBlankCharacters,
   });
 
-  /// `ESC [ Ps a` Cursor Horizontal Position Relative (HPR)
+  /// `esc [ ps a` cursor horizontal position relative (hpr)
   ///
   /// https://terminalguide.namepad.de/seq/csi_sa/
-  // void _csiHandleCursorHorizontalRelative() {
-  //   if (_csi.params.isEmpty) {
-  //     handler.cursorHorizontal(1);
+  // void _csihandlecursorhorizontalrelative() {
+  //   if (_csi.params.isempty) {
+  //     handler.cursorhorizontal(1);
   //   } else {
-  //     handler.cursorHorizontal(_csi.params[0]);
+  //     handler.cursorhorizontal(_csi.params[0]);
   //   }
   // }
 
-  /// `ESC [ Ps b` Repeat Previous Character (REP)
+  /// `esc [ ps b` repeat previous character (rep)
   ///
   /// https://terminalguide.namepad.de/seq/csi_sb/
   void _csiHandleRepeatPreviousCharacter() {
@@ -324,7 +324,7 @@ class EscapeParser {
     handler.repeatPreviousCharacter(amount);
   }
 
-  /// `ESC [ Ps c` Device Attributes (DA)
+  /// `esc [ ps c` device attributes (da)
   ///
   /// https://terminalguide.namepad.de/seq/csi_sc/
   void _csiHandleSendDeviceAttributes() {
@@ -338,7 +338,7 @@ class EscapeParser {
     }
   }
 
-  /// `ESC [ Ps d` Cursor Vertical Position Absolute (VPA)
+  /// `esc [ ps d` cursor vertical position absolute (vpa)
   ///
   /// https://terminalguide.namepad.de/seq/csi_sd/
   void _csiHandleLinePositionAbsolute() {
@@ -351,7 +351,7 @@ class EscapeParser {
     handler.setCursorY(y - 1);
   }
 
-  /// `ESC [ Ps ; Ps f` Alias: Set Cursor Position
+  /// `esc [ ps ; ps f` alias: set cursor position
   ///
   /// https://terminalguide.namepad.de/seq/csi_sf/
   void _csiHandleCursorPosition() {
@@ -366,7 +366,7 @@ class EscapeParser {
     handler.setCursor(col - 1, row - 1);
   }
 
-  /// `ESC [ Ps g` Tab Clear (TBC)
+  /// `esc [ ps g` tab clear (tbc)
   ///
   /// https://terminalguide.namepad.de/seq/csi_sg/
   void _csiHandelClearTabStop() {
@@ -384,10 +384,10 @@ class EscapeParser {
     }
   }
 
-  /// - `ESC [ [ Pm ] h Set Mode (SM)` https://terminalguide.namepad.de/seq/csi_sm/
-  /// - `ESC [ ? [ Pm ] h` Set Mode (?) (SM) https://terminalguide.namepad.de/seq/csi_sh__p/
-  /// - `ESC [ [ Pm ] l` Reset Mode (RM) https://terminalguide.namepad.de/seq/csi_rm/
-  /// - `ESC [ ? [ Pm ] l` Reset Mode (?) (RM) https://terminalguide.namepad.de/seq/csi_sl__p/
+  /// - `esc [ [ pm ] h set mode (sm)` https://terminalguide.namepad.de/seq/csi_sm/
+  /// - `esc [ ? [ pm ] h` set mode (?) (sm) https://terminalguide.namepad.de/seq/csi_sh__p/
+  /// - `esc [ [ pm ] l` reset mode (rm) https://terminalguide.namepad.de/seq/csi_rm/
+  /// - `esc [ ? [ pm ] l` reset mode (?) (rm) https://terminalguide.namepad.de/seq/csi_sl__p/
   void _csiHandleMode() {
     final isEnabled = _csi.finalByte == Ascii.h;
 
@@ -404,7 +404,7 @@ class EscapeParser {
     }
   }
 
-  /// `ESC [ [ Ps ] m` Select Graphic Rendition (SGR)
+  /// `esc [ [ ps ] m` select graphic rendition (sgr)
   ///
   /// https://terminalguide.namepad.de/seq/csi_sm/
   void _csiHandleSgr() {
@@ -414,7 +414,7 @@ class EscapeParser {
       return handler.resetCursorStyle();
     }
 
-    // This is a workaround for a bug in the analyzer.
+    // this is a workaround for a bug in the analyzer.
     // ignore: dead_code
     for (var i = 0; i < _csi.params.length; i++) {
       final param = params[i];
@@ -619,7 +619,7 @@ class EscapeParser {
     }
   }
 
-  /// `ESC [ Ps n` Device Status Report [Dispatch] (DSR)
+  /// `esc [ ps n` device status report [dispatch] (dsr)
   ///
   /// https://terminalguide.namepad.de/seq/csi_sn/
   void _csiHandleDeviceStatusReport() {
@@ -633,7 +633,7 @@ class EscapeParser {
     }
   }
 
-  /// `ESC [ Ps ; Ps r` Set Top and Bottom Margins (DECSTBM)
+  /// `esc [ ps ; ps r` set top and bottom margins (decstbm)
   ///
   /// https://terminalguide.namepad.de/seq/csi_sr/
   void _csiHandleSetMargins() {
@@ -653,28 +653,28 @@ class EscapeParser {
     handler.setMargins(top - 1, bottom);
   }
 
-  /// `ESC [ Ps t` Window operations [DISPATCH]
+  /// `esc [ ps t` window operations [dispatch]
   ///
   /// https://terminalguide.namepad.de/seq/csi_st/
   void _csiWindowManipulation() {
-    // The sequence needs at least one parameter.
+    // the sequence needs at least one parameter.
     if (_csi.params.isEmpty) {
       return;
     }
-    // Most the commands in this group are either of the scope of this package,
+    // most the commands in this group are either of the scope of this package,
     // or should be disabled for security risks.
     switch (_csi.params.first) {
-      // Window handling is currently not in the scope of the package.
-      case 1: // Restore Terminal Window (show window if minimized)
-      case 2: // Minimize Terminal Window
-      case 3: // Set Terminal Window Position
-      case 4: // Set Terminal Window Size in Pixels
-      case 5: // Raise Terminal Window
-      case 6: // Lower Terminal Window
-      case 7: // Refresh/Redraw Terminal Window
+      // window handling is currently not in the scope of the package.
+      case 1: // restore terminal window (show window if minimized)
+      case 2: // minimize terminal window
+      case 3: // set terminal window position
+      case 4: // set terminal window size in pixels
+      case 5: // raise terminal window
+      case 6: // lower terminal window
+      case 7: // refresh/redraw terminal window
         return;
-      case 8: // Set Terminal Window Size (in characters)
-        // This CSI contains 2 more parameters: width and height.
+      case 8: // set terminal window size (in characters)
+        // this csi contains 2 more parameters: width and height.
         if (_csi.params.length != 3) {
           return;
         }
@@ -682,34 +682,34 @@ class EscapeParser {
         final cols = _csi.params[2];
         handler.resize(cols, rows);
         return;
-      // Window handling is currently no in the scope of the package.
-      case 9: // Maximize Terminal Window
-      case 10: // Alias: Maximize Terminal Window
-      case 11: // Report Terminal Window State
-      case 13: // Report Terminal Window Position
-      case 14: // Report Terminal Window Size in Pixels
-      case 15: // Report Screen Size in Pixels
-      case 16: // Report Cell Size in Pixels
+      // window handling is currently no in the scope of the package.
+      case 9: // maximize terminal window
+      case 10: // alias: maximize terminal window
+      case 11: // report terminal window state
+      case 13: // report terminal window position
+      case 14: // report terminal window size in pixels
+      case 15: // report screen size in pixels
+      case 16: // report cell size in pixels
         return;
-      case 18: // Report Terminal Size (in characters)
+      case 18: // report terminal size (in characters)
         handler.sendSize();
         return;
-      // Screen handling is currently no in the scope of the package.
-      case 19: // Report Screen Size (in characters)
-      // Disabled as these can a security risk.
-      case 20: // Get Icon Title
-      case 21: // Get Terminal Title
-      // Not implemented.
-      case 22: // Push Terminal Title
-      case 23: // Pop Terminal Title
+      // screen handling is currently no in the scope of the package.
+      case 19: // report screen size (in characters)
+      // disabled as these can a security risk.
+      case 20: // get icon title
+      case 21: // get terminal title
+      // not implemented.
+      case 22: // push terminal title
+      case 23: // pop terminal title
         return;
-      // Unknown CSI.
+      // unknown csi.
       default:
         return;
     }
   }
 
-  /// `ESC [ Ps A` Cursor Up (CUU)
+  /// `esc [ ps a` cursor up (cuu)
   ///
   /// https://terminalguide.namepad.de/seq/csi_ca/
   void _csiHandleCursorUp() {
@@ -723,7 +723,7 @@ class EscapeParser {
     handler.moveCursorY(-amount);
   }
 
-  /// `ESC [ Ps B` Cursor Down (CUD)
+  /// `esc [ ps b` cursor down (cud)
   ///
   /// https://terminalguide.namepad.de/seq/csi_cb/
   void _csiHandleCursorDown() {
@@ -737,9 +737,9 @@ class EscapeParser {
     handler.moveCursorY(amount);
   }
 
-  /// `ESC [ Ps C` Cursor Right (CUF)
+  /// `esc [ ps c` cursor right (cuf)
   ///
-  /// Cursor Right (CUF)
+  /// cursor right (cuf)
   void _csiHandleCursorForward() {
     var amount = 1;
 
@@ -751,7 +751,7 @@ class EscapeParser {
     handler.moveCursorX(amount);
   }
 
-  /// `ESC [ Ps D` Cursor Left (CUB)
+  /// `esc [ ps d` cursor left (cub)
   ///
   /// https://terminalguide.namepad.de/seq/csi_cd/
   void _csiHandleCursorBackward() {
@@ -765,7 +765,7 @@ class EscapeParser {
     handler.moveCursorX(-amount);
   }
 
-  /// `ESC [ Ps E` Cursor Next Line (CNL)
+  /// `esc [ ps e` cursor next line (cnl)
   ///
   /// https://terminalguide.namepad.de/seq/csi_ce/
   void _csiHandleCursorNextLine() {
@@ -779,7 +779,7 @@ class EscapeParser {
     handler.cursorNextLine(amount);
   }
 
-  /// `ESC [ Ps F` Cursor Previous Line (CPL)
+  /// `esc [ ps f` cursor previous line (cpl)
   ///
   /// https://terminalguide.namepad.de/seq/csi_cf/
   void _csiHandleCursorPrecedingLine() {
@@ -804,7 +804,7 @@ class EscapeParser {
     handler.setCursorX(x - 1);
   }
 
-  /// ESC [ Ps J Erase Display [Dispatch] (ED)
+  /// esc [ ps j erase display [dispatch] (ed)
   ///
   /// https://terminalguide.namepad.de/seq/csi_cj/
   void _csiHandleEraseDisplay() {
@@ -826,7 +826,7 @@ class EscapeParser {
     }
   }
 
-  /// `ESC [ Ps K` Erase Line [Dispatch] (EL)
+  /// `esc [ ps k` erase line [dispatch] (el)
   ///
   /// https://terminalguide.namepad.de/seq/csi_ck/
   void _csiHandleEraseLine() {
@@ -846,7 +846,7 @@ class EscapeParser {
     }
   }
 
-  /// `ESC [ Ps L` Insert Line (IL)
+  /// `esc [ ps l` insert line (il)
   ///
   /// https://terminalguide.namepad.de/seq/csi_cl/
   void _csiHandleInsertLines() {
@@ -859,7 +859,7 @@ class EscapeParser {
     handler.insertLines(amount);
   }
 
-  /// ESC [ Ps M Delete Line (DL)
+  /// esc [ ps m delete line (dl)
   ///
   /// https://terminalguide.namepad.de/seq/csi_cm/
   void _csiHandleDeleteLines() {
@@ -872,7 +872,7 @@ class EscapeParser {
     handler.deleteLines(amount);
   }
 
-  /// ESC [ Ps P Delete Character (DCH)
+  /// esc [ ps p delete character (dch)
   ///
   /// https://terminalguide.namepad.de/seq/csi_cp/
   void _csiHandleDelete() {
@@ -885,7 +885,7 @@ class EscapeParser {
     handler.deleteChars(amount);
   }
 
-  /// `ESC [ Ps S` Scroll Up (SU)
+  /// `esc [ ps s` scroll up (su)
   ///
   /// https://terminalguide.namepad.de/seq/csi_cs/
   void _csiHandleScrollUp() {
@@ -898,7 +898,7 @@ class EscapeParser {
     handler.scrollUp(amount);
   }
 
-  /// `ESC [ Ps T `Scroll Down (SD)
+  /// `esc [ ps t `scroll down (sd)
   ///
   /// https://terminalguide.namepad.de/seq/csi_ct_1param/
   void _csiHandleScrollDown() {
@@ -911,7 +911,7 @@ class EscapeParser {
     handler.scrollDown(amount);
   }
 
-  /// `ESC [ Ps X` Erase Character (ECH)
+  /// `esc [ ps x` erase character (ech)
   ///
   /// https://terminalguide.namepad.de/seq/csi_cx/
   void _csiHandleEraseCharacters() {
@@ -924,13 +924,13 @@ class EscapeParser {
     handler.eraseChars(amount);
   }
 
-  /// `ESC [ Ps @` Insert Blanks (ICH)
+  /// `esc [ ps @` insert blanks (ich)
   ///
   /// https://terminalguide.namepad.de/seq/csi_x40_at/
   ///
-  /// Inserts amount spaces at current cursor position moving existing cell
-  /// contents to the right. The contents of the amount right-most columns in
-  /// the scroll region are lost. The cursor position is not changed.
+  /// inserts amount spaces at current cursor position moving existing cell
+  /// contents to the right. the contents of the amount right-most columns in
+  /// the scroll region are lost. the cursor position is not changed.
   void _csiHandleInsertBlankCharacters() {
     var amount = 1;
 
@@ -1044,7 +1044,7 @@ class EscapeParser {
     }
   }
 
-  /// Parse a OSC sequence from the queue. Returns true if a sequence was
+  /// parse a osc sequence from the queue. returns true if a sequence was
   /// found and handled.
   bool _escHandleOSC() {
     final consumed = _consumeOsc();
@@ -1056,7 +1056,7 @@ class EscapeParser {
       return true;
     }
 
-    // Common OSCs
+    // common oscs
     if (_osc.length >= 2) {
       final ps = _osc[0];
       final pt = _osc[1];
@@ -1075,7 +1075,7 @@ class EscapeParser {
       }
     }
 
-    // Private extensions
+    // private extensions
     handler.unknownOSC(_osc[0], _osc.sublist(1));
 
     return true;
@@ -1094,13 +1094,13 @@ class EscapeParser {
 
       final char = _queue.consume();
 
-      // OSC terminates with BEL
+      // osc terminates with bel
       if (char == Ascii.BEL) {
         _osc.add(param.toString());
         return true;
       }
 
-      /// OSC terminates with ST
+      /// osc terminates with st
       if (char == Ascii.ESC) {
         if (_queue.isEmpty) {
           return false;
@@ -1113,7 +1113,7 @@ class EscapeParser {
         return true;
       }
 
-      /// Parse next parameter
+      /// parse next parameter
       if (char == Ascii.semicolon) {
         _osc.add(param.toString());
         param.clear();
@@ -1137,7 +1137,7 @@ class _Csi {
   List<int> params;
 
   int finalByte;
-  // final List<int> intermediates;
+  // final list<int> intermediates;
 
   @override
   String toString() {

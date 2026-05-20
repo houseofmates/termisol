@@ -11,7 +11,7 @@ class BufferRangeBlock extends BufferRange {
 
   @override
   bool get isNormalized {
-    // A block range is normalized if begin is the top left corner of the range
+    // a block range is normalized if begin is the top left corner of the range
     // and end the bottom right corner.
     return (begin.isBefore(end) && begin.x <= end.x) || begin.isEqual(end);
   }
@@ -21,7 +21,7 @@ class BufferRangeBlock extends BufferRange {
     if (isNormalized) {
       return this;
     }
-    // Determine new normalized begin and end offset, such that begin is the
+    // determine new normalized begin and end offset, such that begin is the
     // top left corner and end is the bottom right corner of the block.
     final normalBegin = CellOffset(min(begin.x, end.x), min(begin.y, end.y));
     final normalEnd = CellOffset(max(begin.x, end.x), max(begin.y, end.y));
@@ -65,18 +65,18 @@ class BufferRangeBlock extends BufferRange {
 
   @override
   BufferRangeBlock merge(BufferRange range) {
-    // Enlarge the block such that both borders of the range
+    // enlarge the block such that both borders of the range
     // are within the selected block.
     return extend(range.begin).extend(range.end);
   }
 
   @override
   BufferRangeBlock extend(CellOffset position) {
-    // If the position is within the block, there is nothing to do.
+    // if the position is within the block, there is nothing to do.
     if (contains(position)) {
       return this;
     }
-    // Otherwise normalize the block and push the borders outside up to
+    // otherwise normalize the block and push the borders outside up to
     // the position to which the block has to extended.
     final normal = normalized;
     final extendBegin = CellOffset(

@@ -19,26 +19,26 @@ class ThrottledRenderer {
     _frameInterval = Duration(milliseconds: ms);
   }
 
-  /// Queue output for throttled rendering.
+  /// queue output for throttled rendering.
   void write(String data) {
     _pendingOutput.add(data);
     _scheduleRender();
   }
 
-  /// Schedule a render if not already rendering.
+  /// schedule a render if not already rendering.
   void _scheduleRender() {
     if (_isRendering) return;
 
     final now = DateTime.now().millisecondsSinceEpoch;
     if (now - _lastRenderTime < _frameInterval.inMilliseconds) {
-      return; // Too soon since last render
+      return; // too soon since last render
     }
 
     _renderTimer?.cancel();
     _renderTimer = Timer(_frameInterval, _render);
   }
 
-  /// Render pending output immediately.
+  /// render pending output immediately.
   void _render() {
     if (_pendingOutput.isEmpty) return;
 
@@ -46,11 +46,11 @@ class ThrottledRenderer {
     _lastRenderTime = DateTime.now().millisecondsSinceEpoch;
 
     try {
-      // Batch all pending output
+      // batch all pending output
       final batch = _pendingOutput.join();
       _pendingOutput.clear();
 
-      // Send to terminal in one go
+      // send to terminal in one go
       terminal.write(batch);
 
       debugPrint(
@@ -63,19 +63,19 @@ class ThrottledRenderer {
     }
   }
 
-  /// Force immediate render (bypasses throttle).
+  /// force immediate render (bypasses throttle).
   void forceRender() {
     _renderTimer?.cancel();
     _render();
   }
 
-  /// Clear pending output.
+  /// clear pending output.
   void clear() {
     _pendingOutput.clear();
     _renderTimer?.cancel();
   }
 
-  /// Get current render statistics.
+  /// get current render statistics.
   Map<String, dynamic> getStats() {
     return {
       'pendingOutputLength': _pendingOutput.length,

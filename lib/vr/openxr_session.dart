@@ -61,7 +61,7 @@ class OpenXrSession {
 
   static Stream<VrInputEvent>? _inputStream;
 
-  /// Initialize the native OpenXR runtime.
+  /// initialize the native openxr runtime.
   static Future<bool> initialize() async {
     try {
       final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
@@ -73,7 +73,7 @@ class OpenXrSession {
     }
   }
 
-  /// Query whether the current device supports VR.
+  /// query whether the current device supports vr.
   static Future<bool> isSupported() async {
     try {
       return await _channel.invokeMethod<bool>('isVrSupported') ?? false;
@@ -82,7 +82,7 @@ class OpenXrSession {
     }
   }
 
-  /// Start a VR session. On Android this launches the native [VrActivity].
+  /// start a vr session. on android this launches the native [vractivity].
   static Future<bool> startSession() async {
     try {
       return await _channel.invokeMethod<bool>('startVrSession') ?? false;
@@ -91,12 +91,12 @@ class OpenXrSession {
     }
   }
 
-  /// Stop the current VR session.
+  /// stop the current vr session.
   static Future<void> stopSession() async {
     await _channel.invokeMethod('stopVrSession');
   }
 
-  /// Submit a terminal frame to the native VR renderer.
+  /// submit a terminal frame to the native vr renderer.
   static Future<void> submitFrame(VrTerminalFrame frame) async {
     await _channel.invokeMethod('submitFrame', <String, dynamic>{
       'rows': frame.rows,
@@ -105,7 +105,7 @@ class OpenXrSession {
     });
   }
 
-  /// Stream of controller input events from the native runtime.
+  /// stream of controller input events from the native runtime.
   static Stream<VrInputEvent> get inputEvents {
     _inputStream ??= _eventChannel.receiveBroadcastStream().map(
       (dynamic data) => VrInputEvent.fromMap(data as Map<dynamic, dynamic>),
@@ -113,7 +113,7 @@ class OpenXrSession {
     return _inputStream!;
   }
 
-  /// Trigger haptic feedback on the active controller.
+  /// trigger haptic feedback on the active controller.
   static Future<void> triggerHaptic({int durationMs = 50}) async {
     await _channel.invokeMethod('triggerHapticFeedback', durationMs);
   }

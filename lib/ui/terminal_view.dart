@@ -13,7 +13,7 @@ import '../config/pkm_theme.dart';
 import 'clipboard_manager.dart';
 import 'copy_mode_overlay.dart';
 
-/// Active terminal theme based on the current [PkmTheme.themeMode].
+/// active terminal theme based on the current [pkmtheme.thememode].
 TerminalTheme get termisolTerminalTheme => PkmTheme.activeTerminalTheme;
 
 const _defaultTerminalFontSize = 14.0;
@@ -59,12 +59,12 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
   MouseCursor _mouseCursor = SystemMouseCursors.text;
   String _fontFamily = 'monospace';
 
-  // Autocomplete state
+  // autocomplete state
   List<String> _suggestions = [];
   bool _showSuggestions = false;
   String? _currentInput;
 
-  // Command chaining state
+  // command chaining state
   List<String> _chainSuggestions = [];
   bool _showChainSuggestions = false;
   void Function(String)? _originalOnOutput;
@@ -213,14 +213,14 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
       return KeyEventResult.handled;
     }
 
-    // Hide suggestion popups on any other key
+    // hide suggestion popups on any other key
     if (_showSuggestions || _showChainSuggestions) {
       setState(() {
         _showSuggestions = false;
       });
     }
 
-    // Ctrl+A = select all
+    // ctrl+a = select all
     if (ctrl &&
         !shift &&
         event.logicalKey == LogicalKeyboardKey.keyA) {
@@ -265,7 +265,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
 
   void _insertSuggestion(String suggestion) {
     final input = _currentInput ?? '';
-    // Send backspaces to clear current input
+    // send backspaces to clear current input
     if (input.isNotEmpty) {
       widget.session.sendRawInput('\x7f' * input.length);
     }
@@ -370,9 +370,11 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
               ),
             ),
             // Graphics overlay positioned over terminal (pass-through so taps/clicks work)
-            IgnorePointer(
-              ignoring: true,
-              child: Positioned.fill(child: _buildGraphicsOverlay()),
+            Positioned.fill(
+              child: IgnorePointer(
+                ignoring: true,
+                child: _buildGraphicsOverlay(),
+              ),
             ),
             if (_isCopyMode)
               Positioned.fill(
@@ -381,7 +383,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
                   onClose: () => setState(() => _isCopyMode = false),
                 ),
               ),
-            // Autocomplete popup
+            // autocomplete popup
             if (_showSuggestions)
               Positioned(
                 left: 8,
@@ -414,7 +416,7 @@ class _TermisolTerminalViewState extends State<TermisolTerminalView> {
                   ),
                 ),
               ),
-            // Command chaining chips
+            // command chaining chips
             if (_showChainSuggestions)
               Positioned(
                 left: 8,

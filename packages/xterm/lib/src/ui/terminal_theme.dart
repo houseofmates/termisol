@@ -56,7 +56,7 @@ class TerminalTheme {
   final Color searchHitBackgroundCurrent;
   final Color searchHitForeground;
 
-  /// The foreground color for selected text.
-  /// When null, the default foreground color is used.
+  /// the foreground color for selected text.
+  /// when null, the default foreground color is used.
   final Color? selectionForeground;
 }

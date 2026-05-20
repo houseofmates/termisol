@@ -11,22 +11,22 @@ class BracketedPasteManager {
 
   BracketedPasteManager(this.terminal, this.controller);
 
-  /// Enable bracketed paste mode.
+  /// enable bracketed paste mode.
   void enable() {
     _enabled = true;
     terminal.write('\x1b[?2004h');
   }
 
-  /// Disable bracketed paste mode.
+  /// disable bracketed paste mode.
   void disable() {
     _enabled = false;
     terminal.write('\x1b[?2004l');
   }
 
-  /// Check if bracketed paste mode is currently enabled.
+  /// check if bracketed paste mode is currently enabled.
   bool get isEnabled => _enabled;
 
-  /// Handle a paste operation with bracketed mode support.
+  /// handle a paste operation with bracketed mode support.
   Future<void> handlePaste(String text) async {
     if (!_enabled) return;
 
@@ -34,7 +34,7 @@ class BracketedPasteManager {
       final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
       final pastedText = clipboardData?.text;
       if (pastedText != null) {
-        // Apply bracketed paste escape sequences
+        // apply bracketed paste escape sequences
         final escaped = pastedText
             .replaceAll('\\', '\\\\')
             .replaceAll('\x1b', '\x1b\x1b')
@@ -46,11 +46,11 @@ class BracketedPasteManager {
             .replaceAll('\x0c', '\x1b\x0c')
             .replaceAll('\x0d', '\x1b\x0d');
 
-        // Send bracketed paste sequence with the escaped content
+        // send bracketed paste sequence with the escaped content
         terminal.write('\x1b[200~$escaped\x1b[201~');
       }
     } catch (e) {
-      // Fallback to unbracketed paste if bracketed mode fails
+      // fallback to unbracketed paste if bracketed mode fails
       terminal.paste(text);
     }
   }

@@ -67,7 +67,7 @@ class AutoPushService {
   }
 
   Future<void> _startMonitoring() async {
-    // Use git to monitor changes more efficiently
+    // use git to monitor changes more efficiently
     _monitorTimer = Timer.periodic(
       Duration(seconds: 5),
       (_) => _checkForChanges(),
@@ -76,15 +76,15 @@ class AutoPushService {
 
   Future<void> _checkForChanges() async {
     try {
-      // Check if we have a lock file (another instance running)
+      // check if we have a lock file (another instance running)
       if (await File(_lockFile).exists()) {
         return;
       }
 
-      // Create lock file
+      // create lock file
       await File(_lockFile).writeAsString(DateTime.now().toIso8601String());
 
-      // Get git status
+      // get git status
       final result = await Process.run('git', [
         'status',
         '--porcelain',
@@ -104,12 +104,12 @@ class AutoPushService {
 
       if (lines.isEmpty) {
         await _removeLock();
-        return; // No changes
+        return; // no changes
       }
 
       print('📝 Detected ${lines.length} changed files');
 
-      // Check if changes are old enough to push
+      // check if changes are old enough to push
       final now = DateTime.now();
       final shouldPush = await _areChangesOldEnough(now, lines);
 
@@ -132,7 +132,7 @@ class AutoPushService {
       final status = line.substring(0, 2).trim();
       final filePath = line.substring(3);
 
-      if (status == 'D') continue; // Skip deleted files for timestamp check
+      if (status == 'D') continue; // skip deleted files for timestamp check
 
       final file = File(_repoDir.path + '/' + filePath);
       if (!await file.exists()) continue;
@@ -153,7 +153,7 @@ class AutoPushService {
     try {
       print('🔄 Auto-committing and pushing changes...');
 
-      // Stage all changes
+      // stage all changes
       final addResult = await Process.run('git', [
         'add',
         '.',
@@ -164,7 +164,7 @@ class AutoPushService {
         return;
       }
 
-      // Create commit message
+      // create commit message
       final timestamp = DateTime.now().toIso8601String();
       final commitMessage =
           '''Auto-commit: ${changedFiles.length} files changed
@@ -176,7 +176,7 @@ Generated with [Devin AutoPush](https://cli.devin.ai/docs)
 
 Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.com>''';
 
-      // Commit
+      // commit
       final commitResult = await Process.run('git', [
         'commit',
         '-m',
@@ -192,7 +192,7 @@ Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.
         return;
       }
 
-      // Push to remote
+      // push to remote
       final pushResult = await Process.run('git', [
         'push',
         'origin',
@@ -206,7 +206,7 @@ Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.
 
       print('✅ Successfully pushed ${changedFiles.length} files to GitHub');
 
-      // Update state
+      // update state
       for (final line in changedFiles) {
         final filePath = line.substring(3);
         _state[filePath] = {
@@ -224,18 +224,18 @@ Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.
     try {
       await File(_lockFile).delete();
     } catch (e) {
-      // Ignore lock file deletion errors
+      // ignore lock file deletion errors
     }
   }
 
   Future<void> _keepAlive() async {
     print('🔄 AutoPush service is monitoring for changes...');
 
-    // Keep running indefinitely
+    // keep running indefinitely
     while (true) {
       await Future.delayed(Duration(seconds: 30));
 
-      // Heartbeat - update state file to show we're alive
+      // heartbeat - update state file to show we're alive
       _state['heartbeat'] = DateTime.now().toIso8601String();
       await _saveState();
     }
@@ -250,11 +250,11 @@ Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.
   }
 }
 
-/// Bootstrap function to ensure service restarts after crashes/amnesia
+/// bootstrap function to ensure service restarts after crashes/amnesia
 Future<void> bootstrapService() async {
   print('🔧 Bootstrapping AutoPush Service...');
 
-  // Check if service is already running
+  // check if service is already running
   final lockFile = File('.devin/auto_push.lock');
   if (await lockFile.exists()) {
     final lockContent = await lockFile.readAsString();
@@ -270,12 +270,12 @@ Future<void> bootstrapService() async {
       }
     }
 
-    // Lock file is stale, remove it
+    // lock file is stale, remove it
     await lockFile.delete();
     print('🗑️  Removed stale lock file');
   }
 
-  // Start the service
+  // start the service
   final service = AutoPushService();
   await service.start();
 }

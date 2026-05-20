@@ -17,7 +17,7 @@ class TestApp extends StatelessWidget {
           filePath: '/test.txt',
           initialContent:
               'Test content\nLine 2\nLine 3\n' *
-              50, // Multiple lines to test scrolling
+              50, // multiple lines to test scrolling
         ),
       ),
     );

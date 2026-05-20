@@ -68,7 +68,7 @@ void main() {
       smartChaining.recordCommand('session1', cmd2);
       smartChaining.recordCommand('session1', cmd3);
 
-      // Verify chain: cmd1|cmd2 -> cmd3
+      // verify chain: cmd1|cmd2 -> cmd3
       final context = [cmd1, cmd2];
       var suggestions = smartChaining.suggestChain(context);
       expect(suggestions.any((s) => s.command == cmd3), isTrue);

@@ -92,7 +92,7 @@ class GpuTerminalPainter extends TerminalPainter {
     canvas.drawPicture(picture);
   }
 
-  /// Paints a line directly to [canvas] without picture caching.
+  /// paints a line directly to [canvas] without picture caching.
   void _drawLineDirect(Canvas canvas, Offset offset, BufferLine line) {
     _drawBackgrounds(canvas, offset, line);
     _drawForegrounds(canvas, offset, line);
@@ -236,10 +236,10 @@ class GpuTerminalPainter extends TerminalPainter {
     double bottom,
     int colorValue,
   ) {
-    // First triangle: top-left, top-right, bottom-left
+    // first triangle: top-left, top-right, bottom-left
     positions.addAll([left, top, right, top, left, bottom]);
     colors.addAll([colorValue, colorValue, colorValue]);
-    // Second triangle: top-right, bottom-right, bottom-left
+    // second triangle: top-right, bottom-right, bottom-left
     positions.addAll([right, top, right, bottom, left, bottom]);
     colors.addAll([colorValue, colorValue, colorValue]);
   }

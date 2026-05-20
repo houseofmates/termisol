@@ -7,15 +7,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:test/test.dart' as test;
 
-/// Automated Testing Pipeline for Termisol
+/// automated testing pipeline for termisol
 ///
-/// This script runs comprehensive tests including:
-/// - Unit tests
-/// - Integration tests
-/// - Performance tests
-/// - Error handling validation
-/// - Memory leak detection
-/// - Security vulnerability scanning
+/// this script runs comprehensive tests including:
+/// - unit tests
+/// - integration tests
+/// - performance tests
+/// - error handling validation
+/// - memory leak detection
+/// - security vulnerability scanning
 class AutomatedTestPipeline {
   static const String _projectRoot =
       Platform.environment['TERMISOL_REPO_DIR'] ??
@@ -64,11 +64,11 @@ class AutomatedTestPipeline {
   Future<void> _setupEnvironment() async {
     debugPrint('🔧 Setting up test environment...');
 
-    // Create directories
+    // create directories
     await Directory(_testResultsDir).create(recursive: true);
     await Directory(_reportsDir).create(recursive: true);
 
-    // Set environment variables
+    // set environment variables
     Platform.environment['FLUTTER_TEST'] = 'true';
     Platform.environment['TERMISOL_TEST_MODE'] = 'true';
 
@@ -138,7 +138,7 @@ class AutomatedTestPipeline {
   Future<void> _runErrorHandlingTests() async {
     print('\n🛡️ Running Error Handling Tests...');
 
-    // Custom error handling validation
+    // custom error handling validation
     await _validateErrorHandling();
 
     print('✅ Error handling tests completed');
@@ -147,7 +147,7 @@ class AutomatedTestPipeline {
   Future<void> _runSecurityTests() async {
     print('\n🔒 Running Security Tests...');
 
-    // Security vulnerability scanning
+    // security vulnerability scanning
     await _scanForVulnerabilities();
     await _validateInputSanitization();
     await _checkDataExposure();
@@ -203,7 +203,7 @@ class AutomatedTestPipeline {
       );
     }
 
-    // Save detailed results
+    // save detailed results
     await _saveTestResult(testFile, category, result);
   }
 
@@ -216,7 +216,7 @@ class AutomatedTestPipeline {
       final content = await file.readAsString();
       final issues = <String>[];
 
-      // Check for proper error handling
+      // check for proper error handling
       if (content.contains('Future<') &&
           !content.contains('try') &&
           !content.contains('catch')) {
@@ -247,7 +247,7 @@ class AutomatedTestPipeline {
       final content = await file.readAsString();
       final vulnerabilities = <String>[];
 
-      // Check for common vulnerabilities
+      // check for common vulnerabilities
       if (content.contains('eval(') || content.contains('Function(')) {
         vulnerabilities.add('Code injection risk');
       }
@@ -280,7 +280,7 @@ class AutomatedTestPipeline {
       final content = await file.readAsString();
       final issues = <String>[];
 
-      // Check for input validation
+      // check for input validation
       if (content.contains('stdin.readLineSync') && !content.contains('trim')) {
         issues.add('Input not sanitized');
       }
@@ -305,7 +305,7 @@ class AutomatedTestPipeline {
       final content = await file.readAsString();
       final issues = <String>[];
 
-      // Check for sensitive data exposure
+      // check for sensitive data exposure
       if (content.contains('password') && content.contains('print')) {
         issues.add('Password may be exposed in logs');
       }
@@ -460,7 +460,7 @@ class AutomatedTestPipeline {
   Future<void> _generatePerformanceReport() async {
     final reportFile = File('$_reportsDir/performance_report.html');
 
-    // Generate performance-specific report
+    // generate performance-specific report
     final performanceData = _results.getPerformanceData();
 
     final html =
@@ -566,7 +566,7 @@ class AutomatedTestPipeline {
   }
 
   Future<void> _generateCoverageReport() async {
-    // Generate coverage report using dart test coverage
+    // generate coverage report using dart test coverage
     final result = await Process.run('dart', [
       'test',
       '--coverage=coverage',
@@ -576,7 +576,7 @@ class AutomatedTestPipeline {
     if (result.exitCode == 0) {
       print('  ✅ Coverage report generated');
 
-      // Generate HTML coverage report
+      // generate html coverage report
       await Process.run('dart', [
         'run',
         'coverage:format_coverage',
@@ -595,7 +595,7 @@ class AutomatedTestPipeline {
   Future<void> _cleanup() async {
     print('🧹 Cleaning up temporary files...');
 
-    // Clean up temporary test files
+    // clean up temporary test files
     final tempDir = Directory('$_projectRoot/temp');
     if (await tempDir.exists()) {
       await tempDir.delete(recursive: true);
@@ -621,7 +621,7 @@ class AutomatedTestPipeline {
   }
 }
 
-/// Test results container
+/// test results container
 class TestResults {
   final List<TestCategory> _categories = [];
   final List<TestIssue> _issues = [];

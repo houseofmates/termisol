@@ -13,13 +13,13 @@ class CommandHistory {
   final List<String> _commands = [];
   bool _loaded = false;
 
-  /// All stored commands in reverse chronological order (newest first).
+  /// all stored commands in reverse chronological order (newest first).
   List<String> get commands => List.unmodifiable(_commands);
 
-  /// Number of commands in history.
+  /// number of commands in history.
   int get length => _commands.length;
 
-  /// Load history from persistent storage.
+  /// load history from persistent storage.
   Future<void> load() async {
     if (_loaded) return;
     try {
@@ -35,7 +35,7 @@ class CommandHistory {
     }
   }
 
-  /// Add a command to history if it's non-empty and not a duplicate of the most recent.
+  /// add a command to history if it's non-empty and not a duplicate of the most recent.
   Future<void> add(String command) async {
     await load();
     final trimmed = command.trim();
@@ -49,8 +49,8 @@ class CommandHistory {
     await _persist();
   }
 
-  /// Search history with fuzzy substring matching.
-  /// Returns matches sorted by relevance (exact prefix matches first, then substring).
+  /// search history with fuzzy substring matching.
+  /// returns matches sorted by relevance (exact prefix matches first, then substring).
   List<String> search(String query) {
     if (query.isEmpty) return _commands.take(20).toList();
 
@@ -70,7 +70,7 @@ class CommandHistory {
     return [...exact, ...substring].take(20).toList();
   }
 
-  /// Clear all history.
+  /// clear all history.
   Future<void> clear() async {
     _commands.clear();
     await _persist();

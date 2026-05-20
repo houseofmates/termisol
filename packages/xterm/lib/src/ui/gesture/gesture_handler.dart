@@ -72,7 +72,7 @@ class _TerminalGestureHandlerState extends State<TerminalGestureHandler> {
       onTertiaryTapUp: onSecondaryTapUp,
       onLongPressStart: onLongPressStart,
       onLongPressMoveUpdate: onLongPressMoveUpdate,
-      // onLongPressUp: onLongPressUp,
+      // onlongpressup: onlongpressup,
       onDragStart: onDragStart,
       onDragUpdate: onDragUpdate,
       onDoubleTapDown: onDoubleTapDown,
@@ -89,7 +89,7 @@ class _TerminalGestureHandlerState extends State<TerminalGestureHandler> {
     TerminalMouseButton button, {
     bool forceCallback = false,
   }) {
-    // Check if the terminal should and can handle the tap down event.
+    // check if the terminal should and can handle the tap down event.
     var handled = false;
     if (_shouldSendTapEvent) {
       handled = renderTerminal.mouseEvent(
@@ -98,7 +98,7 @@ class _TerminalGestureHandlerState extends State<TerminalGestureHandler> {
         details.localPosition,
       );
     }
-    // If the event was not handled by the terminal, use the supplied callback.
+    // if the event was not handled by the terminal, use the supplied callback.
     if (!handled || forceCallback) {
       callback?.call(details);
     }
@@ -110,7 +110,7 @@ class _TerminalGestureHandlerState extends State<TerminalGestureHandler> {
     TerminalMouseButton button, {
     bool forceCallback = false,
   }) {
-    // Check if the terminal should and can handle the tap up event.
+    // check if the terminal should and can handle the tap up event.
     var handled = false;
     if (_shouldSendTapEvent) {
       handled = renderTerminal.mouseEvent(
@@ -119,15 +119,15 @@ class _TerminalGestureHandlerState extends State<TerminalGestureHandler> {
         details.localPosition,
       );
     }
-    // If the event was not handled by the terminal, use the supplied callback.
+    // if the event was not handled by the terminal, use the supplied callback.
     if (!handled || forceCallback) {
       callback?.call(details);
     }
   }
 
   void onTapDown(TapDownDetails details) {
-    // onTapDown is special, as it will always call the supplied callback.
-    // The TerminalView depends on it to bring the terminal into focus.
+    // ontapdown is special, as it will always call the supplied callback.
+    // the terminalview depends on it to bring the terminal into focus.
     _tapDown(
       widget.onTapDown,
       details,
@@ -172,7 +172,7 @@ class _TerminalGestureHandlerState extends State<TerminalGestureHandler> {
     );
   }
 
-  // void onLongPressUp() {}
+  // void onlongpressup() {}
 
   void onDragStart(DragStartDetails details) {
     _lastDragStartDetails = details;

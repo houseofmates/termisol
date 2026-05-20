@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:crypto/crypto.dart';
 import 'pty_backend.dart';
 
-/// Re-attachable PTY manager with socket-based session persistence.
+/// re-attachable pty manager with socket-based session persistence.
 class ReattachablePtyManager {
   static final ReattachablePtyManager _instance = ReattachablePtyManager._internal();
   factory ReattachablePtyManager() => _instance;
@@ -59,7 +59,7 @@ class ReattachablePtyManager {
       _socketDir = Directory('${appDir.path}/.termisol/sockets');
       await _socketDir!.create(recursive: true);
       
-      // Set proper permissions for socket directory
+      // set proper permissions for socket directory
       if (Platform.isLinux || Platform.isMacOS) {
         final result = await Process.run('chmod', ['700', _socketDir!.path]);
         if (result.exitCode != 0) {
@@ -161,7 +161,7 @@ class ReattachablePtyManager {
               await entity.delete();
             }
           } catch (e) {
-            // Socket might be in use, ignore
+            // socket might be in use, ignore
           }
         }
       }
@@ -244,7 +244,7 @@ class ReattachablePtyManager {
     final sessionId = _generateSessionId();
     
     try {
-      // Create PTY session
+      // create pty session
       final pty = PseudoTerminal.start(
         shell,
         [],
@@ -297,7 +297,7 @@ class ReattachablePtyManager {
       
       final socketPath = '${_socketDir!.path}/${session.id}.sock';
       
-      // Clean up existing socket if present
+      // clean up existing socket if present
       if (await File(socketPath).exists()) {
         await File(socketPath).delete();
       }
@@ -321,7 +321,7 @@ class ReattachablePtyManager {
   void _handleClient(PtySession session, Socket client) {
     debugPrint('Client connected to session ${session.id}');
     
-    // Send session metadata
+    // send session metadata
     client.writeln(jsonEncode({
       'type': 'session_info',
       'session_id': session.id,
@@ -330,16 +330,16 @@ class ReattachablePtyManager {
       'created_at': session.createdAt.toIso8601String(),
     }));
     
-    // Forward PTY output to client
+    // forward pty output to client
     session.output.listen((data) {
       try {
         client.add(data);
       } catch (e) {
-        // Socket closed, ignore
+        // socket closed, ignore
       }
     });
     
-    // Handle client input
+    // handle client input
     client.listen(
       (data) {
         session.write(data);
@@ -425,19 +425,19 @@ class ReattachablePtyManager {
     try {
       await session.terminate();
       
-      // Close server
+      // close server
       final server = _servers.remove(sessionId);
       if (server != null) {
         await server.close();
       }
       
-      // Close client
+      // close client
       final client = _clients.remove(sessionId);
       if (client != null) {
         await client.close();
       }
       
-      // Remove session file
+      // remove session file
       if (_socketDir != null) {
         final sessionFile = File('${_socketDir!.path}/$sessionId.session');
         if (await sessionFile.exists()) {
@@ -507,13 +507,13 @@ class ReattachablePtyManager {
       
       await terminateAllSessions();
       
-      // Close all servers
+      // close all servers
       for (final server in _servers.values) {
         await server.close();
       }
       _servers.clear();
       
-      // Close all clients
+      // close all clients
       for (final client in _clients.values) {
         await client.close();
       }

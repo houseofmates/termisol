@@ -16,13 +16,13 @@ void _setNonblock(int fd) {
   final ret = unix.fcntl3(fd, consts.F_SETFL, flag);
   if (ret == -1) {
     unix.perror(nullptr);
-    // throw PtyError('fcntl3 failed.');
+    // throw ptyerror('fcntl3 failed.');
   }
 }
 
-/// Disable ECHO on the PTY slave while keeping ICANON (canonical mode).
-/// ECHO off means typed characters are NOT echoed to the PTY output stream.
-/// ICANON on means bash still handles line editing (backspace, etc.).
+/// disable echo on the pty slave while keeping icanon (canonical mode).
+/// echo off means typed characters are not echoed to the pty output stream.
+/// icanon on means bash still handles line editing (backspace, etc.).
 void _disableEcho() {
   final attr = calloc<termios>();
   final ret = unix.tcgetattr(0, attr);
@@ -44,7 +44,7 @@ class PtyCoreUnix implements PtyCore {
     var effectiveEnv = <String, String>{};
 
     effectiveEnv['TERM'] = 'xterm-256color';
-    // Without this, tools like "vi" produce sequences that are not UTF-8 friendly
+    // without this, tools like "vi" produce sequences that are not utf-8 friendly
     effectiveEnv['LANG'] = 'en_US.UTF-8';
 
     var envValuesToCopy = [
@@ -84,8 +84,8 @@ class PtyCoreUnix implements PtyCore {
     if (pid < 0) {
       throw PtyException('fork failed.');
     } else if (pid == 0) {
-      // Disable terminal echo in the child process (before bash runs).
-      // Must keep ICANON (canonical mode) so bash handles line-editing normally.
+      // disable terminal echo in the child process (before bash runs).
+      // must keep icanon (canonical mode) so bash handles line-editing normally.
       _disableEcho();
 
       // set working directory
@@ -127,7 +127,7 @@ class PtyCoreUnix implements PtyCore {
 
   PtyCoreUnix._(this._pid, this._ptm) {
     // final devname = unix.ptsname(_ptm);
-    // _pts = unix.open(devname, consts.O_RDWR);
+    // _pts = unix.open(devname, consts.o_rdwr);
   }
 
   final int _pid;

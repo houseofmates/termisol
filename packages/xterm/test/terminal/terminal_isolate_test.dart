@@ -5,82 +5,82 @@
 // import 'package:xterm/terminal/terminal_isolate.dart';
 
 void main() {
-  // group('Start behavior tests', () {
-  //   test('Using TerminalIsolate when not started throws exception', () {
-  //     final fixture = _TestFixture();
-  //     expect(() => fixture.uut.terminalWidth, throwsA(isA<Exception>()));
+  // group('start behavior tests', () {
+  //   test('using terminalisolate when not started throws exception', () {
+  //     final fixture = _testfixture();
+  //     expect(() => fixture.uut.terminalwidth, throwsa(isa<exception>()));
   //   });
-  //   test('Using TerminalIsolate after started doesn\'t throw exceptions',
+  //   test('using terminalisolate after started doesn\'t throw exceptions',
   //       () async {
-  //     final fixture = _TestFixture();
+  //     final fixture = _testfixture();
 
-  //     await fixture.uut.start(testingDontWaitForBootup: true);
+  //     await fixture.uut.start(testingdontwaitforbootup: true);
 
   //     //no throw
-  //     fixture.uut.showCursor;
+  //     fixture.uut.showcursor;
   //   });
   // });
 }
 
-// class _TestFixture {
-//   _TestFixture() {
-//     fakeBackend = FakeBackend();
-//     uut = TerminalIsolate(maxLines: 10000, backend: fakeBackend);
+// class _testfixture {
+//   _testfixture() {
+//     fakebackend = fakebackend();
+//     uut = terminalisolate(maxlines: 10000, backend: fakebackend);
 //   }
 
-//   late final TerminalIsolate uut;
-//   late final FakeBackend fakeBackend;
+//   late final terminalisolate uut;
+//   late final fakebackend fakebackend;
 // }
 
-// class FakeBackend implements TerminalBackend {
+// class fakebackend implements terminalbackend {
 //   @override
-//   void ackProcessed() {}
+//   void ackprocessed() {}
 
 //   @override
-//   // TODO: implement exitCode
-//   Future<int> get exitCode => _exitCodeCompleter.future;
+//   // todo: implement exitcode
+//   future<int> get exitcode => _exitcodecompleter.future;
 
 //   @override
 //   void init() {
-//     _exitCodeCompleter = Completer<int>();
-//     _outStream = StreamController<String>();
-//     _hasInitBeenCalled = true;
+//     _exitcodecompleter = completer<int>();
+//     _outstream = streamcontroller<string>();
+//     _hasinitbeencalled = true;
 //   }
 
 //   @override
-//   Stream<String> get out => _outStream.stream;
+//   stream<string> get out => _outstream.stream;
 
 //   @override
-//   void resize(int width, int height, int pixelWidth, int pixelHeight) {
+//   void resize(int width, int height, int pixelwidth, int pixelheight) {
 //     _width = width;
 //     _height = height;
-//     _pixelWidth = pixelWidth;
-//     _pixelHeight = pixelHeight;
+//     _pixelwidth = pixelwidth;
+//     _pixelheight = pixelheight;
 //   }
 
 //   @override
 //   void terminate() {
-//     _isTerminated = true;
+//     _isterminated = true;
 //   }
 
 //   @override
-//   void write(String _) {}
+//   void write(string _) {}
 
-//   bool get hasInitBeenCalled => _hasInitBeenCalled;
-//   bool get isTerminated => _isTerminated;
+//   bool get hasinitbeencalled => _hasinitbeencalled;
+//   bool get isterminated => _isterminated;
 
 //   int? get width => _width;
 //   int? get height => _height;
-//   int? get pixelWidth => _pixelWidth;
-//   int? get pixelHeight => _pixelHeight;
+//   int? get pixelwidth => _pixelwidth;
+//   int? get pixelheight => _pixelheight;
 
-//   bool _hasInitBeenCalled = false;
-//   bool _isTerminated = false;
+//   bool _hasinitbeencalled = false;
+//   bool _isterminated = false;
 //   int? _width;
 //   int? _height;
-//   int? _pixelWidth;
-//   int? _pixelHeight;
+//   int? _pixelwidth;
+//   int? _pixelheight;
 
-//   late final _exitCodeCompleter;
-//   late final _outStream;
+//   late final _exitcodecompleter;
+//   late final _outstream;
 // }

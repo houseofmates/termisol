@@ -29,11 +29,11 @@ void main() {
     });
 
     test('pasteBracketed handles missing clipboard gracefully', () async {
-      // Clipboard is unavailable in test environment; expect it to not crash.
+      // clipboard is unavailable in test environment; expect it to not crash.
       try {
         await clipboard.pasteBracketed();
       } catch (e) {
-        // Expected in headless test environment
+        // expected in headless test environment
       }
     });
   });

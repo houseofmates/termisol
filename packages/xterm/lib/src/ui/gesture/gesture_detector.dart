@@ -60,18 +60,18 @@ class _TerminalGestureDetectorState extends State<TerminalGestureDetector> {
 
   Offset? _lastTapOffset;
 
-  // True if a second tap down of a double tap is detected. Used to discard
+  // true if a second tap down of a double tap is detected. used to discard
   // subsequent tap up / tap hold of the same tap.
   bool _isDoubleTap = false;
 
-  // The down handler is force-run on success of a single tap and optimistically
+  // the down handler is force-run on success of a single tap and optimistically
   // run before a long press success.
   void _handleTapDown(TapDownDetails details) {
     widget.onTapDown?.call(details);
 
     if (_doubleTapTimer != null &&
         _isWithinDoubleTapTolerance(details.globalPosition)) {
-      // If there was already a previous tap, the second down hold/tap is a
+      // if there was already a previous tap, the second down hold/tap is a
       // double tap down.
       widget.onDoubleTapDown?.call(details);
 
@@ -128,7 +128,7 @@ class _TerminalGestureDetectorState extends State<TerminalGestureDetector> {
         debugOwner: this,
         supportedDevices: {
           PointerDeviceKind.touch,
-          // PointerDeviceKind.mouse, // for debugging purposes only
+          // pointerdevicekind.mouse, // for debugging purposes only
         },
       ),
       (LongPressGestureRecognizer instance) {

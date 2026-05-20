@@ -15,15 +15,15 @@ class TerminalPainter {
         _theme = theme,
         _textScaler = textScaler;
 
-  /// A lookup table from terminal colors to Flutter colors.
+  /// a lookup table from terminal colors to flutter colors.
   late var _colorPalette = PaletteBuilder(_theme).build();
 
-  /// Size of each character in the terminal.
+  /// size of each character in the terminal.
   late var _cellSize = _measureCharSize();
 
-  /// The cached for cells in the terminal. Should be cleared when the same
-  /// cell no longer produces the same visual output. For example, when
-  /// [_textStyle] is changed, or when the system font changes.
+  /// the cached for cells in the terminal. should be cleared when the same
+  /// cell no longer produces the same visual output. for example, when
+  /// [_textstyle] is changed, or when the system font changes.
   final _paragraphCache = ParagraphCache(10240);
 
   TerminalStyle get textStyle => _textStyle;
@@ -75,17 +75,17 @@ class TerminalPainter {
     return result;
   }
 
-  /// The size of each character in the terminal.
+  /// the size of each character in the terminal.
   Size get cellSize => _cellSize;
 
-  /// When the set of font available to the system changes, call this method to
+  /// when the set of font available to the system changes, call this method to
   /// clear cached state related to font rendering.
   void clearFontCache() {
     _cellSize = _measureCharSize();
     _paragraphCache.clear();
   }
 
-  /// Paints the cursor based on the current cursor type.
+  /// paints the cursor based on the current cursor type.
   void paintCursor(
     Canvas canvas,
     Offset offset, {
@@ -137,7 +137,7 @@ class TerminalPainter {
     );
   }
 
-  /// Paints [line] to [canvas] at [offset]. The x offset of [offset] is usually
+  /// paints [line] to [canvas] at [offset]. the x offset of [offset] is usually
   /// 0, and the y offset is the top of the line.
   void paintLine(
     Canvas canvas,
@@ -167,7 +167,7 @@ class TerminalPainter {
     }
   }
 
-  /// Returns true if the cell at [col] on [line] is within [selection].
+  /// returns true if the cell at [col] on [line] is within [selection].
   bool _isCellInSelection(int line, int col, BufferRange selection) {
     final beginLine = selection.begin.y;
     final endLine = selection.end.y;
@@ -189,7 +189,7 @@ class TerminalPainter {
     paintCellForeground(canvas, offset, cellData, isSelected: isSelected);
   }
 
-  /// Paints the character in the cell represented by [cellData] to [canvas] at
+  /// paints the character in the cell represented by [celldata] to [canvas] at
   /// [offset].
   @pragma('vm:prefer-inline')
   void paintCellForeground(Canvas canvas, Offset offset, CellData cellData,
@@ -209,7 +209,7 @@ class TerminalPainter {
           ? resolveForegroundColor(cellData.foreground)
           : resolveBackgroundColor(cellData.background);
 
-      // Override with selection foreground when selected.
+      // override with selection foreground when selected.
       if (isSelected && _theme.selectionForeground != null) {
         color = _theme.selectionForeground!;
       }
@@ -241,7 +241,7 @@ class TerminalPainter {
     canvas.drawParagraph(paragraph, offset);
   }
 
-  /// Paints the background of a cell represented by [cellData] to [canvas] at
+  /// paints the background of a cell represented by [celldata] to [canvas] at
   /// [offset].
   @pragma('vm:prefer-inline')
   void paintCellBackground(Canvas canvas, Offset offset, CellData cellData) {
@@ -263,8 +263,8 @@ class TerminalPainter {
     canvas.drawRect(offset & size, paint);
   }
 
-  /// Get the effective foreground color for a cell from information encoded in
-  /// [cellColor].
+  /// get the effective foreground color for a cell from information encoded in
+  /// [cellcolor].
   @pragma('vm:prefer-inline')
   Color resolveForegroundColor(int cellColor) {
     final colorType = cellColor & CellColor.typeMask;
@@ -282,8 +282,8 @@ class TerminalPainter {
     }
   }
 
-  /// Get the effective background color for a cell from information encoded in
-  /// [cellColor].
+  /// get the effective background color for a cell from information encoded in
+  /// [cellcolor].
   @pragma('vm:prefer-inline')
   Color resolveBackgroundColor(int cellColor) {
     final colorType = cellColor & CellColor.typeMask;

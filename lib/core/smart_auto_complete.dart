@@ -125,13 +125,13 @@ class SmartAutoComplete {
       _initializeCommonCommands();
       _isInitialized = true;
 
-      // Schedule periodic saves
+      // schedule periodic saves
       _saveTimer = Timer.periodic(
         const Duration(minutes: 5),
         (_) => _saveData(),
       );
     } catch (e) {
-      // Fallback to in-memory storage if persistence fails
+      // fallback to in-memory storage if persistence fails
       debugPrint('Warning: Failed to initialize auto-complete persistence: $e');
       _isInitialized = true;
     }
@@ -147,16 +147,16 @@ class SmartAutoComplete {
     final suggestions = <CommandSuggestion>[];
     final partialLower = partialCommand.toLowerCase();
 
-    // Exact matches first
+    // exact matches first
     suggestions.addAll(_getExactMatches(partialLower));
 
-    // Prefix matches
+    // prefix matches
     suggestions.addAll(_getPrefixMatches(partialLower));
 
-    // Fuzzy matches
+    // fuzzy matches
     suggestions.addAll(_getFuzzyMatches(partialLower));
 
-    // Remove duplicates and sort by score
+    // remove duplicates and sort by score
     final uniqueSuggestions = <String, CommandSuggestion>{};
     for (final suggestion in suggestions) {
       final existing = uniqueSuggestions[suggestion.command];
@@ -176,20 +176,20 @@ class SmartAutoComplete {
     final trimmedCommand = command.trim();
     if (trimmedCommand.isEmpty) return;
 
-    // Remove from recent if it exists and add to front
+    // remove from recent if it exists and add to front
     _recentCommands.remove(trimmedCommand);
     _recentCommands.insert(0, trimmedCommand);
 
-    // Limit history size
+    // limit history size
     if (_recentCommands.length > _maxHistorySize) {
       _recentCommands.removeRange(_maxHistorySize, _recentCommands.length);
     }
 
-    // Update frequency
+    // update frequency
     _commandFrequency[trimmedCommand] =
         (_commandFrequency[trimmedCommand] ?? 0) + 1;
 
-    // Debounced save
+    // debounced save
     _scheduleSave();
   }
 
@@ -218,7 +218,7 @@ class SmartAutoComplete {
     _saveData();
   }
 
-  // Private methods
+  // private methods
 
   void _initializeCommonCommands() {
     for (final command in _commonCommands) {
@@ -245,14 +245,14 @@ class SmartAutoComplete {
   List<CommandSuggestion> _getExactMatches(String partialLower) {
     final matches = <CommandSuggestion>[];
 
-    // Check custom commands first
+    // check custom commands first
     for (final entry in _customCommands.entries) {
       if (entry.key.toLowerCase() == partialLower) {
         matches.add(entry.value);
       }
     }
 
-    // Check history
+    // check history
     for (final command in _recentCommands) {
       if (command.toLowerCase() == partialLower) {
         final frequency = _commandFrequency[command] ?? 0;
@@ -275,7 +275,7 @@ class SmartAutoComplete {
     final matches = <CommandSuggestion>[];
     final seen = <String>{};
 
-    // Custom commands
+    // custom commands
     for (final entry in _customCommands.entries) {
       if (entry.key.toLowerCase().startsWith(partialLower) &&
           !seen.contains(entry.key)) {
@@ -284,7 +284,7 @@ class SmartAutoComplete {
       }
     }
 
-    // History commands
+    // history commands
     for (final command in _recentCommands) {
       if (command.toLowerCase().startsWith(partialLower) &&
           !seen.contains(command)) {
@@ -302,7 +302,7 @@ class SmartAutoComplete {
       }
     }
 
-    // Common commands
+    // common commands
     for (final command in _commonCommands) {
       if (command.startsWith(partialLower) && !seen.contains(command)) {
         matches.add(
@@ -324,7 +324,7 @@ class SmartAutoComplete {
     final matches = <CommandSuggestion>[];
     final seen = <String>{};
 
-    // Simple fuzzy matching - check if all characters of partial appear in order
+    // simple fuzzy matching - check if all characters of partial appear in order
     for (final command in _recentCommands) {
       if (_isFuzzyMatch(command.toLowerCase(), partialLower) &&
           !seen.contains(command)) {

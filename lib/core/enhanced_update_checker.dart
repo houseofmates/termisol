@@ -8,7 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Enhanced update checker with GitHub API integration and cryptographic verification.
+/// enhanced update checker with github api integration and cryptographic verification.
 class EnhancedUpdateChecker {
   static final EnhancedUpdateChecker _instance = EnhancedUpdateChecker._internal();
   factory EnhancedUpdateChecker() => _instance;
@@ -76,7 +76,7 @@ class EnhancedUpdateChecker {
 
   Future<void> _getCurrentVersion() async {
     try {
-      // Try to get version from pubspec.yaml first
+      // try to get version from pubspec.yaml first
       final pubspecFile = File('pubspec.yaml');
       if (await pubspecFile.exists()) {
         final content = await pubspecFile.readAsString();
@@ -89,7 +89,7 @@ class EnhancedUpdateChecker {
         }
       }
       
-      // Fallback to hardcoded version
+      // fallback to hardcoded version
       _currentVersion ??= '1.0.0';
       
       debugPrint('Current version: $_currentVersion');
@@ -111,13 +111,13 @@ class EnhancedUpdateChecker {
     try {
       debugPrint('Checking for updates...');
       
-      // Check for stable release
+      // check for stable release
       final stableRelease = await _fetchLatestRelease(stable: true);
       if (stableRelease != null) {
         _latestRelease = stableRelease;
       }
       
-      // Check for beta release if enabled
+      // check for beta release if enabled
       if (_betaUpdatesEnabled) {
         final betaRelease = await _fetchLatestRelease(stable: false);
         if (betaRelease != null) {
@@ -125,7 +125,7 @@ class EnhancedUpdateChecker {
         }
       }
       
-      // Determine update status
+      // determine update status
       await _determineUpdateStatus();
       
       debugPrint('Update check completed');
@@ -156,7 +156,7 @@ class EnhancedUpdateChecker {
         if (stable) {
           return ReleaseInfo.fromJson(data as Map<String, dynamic>);
         } else {
-          // For beta, get the first non-prerelease or latest prerelease
+          // for beta, get the first non-prerelease or latest prerelease
           final releases = (data as List).map((r) => ReleaseInfo.fromJson(r as Map<String, dynamic>)).toList();
           return releases.isNotEmpty ? releases.first : null;
         }
@@ -225,19 +225,19 @@ class EnhancedUpdateChecker {
     try {
       debugPrint('Downloading update: ${targetRelease.version}');
       
-      // Find appropriate asset for current platform
+      // find appropriate asset for current platform
       final asset = _findPlatformAsset(targetRelease);
       if (asset == null) {
         return UpdateResult.failure('No compatible asset found for this platform');
       }
 
-      // Download file
+      // download file
       final downloadResult = await _downloadAsset(asset, targetRelease.version);
       if (!downloadResult.success) {
         return downloadResult;
       }
 
-      // Verify checksum
+      // verify checksum
       final verificationResult = await _verifyAssetChecksum(downloadResult.filePath!, asset.checksum);
       if (!verificationResult.success) {
         await File(downloadResult.filePath!).delete();
@@ -328,7 +328,7 @@ class EnhancedUpdateChecker {
   Future<UpdateResult> _verifyAssetChecksum(String filePath, String? expectedChecksum) async {
     try {
       if (expectedChecksum == null || expectedChecksum.isEmpty) {
-        return UpdateResult.success(); // No checksum to verify
+        return UpdateResult.success(); // no checksum to verify
       }
       
       final file = File(filePath);
@@ -373,10 +373,10 @@ class EnhancedUpdateChecker {
     try {
       final file = File(filePath);
       
-      // Make file executable
+      // make file executable
       await Process.run('chmod', ['+x', filePath]);
       
-      // Create installation script
+      // create installation script
       final script = '''
 #!/bin/bash
 # Termisol Update Installation Script
@@ -400,7 +400,7 @@ echo "Please restart Termisol to use the new version."
       await scriptFile.writeAsString(script);
       await Process.run('chmod', ['+x', scriptFile.path]);
       
-      // Run installation script
+      // run installation script
       final result = await Process.run(scriptFile.path, []);
       
       if (result.exitCode == 0) {
@@ -415,13 +415,13 @@ echo "Please restart Termisol to use the new version."
 
   Future<UpdateResult> _installMacOSUpdate(String filePath) async {
     try {
-      // Mount and copy DMG
+      // mount and copy dmg
       final result = await Process.run('hdiutil', ['attach', filePath]);
       if (result.exitCode != 0) {
         return UpdateResult.failure('Failed to mount DMG: ${result.stderr}');
       }
       
-      // Extract volume name from output
+      // extract volume name from output
       final output = result.stdout as String;
       final volumeMatch = RegExp(r'/Volumes/(.+)').firstMatch(output);
       if (volumeMatch == null) {
@@ -431,13 +431,13 @@ echo "Please restart Termisol to use the new version."
       final volumePath = '/Volumes/${volumeMatch.group(1)}';
       final appPath = '$volumePath/Termisol.app';
       
-      // Copy to Applications
+      // copy to applications
       final copyResult = await Process.run('cp', ['-R', appPath, '/Applications/']);
       if (copyResult.exitCode != 0) {
         return UpdateResult.failure('Failed to copy app: ${copyResult.stderr}');
       }
       
-      // Unmount
+      // unmount
       await Process.run('hdiutil', ['detach', volumePath]);
       
       return UpdateResult.success();
@@ -448,7 +448,7 @@ echo "Please restart Termisol to use the new version."
 
   Future<UpdateResult> _installWindowsUpdate(String filePath) async {
     try {
-      // Run installer silently
+      // run installer silently
       final result = await Process.run(filePath, ['/S']);
       
       if (result.exitCode == 0) {
@@ -487,7 +487,7 @@ echo "Please restart Termisol to use the new version."
       if (betaUpdatesEnabled != null) {
         _betaUpdatesEnabled = betaUpdatesEnabled;
         await prefs.setBool('update_beta_enabled', betaUpdatesEnabled);
-        await _checkForUpdates(); // Re-check with new settings
+        await _checkForUpdates(); // re-check with new settings
       }
       
       if (checkInterval != null) {
@@ -495,7 +495,7 @@ echo "Please restart Termisol to use the new version."
         await prefs.setInt('update_check_interval_hours', checkInterval.inHours);
         
         if (_autoCheckEnabled) {
-          _startAutoCheck(); // Restart with new interval
+          _startAutoCheck(); // restart with new interval
         }
       }
       
@@ -594,7 +594,7 @@ class AssetInfo {
         name: json['name'] as String? ?? '',
         downloadUrl: json['browser_download_url'] as String? ?? '',
         size: json['size'] as int? ?? 0,
-        checksum: json['checksum'] as String?, // Would need to be stored in release notes
+        checksum: json['checksum'] as String?, // would need to be stored in release notes
         contentType: json['content_type'] as String? ?? '',
       );
 

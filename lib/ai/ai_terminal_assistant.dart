@@ -69,7 +69,7 @@ class NvidiaAITerminalAssistant {
     }
   }
 
-  /// probe common local LLM endpoints to find gemma 4:4b on android.
+  /// probe common local llm endpoints to find gemma 4:4b on android.
   Future<void> _detectLocalGemma() async {
     const candidates = [
       'http://localhost:11434/api/tags',
@@ -99,8 +99,8 @@ class NvidiaAITerminalAssistant {
     }
   }
 
-  /// process text input and return AI response.
-  /// on android with a local model, falls back to the local endpoint if the cloud API fails.
+  /// process text input and return ai response.
+  /// on android with a local model, falls back to the local endpoint if the cloud api fails.
   Future<AIResponse> processText({
     required String input,
     required AICapability capability,
@@ -399,7 +399,7 @@ class NvidiaAITerminalAssistant {
     _eventController.add(AIEvent.contextCleared(contextId));
   }
 
-  /// get AI assistant statistics
+  /// get ai assistant statistics
   Map<String, dynamic> getStatistics() {
     return {
       'initialized': _isInitialized,

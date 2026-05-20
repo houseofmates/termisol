@@ -800,7 +800,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Column(
               children: [
-                // Top toolbar
+                // top toolbar
                 Container(
                   height: 50,
                   color: PkmTheme.terminalBg,
@@ -855,7 +855,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                // Tab bar
+                // tab bar
                 Container(
                   height: PkmTheme.tabBarHeight,
                   color: _broadcastMode
@@ -911,7 +911,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   child: Row(
                                     children: [
-                                      // Drag handle
+                                      // drag handle
                                       ReorderableDragStartListener(
                                         index: index,
                                         child: Container(
@@ -929,7 +929,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                         ),
                                       ),
-                                      // Tab content (tap + right-click)
+                                      // tab content (tap + right-click)
                                       Expanded(
                                         child: GestureDetector(
                                           onTap: () => _switchTab(index),
@@ -991,7 +991,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                         ),
                                       ),
-                                      // Close button
+                                      // close button
                                       InkWell(
                                         onTap: () => _closeTab(index),
                                         child: SizedBox(
@@ -1086,13 +1086,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            // Command palette overlay
+            // command palette overlay
             if (_showCommandPalette)
               CommandPalette(
                 actions: _buildPaletteActions(),
                 onClose: () => setState(() => _showCommandPalette = false),
               ),
-            // Search overlay
+            // search overlay
             if (_showSearch && _activeSession != null)
               TerminalSearchOverlay(
                 terminal: _activeSession!.terminal,
@@ -1100,19 +1100,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 scrollController: _tabScrollControllers[_activeSession!.id],
                 session: _activeSession,
               ),
-            // Command history search overlay
+            // command history search overlay
             if (_showHistorySearch && _activeSession != null)
               CommandHistorySearch(
                 session: _activeSession!,
                 onClose: () => setState(() => _showHistorySearch = false),
               ),
-            // Performance overlay
+            // performance overlay
             if (_showPerformanceOverlay)
               TermisolPerformanceOverlay(
                 onDismiss: () =>
                     setState(() => _showPerformanceOverlay = false),
               ),
-            // Hints mode overlay
+            // hints mode overlay
             if (_showHintsMode && _activeSession != null)
               Positioned.fill(
                 child: HintsModeOverlay(

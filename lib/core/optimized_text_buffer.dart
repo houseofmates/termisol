@@ -1,6 +1,6 @@
 import 'dart:collection';
 
-/// Optimized text buffer with bounded history and fast line access.
+/// optimized text buffer with bounded history and fast line access.
 class OptimizedTextBuffer {
   final int maxLines;
   final _lines = Queue<String>();

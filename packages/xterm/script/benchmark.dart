@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:xterm/xterm.dart';
 
 void main() {
-  // BenchmarkWrite().run();
-  // BenchmarkWrite2().run();
-  // BenchmarkWriteBuffer().run();
-  // BenchmarkWriteCMatrix().run();
+  // benchmarkwrite().run();
+  // benchmarkwrite2().run();
+  // benchmarkwritebuffer().run();
+  // benchmarkwritecmatrix().run();
   BenchmarkWriteLines().run();
 }
 

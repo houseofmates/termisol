@@ -24,7 +24,7 @@ void main() {
       final encoder = VrFrameEncoder();
       final bytes = encoder.encode(terminal);
 
-      // First cell should contain 'A' (0x41)
+      // first cell should contain 'a' (0x41)
       final view = ByteData.view(bytes.buffer);
       expect(view.getUint32(0, Endian.little), 0x41);
     });

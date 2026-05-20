@@ -32,7 +32,7 @@ class AndroidShellBackend implements TermisolPtyBackend {
   int _retryCount = 0;
   static const int _maxRetries = 3;
 
-  // Line-discipline buffer for interactive use without a PTY.
+  // line-discipline buffer for interactive use without a pty.
   final StringBuffer _lineBuffer = StringBuffer();
 
   StreamSubscription<dynamic>? _stdoutSub;
@@ -169,7 +169,7 @@ class AndroidShellBackend implements TermisolPtyBackend {
 
       if (kDebugMode) debugPrint('[androidshell] started shell: $shell');
 
-      // Set a colored PS1 and emit the first prompt.
+      // set a colored ps1 and emit the first prompt.
       _ps1Timer = Timer(const Duration(milliseconds: 300), () {
         if (!_isRunning || _isDisposed) return;
         final user = Platform.environment['USER'] ?? 'user';
@@ -230,7 +230,7 @@ class AndroidShellBackend implements TermisolPtyBackend {
     }
   }
 
-  /// Simple line discipline for Android shells running without a PTY.
+  /// simple line discipline for android shells running without a pty.
   @override
   void write(List<int> data) {
     if (_process == null || !_isRunning) return;
@@ -241,7 +241,7 @@ class AndroidShellBackend implements TermisolPtyBackend {
     try {
       final text = utf8.decode(data, allowMalformed: true);
 
-      // Escape sequences (arrow keys, etc.) go straight to the shell.
+      // escape sequences (arrow keys, etc.) go straight to the shell.
       if (text.contains('\x1b')) {
         _safeWriteStdin(text);
         return;
@@ -299,7 +299,7 @@ class AndroidShellBackend implements TermisolPtyBackend {
 
   @override
   void resize(int cols, int rows) {
-    // No-op: without a PTY resize escape sequences are meaningless to the shell.
+    // no-op: without a pty resize escape sequences are meaningless to the shell.
   }
 
   @override

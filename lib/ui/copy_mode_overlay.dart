@@ -58,7 +58,7 @@ class _CopyModeOverlayState extends State<CopyModeOverlay> {
     super.dispose();
   }
 
-  /// Build filtered display text and a mapping to buffer lines.
+  /// build filtered display text and a mapping to buffer lines.
   ({String text, List<_LineMapping> mappings}) _buildDisplayMappings() {
     final buffer = widget.terminal.buffer;
     final height = buffer.height;
@@ -157,7 +157,7 @@ class _CopyModeOverlayState extends State<CopyModeOverlay> {
         color: PkmTheme.background.withValues(alpha: 0.95),
         child: Column(
           children: [
-            // Header bar
+            // header bar
             Container(
               height: 44,
               color: PkmTheme.tabActiveBg,
@@ -199,7 +199,7 @@ class _CopyModeOverlayState extends State<CopyModeOverlay> {
                 ],
               ),
             ),
-            // Search box
+            // search box
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextField(
@@ -234,7 +234,7 @@ class _CopyModeOverlayState extends State<CopyModeOverlay> {
                 ),
               ),
             ),
-            // Scrollable selectable text
+            // scrollable selectable text
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(12),

@@ -62,5 +62,5 @@ abstract class CellContent {
   static const codepointMask = 0x1fffff;
 
   static const widthShift = 22;
-  // static const widthMask = 3 << widthShift;
+  // static const widthmask = 3 << widthshift;
 }

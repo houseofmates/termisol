@@ -10,24 +10,24 @@ void main() {
     await pty.exitCode;
   }, timeout: Timeout.factor(0.3));
 
-  // on windows PseudoTerminal only works in Flutter release mode..
+  // on windows pseudoterminal only works in flutter release mode..
 
-  // test('Can read exit code', () async {
-  //   final pty = PseudoTerminal.start(_getShell(), []);
+  // test('can read exit code', () async {
+  //   final pty = pseudoterminal.start(_getshell(), []);
   //   pty.write('exit 3\n');
-  //   expect(await pty.exitCode, equals(3));
-  // }, timeout: Timeout.factor(0.3));
+  //   expect(await pty.exitcode, equals(3));
+  // }, timeout: timeout.factor(0.3));
 
   // test('echo test', () async {
-  //   final pty = PseudoTerminal.start(_getShell(), []);
+  //   final pty = pseudoterminal.start(_getshell(), []);
   //   pty.write('echo hello world\n');
 
-  //   final output = await pty.out.single.timeout(Duration(seconds: 10));
+  //   final output = await pty.out.single.timeout(duration(seconds: 10));
   //   expect(output, equals('hello world'));
 
   //   pty.kill();
-  //   await pty.exitCode.timeout(Duration(seconds: 10));
-  // }, timeout: Timeout.factor(0.3));
+  //   await pty.exitcode.timeout(duration(seconds: 10));
+  // }, timeout: timeout.factor(0.3));
 }
 
 String _getShell() {

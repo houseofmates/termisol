@@ -17,7 +17,7 @@ abstract class TermisolPtyBackend {
   Future<void> stop();
   Future<void> terminate();
 
-  /// Auto-detect the best backend for the current platform.
+  /// auto-detect the best backend for the current platform.
   factory TermisolPtyBackend.autoDetect({
     String? workingDirectory,
     Encoding encoding = utf8,
@@ -104,7 +104,7 @@ class _PtyBackend implements TermisolPtyBackend {
 
     if (kDebugMode) debugPrint('[pty] started pty: $shell');
 
-    // Inject termisol-colored PS1 after shell initializes.
+    // inject termisol-colored ps1 after shell initializes.
     _ps1Timer = Timer(const Duration(milliseconds: 200), () {
       if (_isRunning && _pty != null && !_isDisposed) {
         try {

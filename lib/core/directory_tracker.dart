@@ -14,12 +14,12 @@ class DirectoryTracker {
   final StringBuffer _buffer = StringBuffer();
   static const int _maxBufferSize = 4096;
 
-  // OSC 7: \x1b]7;file://hostname/path\x07 or \x1b]7;file://hostname/path\x1b\\
+  // osc 7: \x1b]7;file://hostname/path\x07 or \x1b]7;file://hostname/path\x1b\\
   static final RegExp _osc7Regex = RegExp(
     r'\x1b\]7;file://[^/]*([^\x07\x1b]+)(?:\x07|\x1b\\)',
   );
 
-  // Prompt patterns applied after stripping ANSI codes.
+  // prompt patterns applied after stripping ansi codes.
   static final List<RegExp> _promptPatterns = [
     // user@host:~/path $   or   user@host:/abs/path $
     RegExp(r':\s*([~/][^\$#%>\n]*?)\s*[\$#%>]\s*$'),
@@ -27,23 +27,23 @@ class DirectoryTracker {
     RegExp(r'^([~/][^\$#%>\n]*?)\s*[\$#%>]\s*$'),
   ];
 
-  /// Feed a chunk of terminal output to the tracker.
+  /// feed a chunk of terminal output to the tracker.
   void processOutput(String text) {
     _buffer.write(text);
 
     String bufferStr = _buffer.toString();
     if (bufferStr.length > _maxBufferSize) {
       var start = bufferStr.length - _maxBufferSize;
-      // Scan forward from start to a safe boundary so we do not split
+      // scan forward from start to a safe boundary so we do not split
       // an escape sequence at the head of the retained buffer.
       final esc = bufferStr.indexOf('\x1b', start);
       if (esc != -1 && esc > start) {
-        // If an ESC begins shortly after the cut, move the cut to just
+        // if an esc begins shortly after the cut, move the cut to just
         // before it so the sequence is either wholly kept or discarded.
         start = esc;
       }
-      // If the buffer now starts inside an OSC sequence (\x1b] without
-      // its terminator yet), advance to the next newline or ESC to
+      // if the buffer now starts inside an osc sequence (\x1b] without
+      // its terminator yet), advance to the next newline or esc to
       // avoid a malformed partial sequence.
       if (bufferStr.length > start + 2 &&
           bufferStr[start] == '\x1b' &&
@@ -63,13 +63,13 @@ class DirectoryTracker {
       _buffer.write(bufferStr);
     }
 
-    // Attempt OSC 7 extraction first.
+    // attempt osc 7 extraction first.
     final oscMatch = _osc7Regex.firstMatch(bufferStr);
     if (oscMatch != null) {
       final rawPath = oscMatch.group(1)!;
       final path = _decodeUriPath(rawPath);
       _updateDirectory(path);
-      // Discard everything up to and including the matched sequence.
+      // discard everything up to and including the matched sequence.
       _buffer.clear();
       if (oscMatch.end < bufferStr.length) {
         _buffer.write(bufferStr.substring(oscMatch.end));
@@ -77,7 +77,7 @@ class DirectoryTracker {
       return;
     }
 
-    // Fallback: examine the last few lines for prompt patterns.
+    // fallback: examine the last few lines for prompt patterns.
     final lines = bufferStr.split(RegExp(r'\r?\n'));
     for (final line in lines.reversed.take(3)) {
       final clean = _stripAnsi(line);
@@ -100,14 +100,14 @@ class DirectoryTracker {
     }
   }
 
-  /// Remove ANSI escape sequences from [text].
+  /// remove ansi escape sequences from [text].
   static String _stripAnsi(String text) {
     return text
-        .replaceAll(RegExp(r'\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)'), '') // OSC
-        .replaceAll(RegExp(r'\x1b\[[0-9;]*[a-zA-Z]'), ''); // CSI
+        .replaceAll(RegExp(r'\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)'), '') // osc
+        .replaceAll(RegExp(r'\x1b\[[0-9;]*[a-zA-Z]'), ''); // csi
   }
 
-  /// Decode a percent-encoded path from an OSC 7 URI.
+  /// decode a percent-encoded path from an osc 7 uri.
   static String _decodeUriPath(String encoded) {
     try {
       return Uri.decodeComponent(encoded);

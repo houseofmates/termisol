@@ -10,7 +10,7 @@ import 'package:pty/src/pty_core.dart';
 export 'src/pty.dart';
 
 abstract class PseudoTerminal {
-  /// If [blocking] is [true], the PseudoTerminal starts in blocking mode
+  /// if [blocking] is [true], the pseudoterminal starts in blocking mode
   /// (better suited for flutter release mode), otherwise in polling mode
   /// (better suited for flutter debug mode).
   static PseudoTerminal start(
@@ -20,9 +20,9 @@ abstract class PseudoTerminal {
     Map<String, String>? environment,
     bool blocking = false,
     bool ackProcessed = false,
-    // bool includeParentEnvironment = true,
-    // bool runInShell = false,
-    // ProcessStartMode mode = ProcessStartMode.normal,
+    // bool includeparentenvironment = true,
+    // bool runinshell = false,
+    // processstartmode mode = processstartmode.normal,
   }) {
     late PtyCore core;
 

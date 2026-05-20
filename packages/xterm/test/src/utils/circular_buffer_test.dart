@@ -90,8 +90,8 @@ void main() {
     });
 
     // test("setting the length erases trail", () {
-    //   final cl = CircularList<Box<int>>(10);
-    //   cl.pushAll(List<int>.generate(10, (index) => index).map(Box.new));
+    //   final cl = circularlist<box<int>>(10);
+    //   cl.pushall(list<int>.generate(10, (index) => index).map(box.new));
 
     //   expect(cl.length, 10);
     //   expect(cl[0], 0.box);
@@ -101,7 +101,7 @@ void main() {
 
     //   expect(cl.length, 5);
     //   expect(cl[0], 0.box);
-    //   expect(() => cl[5], throwsRangeError);
+    //   expect(() => cl[5], throwsrangeerror);
     // });
 
     test("foreach works", () {

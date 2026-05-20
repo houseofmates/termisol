@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 
-/// High-performance ring buffer for terminal scrollback with memory optimization
-/// Prevents memory exhaustion and provides configurable limits with compression
+/// high-performance ring buffer for terminal scrollback with memory optimization
+/// prevents memory exhaustion and provides configurable limits with compression
 class RingBufferScrollback {
   final int maxLines;
   final int compressionThreshold;
@@ -16,12 +16,12 @@ class RingBufferScrollback {
   int _size = 0;
   bool _isFull = false;
   
-  // Memory optimization
+  // memory optimization
   final Map<int, Uint8List> _compressedLines = {};
   Timer? _gcTimer;
   int _lastGcTime = 0;
   
-  // Performance metrics
+  // performance metrics
   int _totalLinesAdded = 0;
   int _totalLinesCompressed = 0;
   int _totalLinesEvicted = 0;
@@ -35,13 +35,13 @@ class RingBufferScrollback {
     _startGcTimer();
   }
 
-  /// Stream of scrollback performance metrics
+  /// stream of scrollback performance metrics
   Stream<ScrollbackMetrics> get metrics => _metricsController.stream;
 
-  /// Add a new line to the scrollback buffer
+  /// add a new line to the scrollback buffer
   void addLine(TerminalLine line) {
     if (_isFull) {
-      // Compress old line before overwriting
+      // compress old line before overwriting
       _compressLine(_tail);
       _tail = (_tail + 1) % maxLines;
       _totalLinesEvicted++;
@@ -53,13 +53,13 @@ class RingBufferScrollback {
     _isFull = _size >= maxLines;
     _totalLinesAdded++;
     
-    // Trigger compression if threshold reached
+    // trigger compression if threshold reached
     if (_totalLinesAdded >= compressionThreshold) {
       _compressOldLines();
     }
   }
 
-  /// Get a line by index (0 = newest, size-1 = oldest)
+  /// get a line by index (0 = newest, size-1 = oldest)
   TerminalLine? getLine(int index) {
     if (index < 0 || index >= _size) return null;
     
@@ -78,7 +78,7 @@ class RingBufferScrollback {
     return line;
   }
 
-  /// Get the most recent N lines
+  /// get the most recent n lines
   List<TerminalLine> getRecentLines(int count) {
     final result = <TerminalLine>[];
     final actualCount = count < _size ? count : _size;
@@ -93,7 +93,7 @@ class RingBufferScrollback {
     return result;
   }
 
-  /// Search for lines containing the specified text
+  /// search for lines containing the specified text
   List<int> searchLines(String pattern, {bool caseSensitive = false}) {
     final results = <int>[];
     final searchPattern = caseSensitive ? pattern : pattern.toLowerCase();
@@ -112,7 +112,7 @@ class RingBufferScrollback {
     return results;
   }
 
-  /// Clear all lines
+  /// clear all lines
   void clear() {
     _head = 0;
     _tail = 0;
@@ -124,7 +124,7 @@ class RingBufferScrollback {
     _totalLinesEvicted = 0;
   }
 
-  /// Get current buffer statistics
+  /// get current buffer statistics
   ScrollbackMetrics getMetrics() {
     return ScrollbackMetrics(
       totalLines: _size,
@@ -138,7 +138,7 @@ class RingBufferScrollback {
     );
   }
 
-  /// Compress old lines to save memory
+  /// compress old lines to save memory
   void _compressOldLines() {
     if (_size < compressionThreshold) return;
     
@@ -156,7 +156,7 @@ class RingBufferScrollback {
     _totalLinesCompressed += linesToCompress;
   }
 
-  /// Compress a single line
+  /// compress a single line
   void _compressLine(int index) {
     final line = _buffer[index];
     if (line.isCompressed) return;
@@ -177,7 +177,7 @@ class RingBufferScrollback {
     }
   }
 
-  /// Decompress a compressed line
+  /// decompress a compressed line
   TerminalLine _decompressLine(TerminalLine compressedLine) {
     if (!compressedLine.isCompressed) return compressedLine;
     
@@ -189,14 +189,14 @@ class RingBufferScrollback {
     }
   }
 
-  /// Estimate memory usage in bytes
+  /// estimate memory usage in bytes
   int _estimateMemoryUsage() {
     int totalSize = 0;
     
-    // Buffer size
-    totalSize += _size * 1024; // Rough estimate per line
+    // buffer size
+    totalSize += _size * 1024; // rough estimate per line
     
-    // Compressed lines
+    // compressed lines
     for (final compressed in _compressedLines.values) {
       totalSize += compressed.length;
     }
@@ -204,28 +204,28 @@ class RingBufferScrollback {
     return totalSize;
   }
 
-  /// Start garbage collection timer
+  /// start garbage collection timer
   void _startGcTimer() {
     _gcTimer = Timer.periodic(const Duration(minutes: 5), (_) {
       _performGarbageCollection();
     });
   }
 
-  /// Perform garbage collection on old compressed lines
+  /// perform garbage collection on old compressed lines
   void _performGarbageCollection() {
     final now = DateTime.now().millisecondsSinceEpoch;
-    if (now - _lastGcTime < 300000) return; // Don't GC more than once per 5 minutes
+    if (now - _lastGcTime < 300000) return; // don't gc more than once per 5 minutes
     
     _lastGcTime = now;
     
-    // Remove very old compressed lines if memory is high
+    // remove very old compressed lines if memory is high
     if (_estimateMemoryUsage() > gcThreshold * 1024) {
       final linesToRemove = _compressedLines.length ~/ 4;
       final keysToRemove = _compressedLines.keys.take(linesToRemove).toList();
       
       for (final key in keysToRemove) {
         _compressedLines.remove(key);
-        _buffer[key] = TerminalLine.fromText(''); // Clear the reference
+        _buffer[key] = TerminalLine.fromText(''); // clear the reference
       }
       
     }
@@ -233,12 +233,12 @@ class RingBufferScrollback {
     _emitMetrics();
   }
 
-  /// Emit current metrics
+  /// emit current metrics
   void _emitMetrics() {
     _metricsController.add(getMetrics());
   }
 
-  /// Dispose resources
+  /// dispose resources
   void dispose() {
     _gcTimer?.cancel();
     _metricsController.close();
@@ -247,7 +247,7 @@ class RingBufferScrollback {
   }
 }
 
-/// Enhanced terminal line with compression support
+/// enhanced terminal line with compression support
 class TerminalLine {
   final String text;
   final List<TerminalCell> cells;
@@ -304,12 +304,12 @@ class TerminalLine {
   }
 
   static List<TerminalCell> _parseCells(String text) {
-    // Simplified cell parsing - in a real implementation, this would parse ANSI codes
+    // simplified cell parsing - in a real implementation, this would parse ansi codes
     return text.split('').map((char) => TerminalCell(char: char)).toList();
   }
 }
 
-/// Terminal cell representation
+/// terminal cell representation
 class TerminalCell {
   final String char;
   final Color? foreground;
@@ -326,7 +326,7 @@ class TerminalCell {
   });
 }
 
-/// Color representation for terminal cells
+/// color representation for terminal cells
 class Color {
   final int r, g, b;
   
@@ -342,7 +342,7 @@ class Color {
   }
 }
 
-/// Scrollback performance metrics
+/// scrollback performance metrics
 class ScrollbackMetrics {
   final int totalLines;
   final int maxLines;

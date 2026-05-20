@@ -15,7 +15,7 @@ void main() {
 
     test('initialization sets theme and palette correctly', () {
       expect(resolver.theme, equals(theme));
-      // We can't access _palette directly, but we can verify it indirectly
+      // we can't access _palette directly, but we can verify it indirectly
       // through color resolution.
     });
 
@@ -60,30 +60,30 @@ void main() {
       });
 
       test('resolves CellColor.named (black)', () {
-        // CellColor.named uses lower 8 bits for index.
-        // Index 0 is typically black in 256 color palette
+        // cellcolor.named uses lower 8 bits for index.
+        // index 0 is typically black in 256 color palette
         final cellColor = CellColor.named | 0;
         final color = resolver.resolveForeground(cellColor);
         expect(color, equals(theme.black));
       });
 
       test('resolves CellColor.palette (index 15 - bright white)', () {
-        // CellColor.palette is basically the same as CellColor.named
+        // cellcolor.palette is basically the same as cellcolor.named
         final cellColor = CellColor.palette | 15;
         final color = resolver.resolveForeground(cellColor);
-        // Depending on terminal implementation, index 15 might be white instead of brightWhite,
+        // depending on terminal implementation, index 15 might be white instead of brightwhite,
         // let's check what actual palette returns instead.
-        // For default theme brightWhite might not map directly to index 15 in this specific implementation.
-        // Let's expect the color that it actually is.
+        // for default theme brightwhite might not map directly to index 15 in this specific implementation.
+        // let's expect the color that it actually is.
         expect(color, equals(const Color(0xffe5e5e5))); // 0.8980 is 229 -> e5
       });
 
       test('resolves CellColor.rgb', () {
-        // RGB uses lower 24 bits
+        // rgb uses lower 24 bits
         const rgbValue = 0x112233;
         final cellColor = CellColor.rgb | rgbValue;
         final color = resolver.resolveForeground(cellColor);
-        // RGB adds 0xFF000000 for full opacity
+        // rgb adds 0xff000000 for full opacity
         expect(color, equals(const Color(0xFF112233)));
       });
     });

@@ -19,7 +19,7 @@ class GpuRenderer {
 
   GpuTerminalPainter? _painter;
 
-  /// Warm up the GPU backend and mark the renderer ready.
+  /// warm up the gpu backend and mark the renderer ready.
   void initialize() {
     if (_initialized) return;
     _warmUpGpu();
@@ -43,8 +43,8 @@ class GpuRenderer {
     }
   }
 
-  /// Creates or updates a [GpuTerminalPainter] configured with the given
-  /// [theme], [textStyle] and [textScaler].
+  /// creates or updates a [gputerminalpainter] configured with the given
+  /// [theme], [textstyle] and [textscaler].
   GpuTerminalPainter createPainter({
     required TerminalTheme theme,
     required TerminalStyle textStyle,
@@ -65,13 +65,13 @@ class GpuRenderer {
     return _painter!;
   }
 
-  /// Dispose the cached painter and release native picture resources.
+  /// dispose the cached painter and release native picture resources.
   void dispose() {
     _painter?.clearFontCache();
     _painter = null;
   }
 
-  /// Wrap a widget in a [RepaintBoundary] to isolate its paint cost.
+  /// wrap a widget in a [repaintboundary] to isolate its paint cost.
   static Widget wrapWithGpuBoundary({required Widget child}) {
     return RepaintBoundary(child: child);
   }

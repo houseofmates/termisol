@@ -42,7 +42,7 @@ void main() {
     (tester) async {
       final terminal = Terminal();
 
-      // terminal.lineFeedMode = true;
+      // terminal.linefeedmode = true;
 
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(

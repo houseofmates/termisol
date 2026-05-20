@@ -8,7 +8,7 @@ import 'package:flutter/widgets.dart';
 class SuggestionPortalController extends OverlayPortalController {
   final _cursorRect = ValueNotifier<Rect>(Rect.zero);
 
-  /// Updates the location of the suggestion popup to [rect]. If the popup is
+  /// updates the location of the suggestion popup to [rect]. if the popup is
   /// not showing, it will be shown after this call.
   void update(Rect rect) {
     _cursorRect.value = rect;
@@ -32,10 +32,10 @@ class SuggestionPortal extends StatefulWidget {
 
   final WidgetBuilder overlayBuilder;
 
-  /// The minimum space between [child] and the screen edge.
+  /// the minimum space between [child] and the screen edge.
   final EdgeInsets padding;
 
-  /// The minimum space between [child] and the cursor. Currently, only top and
+  /// the minimum space between [child] and the cursor. currently, only top and
   /// bottom are used.
   final EdgeInsets cursorMargin;
 
@@ -72,13 +72,13 @@ class SuggestionLayout extends SingleChildRenderObjectWidget {
     required this.cursorMargin,
   });
 
-  /// The location of the cursor relative to the top left corner of this widget.
+  /// the location of the cursor relative to the top left corner of this widget.
   final ValueListenable<Rect> cursorRect;
 
-  /// The minimum space between [child] and the edge of this widget.
+  /// the minimum space between [child] and the edge of this widget.
   final EdgeInsets padding;
 
-  /// The minimum space between [child] and the cursor. Currently, only top and
+  /// the minimum space between [child] and the cursor. currently, only top and
   /// bottom are used.
   final EdgeInsets cursorMargin;
 
@@ -180,7 +180,7 @@ class RenderCompletionLayout extends RenderShiftedBox {
 
     child.layout(childConstraints, parentUsesSize: true);
 
-    // Whether the completion overlay can be placed above the cursor.
+    // whether the completion overlay can be placed above the cursor.
     final fitsBelow = spaceBelow >= child.size.height;
 
     final childParentData = child.parentData as BoxParentData;
@@ -189,7 +189,7 @@ class RenderCompletionLayout extends RenderShiftedBox {
         size.width - padding.right - child.size.width,
         cursorRect.value.left,
       ),
-      // Showing the completion overlay below the cursor is preferred, unless
+      // showing the completion overlay below the cursor is preferred, unless
       // there's insufficient space for it.
       fitsBelow
           ? cursorRect.value.bottom + cursorMargin.bottom

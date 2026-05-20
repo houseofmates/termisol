@@ -167,7 +167,7 @@ class _CommandPaletteState extends State<CommandPalette> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Search input
+                // search input
                 Padding(
                   padding: const EdgeInsets.all(12),
                   child: KeyboardListener(
@@ -219,10 +219,10 @@ class _CommandPaletteState extends State<CommandPalette> {
                   ),
                 ),
 
-                // Divider
+                // divider
                 const Divider(height: 1, color: PkmTheme.tabInactiveBg),
 
-                // Results
+                // results
                 Flexible(
                   child: _filtered.isEmpty
                       ? const Padding(

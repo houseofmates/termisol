@@ -270,19 +270,19 @@ class RobustErrorHandler {
     try {
       _logger.info('Triggering connection retry');
 
-      // Reset connection pools
+      // reset connection pools
       _connectionPool.clear();
 
-      // Cancel pending timeouts
+      // cancel pending timeouts
       for (final timer in _pendingTimeouts) {
         timer.cancel();
       }
       _pendingTimeouts.clear();
 
-      // Wait before retry
+      // wait before retry
       await Future.delayed(const Duration(seconds: 2));
 
-      // Reinitialize critical connections
+      // reinitialize critical connections
       await _reinitializeCriticalConnections();
 
       _logger.info('Connection retry completed');
@@ -296,14 +296,14 @@ class RobustErrorHandler {
     try {
       _logger.info('Triggering filesystem check');
 
-      // Check disk space
+      // check disk space
       try {
         final currentDir = Directory.current;
         final stat = await currentDir.stat();
         final freeSpace = stat.size;
 
         if (freeSpace < 100 * 1024 * 1024) {
-          // Less than 100MB
+          // less than 100mb
           _logger.warning(
             'Low disk space detected: ${(freeSpace / 1024 / 1024).toStringAsFixed(1)}MB',
           );
@@ -313,7 +313,7 @@ class RobustErrorHandler {
         _logger.warning('Failed to check disk space: $e');
       }
 
-      // Verify critical directories
+      // verify critical directories
       final criticalDirs = [
         Directory.current,
         Directory.systemTemp,
@@ -342,18 +342,18 @@ class RobustErrorHandler {
     try {
       _logger.info('Triggering network reset');
 
-      // Clear network cache
+      // clear network cache
       _networkCache.clear();
 
-      // Reset connection timeouts
+      // reset connection timeouts
       _connectionTimeouts.clear();
 
       _pendingRequests.clear();
 
-      // Wait for network to stabilize
+      // wait for network to stabilize
       await Future.delayed(const Duration(seconds: 3));
 
-      // Test basic connectivity
+      // test basic connectivity
       final connectivity = await _testBasicConnectivity();
       if (!connectivity) {
         _logger.warning('Network connectivity still unavailable');
@@ -379,7 +379,7 @@ class RobustErrorHandler {
         'uptime': DateTime.now().difference(_startTime).inSeconds,
       };
 
-      // Save to emergency file
+      // save to emergency file
       final documentsDir = await getApplicationDocumentsDirectory();
       final emergencyFile = File(
         '${documentsDir.path}/termisol_emergency_state.json',
@@ -403,10 +403,10 @@ class RobustErrorHandler {
       // clear image cache
       PaintingBinding.instance.imageCache.clear();
 
-      // Clear network cache
+      // clear network cache
       _networkCache.clear();
 
-      // Clear connection pool
+      // clear connection pool
       _connectionPool.clear();
 
       // clear performance metrics
@@ -437,18 +437,18 @@ class RobustErrorHandler {
     try {
       _logger.info('Restarting critical services');
 
-      // Cancel existing timers
+      // cancel existing timers
       _monitoringTimer?.cancel();
       _monitoringTimer = null;
 
-      // Clear state
+      // clear state
       _errorCount = 0;
       _lastError = null;
 
-      // Wait for cleanup
+      // wait for cleanup
       await Future.delayed(const Duration(seconds: 1));
 
-      // Restart monitoring
+      // restart monitoring
       _monitoringTimer = Timer.periodic(
         const Duration(seconds: 5),
         (_) => _performHealthCheck(),
@@ -463,7 +463,7 @@ class RobustErrorHandler {
   /// perform health check
   Future<void> _performHealthCheck() async {
     try {
-      // Check system health
+      // check system health
       final memoryUsage = await _checkMemoryUsage();
       final diskSpace = await _checkDiskSpace();
 
@@ -474,7 +474,7 @@ class RobustErrorHandler {
       }
 
       if (diskSpace < 100) {
-        // Less than 100MB
+        // less than 100mb
         _logger.warning('Low disk space: ${diskSpace.toStringAsFixed(1)}MB');
       }
     } catch (e) {
@@ -513,7 +513,7 @@ class RobustErrorHandler {
         if (match != null) return int.parse(match.group(1)!);
       } catch (_) {}
     }
-    return 8 * 1024 * 1024 * 1024; // 8GB fallback
+    return 8 * 1024 * 1024 * 1024; // 8gb fallback
   }
 
   /// check available disk space in mb.
@@ -599,7 +599,7 @@ class RobustErrorHandler {
 
   /// handle log records
   void _handleLogRecord(LogRecord record) {
-    // Convert log records to error reports if they're severe enough
+    // convert log records to error reports if they're severe enough
     if (record.level.value >= Level.SEVERE.value) {
       handleError(
         record.message,
@@ -626,7 +626,7 @@ class RobustErrorHandler {
   /// broadcast alert
   void _broadcastAlert(ErrorAlert alert) {
     _logger.warning('ALERT: ${alert.message}');
-    // Implementation would notify monitoring systems
+    // implementation would notify monitoring systems
   }
 
   /// persist error to disk
@@ -653,7 +653,7 @@ class RobustErrorHandler {
       if (await errorFile.exists()) {
         final lines = await errorFile.readAsLines();
         for (final line in lines.take(100)) {
-          // Load last 100 errors
+          // load last 100 errors
           try {
             final json = jsonDecode(line) as Map<String, dynamic>;
             final report = ErrorReport.fromJson(json);
@@ -673,7 +673,7 @@ class RobustErrorHandler {
     final cutoff = DateTime.now().subtract(const Duration(days: 7));
     _errorHistory.removeWhere((error) => error.timestamp.isBefore(cutoff));
 
-    // Clean up error counts older than window
+    // clean up error counts older than window
     final keysToRemove = <String>[];
     for (final entry in _lastErrorTime.entries) {
       if (DateTime.now().difference(entry.value) > _errorWindow) {
@@ -828,10 +828,10 @@ extension RobustErrorHandlerHelpers on RobustErrorHandler {
   /// reinitialize critical connections
   Future<void> _reinitializeCriticalConnections() async {
     try {
-      // Reset connection pool
+      // reset connection pool
       _connectionPool.clear();
 
-      // Test basic connectivity
+      // test basic connectivity
       await _testBasicConnectivity();
 
       debugPrint('Critical connections reinitialized');

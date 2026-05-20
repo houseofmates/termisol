@@ -11,15 +11,15 @@ class ParagraphCache {
 
   final LruMap<int, Paragraph> _cache;
 
-  /// Returns a [Paragraph] for the given [key]. [key] is the same as the
-  /// key argument to [performAndCacheLayout].
+  /// returns a [paragraph] for the given [key]. [key] is the same as the
+  /// key argument to [performandcachelayout].
   Paragraph? getLayoutFromCache(int key) {
     return _cache[key];
   }
 
-  /// Applies [style] and [textScaler] to [text] and lays it out to create
-  /// a [Paragraph]. The [Paragraph] is cached and can be retrieved with the
-  /// same [key] by calling [getLayoutFromCache].
+  /// applies [style] and [textscaler] to [text] and lays it out to create
+  /// a [paragraph]. the [paragraph] is cached and can be retrieved with the
+  /// same [key] by calling [getlayoutfromcache].
   Paragraph performAndCacheLayout(
     String text,
     TextStyle style,
@@ -37,14 +37,14 @@ class ParagraphCache {
     return paragraph;
   }
 
-  /// Clears the cache. This should be called when the same text and style
-  /// pair no longer produces the same layout. For example, when a font is
+  /// clears the cache. this should be called when the same text and style
+  /// pair no longer produces the same layout. for example, when a font is
   /// loaded.
   void clear() {
     _cache.clear();
   }
 
-  /// Returns the number of [Paragraph]s in the cache.
+  /// returns the number of [paragraph]s in the cache.
   int get length {
     return _cache.length;
   }

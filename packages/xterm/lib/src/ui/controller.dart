@@ -24,11 +24,11 @@ class TerminalController with ChangeNotifier {
   SelectionMode get selectionMode => _selectionMode;
   SelectionMode _selectionMode;
 
-  /// The set of pointer events which will be used as mouse input for the terminal.
+  /// the set of pointer events which will be used as mouse input for the terminal.
   PointerInputs get pointerInput => _pointerInputs;
   PointerInputs _pointerInputs;
 
-  /// True if sending pointer events to the terminal is suspended.
+  /// true if sending pointer events to the terminal is suspended.
   bool get suspendedPointerInputs => _suspendPointerInputs;
   bool _suspendPointerInputs;
 
@@ -50,7 +50,7 @@ class TerminalController with ChangeNotifier {
     return _createRange(base.offset, extent.offset);
   }
 
-  /// Set selection on the terminal from [base] to [extent]. This method takes
+  /// set selection on the terminal from [base] to [extent]. this method takes
   /// the ownership of [base] and [extent] and will dispose them when the
   /// selection is cleared or changed.
   void setSelection(CellAnchor base, CellAnchor extent, {SelectionMode? mode}) {
@@ -76,21 +76,21 @@ class TerminalController with ChangeNotifier {
     }
   }
 
-  /// Controls how the terminal behaves when the user selects a range of text.
-  /// The default is [SelectionMode.line]. Setting this to [SelectionMode.block]
+  /// controls how the terminal behaves when the user selects a range of text.
+  /// the default is [selectionmode.line]. setting this to [selectionmode.block]
   /// enables block selection mode.
   void setSelectionMode(SelectionMode newSelectionMode) {
-    // If the new mode is the same as the old mode,
+    // if the new mode is the same as the old mode,
     // nothing has to be changed.
     if (_selectionMode == newSelectionMode) {
       return;
     }
-    // Set the new mode.
+    // set the new mode.
     _selectionMode = newSelectionMode;
     notifyListeners();
   }
 
-  /// Clears the current selection.
+  /// clears the current selection.
   void clearSelection() {
     _selectionBase?.dispose();
     _selectionBase = null;
@@ -99,29 +99,29 @@ class TerminalController with ChangeNotifier {
     notifyListeners();
   }
 
-  // Select which type of pointer events are send to the terminal.
+  // select which type of pointer events are send to the terminal.
   void setPointerInputs(PointerInputs pointerInput) {
     _pointerInputs = pointerInput;
     notifyListeners();
   }
 
-  // Toggle sending pointer events to the terminal.
+  // toggle sending pointer events to the terminal.
   void setSuspendPointerInput(bool suspend) {
     _suspendPointerInputs = suspend;
     notifyListeners();
   }
 
-  // Returns true if this type of PointerInput should be send to the Terminal.
+  // returns true if this type of pointerinput should be send to the terminal.
   @internal
   bool shouldSendPointerInput(PointerInput pointerInput) {
-    // Always return false if pointer input is suspended.
+    // always return false if pointer input is suspended.
     return _suspendPointerInputs
         ? false
         : _pointerInputs.inputs.contains(pointerInput);
   }
 
-  /// Creates a new highlight on the terminal from [p1] to [p2] with the given
-  /// [color]. The highlight will be removed when the returned object is
+  /// creates a new highlight on the terminal from [p1] to [p2] with the given
+  /// [color]. the highlight will be removed when the returned object is
   /// disposed.
   TerminalHighlight highlight({
     required CellAnchor p1,
@@ -163,7 +163,7 @@ class TerminalHighlight with Disposable {
     required this.color,
   });
 
-  /// Returns the range of the highlight. May be null if the anchors that
+  /// returns the range of the highlight. may be null if the anchors that
   /// define the highlight are not attached to the terminal.
   BufferRange? get range {
     if (!p1.attached || !p2.attached) {

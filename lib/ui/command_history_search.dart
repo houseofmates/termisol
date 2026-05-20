@@ -92,7 +92,7 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
           ),
           child: Column(
             children: [
-              // Search input
+              // search input
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -128,7 +128,7 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
                   ),
                 ),
               ),
-              // Results list
+              // results list
               Expanded(
                 child: _results.isEmpty
                     ? Center(
@@ -196,7 +196,7 @@ class _CommandHistorySearchState extends State<CommandHistorySearch> {
                         },
                       ),
               ),
-              // Footer
+              // footer
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(

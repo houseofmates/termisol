@@ -27,20 +27,20 @@ class HyperlinkHandler {
   final List<_HyperlinkEntry> _entries = [];
   final Set<String> _detectedUrls = {};
 
-  /// Attaches this handler to a terminal to receive OSC callbacks.
+  /// attaches this handler to a terminal to receive osc callbacks.
   void attach(Terminal terminal) {
     _terminal = terminal;
     terminal.onPrivateOSC = _onPrivateOSC;
   }
 
-  /// Feeds raw terminal output to the handler for URL extraction.
+  /// feeds raw terminal output to the handler for url extraction.
   ///
-  /// Scans the raw text for OSC 8 open sequences and records discovered URLs.
+  /// scans the raw text for osc 8 open sequences and records discovered urls.
   void processOutput(String text) {
     _extractUrlsFromRawText(text);
   }
 
-  /// Returns the URL at the given buffer line and column, if any.
+  /// returns the url at the given buffer line and column, if any.
   String? getUrlAt(int line, int column) {
     _cleanupDetached();
     for (final entry in _entries) {
@@ -54,10 +54,10 @@ class HyperlinkHandler {
     return null;
   }
 
-  /// Returns all unique URLs detected in OSC 8 sequences.
+  /// returns all unique urls detected in osc 8 sequences.
   List<String> get detectedUrls => _detectedUrls.toList();
 
-  /// Clears entries for lines that have scrolled out of the buffer.
+  /// clears entries for lines that have scrolled out of the buffer.
   void clearOldEntries() {
     _cleanupDetached();
   }
@@ -74,10 +74,10 @@ class HyperlinkHandler {
     final buffer = _terminal!.buffer;
 
     if (url.isNotEmpty) {
-      // OSC 8 open sequence: ESC ] 8 ; params ; URI ST
+      // osc 8 open sequence: esc ] 8 ; params ; uri st
       _pending.add(_PendingHyperlink(buffer.currentLine, buffer.cursorX, url));
     } else {
-      // OSC 8 close sequence: ESC ] 8 ; params ; ST
+      // osc 8 close sequence: esc ] 8 ; params ; st
       if (_pending.isEmpty) return;
 
       final pending = _pending.removeLast();
@@ -96,7 +96,7 @@ class HyperlinkHandler {
     int endCol,
   ) {
     if (pending.startLine == endLine) {
-      // Single-line hyperlink.
+      // single-line hyperlink.
       if (endCol > pending.startCol) {
         _entries.add(
           _HyperlinkEntry(
@@ -108,9 +108,9 @@ class HyperlinkHandler {
         );
       }
     } else {
-      // Multi-line hyperlink.
+      // multi-line hyperlink.
       final width = _terminal!.viewWidth;
-      // Start line: from start column to end of line.
+      // start line: from start column to end of line.
       _entries.add(
         _HyperlinkEntry(
           pending.startLine,
@@ -119,20 +119,20 @@ class HyperlinkHandler {
           pending.url,
         ),
       );
-      // End line: from beginning to end column.
+      // end line: from beginning to end column.
       if (endLine.attached) {
         _entries.add(_HyperlinkEntry(endLine, 0, endCol, pending.url));
       }
-      // Note: intermediate full lines between start and end are not tracked.
-      // This is sufficient for common tools like `ls --hyperlink=auto`.
+      // note: intermediate full lines between start and end are not tracked.
+      // this is sufficient for common tools like `ls --hyperlink=auto`.
     }
   }
 
   void _extractUrlsFromRawText(String text) {
-    // OSC 8 open: ESC ] 8 ; params ; URI ST
-    // ST is BEL (\x07) or ESC \\ (\x1b\\).
-    // The close sequence has an empty URI.
-    // This regex matches open sequences and captures the URI.
+    // osc 8 open: esc ] 8 ; params ; uri st
+    // st is bel (\x07) or esc \\ (\x1b\\).
+    // the close sequence has an empty uri.
+    // this regex matches open sequences and captures the uri.
     final osc8Regex = RegExp(
       r'\u001b\]8;[^;\u0007\u001b]*;([^\u0007\u001b]+)(?:\u0007|\u001b\\)',
     );
@@ -144,7 +144,7 @@ class HyperlinkHandler {
     }
   }
 
-  /// Disposes resources.
+  /// disposes resources.
   void dispose() {
     _entries.clear();
     _pending.clear();

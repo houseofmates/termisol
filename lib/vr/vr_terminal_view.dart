@@ -63,7 +63,7 @@ class _VrTerminalViewState extends State<VrTerminalView> {
         return;
       }
 
-      // Subscribe to controller input events from the native runtime.
+      // subscribe to controller input events from the native runtime.
       OpenXrSession.inputEvents.listen(
         _onVrInput,
         onError: (Object e) {
@@ -86,7 +86,7 @@ class _VrTerminalViewState extends State<VrTerminalView> {
         });
       }
 
-      // Stream terminal frames at ~30 fps.
+      // stream terminal frames at ~30 fps.
       _frameTimer = Timer.periodic(const Duration(milliseconds: 33), (_) {
         if (!mounted) return;
         _submitFrame();
@@ -118,7 +118,7 @@ class _VrTerminalViewState extends State<VrTerminalView> {
     final rows = terminal.viewHeight;
     if (cols <= 0 || rows <= 0) return;
 
-    // Map normalized controller coordinates (0..1) to cell grid.
+    // map normalized controller coordinates (0..1) to cell grid.
     final cellX = (event.x * cols).clamp(0, cols - 1).toInt();
     final cellY = (event.y * rows).clamp(0, rows - 1).toInt();
 
@@ -141,8 +141,12 @@ class _VrTerminalViewState extends State<VrTerminalView> {
     const double scrollThreshold = 0.7;
 
     if (event.y.abs() > scrollThreshold) {
-      final scrollLines = event.y > 0 ? -3 : 3;
-      widget.session.terminal.scrollLines(scrollLines);
+      final int scrollLines = event.y > 0 ? -3 : 3;
+      if (scrollLines < 0) {
+        widget.session.terminal.scrollUp(-scrollLines);
+      } else {
+        widget.session.terminal.scrollDown(scrollLines);
+      }
     } else if (event.x.abs() > deadzone || event.y.abs() > deadzone) {
       String? escapeCode;
       if (event.y < -deadzone) {

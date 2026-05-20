@@ -24,10 +24,10 @@ class CustomKeyboardListener extends StatelessWidget {
   });
 
   KeyEventResult _onKeyEvent(FocusNode focusNode, KeyEvent keyEvent) {
-    // First try to handle the key event directly.
+    // first try to handle the key event directly.
     final handled = onKeyEvent(focusNode, keyEvent);
     if (handled == KeyEventResult.ignored) {
-      // If it was not handled, but the key corresponds to a character,
+      // if it was not handled, but the key corresponds to a character,
       // insert the character.
       if (keyEvent.character != null && keyEvent.character != "") {
         onInsert(keyEvent.character!);

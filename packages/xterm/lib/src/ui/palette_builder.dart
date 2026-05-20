@@ -15,7 +15,7 @@ class PaletteBuilder {
     );
   }
 
-  /// https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
+  /// https://en.wikipedia.org/wiki/ansi_escape_code#8-bit
   Color paletteColor(int colNum) {
     switch (colNum) {
       case 0:

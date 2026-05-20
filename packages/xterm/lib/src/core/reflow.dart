@@ -18,14 +18,14 @@ class _LineBuilder {
 
   bool get isNotEmpty => _length != 0;
 
-  /// Adds a range of cells from [src] to the builder. Anchors within the range
+  /// adds a range of cells from [src] to the builder. anchors within the range
   /// will be reparented to the new line returned by [take].
   void add(BufferLine src, int start, int length) {
     _result.copyFrom(src, start, _length, length);
     _length += length;
   }
 
-  /// Reuses the given [line] as the initial buffer for this builder.
+  /// reuses the given [line] as the initial buffer for this builder.
   void setBuffer(BufferLine line, int length) {
     _result = line;
     _length = length;
@@ -59,18 +59,18 @@ class _LineReflow {
 
   late final _builder = _LineBuilder(newWidth);
 
-  /// Adds a line to the reflow operation. This method will try to reuse the
+  /// adds a line to the reflow operation. this method will try to reuse the
   /// given line if possible.
   void add(BufferLine line) {
     final trimmedLength = line.getTrimmedLength(oldWidth);
 
-    // A fast path for empty lines
+    // a fast path for empty lines
     if (trimmedLength == 0) {
       _lines.add(line);
       return;
     }
 
-    // We already have some content in the buffer, so we copy the content into
+    // we already have some content in the buffer, so we copy the content into
     // the builder instead of reusing the line.
     if (_lines.isNotEmpty || _builder.isNotEmpty) {
       _addPart(line, from: 0, to: trimmedLength);
@@ -78,7 +78,7 @@ class _LineReflow {
     }
 
     if (newWidth >= oldWidth) {
-      // Reuse the line to avoid copying the content and object allocation.
+      // reuse the line to avoid copying the content and object allocation.
       _builder.setBuffer(line, trimmedLength);
     } else {
       _lines.add(line);
@@ -99,8 +99,8 @@ class _LineReflow {
     }
   }
 
-  /// Adds part of [line] from [from] to [to] to the reflow operation.
-  /// Anchors within the range will be removed from [line] and reparented to
+  /// adds part of [line] from [from] to [to] to the reflow operation.
+  /// anchors within the range will be removed from [line] and reparented to
   /// the new line(s) returned by [finish].
   void _addPart(BufferLine line, {required int from, required int to}) {
     var cellsLeft = to - from;
@@ -108,10 +108,10 @@ class _LineReflow {
     while (cellsLeft > 0) {
       final bufferRemainingCells = newWidth - _builder.length;
 
-      // How many cells we should copy in this iteration.
+      // how many cells we should copy in this iteration.
       var cellsToCopy = cellsLeft;
 
-      // Whether the buffer is filled up in this iteration.
+      // whether the buffer is filled up in this iteration.
       var lineFilled = false;
 
       if (cellsToCopy >= bufferRemainingCells) {
@@ -119,7 +119,7 @@ class _LineReflow {
         lineFilled = true;
       }
 
-      // Leave the last cell to the next iteration if it's a wide char.
+      // leave the last cell to the next iteration if it's a wide char.
       if (lineFilled && line.getWidth(from + cellsToCopy - 1) == 2) {
         cellsToCopy--;
       }
@@ -135,7 +135,7 @@ class _LineReflow {
       from += cellsToCopy;
       cellsLeft -= cellsToCopy;
 
-      // Create a new line if the buffer is filled up.
+      // create a new line if the buffer is filled up.
       if (lineFilled) {
         _lines.add(_builder.take(wrapped: _lines.isNotEmpty));
       }
@@ -150,7 +150,7 @@ class _LineReflow {
     }
   }
 
-  /// Finalizes the reflow operation and returns the result.
+  /// finalizes the reflow operation and returns the result.
   List<BufferLine> finish() {
     if (_builder.isNotEmpty) {
       _lines.add(_builder.take(wrapped: _lines.isNotEmpty));

@@ -148,17 +148,17 @@ class WhisperService {
       );
     }
 
-    // Clean up extra spaces and punctuation
+    // clean up extra spaces and punctuation
     cleaned = cleaned.replaceAll(RegExp(r'\s+'), ' ');
     cleaned = cleaned.replaceAll(RegExp(r'\s+([.,!?;:])'), r'\1');
     cleaned = cleaned.replaceAll(RegExp(r'[.,!?;:]+([.,!?;:])'), r'\1');
 
-    // Remove leading/trailing punctuation after cleanup
+    // remove leading/trailing punctuation after cleanup
     cleaned = cleaned.replaceAll(RegExp(r'^[.,!?;:\s]+|[.,!?;:\s]+$'), '');
 
     cleaned = cleaned.trim();
 
-    // Capitalize first letter and add period if missing
+    // capitalize first letter and add period if missing
     if (cleaned.isNotEmpty) {
       cleaned = cleaned[0].toUpperCase() + cleaned.substring(1);
       if (!RegExp(r'[.!?]$').hasMatch(cleaned)) {
@@ -174,17 +174,17 @@ class WhisperService {
 class MockWhisperService extends WhisperService {
   @override
   Future<bool> isServerAvailable() async {
-    // Simulate server check
+    // simulate server check
     await Future.delayed(Duration(milliseconds: 500));
     return true;
   }
 
   @override
   Future<String> transcribeAudioFile(String audioFilePath) async {
-    // Simulate processing time
+    // simulate processing time
     await Future.delayed(Duration(seconds: 2));
 
-    // Return mock transcription based on time of day
+    // return mock transcription based on time of day
     final hour = DateTime.now().hour;
     if (hour < 12) {
       return 'Good morning. This is a mock transcription from Whisper.';
@@ -210,34 +210,34 @@ class AudioRecorder {
   Timer? _recordingTimer;
   List<int> _audioBuffer = [];
 
-  /// Start recording (simulated)
+  /// start recording (simulated)
   void startRecording() {
     _isRecording = true;
     _audioBuffer.clear();
 
-    // Simulate audio data generation
+    // simulate audio data generation
     _recordingTimer = Timer.periodic(Duration(milliseconds: 100), (timer) {
       if (_isRecording) {
-        // Generate mock audio data
+        // generate mock audio data
         _audioBuffer.addAll(List.filled(1024, 0));
       }
     });
   }
 
-  /// Stop recording and return audio bytes
+  /// stop recording and return audio bytes
   List<int> stopRecording() {
     _isRecording = false;
     _recordingTimer?.cancel();
     _recordingTimer = null;
 
-    // Return mock audio data
+    // return mock audio data
     return List.from(_audioBuffer);
   }
 
-  /// Check if currently recording
+  /// check if currently recording
   bool get isRecording => _isRecording;
 
-  /// Get recording duration
+  /// get recording duration
   Duration get recordingDuration {
     if (_recordingTimer == null) return Duration.zero;
     return Duration(milliseconds: _audioBuffer.length ~/ 10);

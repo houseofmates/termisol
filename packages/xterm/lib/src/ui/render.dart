@@ -225,7 +225,7 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     }
   }
 
-  /// Total height of the terminal in pixels. Includes scrollback buffer.
+  /// total height of the terminal in pixels. includes scrollback buffer.
   double get _terminalHeight =>
       _terminal.buffer.lines.length * _painter.cellSize.height;
 
@@ -406,7 +406,7 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
 
     final selection = _controller.selection;
 
-    // Paint selection background BEFORE text so it appears behind.
+    // paint selection background before text so it appears behind.
     if (selection != null) {
       _paintSelection(
         canvas,

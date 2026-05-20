@@ -84,7 +84,7 @@ void main() {
     });
 
     test('should handle session limits', () async {
-      // Create sessions up to the limit
+      // create sessions up to the limit
       final futures = <Future<String>>[];
       for (int i = 0; i < 101; i++) {
         futures.add(manager.createSession(
@@ -100,13 +100,13 @@ void main() {
     });
 
     test('should recover existing sessions on restart', () async {
-      // Create initial session
+      // create initial session
       final sessionId = await manager.createSession(
         workingDirectory: Directory.current.path,
         shell: Platform.isWindows ? 'cmd.exe' : '/bin/bash',
       );
 
-      // Dispose and recreate manager (simulating restart)
+      // dispose and recreate manager (simulating restart)
       await manager.dispose();
       manager = ReattachablePtyManager();
       await manager.initialize();
@@ -121,15 +121,15 @@ void main() {
         shell: Platform.isWindows ? 'cmd.exe' : '/bin/bash',
       );
 
-      // Simulate dead session
+      // simulate dead session
       final session = await manager.getSession(sessionId);
       if (session != null) {
-        // Mark session as dead by setting old last activity
+        // mark session as dead by setting old last activity
         session.lastActivity = DateTime.now().subtract(const Duration(hours: 25));
         await manager.updateSession(sessionId);
       }
 
-      // Trigger cleanup
+      // trigger cleanup
       await manager.performCleanup();
 
       expect(manager.activeSessions, equals(0));
@@ -141,15 +141,15 @@ void main() {
         shell: Platform.isWindows ? 'cmd.exe' : '/bin/bash',
       );
 
-      // Verify socket file exists
+      // verify socket file exists
       final socketDir = Directory('${testDir.path}/.termisol/sockets');
       final socketFile = File('${socketDir.path}/$sessionId.sock');
       expect(await socketFile.exists(), isTrue);
 
-      // Detach session
+      // detach session
       await manager.detachSession(sessionId);
 
-      // Socket should be cleaned up
+      // socket should be cleaned up
       await Future.delayed(const Duration(milliseconds: 100));
       expect(await socketFile.exists(), isFalse);
     });
@@ -171,7 +171,7 @@ void main() {
     });
 
     test('should handle heartbeat monitoring', () async {
-      // Wait for heartbeat to be sent
+      // wait for heartbeat to be sent
       await Future.delayed(const Duration(seconds: 31));
 
       final heartbeatFile = File('${testDir.path}/.termisol/sockets/heartbeat');
@@ -202,7 +202,7 @@ void main() {
         shell: Platform.isWindows ? 'cmd.exe' : '/bin/bash',
       );
 
-      // Simulate reconnection by creating new manager instance
+      // simulate reconnection by creating new manager instance
       await manager.dispose();
       manager = ReattachablePtyManager();
       await manager.initialize();

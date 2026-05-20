@@ -521,7 +521,7 @@ class DebugUtils {
     if (!kDebugMode) return;
 
     // note: in a real implementation, you would use platform-specific apis
-    // to get actual memory usage. Using ProcessInfo for basic memory tracking.
+    // to get actual memory usage. using processinfo for basic memory tracking.
     TermisolLogger().debug('Memory usage: $context', {
       'context': context,
       'timestamp': DateTime.now().toIso8601String(),

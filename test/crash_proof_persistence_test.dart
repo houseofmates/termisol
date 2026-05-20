@@ -106,14 +106,14 @@ void main() {
         workingDirectory: '/home/user',
       );
 
-      // Simulate session timeout by modifying last activity
+      // simulate session timeout by modifying last activity
       final session = await persistence.getSession(sessionId);
       if (session != null) {
         session.lastActivity = DateTime.now().subtract(const Duration(hours: 25));
         await persistence.updateSession(sessionId);
       }
 
-      // Trigger cleanup
+      // trigger cleanup
       await persistence.performCleanup();
       
       expect(persistence.activeSessions, equals(0));
@@ -144,10 +144,10 @@ void main() {
       
       await persistence.updateSession(sessionId, content: 'Original content');
 
-      // Simulate corruption by updating session with invalid data
+      // simulate corruption by updating session with invalid data
       await persistence.updateSession(sessionId, content: 'Original content');
 
-      // Reinitialize to trigger corruption detection
+      // reinitialize to trigger corruption detection
       await persistence.dispose();
       persistence = CrashProofPersistence();
       await persistence.initialize();
@@ -158,7 +158,7 @@ void main() {
     test('should handle concurrent session operations', () async {
       final futures = <Future<String>>[];
       
-      // Create multiple sessions concurrently
+      // create multiple sessions concurrently
       for (int i = 0; i < 10; i++) {
         futures.add(persistence.createSession(
           title: 'Session $i',
@@ -171,13 +171,13 @@ void main() {
       expect(sessionIds.length, equals(10));
       expect(persistence.activeSessions, equals(10));
       
-      // Verify all sessions are unique
+      // verify all sessions are unique
       final uniqueIds = sessionIds.toSet();
       expect(uniqueIds.length, equals(10));
     });
 
     test('should maintain backup rotation limits', () async {
-      // Create sessions and backups beyond the limit
+      // create sessions and backups beyond the limit
       for (int i = 0; i < 15; i++) {
         await persistence.createSession(
           title: 'Session $i',
@@ -192,7 +192,7 @@ void main() {
     test('should generate valid device ID', () async {
       await persistence.initialize();
       
-      // Device ID should be consistent across restarts
+      // device id should be consistent across restarts
       final deviceId1 = persistence.deviceId;
       
       await persistence.dispose();
@@ -206,7 +206,7 @@ void main() {
     });
 
     test('should handle crash recovery scenario', () async {
-      // Create a session
+      // create a session
       final sessionId = await persistence.createSession(
         title: 'Test Session',
         workingDirectory: '/home/user',
@@ -214,12 +214,12 @@ void main() {
       
       await persistence.updateSession(sessionId, content: 'Important data');
 
-      // Simulate crash by creating crash indicator
+      // simulate crash by creating crash indicator
       final sessionsDir = Directory('${testDir.path}/.termisol/sessions');
       final crashIndicator = File('${sessionsDir.path}/.crash_indicator');
       await crashIndicator.writeAsString(DateTime.now().toIso8601String());
 
-      // Reinitialize to trigger crash recovery
+      // reinitialize to trigger crash recovery
       await persistence.dispose();
       persistence = CrashProofPersistence();
       await persistence.initialize();

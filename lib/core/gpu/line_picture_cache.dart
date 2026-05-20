@@ -19,7 +19,7 @@ class LinePictureCache {
 
   final Map<int, _CachedPicture> _cache = {};
 
-  /// Returns a cached [Picture] for [lineIndex] if the line content has not
+  /// returns a cached [picture] for [lineindex] if the line content has not
   /// changed since the picture was recorded.
   Picture? get(int lineIndex, BufferLine line) {
     final cached = _cache[lineIndex];
@@ -33,7 +33,7 @@ class LinePictureCache {
     return cached.picture;
   }
 
-  /// Stores a newly recorded [Picture] for [lineIndex].
+  /// stores a newly recorded [picture] for [lineindex].
   void put(int lineIndex, BufferLine line, Picture picture) {
     if (_cache.length >= _maxSize) {
       _evictEldest();
@@ -42,7 +42,7 @@ class LinePictureCache {
     _cache[lineIndex] = _CachedPicture(_hashLine(line), picture);
   }
 
-  /// Clears the entire cache and disposes all native picture resources.
+  /// clears the entire cache and disposes all native picture resources.
   void clear() {
     for (final entry in _cache.values) {
       entry.picture.dispose();
@@ -55,7 +55,7 @@ class LinePictureCache {
     _cache.remove(eldest)?.picture.dispose();
   }
 
-  /// Fast rolling hash over the raw cell data of [line].
+  /// fast rolling hash over the raw cell data of [line].
   static int _hashLine(BufferLine line) {
     final data = line.data;
     final len = line.length * 4;

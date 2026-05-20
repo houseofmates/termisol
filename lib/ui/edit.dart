@@ -132,7 +132,7 @@ class _EditTerminalState extends State<EditTerminal> {
     _textScrollController = ScrollController();
     _lineNumScrollController = ScrollController();
 
-    // Sync scroll controllers
+    // sync scroll controllers
     _textScrollController.addListener(_syncScroll);
 
     _controller.addListener(() {
@@ -378,7 +378,7 @@ class _EditTerminalState extends State<EditTerminal> {
         selection: TextSelection.collapsed(offset: sel.start + _tabSize),
       );
     } else {
-      // Indent selected lines
+      // indent selected lines
       final startLine = text.lastIndexOf('\n', sel.start - 1) + 1;
       final endLine = text.indexOf('\n', sel.end);
       final endPos = endLine == -1 ? text.length : endLine;
@@ -403,7 +403,7 @@ class _EditTerminalState extends State<EditTerminal> {
   void _handleEnter() {
     final sel = _controller.selection;
     if (!sel.isValid || sel.start < 0 || sel.end < 0) {
-      // Invalid selection: just append newline at end.
+      // invalid selection: just append newline at end.
       _controller.text = '${_controller.text}\n';
       _controller.selection = TextSelection.collapsed(
         offset: _controller.text.length,
@@ -411,7 +411,7 @@ class _EditTerminalState extends State<EditTerminal> {
       return;
     }
     if (!sel.isCollapsed) {
-      // Replace selection with newline.
+      // replace selection with newline.
       _controller.text =
           '${_controller.text.substring(0, sel.start)}\n${_controller.text.substring(sel.end)}';
       _controller.selection = TextSelection.collapsed(offset: sel.start + 1);
@@ -423,7 +423,7 @@ class _EditTerminalState extends State<EditTerminal> {
     final indentMatch = RegExp(r'^(\s*)').firstMatch(line);
     final indent = indentMatch?.group(1) ?? '';
 
-    // Auto-indent after opening braces
+    // auto-indent after opening braces
     final extraIndent =
         (line.trimRight().endsWith('{') ||
             line.trimRight().endsWith('(') ||
@@ -648,7 +648,7 @@ class _EditTerminalState extends State<EditTerminal> {
                 onKeyEvent: _handleKeyEvent,
                 child: Row(
                   children: [
-                    // Line numbers gutter
+                    // line numbers gutter
                     Container(
                       width: 48,
                       color: _gutterColor,
@@ -680,7 +680,7 @@ class _EditTerminalState extends State<EditTerminal> {
                         ),
                       ),
                     ),
-                    // Editor
+                    // editor
                     const VerticalDivider(width: 1, color: Color(0xFF333333)),
                     Expanded(
                       child: Scrollbar(
@@ -716,7 +716,7 @@ class _EditTerminalState extends State<EditTerminal> {
               ),
             ),
           ),
-          // Status bar
+          // status bar
           Container(
             height: 24,
             color: const Color(0xFF1a1a1a),

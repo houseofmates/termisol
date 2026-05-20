@@ -26,15 +26,15 @@ class PkmTheme {
   static const double tabBarHeight = 40.0;
   static const double mobileTopPadding = 0.0;
 
-  /// Singleton notifier for the active theme mode.
+  /// singleton notifier for the active theme mode.
   static final ValueNotifier<TermisolThemeMode> themeMode = ValueNotifier(
     TermisolThemeMode.dark,
   );
 
-  /// Singleton notifier for terminal background opacity.
+  /// singleton notifier for terminal background opacity.
   static final ValueNotifier<double> bgOpacity = ValueNotifier(1.0);
 
-  /// Map of terminal themes for each mode.
+  /// map of terminal themes for each mode.
   static const Map<TermisolThemeMode, TerminalTheme> terminalThemes = {
     TermisolThemeMode.dark: TerminalTheme(
       cursor: Color(0xFFFFAA00),
@@ -113,18 +113,18 @@ class PkmTheme {
     ),
   };
 
-  /// Returns the active terminal theme based on [themeMode].
+  /// returns the active terminal theme based on [thememode].
   static TerminalTheme get activeTerminalTheme =>
       terminalThemes[themeMode.value]!;
 
-  /// Map of Material themes for each mode.
+  /// map of material themes for each mode.
   static final Map<TermisolThemeMode, ThemeData> materialThemes = {
     TermisolThemeMode.dark: _buildDarkTheme(),
     TermisolThemeMode.light: _buildLightTheme(),
     TermisolThemeMode.retro: _buildRetroTheme(),
   };
 
-  /// Returns the active Material theme based on [themeMode].
+  /// returns the active material theme based on [thememode].
   static ThemeData get activeMaterialTheme => materialThemes[themeMode.value]!;
 
   static ThemeData _buildDarkTheme() {

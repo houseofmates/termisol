@@ -59,7 +59,7 @@ class TerminalKeyboardEvent {
 /// terminalinputhandler contains the logic for translating a [terminalkeyboardevent]
 /// into escape sequences that can be recognized by the terminal.
 abstract class TerminalInputHandler {
-  /// Translates a [TerminalKeyboardEvent] into an escape sequence. If the event
+  /// translates a [terminalkeyboardevent] into an escape sequence. if the event
   /// cannot be translated, null is returned.
   String? call(TerminalKeyboardEvent event);
 }

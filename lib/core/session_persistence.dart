@@ -590,7 +590,7 @@ class SessionPersistence {
         throw ArgumentError('Backup not found: $backupId');
       }
 
-      // Validate backup data before clearing current sessions.
+      // validate backup data before clearing current sessions.
       final restoredSessions = <String, PersistedSessionRecord>{};
       for (final entry in backup.sessions.entries) {
         final session = PersistedSessionRecord.fromJson(entry.value);

@@ -45,7 +45,7 @@ class GraphicsProtocolHandler {
   // graphics state
   final Map<String, GraphicsImage> _imageCache = {};
   final Map<String, Offset> _imagePositions =
-      {}; // imageId -> character position (x,y)
+      {}; // imageid -> character position (x,y)
   final Map<int, Color> _colorPalette = {};
 
   final List<GraphicsAnimation> _animations = [];
@@ -520,7 +520,7 @@ class GraphicsProtocolHandler {
       return '\x1b_Gi=$id,f=$format\x1b\\';
     } catch (e) {
       debugPrint('Error processing direct transmission: $e');
-      return '\x1b_Gi=$id,f=32\x1b\\'; // Error response
+      return '\x1b_Gi=$id,f=32\x1b\\'; // error response
     }
   }
 

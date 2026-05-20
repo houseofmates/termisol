@@ -14,7 +14,7 @@ class CustomTextEdit extends StatefulWidget {
     required this.focusNode,
     this.autofocus = false,
     this.readOnly = false,
-    // this.initEditingState = TextEditingValue.empty,
+    // this.initeditingstate = texteditingvalue.empty,
     this.inputType = TextInputType.text,
     this.inputAction = TextInputAction.newline,
     this.keyboardAppearance = Brightness.light,
@@ -172,7 +172,7 @@ class CustomTextEditState extends State<CustomTextEdit> with TextInputClient {
 
       _connection!.show();
 
-      // setEditableRect(Rect.zero, Rect.zero);
+      // seteditablerect(rect.zero, rect.zero);
 
       _connection!.setEditingState(_initEditingState);
     }
@@ -211,7 +211,7 @@ class CustomTextEditState extends State<CustomTextEdit> with TextInputClient {
   void updateEditingValue(TextEditingValue value) {
     _currentEditingState = value;
 
-    // Get input after composing is done
+    // get input after composing is done
     if (!_currentEditingState.composing.isCollapsed) {
       final text = _currentEditingState.text;
       final composingText = _currentEditingState.composing.textInside(text);
@@ -231,7 +231,7 @@ class CustomTextEditState extends State<CustomTextEdit> with TextInputClient {
       widget.onInsert(textDelta);
     }
 
-    // Reset editing state if composing is done
+    // reset editing state if composing is done
     if (_currentEditingState.composing.isCollapsed &&
         _currentEditingState.text != _initEditingState.text) {
       _connection!.setEditingState(_initEditingState);
@@ -240,42 +240,42 @@ class CustomTextEditState extends State<CustomTextEdit> with TextInputClient {
 
   @override
   void performAction(TextInputAction action) {
-    // print('performAction $action');
+    // print('performaction $action');
     widget.onAction(action);
   }
 
   @override
   void updateFloatingCursor(RawFloatingCursorPoint point) {
-    // print('updateFloatingCursor $point');
+    // print('updatefloatingcursor $point');
   }
 
   @override
   void showAutocorrectionPromptRect(int start, int end) {
-    // print('showAutocorrectionPromptRect');
+    // print('showautocorrectionpromptrect');
   }
 
   @override
   void connectionClosed() {
-    // print('connectionClosed');
+    // print('connectionclosed');
   }
 
   @override
   void performPrivateCommand(String action, Map<String, dynamic> data) {
-    // print('performPrivateCommand $action');
+    // print('performprivatecommand $action');
   }
 
   @override
   void insertTextPlaceholder(Size size) {
-    // print('insertTextPlaceholder');
+    // print('inserttextplaceholder');
   }
 
   @override
   void removeTextPlaceholder() {
-    // print('removeTextPlaceholder');
+    // print('removetextplaceholder');
   }
 
   @override
   void showToolbar() {
-    // print('showToolbar');
+    // print('showtoolbar');
   }
 }

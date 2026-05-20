@@ -76,9 +76,9 @@ class PtyCoreWindows implements PtyCore {
     final outputReadSide = pipe1.readSide;
     final outputWriteSide = pipe1.writeSide;
 
-    // final pipe2 = _NamedPipe(nowait: false);
-    // final inputWriteSide = pipe2.writeSide;
-    // final inputReadSide = pipe2.readSide;
+    // final pipe2 = _namedpipe(nowait: false);
+    // final inputwriteside = pipe2.writeside;
+    // final inputreadside = pipe2.readside;
 
     // create pty
     final _hPty = calloc<IntPtr>();
@@ -97,12 +97,12 @@ class PtyCoreWindows implements PtyCore {
       throw PtyException('CreatePseudoConsole failed.');
     }
 
-    // Setup startup info
+    // setup startup info
     final si = calloc<win32.STARTUPINFOEX>();
     si.ref.StartupInfo.cb = sizeOf<win32.STARTUPINFOEX>();
 
-    // Explicitly set stdio of the child process to NULL. This is required for
-    // ConPTY to work properly.
+    // explicitly set stdio of the child process to null. this is required for
+    // conpty to work properly.
     si.ref.StartupInfo.hStdInput = nullptr.address;
     si.ref.StartupInfo.hStdOutput = nullptr.address;
     si.ref.StartupInfo.hStdError = nullptr.address;
@@ -162,7 +162,7 @@ class PtyCoreWindows implements PtyCore {
         buffer.write(env.value);
         buffer.write('\u0000');
       }
-      // Double null-terminate the environment block for Windows
+      // double null-terminate the environment block for windows
       buffer.write('\u0000');
 
       pEnvironment = buffer.toString().toNativeUtf16();
@@ -293,7 +293,7 @@ class PtyCoreWindows implements PtyCore {
 
   // @override
   // int get pid {
-  //   return _hProcess;
+  //   return _hprocess;
   // }
 
   @override

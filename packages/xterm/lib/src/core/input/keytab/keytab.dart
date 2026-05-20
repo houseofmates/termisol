@@ -87,7 +87,7 @@ class Keytab {
         continue;
       }
 
-      // TODO: support VT52
+      // todo: support vt52
       if (record.ansi == false) {
         continue;
       }

@@ -47,7 +47,7 @@ void main() {
       final backend = AndroidShellBackend();
       backend.setProcessForTesting(ExplodingMockProcess());
 
-      // Should not throw
+      // should not throw
       await expectLater(backend.terminate(), completes);
     });
 
@@ -55,7 +55,7 @@ void main() {
       final backend = AndroidShellBackend();
       backend.setProcessForTesting(ExplodingMockProcess());
 
-      // Should not throw
+      // should not throw
       await expectLater(backend.stop(), completes);
     });
   });

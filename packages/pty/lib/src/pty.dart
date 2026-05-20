@@ -117,8 +117,8 @@ class PollingPseudoTerminal extends BasePseudoTerminal {
             rawDataBuffer.clear();
             _out.add(strContent);
           } on FormatException catch (_) {
-            // FormatException is thrown when the data contains incomplete
-            // UTF-8 byte sequences.
+            // formatexception is thrown when the data contains incomplete
+            // utf-8 byte sequences.
             // int this case we do nothing and wait for the next chunk of data
             // to arrive
           }
@@ -141,7 +141,7 @@ class PollingPseudoTerminal extends BasePseudoTerminal {
 
   @override
   void ackProcessed() {
-    // NOOP
+    // noop
   }
 }
 
@@ -215,7 +215,7 @@ void _readUntilExit(_IsolateArgs<PtyCore> ctx) async {
   final rp = ReceivePort();
   ctx.sendPort.send(rp.sendPort);
 
-  // set [sync] to true because PtyCore.read() is blocking and prevents the
+  // set [sync] to true because ptycore.read() is blocking and prevents the
   // event loop from working.
   final input = StreamController<List<int>>(sync: true);
 
@@ -242,8 +242,8 @@ void _readUntilExit(_IsolateArgs<PtyCore> ctx) async {
 
     // when we don't sync with the data processing then just schedule the next loop
     // iteration
-    // Otherwise the loop will continue when the processing of the data is
-    // finished (signaled via [PseudoTerminal.ackProcessed])
+    // otherwise the loop will continue when the processing of the data is
+    // finished (signaled via [pseudoterminal.ackprocessed])
     if (!ctx.syncProcessed) {
       loopController.sink.add(true);
     }

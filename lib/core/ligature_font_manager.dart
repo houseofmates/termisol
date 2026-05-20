@@ -12,7 +12,7 @@ class LigatureFontManager {
 
   LigatureFontManager(this.terminal, this.controller);
 
-  /// Set font with ligature support. Returns true if the font was applied,
+  /// set font with ligature support. returns true if the font was applied,
   /// false if it is unavailable and the caller should use a fallback.
   Future<bool> setFont(String fontFamily, {bool enableLigatures = true}) async {
     final available = await _isFontAvailable(fontFamily);
@@ -31,7 +31,7 @@ class LigatureFontManager {
     return true;
   }
 
-  /// Check whether Flutter can resolve the requested font family.
+  /// check whether flutter can resolve the requested font family.
   Future<bool> _isFontAvailable(String fontFamily) async {
     try {
       final builder = ui.ParagraphBuilder(
@@ -40,7 +40,7 @@ class LigatureFontManager {
       builder.addText('test');
       final paragraph = builder.build();
       paragraph.layout(const ui.ParagraphConstraints(width: 100));
-      // If layout succeeded we treat it as available.
+      // if layout succeeded we treat it as available.
       return true;
     } catch (e) {
       if (kDebugMode) debugPrint('font availability check failed: $e');

@@ -41,14 +41,14 @@ class BackgroundService {
           label: 'New Tab',
           onClicked: (menuItem) {
             debugPrint('New Tab clicked from system tray');
-            // Integration with app to open new tab
+            // integration with app to open new tab
           },
         ),
         MenuItemLabel(
           label: 'Restore Session',
           onClicked: (menuItem) {
             debugPrint('Restore Session clicked from system tray');
-            // Integration with app to restore session
+            // integration with app to restore session
           },
         ),
         MenuSeparator(),
@@ -98,10 +98,10 @@ Comment=Starts Termisol in the background
           debugPrint('Created Linux autostart desktop file.');
         }
       } else if (Platform.isWindows) {
-        // Example implementation for Windows can use a registry edit script or shortcut in Startup folder
+        // example implementation for windows can use a registry edit script or shortcut in startup folder
         debugPrint('Windows auto-start logic would be implemented here.');
       } else if (Platform.isMacOS) {
-         // Example implementation for MacOS can use a launchd plist
+         // example implementation for macos can use a launchd plist
          debugPrint('MacOS auto-start logic would be implemented here.');
       }
     } catch (e, stack) {

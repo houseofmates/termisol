@@ -46,7 +46,7 @@ void main() {
     test('successful bracketed paste', () async {
       manager.enable();
 
-      // Mock the clipboard to return text
+      // mock the clipboard to return text
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(SystemChannels.platform, (
             MethodCall methodCall,
@@ -62,7 +62,7 @@ void main() {
     });
 
     test('fallback to unbracketed paste if bracketed mode fails', () async {
-      // Enable bracketed mode so we enter the try block.
+      // enable bracketed mode so we enter the try block.
       manager.enable();
 
       String output = '';
@@ -70,7 +70,7 @@ void main() {
         output += data;
       };
 
-      // Mock the clipboard to throw an exception
+      // mock the clipboard to throw an exception
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(SystemChannels.platform, (
             MethodCall methodCall,
@@ -83,7 +83,7 @@ void main() {
 
       await manager.handlePaste('fallback text');
 
-      // The fallback calls terminal.paste('fallback text'), which emits to onOutput
+      // the fallback calls terminal.paste('fallback text'), which emits to onoutput
       expect(output, '\x1b[200~fallback text\x1b[201~');
     });
   });

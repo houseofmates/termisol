@@ -42,7 +42,7 @@ class CrashProofPersistence {
 
       final jsonData = jsonEncode(session.toJson());
 
-      // Calculate checksum
+      // calculate checksum
       final bytes = utf8.encode(jsonData);
       final digest = sha256.convert(bytes);
 
@@ -51,10 +51,10 @@ class CrashProofPersistence {
         'checksum': digest.toString(),
       });
 
-      // Write to temp file first
+      // write to temp file first
       await tempFile.writeAsString(dataWithChecksum, flush: true);
 
-      // Atomically rename temp file to final file
+      // atomically rename temp file to final file
       await tempFile.rename(sessionFile.path);
     } catch (e, stack) {
       debugPrint('Failed to save session atomically ${session.id}: $e\n$stack');
@@ -81,7 +81,7 @@ class CrashProofPersistence {
       await tempFile.writeAsString(dataWithChecksum, flush: true);
       await tempFile.rename(backupFile.path);
 
-      // Rotate backups - keep only the last 10
+      // rotate backups - keep only the last 10
       final dirList = _backupsDir!.listSync();
       final backupFiles = dirList.whereType<File>().where((f) => f.path.endsWith('.backup')).toList();
 

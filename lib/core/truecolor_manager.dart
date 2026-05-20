@@ -28,8 +28,8 @@ class TrueColorManager {
 
   bool get isEnabled => _enabled;
 
-  /// Scans raw terminal output for OSC 10/11/12 color sequences and
-  /// extracts RGB values.
+  /// scans raw terminal output for osc 10/11/12 color sequences and
+  /// extracts rgb values.
   void processOutput(String text) {
     if (!_enabled) return;
     final oscPattern = RegExp(

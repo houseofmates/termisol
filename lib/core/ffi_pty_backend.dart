@@ -7,7 +7,7 @@ import 'package:ffi/ffi.dart';
 import 'pty_backend.dart';
 import 'prompt_config.dart';
 
-// FFI bindings for native PTY operations
+// ffi bindings for native pty operations
 typedef _PtySpawnNative = Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, Int32, Int32);
 typedef _PtySpawnDart = Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, int, int);
 
@@ -23,44 +23,44 @@ typedef _PtyResizeDart = void Function(int, int, int);
 typedef _PtyCloseNative = Void Function(Int32);
 typedef _PtyCloseDart = void Function(int);
 
-/// High-performance FFI-based PTY backend with direct memory access
-/// Eliminates platform channel overhead and provides proper flow control
+/// high-performance ffi-based pty backend with direct memory access
+/// eliminates platform channel overhead and provides proper flow control
 class FfiPtyBackend implements TermisolPtyBackend {
   @override
   final String name = 'FFI PTY Backend';
   final String? workingDirectory;
   
-  // FFI function pointers
+  // ffi function pointers
   late final _PtySpawnDart _ptySpawn;
   late final _PtyWriteDart _ptyWrite;
   late final _PtyReadDart _ptyRead;
   late final _PtyResizeDart _ptyResize;
   late final _PtyCloseDart _ptyClose;
   
-  // PTY state
+  // pty state
   int _ptyFd = -1;
   bool _isRunning = false;
   bool _isDisposed = false;
   
-  // High-performance flow control
+  // high-performance flow control
   final _BackpressureStreamController _outputController;
   final _CircularBuffer _readBuffer;
   final _CircularBuffer _writeBuffer;
   
-  // Performance optimization
+  // performance optimization
   final Pointer<Uint8> _tempBuffer;
-  static const int _tempBufferSize = 64 * 1024; // 64KB temp buffer
-  static const int _readBufferSize = 256 * 1024; // 256KB read buffer
-  static const int _writeBufferSize = 64 * 1024; // 64KB write buffer
+  static const int _tempBufferSize = 64 * 1024; // 64kb temp buffer
+  static const int _readBufferSize = 256 * 1024; // 256kb read buffer
+  static const int _writeBufferSize = 64 * 1024; // 64kb write buffer
   
   Timer? _readTimer;
   Timer? _flowControlTimer;
   
-  // Flow control metrics
+  // flow control metrics
   int _bytesRead = 0;
   int _bytesWritten = 0;
   int _lastFlowCheck = 0;
-  static const int _flowControlThreshold = 1024 * 1024; // 1MB threshold
+  static const int _flowControlThreshold = 1024 * 1024; // 1mb threshold
 
   FfiPtyBackend({this.workingDirectory}) 
       : _outputController = _BackpressureStreamController(),
@@ -107,7 +107,7 @@ class FfiPtyBackend implements TermisolPtyBackend {
     final workDir = workingDirectory ?? this.workingDirectory ?? _resolveHome('~');
     
     try {
-      // Spawn PTY using FFI
+      // spawn pty using ffi
       final shellPtr = shell.toNativeUtf8();
       final workDirPtr = workDir.toNativeUtf8();
       
@@ -126,8 +126,8 @@ class FfiPtyBackend implements TermisolPtyBackend {
       
       _isRunning = true;
       
-      // Inject TERMISOL_PS1_SET so ~/.bashrc skips PS1 override
-      // and set PS1 directly to avoid any rc-file duplication
+      // inject termisol_ps1_set so ~/.bashrc skips ps1 override
+      // and set ps1 directly to avoid any rc-file duplication
       _injectInitEnv(cols, rows);
       
       _startReadLoop();
@@ -145,18 +145,18 @@ class FfiPtyBackend implements TermisolPtyBackend {
     final dataLength = data.length;
     if (dataLength == 0) return;
     
-    // Check write buffer capacity
+    // check write buffer capacity
     if (_writeBuffer.availableSpace < dataLength) {
       if (kDebugMode) debugPrint('[ffi_pty] Write buffer overflow, dropping data');
       return;
     }
     
-    // Copy data to write buffer
+    // copy data to write buffer
     final writeData = Uint8List.fromList(data);
     _writeBuffer.write(writeData);
     _bytesWritten += dataLength;
     
-    // Try immediate write if buffer is small
+    // try immediate write if buffer is small
     if (_writeBuffer.usedSpace < _writeBufferSize ~/ 2) {
       _flushWriteBuffer();
     }
@@ -187,9 +187,9 @@ class FfiPtyBackend implements TermisolPtyBackend {
     }
   }
 
-  /// Inject TERMISOL_PS1_SET=1 and the canonical PS1 into the PTY immediately after spawn.
-  /// This is a one-time write that reaches bash before ~/.bashrc can redundantly set PS1,
-  /// and it sets a marker (~/.bashrc guard) that prevents any future PS1 duplication.
+  /// inject termisol_ps1_set=1 and the canonical ps1 into the pty immediately after spawn.
+  /// this is a one-time write that reaches bash before ~/.bashrc can redundantly set ps1,
+  /// and it sets a marker (~/.bashrc guard) that prevents any future ps1 duplication.
   void _injectInitEnv(int cols, int rows) {
     write(utf8.encode('export TERMISOL_PS1_SET=1\nexport COLUMNS=$cols\nexport LINES=$rows\n'));
   }
@@ -214,10 +214,10 @@ class FfiPtyBackend implements TermisolPtyBackend {
   void _processReadData(Uint8List data) {
     if (data.isEmpty) return;
     
-    // Stream raw pty bytes directly - don't drain the circular buffer wholesale.
-    // Draining readAll() on a 1ms timer can re-emit stale bytes that were already
+    // stream raw pty bytes directly - don't drain the circular buffer wholesale.
+    // draining readall() on a 1ms timer can re-emit stale bytes that were already
     // forwarded on a previous tick (the buffer-reader re-steals already-consumed
-    // bytes if the subscriber is slow). Forward only the freshly-read chunk.
+    // bytes if the subscriber is slow). forward only the freshly-read chunk.
     if (!_outputController.isClosed) {
       _outputController.add(data);
     }
@@ -232,17 +232,17 @@ class FfiPtyBackend implements TermisolPtyBackend {
   void _checkFlowControl() {
     final now = DateTime.now().millisecondsSinceEpoch;
     final timeDiff = now - _lastFlowCheck;
-    if (timeDiff < 100) return; // Don't check too frequently
+    if (timeDiff < 100) return; // don't check too frequently
     
     _lastFlowCheck = now;
     
-    // Check if we need to apply backpressure
+    // check if we need to apply backpressure
     final totalBytes = _bytesRead + _bytesWritten;
     if (totalBytes > _flowControlThreshold) {
       _applyBackpressure();
     }
     
-    // Reset counters periodically
+    // reset counters periodically
     if (totalBytes > _flowControlThreshold * 2) {
       _bytesRead = 0;
       _bytesWritten = 0;
@@ -250,7 +250,7 @@ class FfiPtyBackend implements TermisolPtyBackend {
   }
 
   void _applyBackpressure() {
-    // Apply backpressure by temporarily pausing reads
+    // apply backpressure by temporarily pausing reads
     if (_readTimer?.isActive == true) {
       _readTimer?.cancel();
       Timer(const Duration(milliseconds: 10), () {
@@ -313,10 +313,10 @@ class FfiPtyBackend implements TermisolPtyBackend {
   }
 }
 
-/// Backpressure-enabled stream controller with buffer limits
+/// backpressure-enabled stream controller with buffer limits
 class _BackpressureStreamController {
   late final StreamController<List<int>> _controller;
-  static const int _maxBufferSize = 1024 * 1024; // 1MB max buffer
+  static const int _maxBufferSize = 1024 * 1024; // 1mb max buffer
   int _currentBufferSize = 0;
   bool _isPaused = false;
 
@@ -333,10 +333,10 @@ class _BackpressureStreamController {
   void add(List<int> data) {
     if (_controller.isClosed || _isPaused) return;
     
-    final dataSize = data.length * 1; // Approximate size in bytes
+    final dataSize = data.length * 1; // approximate size in bytes
     _currentBufferSize += dataSize;
     
-    // Apply backpressure if buffer is too large
+    // apply backpressure if buffer is too large
     if (_currentBufferSize > _maxBufferSize) {
       _isPaused = true;
       if (kDebugMode) debugPrint('[backpressure] Buffer overflow, applying backpressure');
@@ -362,7 +362,7 @@ class _BackpressureStreamController {
 
 }
 
-/// High-performance circular buffer for PTY data
+/// high-performance circular buffer for pty data
 class _CircularBuffer {
   final Uint8List _buffer;
   int _readPos = 0;

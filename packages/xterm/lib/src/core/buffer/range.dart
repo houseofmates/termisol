@@ -20,17 +20,17 @@ abstract class BufferRange {
 
   BufferRange get normalized;
 
-  /// Convert this range to segments of single lines.
+  /// convert this range to segments of single lines.
   Iterable<BufferSegment> toSegments();
 
-  /// Returns true if the given[position] is within this range.
+  /// returns true if the given[position] is within this range.
   bool contains(CellOffset position);
 
-  /// Returns the smallest range that contains both this range and the given
+  /// returns the smallest range that contains both this range and the given
   /// [range].
   BufferRange merge(BufferRange range);
 
-  /// Returns the smallest range that contains both this range and the given
+  /// returns the smallest range that contains both this range and the given
   /// [position].
   BufferRange extend(CellOffset position);
 

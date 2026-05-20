@@ -18,8 +18,8 @@ class Buffer {
 
   final bool isAltBuffer;
 
-  /// Characters that break selection when calling [getWordBoundary]. If null,
-  /// defaults to [defaultWordSeparators].
+  /// characters that break selection when calling [getwordboundary]. if null,
+  /// defaults to [defaultwordseparators].
   final Set<int>? wordSeparators;
 
   Buffer(
@@ -51,61 +51,61 @@ class Buffer {
 
   final charset = Charset();
 
-  /// Width of the viewport in columns. Also the index of the last column.
+  /// width of the viewport in columns. also the index of the last column.
   int get viewWidth => terminal.viewWidth;
 
-  /// Height of the viewport in rows. Also the index of the last line.
+  /// height of the viewport in rows. also the index of the last line.
   int get viewHeight => terminal.viewHeight;
 
   /// lines of the buffer. the length of [lines] should always be equal or
-  /// greater than [viewHeight].
+  /// greater than [viewheight].
   late final lines = IndexAwareCircularBuffer<BufferLine>(maxLines);
 
-  /// Total number of lines in the buffer. Always equal or greater than
-  /// [viewHeight].
+  /// total number of lines in the buffer. always equal or greater than
+  /// [viewheight].
   int get height => lines.length;
 
-  /// Horizontal position of the cursor relative to the top-left cornor of the
+  /// horizontal position of the cursor relative to the top-left cornor of the
   /// screen, starting from 0.
   int get cursorX => _cursorX.clamp(0, terminal.viewWidth - 1);
 
-  /// Vertical position of the cursor relative to the top-left cornor of the
+  /// vertical position of the cursor relative to the top-left cornor of the
   /// screen, starting from 0.
   int get cursorY => _cursorY;
 
-  /// Index of the first line in the scroll region.
+  /// index of the first line in the scroll region.
   int get marginTop => _marginTop;
 
-  /// Index of the last line in the scroll region.
+  /// index of the last line in the scroll region.
   int get marginBottom => _marginBottom;
 
-  /// The number of lines above the viewport.
+  /// the number of lines above the viewport.
   int get scrollBack => height - viewHeight;
 
-  /// Vertical position of the cursor relative to the top of the buffer,
+  /// vertical position of the cursor relative to the top of the buffer,
   /// starting from 0.
   int get absoluteCursorY => _cursorY + scrollBack;
 
-  /// Absolute index of the first line in the scroll region.
+  /// absolute index of the first line in the scroll region.
   int get absoluteMarginTop => _marginTop + scrollBack;
 
-  /// Absolute index of the last line in the scroll region.
+  /// absolute index of the last line in the scroll region.
   int get absoluteMarginBottom => _marginBottom + scrollBack;
 
-  /// Writes data to the _terminal. Terminal sequences or special characters are
+  /// writes data to the _terminal. terminal sequences or special characters are
   /// not interpreted and directly added to the buffer.
   ///
-  /// See also: [Terminal.write]
+  /// see also: [terminal.write]
   void write(String text) {
     for (var char in text.runes) {
       writeChar(char);
     }
   }
 
-  /// Writes a single character to the _terminal. Escape sequences or special
+  /// writes a single character to the _terminal. escape sequences or special
   /// characters are not interpreted and directly added to the buffer.
   ///
-  /// See also: [Terminal.writeChar]
+  /// see also: [terminal.writechar]
   void writeChar(int codePoint) {
     codePoint = charset.translate(codePoint);
 
@@ -130,7 +130,7 @@ class Buffer {
     }
   }
 
-  /// The line at the current cursor position.
+  /// the line at the current cursor position.
   BufferLine get currentLine {
     return lines[absoluteCursorY];
   }
@@ -146,7 +146,7 @@ class Buffer {
     }
   }
 
-  /// Erases the viewport from the cursor position to the end of the buffer,
+  /// erases the viewport from the cursor position to the end of the buffer,
   /// including the cursor position.
   void eraseDisplayFromCursor() {
     eraseLineFromCursor();
@@ -158,7 +158,7 @@ class Buffer {
     }
   }
 
-  /// Erases the viewport from the top-left corner to the cursor, including the
+  /// erases the viewport from the top-left corner to the cursor, including the
   /// cursor.
   void eraseDisplayToCursor() {
     eraseLineToCursor();
@@ -170,7 +170,7 @@ class Buffer {
     }
   }
 
-  /// Erases the whole viewport.
+  /// erases the whole viewport.
   void eraseDisplay() {
     for (var i = 0; i < viewHeight; i++) {
       final line = lines[i + scrollBack];
@@ -179,27 +179,27 @@ class Buffer {
     }
   }
 
-  /// Erases the line from the cursor to the end of the line, including the
+  /// erases the line from the cursor to the end of the line, including the
   /// cursor position.
   void eraseLineFromCursor() {
     currentLine.isWrapped = false;
     currentLine.eraseRange(_cursorX, viewWidth, terminal.cursor);
   }
 
-  /// Erases the line from the start of the line to the cursor, including the
+  /// erases the line from the start of the line to the cursor, including the
   /// cursor.
   void eraseLineToCursor() {
     currentLine.isWrapped = false;
     currentLine.eraseRange(0, _cursorX, terminal.cursor);
   }
 
-  /// Erases the line at the current cursor position.
+  /// erases the line at the current cursor position.
   void eraseLine() {
     currentLine.isWrapped = false;
     currentLine.eraseRange(0, viewWidth, terminal.cursor);
   }
 
-  /// Erases [count] cells starting at the cursor position.
+  /// erases [count] cells starting at the cursor position.
   void eraseChars(int count) {
     final start = _cursorX;
     currentLine.eraseRange(start, start + count, terminal.cursor);
@@ -225,12 +225,12 @@ class Buffer {
     }
   }
 
-  /// https://vt100.net/docs/vt100-ug/chapter3.html#IND IND – Index
+  /// https://vt100.net/docs/vt100-ug/chapter3.html#ind ind – index
   ///
-  /// ESC D
+  /// esc d
   ///
   /// [index] causes the active position to move downward one line without
-  /// changing the column position. If the active position is at the bottom
+  /// changing the column position. if the active position is at the bottom
   /// margin, a scroll up is performed.
   void index() {
     if (isInVerticalMargin) {
@@ -318,7 +318,7 @@ class Buffer {
     setCursor(cursorX, cursorY);
   }
 
-  /// Save cursor position, charmap and text attributes.
+  /// save cursor position, charmap and text attributes.
   void saveCursor() {
     _savedCursorX = _cursorX;
     _savedCursorY = _cursorY;
@@ -328,7 +328,7 @@ class Buffer {
     charset.save();
   }
 
-  /// Restore cursor position, charmap and text attributes.
+  /// restore cursor position, charmap and text attributes.
   void restoreCursor() {
     _cursorX = _savedCursorX;
     _cursorY = _savedCursorY;
@@ -338,8 +338,8 @@ class Buffer {
     charset.restore();
   }
 
-  /// Sets the vertical scrolling margin to [top] and [bottom].
-  /// Both values must be between 0 and [viewHeight] - 1.
+  /// sets the vertical scrolling margin to [top] and [bottom].
+  /// both values must be between 0 and [viewheight] - 1.
   void setVerticalMargins(int top, int bottom) {
     _marginTop = top.clamp(0, viewHeight - 1);
     _marginBottom = bottom.clamp(0, viewHeight - 1);
@@ -362,7 +362,7 @@ class Buffer {
     currentLine.removeCells(start, count, terminal.cursor);
   }
 
-  /// Remove all lines above the top of the viewport.
+  /// remove all lines above the top of the viewport.
   void clearScrollback() {
     if (height <= viewHeight) {
       return;
@@ -371,7 +371,7 @@ class Buffer {
     lines.trimStart(scrollBack);
   }
 
-  /// Clears the viewport and scrollback buffer. Then fill with empty lines.
+  /// clears the viewport and scrollback buffer. then fill with empty lines.
   void clear() {
     lines.clear();
     for (int i = 0; i < viewHeight; i++) {
@@ -390,14 +390,14 @@ class Buffer {
 
     setCursorX(0);
 
-    // Number of lines from the cursor to the bottom of the scrollable region
+    // number of lines from the cursor to the bottom of the scrollable region
     // including the cursor itself.
     final linesBelow = absoluteMarginBottom - absoluteCursorY + 1;
 
-    // Number of empty lines to insert.
+    // number of empty lines to insert.
     final linesToInsert = min(count, linesBelow);
 
-    // Number of lines to move up.
+    // number of lines to move up.
     final linesToMove = linesBelow - linesToInsert;
 
     for (var i = 0; i < linesToMove; i++) {
@@ -410,9 +410,9 @@ class Buffer {
     }
   }
 
-  /// Remove [count] lines starting at the current cursor position. Lines below
-  /// the removed lines are shifted up. This only affects the scrollable region.
-  /// Lines outside the scrollable region are not affected.
+  /// remove [count] lines starting at the current cursor position. lines below
+  /// the removed lines are shifted up. this only affects the scrollable region.
+  /// lines outside the scrollable region are not affected.
   void deleteLines(int count) {
     if (!isInVerticalMargin) {
       return;
@@ -435,9 +435,9 @@ class Buffer {
   }
 
   void resize(int oldWidth, int oldHeight, int newWidth, int newHeight) {
-    // 1. Adjust the height.
+    // 1. adjust the height.
     if (newHeight > oldHeight) {
-      // Grow larger
+      // grow larger
       for (var i = 0; i < newHeight - oldHeight; i++) {
         if (newHeight > lines.length) {
           lines.push(_newEmptyLine(newWidth));
@@ -446,7 +446,7 @@ class Buffer {
         }
       }
     } else {
-      // Shrink smaller
+      // shrink smaller
       for (var i = 0; i < oldHeight - newHeight; i++) {
         if (_cursorY > newHeight - 1) {
           _cursorY--;
@@ -456,11 +456,11 @@ class Buffer {
       }
     }
 
-    // Ensure cursor is within the screen.
+    // ensure cursor is within the screen.
     _cursorX = _cursorX.clamp(0, newWidth - 1);
     _cursorY = _cursorY.clamp(0, newHeight - 1);
 
-    // 2. Adjust the width.
+    // 2. adjust the width.
     if (newWidth != oldWidth) {
       if (terminal.reflowEnabled && !isAltBuffer) {
         final reflowResult = reflow(lines, oldWidth, newWidth);
@@ -476,12 +476,12 @@ class Buffer {
     }
   }
 
-  /// Create a new [CellAnchor] at the specified [x] and [y] coordinates.
+  /// create a new [cellanchor] at the specified [x] and [y] coordinates.
   CellAnchor createAnchor(int x, int y) {
     return lines[y].createAnchor(x);
   }
 
-  /// Create a new [CellAnchor] at the specified [x] and [y] coordinates.
+  /// create a new [cellanchor] at the specified [x] and [y] coordinates.
   CellAnchor createAnchorFromOffset(CellOffset offset) {
     return lines[offset.y].createAnchor(offset.x);
   }
@@ -490,7 +490,7 @@ class Buffer {
     return createAnchor(cursorX, absoluteCursorY);
   }
 
-  /// Create a new empty [BufferLine] with the current [viewWidth] if [width]
+  /// create a new empty [bufferline] with the current [viewwidth] if [width]
   /// is not specified.
   BufferLine _newEmptyLine([int? width]) {
     final line = BufferLine(width ?? viewWidth);
@@ -553,8 +553,8 @@ class Buffer {
     );
   }
 
-  /// Get the plain text content of the buffer including the scrollback.
-  /// Accepts an optional [range] to get a specific part of the buffer.
+  /// get the plain text content of the buffer including the scrollback.
+  /// accepts an optional [range] to get a specific part of the buffer.
   String getText([BufferRange? range]) {
     range ??= BufferRangeLine(
       CellOffset(0, 0),
@@ -581,7 +581,7 @@ class Buffer {
     return builder.toString();
   }
 
-  /// Returns a debug representation of the buffer.
+  /// returns a debug representation of the buffer.
   @override
   String toString() {
     final builder = StringBuffer();

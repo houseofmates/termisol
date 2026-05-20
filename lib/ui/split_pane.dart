@@ -4,8 +4,8 @@ import '../config/pkm_theme.dart';
 import '../core/terminal_session.dart';
 import 'terminal_view.dart';
 
-/// A split pane that can contain multiple terminal views with draggable
-/// resizable dividers. Supports horizontal (Row) and vertical (Column) splits.
+/// a split pane that can contain multiple terminal views with draggable
+/// resizable dividers. supports horizontal (row) and vertical (column) splits.
 class SplitPane extends StatefulWidget {
   final List<TerminalSession> sessions;
   final bool isHorizontal;

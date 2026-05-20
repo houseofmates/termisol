@@ -70,7 +70,7 @@ class _SettingsPageState extends State<SettingsPage>
         setState(() => _themeMode = mode);
         PkmTheme.themeMode.value = mode;
       } on ArgumentError {
-        // Invalid saved theme, ignore
+        // invalid saved theme, ignore
       }
     }
     final overlay = prefs.getBool('show_performance_overlay');

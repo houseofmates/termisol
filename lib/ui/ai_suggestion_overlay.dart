@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import '../ai/ai_terminal_assistant.dart';
 import '../config/pkm_theme.dart';
 
-/// AI suggestion overlay with inline error explanation and command generation.
+/// ai suggestion overlay with inline error explanation and command generation.
 class AiSuggestionOverlay extends StatefulWidget {
   final String currentError;
   final String currentCommand;
@@ -88,7 +88,7 @@ class _AiSuggestionOverlayState extends State<AiSuggestionOverlay>
     });
 
     try {
-      // Analyze the error
+      // analyze the error
       final analysisResponse = await _aiAssistant.processText(
         input: 'Analyze this terminal error and explain what went wrong: "${widget.currentError}"',
         capability: AICapability.system_analysis,
@@ -101,7 +101,7 @@ class _AiSuggestionOverlayState extends State<AiSuggestionOverlay>
         });
       }
 
-      // Generate suggested fix
+      // generate suggested fix
       final fixResponse = await _aiAssistant.processText(
         input: 'Suggest a command to fix this error: "${widget.currentError}". Current command was: "${widget.currentCommand}". Working directory: "${widget.workingDirectory}". Provide only the command, no explanation.',
         capability: AICapability.command_suggestion,
@@ -117,7 +117,7 @@ class _AiSuggestionOverlayState extends State<AiSuggestionOverlay>
         }
       }
 
-      // Generate detailed explanation
+      // generate detailed explanation
       final explanationResponse = await _aiAssistant.processText(
         input: 'Explain this error in simple terms and suggest what to do: "${widget.currentError}"',
         capability: AICapability.text_generation,
@@ -130,7 +130,7 @@ class _AiSuggestionOverlayState extends State<AiSuggestionOverlay>
         });
       }
 
-      // Generate alternative commands
+      // generate alternative commands
       final alternativesResponse = await _aiAssistant.processText(
         input: 'Suggest 3 alternative commands to accomplish what was intended with: "${widget.currentCommand}" that failed with: "${widget.currentError}". Format as a JSON array of strings.',
         capability: AICapability.command_suggestion,
@@ -497,7 +497,7 @@ class _AiSuggestionOverlayState extends State<AiSuggestionOverlay>
   }
 }
 
-/// Natural language command generator widget.
+/// natural language command generator widget.
 class NaturalLanguageCommandGenerator extends StatefulWidget {
   final String workingDirectory;
   final Function(String)? onCommandGenerated;
@@ -572,7 +572,7 @@ class _NaturalLanguageCommandGeneratorState extends State<NaturalLanguageCommand
         }
       }
 
-      // Generate alternatives
+      // generate alternatives
       final altResponse = await _aiAssistant.processText(
         input: 'Suggest 3 alternative commands for: "$input". Format as a JSON array of strings.',
         capability: AICapability.command_suggestion,

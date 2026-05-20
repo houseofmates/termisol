@@ -13,8 +13,8 @@ void main() {
 
       manager.sendSigInt();
 
-      // SIGINT sends ASCII 0x03 (ETX).
-      // We can't easily verify the internal state, but we can verify
+      // sigint sends ascii 0x03 (etx).
+      // we can't easily verify the internal state, but we can verify
       // the manager was created without error.
       expect(manager.hasSelection, isFalse);
     });

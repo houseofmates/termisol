@@ -43,7 +43,7 @@ class ByteConsumer {
     return data[_currentOffset++];
   }
 
-  /// Rolls back the last [n] call.
+  /// rolls back the last [n] call.
   void rollback([int n = 1]) {
     _currentOffset -= n;
     _totalConsumed -= n;
@@ -55,7 +55,7 @@ class ByteConsumer {
     }
   }
 
-  /// Rolls back to the state when this consumer had [length] bytes.
+  /// rolls back to the state when this consumer had [length] bytes.
   void rollbackTo(int length) {
     rollback(length - _length);
   }
@@ -68,13 +68,13 @@ class ByteConsumer {
 
   bool get isNotEmpty => _length != 0;
 
-  /// Unreferences data blocks that have been consumed. After calling this
+  /// unreferences data blocks that have been consumed. after calling this
   /// method, the consumer will not be able to roll back to consumed blocks.
   void unrefConsumedBlocks() {
     _consumed.clear();
   }
 
-  /// Resets the consumer to its initial state.
+  /// resets the consumer to its initial state.
   void reset() {
     _queue.clear();
     _consumed.clear();

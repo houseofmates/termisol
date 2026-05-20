@@ -31,7 +31,7 @@ class LongCommandNotifier extends ChangeNotifier {
   Future<void> notifyLongCommand(String command, {Duration? timeout}) async {
     final commandTimeout = timeout ?? _defaultTimeout;
 
-    // Cancel any existing timer for this command.
+    // cancel any existing timer for this command.
     _activeCommands[command]?.cancel();
     _activeCommands.remove(command);
 
@@ -46,7 +46,7 @@ class LongCommandNotifier extends ChangeNotifier {
       if (kDebugMode) debugPrint('Long command log failed: $e\n$stack');
     }
 
-    // Play notification sound after 30 seconds.
+    // play notification sound after 30 seconds.
     final soundTimer = Timer(const Duration(seconds: 30), () async {
       try {
         await _audioPlayer?.setSourceAsset('assets/notif.mp3');
@@ -58,7 +58,7 @@ class LongCommandNotifier extends ChangeNotifier {
     });
     _soundTimers.add(soundTimer);
 
-    // Schedule notification after timeout.
+    // schedule notification after timeout.
     _activeCommands[command] = Timer(commandTimeout, () async {
       try {
         await _audioPlayer?.setSourceAsset('assets/notif.mp3');

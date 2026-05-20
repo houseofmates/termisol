@@ -81,7 +81,7 @@ class _HintsModeOverlayState extends State<HintsModeOverlay> {
     for (int line = startLine; line < endLine; line++) {
       final lineText = buffer.lines[line].getText();
 
-      // Find URLs
+      // find urls
       for (final match in _urlRegex.allMatches(lineText)) {
         matches.add(
           _HintMatch(
@@ -94,7 +94,7 @@ class _HintsModeOverlayState extends State<HintsModeOverlay> {
         );
       }
 
-      // Find emails
+      // find emails
       for (final match in _emailRegex.allMatches(lineText)) {
         if (_overlapsExisting(matches, line, match.start, match.end)) {
           continue;
@@ -110,7 +110,7 @@ class _HintsModeOverlayState extends State<HintsModeOverlay> {
         );
       }
 
-      // Find paths
+      // find paths
       for (final match in _pathRegex.allMatches(lineText)) {
         final path = match.group(1)!;
         final start = match.start + match.group(0)!.indexOf(path);
@@ -252,7 +252,7 @@ class _HintsModeOverlayState extends State<HintsModeOverlay> {
             color: Colors.black.withValues(alpha: 0.25),
             child: Stack(
               children: [
-                // Header
+                // header
                 Positioned(
                   top: 8,
                   left: 0,
@@ -281,7 +281,7 @@ class _HintsModeOverlayState extends State<HintsModeOverlay> {
                     ),
                   ),
                 ),
-                // Hint pills
+                // hint pills
                 for (final index in visibleHints)
                   Positioned(
                     left: _hints[index].start * cellWidth,

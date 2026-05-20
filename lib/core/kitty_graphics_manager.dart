@@ -14,7 +14,7 @@ class KittyGraphicsManager {
 
   KittyGraphicsManager(this.terminal, this.controller);
 
-  /// Enable Kitty graphics protocol.
+  /// enable kitty graphics protocol.
   void enable() {
     if (!_enabled) {
       _enabled = true;
@@ -23,7 +23,7 @@ class KittyGraphicsManager {
     }
   }
 
-  /// Disable Kitty graphics protocol.
+  /// disable kitty graphics protocol.
   void disable() {
     if (_enabled) {
       _enabled = false;
@@ -32,10 +32,10 @@ class KittyGraphicsManager {
     }
   }
 
-  /// Check if Kitty graphics is enabled.
+  /// check if kitty graphics is enabled.
   bool get isEnabled => _enabled;
 
-  /// Display an inline image using Kitty graphics protocol.
+  /// display an inline image using kitty graphics protocol.
   Future<void> displayImage(
     Uint8List imageData, {
     int width = 80,
@@ -45,27 +45,27 @@ class KittyGraphicsManager {
     if (!_enabled) return;
 
     try {
-      // Validate image size (Kitty has limits)
+      // validate image size (kitty has limits)
       if (width > 4096 || height > 4096) {
         debugPrint('⚠️ Image too large for Kitty protocol');
         return;
       }
 
-      // Convert image to base64
+      // convert image to base64
       final base64Image = base64Encode(imageData);
 
-      // Build Kitty graphics command
+      // build kitty graphics command
       final command = [
-        'a=T', // Transmit to terminal
-        'f=${format.length},t=$format', // Format and transmission
-        'i=$_imageId', // Image ID
-        's=$width,v=$height', // Dimensions
-        'C=1', // More control data
+        'a=T', // transmit to terminal
+        'f=${format.length},t=$format', // format and transmission
+        'i=$_imageId', // image id
+        's=$width,v=$height', // dimensions
+        'C=1', // more control data
       ];
 
       final header = 'G${command.join(',')};';
 
-      // Send in chunks to avoid terminal buffer limits
+      // send in chunks to avoid terminal buffer limits
       const chunkSize = 4096;
       for (int i = 0; i < base64Image.length; i += chunkSize) {
         final end = (i + chunkSize).clamp(0, base64Image.length);
@@ -83,7 +83,7 @@ class KittyGraphicsManager {
     }
   }
 
-  /// Clear all displayed images.
+  /// clear all displayed images.
   void clearImages() {
     if (_enabled) {
       terminal.write('\x1b_Ga=d,x=1,y=1,q=2\x1b\\');
@@ -91,11 +91,11 @@ class KittyGraphicsManager {
     }
   }
 
-  /// Handle Kitty graphics responses.
+  /// handle kitty graphics responses.
   void handleResponse(String response) {
     if (!_enabled) return;
 
-    // Parse Kitty graphics responses for debugging
+    // parse kitty graphics responses for debugging
     if (response.startsWith('\x1b_G')) {
       debugPrint('📡 Kitty graphics response: $response');
     }

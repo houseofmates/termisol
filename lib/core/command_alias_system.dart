@@ -11,7 +11,7 @@ class CommandAliasSystem {
 
   static final CommandAliasSystem _instance = CommandAliasSystem._internal();
 
-  /// Singleton instance.
+  /// singleton instance.
   static CommandAliasSystem get instance => _instance;
 
   final Map<String, String> _aliases = {};
@@ -33,14 +33,14 @@ class CommandAliasSystem {
     });
   }
 
-  /// All aliases as a sorted list of map entries.
+  /// all aliases as a sorted list of map entries.
   List<MapEntry<String, String>> get aliases {
     final entries = _aliases.entries.toList();
     entries.sort((a, b) => a.key.compareTo(b.key));
     return entries;
   }
 
-  /// Load aliases from persistent storage. Defaults are kept for any keys
+  /// load aliases from persistent storage. defaults are kept for any keys
   /// not present in storage, and user-defined keys override defaults.
   Future<void> load() async {
     if (_loaded) return;
@@ -59,7 +59,7 @@ class CommandAliasSystem {
     }
   }
 
-  /// Persist aliases to SharedPreferences.
+  /// persist aliases to sharedpreferences.
   Future<void> save() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -69,24 +69,24 @@ class CommandAliasSystem {
     }
   }
 
-  /// Add or update an alias.
+  /// add or update an alias.
   void addAlias(String alias, String expansion) {
     if (alias.trim().isEmpty || expansion.trim().isEmpty) return;
     _aliases[alias.trim()] = expansion.trim();
   }
 
-  /// Remove an alias.
+  /// remove an alias.
   void removeAlias(String alias) {
     _aliases.remove(alias);
   }
 
-  /// If [input] starts with an alias key (first word), returns the expanded
-  /// command. Otherwise returns [input] unchanged.
+  /// if [input] starts with an alias key (first word), returns the expanded
+  /// command. otherwise returns [input] unchanged.
   String expand(String input) {
     final trimmed = input.trim();
     if (trimmed.isEmpty) return input;
 
-    // Find the first word boundary
+    // find the first word boundary
     final spaceIndex = trimmed.indexOf(' ');
     final firstWord = spaceIndex == -1
         ? trimmed

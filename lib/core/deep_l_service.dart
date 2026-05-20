@@ -46,7 +46,7 @@ class DeepLTranslationService {
     }
   }
 
-  /// Show a dialog to enter the DeepL API key.
+  /// show a dialog to enter the deepl api key.
   Future<void> promptForApiKey(BuildContext context) async {
     final controller = TextEditingController();
     await showDialog(
@@ -114,9 +114,9 @@ class DeepLTranslationService {
     );
   }
 
-  /// Translate text to English.
+  /// translate text to english.
   ///
-  /// Returns the translated text, or null if translation fails.
+  /// returns the translated text, or null if translation fails.
   Future<String?> translateToEnglish(String text) async {
     if (!isAvailable) return null;
     if (text.trim().isEmpty) return null;

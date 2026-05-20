@@ -46,20 +46,20 @@ final _zmodemSenderInit = '**\x18B0000000'.codeUnits;
 final _zmodemReceiverInit = '**\x18B0100000'.codeUnits;
 
 class ZModemMux {
-  /// Data from the underlying data channel.
+  /// data from the underlying data channel.
   final Stream<Uint8List> stdout;
 
-  /// The sink to write data to the underlying data channel.
+  /// the sink to write data to the underlying data channel.
   final StreamSink<List<int>> stdin;
 
-  /// The callback to receive data that should be written to the terminal.
+  /// the callback to receive data that should be written to the terminal.
   ZModemInputHandler? onTerminalInput;
 
-  /// The callback to handle file receiving. If not set, all offers will be
+  /// the callback to handle file receiving. if not set, all offers will be
   /// skipped.
   ZModemOfferHandler? onFileOffer;
 
-  /// The callback to handle file sending. If not set, all requests will be
+  /// the callback to handle file sending. if not set, all requests will be
   /// ignored.
   ZModemRequestHandler? onFileRequest;
 
@@ -67,37 +67,37 @@ class ZModemMux {
     _stdoutSubscription = stdout.listen(_handleStdout);
   }
 
-  /// Subscriptions to [stdout]. Used to pause/resume the stream when no more
+  /// subscriptions to [stdout]. used to pause/resume the stream when no more
   /// space is available in local buffers.
   late final StreamSubscription<Uint8List> _stdoutSubscription;
 
   late final _terminalSink = StreamController<List<int>>(
-      // onPause: _stdoutSubscription.pause,
-      // onResume: _stdoutSubscription.resume,
+      // onpause: _stdoutsubscription.pause,
+      // onresume: _stdoutsubscription.resume,
       )
     ..stream
         .transform(Utf8Decoder(allowMalformed: true))
         .listen(onTerminalInput);
 
-  /// Current ZModem session. If null, no session is active.
+  /// current zmodem session. if null, no session is active.
   ZModemCore? _session;
 
-  /// The sink to write data when receiving a file. If null, no file is being
+  /// the sink to write data when receiving a file. if null, no file is being
   /// received.
   StreamController<Uint8List>? _receiveSink;
 
-  /// Offers to send to the remote peer. If null, no offers are being sent.
+  /// offers to send to the remote peer. if null, no offers are being sent.
   Iterator<ZModemOffer>? _fileOffers;
 
-  /// Writes terminal output to the underlying connection. [input] may be
-  /// buffered if a ZModem session is active.
+  /// writes terminal output to the underlying connection. [input] may be
+  /// buffered if a zmodem session is active.
   void terminalWrite(String input) {
     if (_session == null) {
       stdin.add(utf8.encode(input));
     }
   }
 
-  /// This is the entry point of multiplexing, dispatching data to ZModem or
+  /// this is the entry point of multiplexing, dispatching data to zmodem or
   /// terminal depending on the current state.
   void _handleStdout(Uint8List chunk) {
     if (_session != null) {
@@ -112,7 +112,7 @@ class ZModemMux {
     _terminalSink.add(chunk);
   }
 
-  /// Detects a ZModem session in [chunk] and starts it if found. Returns true
+  /// detects a zmodem session in [chunk] and starts it if found. returns true
   /// if a session was started.
   bool _detectZModem(Uint8List chunk) {
     final index = chunk.listIndexOf(_zmodemSenderInit) ??
@@ -216,7 +216,7 @@ class ZModemMux {
     _moveToNextOffer();
   }
 
-  /// Sends next file offer if available, or closes the session if not.
+  /// sends next file offer if available, or closes the session if not.
   void _moveToNextOffer() {
     if (_fileOffers?.moveNext() != true) {
       _closeSession();
@@ -226,7 +226,7 @@ class ZModemMux {
     _session!.offerFile(_fileOffers!.current.info);
   }
 
-  /// Creates a [ZModemOffer] ƒrom the info from remote peer that can be used
+  /// creates a [zmodemoffer] ƒrom the info from remote peer that can be used
   /// by local client to accept or skip the file.
   ZModemOffer _createRemoteOffer(ZModemFileInfo fileInfo) {
     return ZModemCallbackOffer(
@@ -248,10 +248,10 @@ class ZModemMux {
   void _createReceiveSink() {
     _receiveSink = StreamController<Uint8List>(
       onPause: () {
-        // _stdoutSubscription.pause();
+        // _stdoutsubscription.pause();
       },
       onResume: () {
-        // _stdoutSubscription.resume();
+        // _stdoutsubscription.resume();
       },
     );
   }
@@ -262,19 +262,19 @@ class ZModemMux {
     _receiveSink = null;
   }
 
-  /// Requests remote to close the session.
+  /// requests remote to close the session.
   void _closeSession() {
     _session!.finishSession();
   }
 
-  /// Clears all ZModem state.
+  /// clears all zmodem state.
   Future<void> _reset() async {
     await _closeReceiveSink();
     _fileOffers = null;
     _session = null;
   }
 
-  /// Sends all pending data packets to the remote. No data is automatically
+  /// sends all pending data packets to the remote. no data is automatically
   /// sent to the remote without calling this method.
   void _flush() {
     final dataToSend = _session?.dataToSend();

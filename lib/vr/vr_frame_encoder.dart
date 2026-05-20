@@ -16,7 +16,7 @@ class VrFrameEncoder {
   final int maxRows;
   final int maxCols;
 
-  /// Encode the visible portion of [terminal] into a flat byte array.
+  /// encode the visible portion of [terminal] into a flat byte array.
   Uint8List encode(Terminal terminal) {
     final buffer = terminal.buffer;
     final rows = terminal.viewHeight.clamp(1, maxRows);
@@ -51,7 +51,7 @@ class VrFrameEncoder {
         view.setUint8(offset + 12, cellData.flags);
         offset += 13;
       }
-      // Pad remaining columns with zeros.
+      // pad remaining columns with zeros.
       offset += (cols - lineLength) * 13;
     }
 

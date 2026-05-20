@@ -18,13 +18,13 @@ class TerminalScrollGestureHandler extends StatefulWidget {
 
   final Terminal terminal;
 
-  /// Returns the cell offset for the pixel offset.
+  /// returns the cell offset for the pixel offset.
   final CellOffset Function(Offset) getCellOffset;
 
-  /// Returns the pixel height of lines in the terminal.
+  /// returns the pixel height of lines in the terminal.
   final double Function() getLineHeight;
 
-  /// Whether to simulate scroll events in the terminal when the application
+  /// whether to simulate scroll events in the terminal when the application
   /// doesn't declare it supports mouse wheel events. true by default as it
   /// is the default behavior of most terminals.
   final bool simulateScroll;
@@ -38,16 +38,16 @@ class TerminalScrollGestureHandler extends StatefulWidget {
 
 class _TerminalScrollGestureHandlerState
     extends State<TerminalScrollGestureHandler> {
-  /// Whether the application is in alternate screen buffer. If false, then this
+  /// whether the application is in alternate screen buffer. if false, then this
   /// widget does nothing.
   var isAltBuffer = false;
 
-  /// The variable that tracks the line offset in last scroll event. Used to
+  /// the variable that tracks the line offset in last scroll event. used to
   /// determine how many the scroll events should be sent to the terminal.
   var lastLineOffset = 0;
 
-  /// This variable tracks the last offset where the scroll gesture started.
-  /// Used to calculate the cell offset of the terminal mouse event.
+  /// this variable tracks the last offset where the scroll gesture started.
+  /// used to calculate the cell offset of the terminal mouse event.
   var lastPointerPosition = Offset.zero;
 
   @override
@@ -80,7 +80,7 @@ class _TerminalScrollGestureHandlerState
     }
   }
 
-  /// Send a single scroll event to the terminal. If [simulateScroll] is true,
+  /// send a single scroll event to the terminal. if [simulatescroll] is true,
   /// then if the application doesn't recognize mouse wheel events, this method
   /// will simulate scroll events by sending up/down arrow keys.
   void _sendScrollEvent(bool up) {

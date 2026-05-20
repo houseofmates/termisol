@@ -20,7 +20,7 @@ class ServiceRegistry {
   final Map<String, ServiceHealth> _health = {};
   final Queue<String> _initQueue = Queue();
 
-  /// Register a service factory without creating it yet.
+  /// register a service factory without creating it yet.
   void register<T>(
     String name,
     FutureOr<T> Function() factory, {
@@ -39,8 +39,8 @@ class ServiceRegistry {
     _health[name] = ServiceHealth.unknown;
   }
 
-  /// Get a service, creating it on first access if enabled.
-  /// Returns null if disabled or failed.
+  /// get a service, creating it on first access if enabled.
+  /// returns null if disabled or failed.
   T? get<T>(String name) {
     final entry = _services[name];
     if (entry == null) return null;
@@ -51,7 +51,7 @@ class ServiceRegistry {
 
     if (entry.instance != null) return entry.instance as T;
 
-    // Check dependencies first
+    // check dependencies first
     for (final dep in entry.dependsOn) {
       if (_health[dep] == ServiceHealth.failed ||
           _health[dep] == ServiceHealth.disabled) {
@@ -66,7 +66,7 @@ class ServiceRegistry {
       final result = entry.factory();
 
       if (result is Future) {
-        // Async initialization - return null for now, queue for completion
+        // async initialization - return null for now, queue for completion
         _initQueue.add(name);
         _completeAsyncInit(name, result);
         return null;
@@ -83,7 +83,7 @@ class ServiceRegistry {
     }
   }
 
-  /// Async version for services that must be awaited.
+  /// async version for services that must be awaited.
   Future<T?> getAsync<T>(String name) async {
     final entry = _services[name];
     if (entry == null) return null;
@@ -130,11 +130,11 @@ class ServiceRegistry {
     }
   }
 
-  /// Enable or disable a feature at runtime.
+  /// enable or disable a feature at runtime.
   void setFeature(String name, bool enabled) {
     _featureFlags[name] = enabled;
     if (!enabled) {
-      // Dispose if it was created
+      // dispose if it was created
       _services[name]?.instance = null;
       _health[name] = ServiceHealth.disabled;
     }
@@ -144,7 +144,7 @@ class ServiceRegistry {
   bool isHealthy(String name) => _health[name] == ServiceHealth.healthy;
   ServiceHealth? health(String name) => _health[name];
 
-  /// Health report for all services.
+  /// health report for all services.
   Map<String, dynamic> healthReport() {
     return {
       for (final entry in _services.entries)
@@ -156,17 +156,17 @@ class ServiceRegistry {
     };
   }
 
-  /// Initialize only critical services eagerly. Everything else is lazy.
+  /// initialize only critical services eagerly. everything else is lazy.
   Future<void> initializeCritical() async {
-    // Nothing is truly critical except the terminal itself.
-    // All other services can fail gracefully.
+    // nothing is truly critical except the terminal itself.
+    // all other services can fail gracefully.
     debugPrint('🚀 ServiceRegistry: critical path empty (lazy by design)');
   }
 
-  /// Get AI Assistant service specifically
+  /// get ai assistant service specifically
   dynamic getAIAssistant() => get<dynamic>(TermisolFeatures.aiAssistant);
 
-  /// Wait for any queued async initializations to complete.
+  /// wait for any queued async initializations to complete.
   Future<void> flushAsyncQueue() async {
     while (_initQueue.isNotEmpty) {
       final name = _initQueue.removeFirst();

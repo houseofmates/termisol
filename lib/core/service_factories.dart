@@ -4,12 +4,12 @@ import '../core/production_config_system.dart';
 /// real service factories for termisol.
 /// only factories for services that are actually used in the working ui path.
 class ServiceFactories {
-  /// Create AI terminal assistant using cloud APIs.
+  /// create ai terminal assistant using cloud apis.
   static NvidiaAITerminalAssistant createAIAssistant() {
     return NvidiaAITerminalAssistant();
   }
 
-  /// Create production config system.
+  /// create production config system.
   static ProductionConfigSystem createConfigSystem() {
     return ProductionConfigSystem();
   }

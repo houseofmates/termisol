@@ -7,19 +7,19 @@ import 'package:xterm/src/core/platform.dart';
 import 'package:xterm/src/core/state.dart';
 
 class TerminalMouseEvent {
-  /// The button that is pressed or released.
+  /// the button that is pressed or released.
   final TerminalMouseButton button;
 
-  /// The current state of the button.
+  /// the current state of the button.
   final TerminalMouseButtonState buttonState;
 
-  /// The position of button state change.
+  /// the position of button state change.
   final CellOffset position;
 
-  /// The state of the terminal.
+  /// the state of the terminal.
   final TerminalState state;
 
-  /// The platform of the terminal.
+  /// the platform of the terminal.
   final TerminalTargetPlatform platform;
 
   TerminalMouseEvent({
@@ -66,7 +66,7 @@ class ClickMouseHandler implements TerminalMouseHandler {
   String? call(TerminalMouseEvent event) {
     switch (event.state.mouseMode) {
       case MouseMode.clickOnly:
-        // Only clicks and only the first 3 buttons are reported.
+        // only clicks and only the first 3 buttons are reported.
         if (event.buttonState == TerminalMouseButtonState.down &&
             (event.button.id < 3)) {
           return MouseReporter.report(
@@ -98,7 +98,7 @@ class UpDownMouseHandler implements TerminalMouseHandler {
       case MouseMode.upDownScroll:
       case MouseMode.upDownScrollDrag:
       case MouseMode.upDownScrollMove:
-        // Up events are never reported for mouse wheel buttons.
+        // up events are never reported for mouse wheel buttons.
         if (event.button.isWheel &&
             event.buttonState == TerminalMouseButtonState.up) {
           return null;

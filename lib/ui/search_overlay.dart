@@ -124,7 +124,7 @@ class _TerminalSearchOverlayState extends State<TerminalSearchOverlay> {
     if (matchIndex < 0 || matchIndex >= _totalMatches) return;
 
     if (_semanticSearch) {
-      // Semantic results do not map to exact lines; skip scroll.
+      // semantic results do not map to exact lines; skip scroll.
       return;
     }
 

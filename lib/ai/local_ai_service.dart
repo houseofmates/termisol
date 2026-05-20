@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Local AI service with Ollama integration and offline capabilities.
+/// local ai service with ollama integration and offline capabilities.
 class LocalAIService {
   static final LocalAIService _instance = LocalAIService._internal();
   factory LocalAIService() => _instance;
@@ -181,13 +181,13 @@ Response:''';
   double _getTemperatureForCapability(AICapability capability) {
     switch (capability) {
       case AICapability.command_suggestion:
-        return 0.1; // Low temperature for precise commands
+        return 0.1; // low temperature for precise commands
       case AICapability.error_explanation:
-        return 0.3; // Low-medium temperature for explanations
+        return 0.3; // low-medium temperature for explanations
       case AICapability.system_analysis:
-        return 0.4; // Medium temperature for analysis
+        return 0.4; // medium temperature for analysis
       case AICapability.text_generation:
-        return 0.7; // Higher temperature for creative responses
+        return 0.7; // higher temperature for creative responses
       default:
         return 0.5;
     }
@@ -209,7 +209,7 @@ Response:''';
   }
 
   AIResponse _generateOfflineResponse(String input, AICapability capability) {
-    // Fallback responses when AI is not available
+    // fallback responses when ai is not available
     switch (capability) {
       case AICapability.command_suggestion:
         return AIResponse(
@@ -284,7 +284,7 @@ Response:''';
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('ai_ollama_endpoint', endpoint);
     
-    // Recheck availability with new endpoint
+    // recheck availability with new endpoint
     await _checkOllamaAvailability();
     if (_ollamaAvailable) {
       await _loadAvailableModels();

@@ -10,7 +10,7 @@ class CrashRecovery {
   Timer? _healthTimer;
   final Map<String, _SessionHealth> _sessionHealth = {};
 
-  /// Initialize the recovery system for a session.
+  /// initialize the recovery system for a session.
   Future<void> initialize(String sessionId) async {
     _sessionHealth[sessionId] = _SessionHealth(
       startTime: DateTime.now(),
@@ -19,7 +19,7 @@ class CrashRecovery {
     );
   }
 
-  /// Record a command execution for health monitoring.
+  /// record a command execution for health monitoring.
   void onCommand(String sessionId, String command) {
     final now = DateTime.now();
     _commandHistory.add(
@@ -37,12 +37,12 @@ class CrashRecovery {
     }
   }
 
-  /// Mark a session as ended.
+  /// mark a session as ended.
   void onSessionEnd(String sessionId) {
     _sessionHealth.remove(sessionId);
   }
 
-  /// Start periodic health monitoring.
+  /// start periodic health monitoring.
   void startHealthMonitoring(String sessionId) {
     _healthTimer?.cancel();
     _healthTimer = Timer.periodic(const Duration(seconds: 30), (_) {
@@ -64,7 +64,7 @@ class CrashRecovery {
     }
   }
 
-  /// Get recent commands for a session.
+  /// get recent commands for a session.
   List<String> getRecentCommands(String sessionId, {int limit = 20}) {
     return _commandHistory
         .where((r) => r.sessionId == sessionId)
@@ -73,7 +73,7 @@ class CrashRecovery {
         .toList();
   }
 
-  /// Dispose and clean up resources.
+  /// dispose and clean up resources.
   void dispose() {
     _healthTimer?.cancel();
     _healthTimer = null;

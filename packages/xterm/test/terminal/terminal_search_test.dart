@@ -11,66 +11,66 @@
 
 // import 'terminal_search_test.mocks.dart';
 
-// class TerminalSearchTestCircularList extends CircularList<BufferLine> {
-//   TerminalSearchTestCircularList(int maxLines) : super(maxLines);
+// class terminalsearchtestcircularlist extends circularlist<bufferline> {
+//   terminalsearchtestcircularlist(int maxlines) : super(maxlines);
 // }
 
-// @GenerateMocks([
-//   TerminalSearchInteraction,
-//   Buffer,
-//   TerminalSearchTestCircularList,
-//   BufferLine
+// @generatemocks([
+//   terminalsearchinteraction,
+//   buffer,
+//   terminalsearchtestcircularlist,
+//   bufferline
 // ])
 void main() {
-  // group('Terminal Search Tests', () {
-  //   test('Creation works', () {
-  //     _TestFixture();
+  // group('terminal search tests', () {
+  //   test('creation works', () {
+  //     _testfixture();
   //   });
 
-  //   test('Doesn\'t trigger anything when not activated', () {
-  //     final fixture = _TestFixture();
-  //     verifyNoMoreInteractions(fixture.terminalSearchInteractionMock);
-  //     final task = fixture.uut.createSearchTask('testsearch');
+  //   test('doesn\'t trigger anything when not activated', () {
+  //     final fixture = _testfixture();
+  //     verifynomoreinteractions(fixture.terminalsearchinteractionmock);
+  //     final task = fixture.uut.createsearchtask('testsearch');
   //     task.pattern = "some test";
-  //     task.isActive = false;
-  //     task.searchResult;
+  //     task.isactive = false;
+  //     task.searchresult;
   //   });
 
-  //   test('Basic search works', () {
-  //     final fixture = _TestFixture();
-  //     fixture.expectTerminalSearchContent(['Simple Content']);
-  //     final task = fixture.uut.createSearchTask('testsearch');
-  //     task.isActive = true;
+  //   test('basic search works', () {
+  //     final fixture = _testfixture();
+  //     fixture.expectterminalsearchcontent(['simple content']);
+  //     final task = fixture.uut.createsearchtask('testsearch');
+  //     task.isactive = true;
   //     task.pattern = 'content';
-  //     task.options = TerminalSearchOptions(
-  //         caseSensitive: false, matchWholeWord: false, useRegex: false);
-  //     final result = task.searchResult;
-  //     expect(result.allHits.length, 1);
-  //     expect(result.allHits[0].startLineIndex, 0);
-  //     expect(result.allHits[0].startIndex, 7);
-  //     expect(result.allHits[0].endLineIndex, 0);
-  //     expect(result.allHits[0].endIndex, 14);
+  //     task.options = terminalsearchoptions(
+  //         casesensitive: false, matchwholeword: false, useregex: false);
+  //     final result = task.searchresult;
+  //     expect(result.allhits.length, 1);
+  //     expect(result.allhits[0].startlineindex, 0);
+  //     expect(result.allhits[0].startindex, 7);
+  //     expect(result.allhits[0].endlineindex, 0);
+  //     expect(result.allhits[0].endindex, 14);
   //   });
 
-  //   test('Multiline search works', () {
-  //     final fixture = _TestFixture();
-  //     fixture.expectTerminalSearchContent(['Simple Content', 'Second Line']);
-  //     final task = fixture.uut.createSearchTask('testsearch');
-  //     task.isActive = true;
+  //   test('multiline search works', () {
+  //     final fixture = _testfixture();
+  //     fixture.expectterminalsearchcontent(['simple content', 'second line']);
+  //     final task = fixture.uut.createsearchtask('testsearch');
+  //     task.isactive = true;
   //     task.pattern = 'line';
-  //     task.options = TerminalSearchOptions(
-  //         caseSensitive: false, matchWholeWord: false, useRegex: false);
-  //     final result = task.searchResult;
-  //     expect(result.allHits.length, 1);
-  //     expect(result.allHits[0].startLineIndex, 1);
-  //     expect(result.allHits[0].startIndex, 7);
-  //     expect(result.allHits[0].endLineIndex, 1);
-  //     expect(result.allHits[0].endIndex, 11);
+  //     task.options = terminalsearchoptions(
+  //         casesensitive: false, matchwholeword: false, useregex: false);
+  //     final result = task.searchresult;
+  //     expect(result.allhits.length, 1);
+  //     expect(result.allhits[0].startlineindex, 1);
+  //     expect(result.allhits[0].startindex, 7);
+  //     expect(result.allhits[0].endlineindex, 1);
+  //     expect(result.allhits[0].endindex, 11);
   //   });
 
-  //   test('Emoji search works', () {
-  //     final fixture = _TestFixture();
-  //     fixture.expectBufferContentLine([
+  //   test('emoji search works', () {
+  //     final fixture = _testfixture();
+  //     fixture.expectbuffercontentline([
   //       '🍏',
   //       '🍎',
   //       '🍐',
@@ -85,319 +85,319 @@ void main() {
   //       '🍒',
   //       '🍑'
   //     ]);
-  //     final task = fixture.uut.createSearchTask('testsearch');
-  //     task.isActive = true;
+  //     final task = fixture.uut.createsearchtask('testsearch');
+  //     task.isactive = true;
   //     task.pattern = '🍋';
-  //     task.options = TerminalSearchOptions(
-  //         caseSensitive: false, matchWholeWord: false, useRegex: false);
-  //     final result = task.searchResult;
-  //     expect(result.allHits.length, 1);
-  //     expect(result.allHits[0].startLineIndex, 0);
-  //     expect(result.allHits[0].startIndex, 8);
-  //     expect(result.allHits[0].endLineIndex, 0);
-  //     expect(result.allHits[0].endIndex, 10);
+  //     task.options = terminalsearchoptions(
+  //         casesensitive: false, matchwholeword: false, useregex: false);
+  //     final result = task.searchresult;
+  //     expect(result.allhits.length, 1);
+  //     expect(result.allhits[0].startlineindex, 0);
+  //     expect(result.allhits[0].startindex, 8);
+  //     expect(result.allhits[0].endlineindex, 0);
+  //     expect(result.allhits[0].endindex, 10);
   //   });
 
-  //   test('CJK search works', () {
-  //     final fixture = _TestFixture();
-  //     fixture.expectBufferContentLine(['こ', 'ん', 'に', 'ち', 'は', '世', '界']);
-  //     final task = fixture.uut.createSearchTask('testsearch');
-  //     task.isActive = true;
+  //   test('cjk search works', () {
+  //     final fixture = _testfixture();
+  //     fixture.expectbuffercontentline(['こ', 'ん', 'に', 'ち', 'は', '世', '界']);
+  //     final task = fixture.uut.createsearchtask('testsearch');
+  //     task.isactive = true;
   //     task.pattern = 'は';
-  //     task.options = TerminalSearchOptions(
-  //         caseSensitive: false, matchWholeWord: false, useRegex: false);
-  //     final result = task.searchResult;
-  //     expect(result.allHits.length, 1);
-  //     expect(result.allHits[0].startLineIndex, 0);
-  //     expect(result.allHits[0].startIndex, 8);
-  //     expect(result.allHits[0].endLineIndex, 0);
-  //     expect(result.allHits[0].endIndex, 10);
+  //     task.options = terminalsearchoptions(
+  //         casesensitive: false, matchwholeword: false, useregex: false);
+  //     final result = task.searchresult;
+  //     expect(result.allhits.length, 1);
+  //     expect(result.allhits[0].startlineindex, 0);
+  //     expect(result.allhits[0].startindex, 8);
+  //     expect(result.allhits[0].endlineindex, 0);
+  //     expect(result.allhits[0].endindex, 10);
   //   });
 
-  //   test('Finding strings directly on line break works', () {
-  //     final fixture = _TestFixture();
-  //     fixture.expectTerminalSearchContent([
-  //       'The search hit is '.padRight(fixture.terminalWidth - 3) + 'spl',
+  //   test('finding strings directly on line break works', () {
+  //     final fixture = _testfixture();
+  //     fixture.expectterminalsearchcontent([
+  //       'the search hit is '.padright(fixture.terminalwidth - 3) + 'spl',
   //       'it over two lines',
   //     ]);
-  //     final task = fixture.uut.createSearchTask('testsearch');
-  //     task.isActive = true;
+  //     final task = fixture.uut.createsearchtask('testsearch');
+  //     task.isactive = true;
   //     task.pattern = 'split';
-  //     task.options = TerminalSearchOptions(
-  //         caseSensitive: false, matchWholeWord: false, useRegex: false);
-  //     final result = task.searchResult;
-  //     expect(result.allHits.length, 1);
-  //     expect(result.allHits[0].startLineIndex, 0);
-  //     expect(result.allHits[0].startIndex, 77);
-  //     expect(result.allHits[0].endLineIndex, 1);
-  //     expect(result.allHits[0].endIndex, 2);
+  //     task.options = terminalsearchoptions(
+  //         casesensitive: false, matchwholeword: false, useregex: false);
+  //     final result = task.searchresult;
+  //     expect(result.allhits.length, 1);
+  //     expect(result.allhits[0].startlineindex, 0);
+  //     expect(result.allhits[0].startindex, 77);
+  //     expect(result.allhits[0].endlineindex, 1);
+  //     expect(result.allhits[0].endindex, 2);
   //   });
   // });
 
-  // test('Option: case sensitivity works', () {
-  //   final fixture = _TestFixture();
-  //   fixture.expectTerminalSearchContent(['Simple Content', 'Second Line']);
-  //   final task = fixture.uut.createSearchTask('testsearch');
-  //   task.isActive = true;
+  // test('option: case sensitivity works', () {
+  //   final fixture = _testfixture();
+  //   fixture.expectterminalsearchcontent(['simple content', 'second line']);
+  //   final task = fixture.uut.createsearchtask('testsearch');
+  //   task.isactive = true;
   //   task.pattern = 'line';
-  //   task.options = TerminalSearchOptions(
-  //       caseSensitive: true, matchWholeWord: false, useRegex: false);
+  //   task.options = terminalsearchoptions(
+  //       casesensitive: true, matchwholeword: false, useregex: false);
 
-  //   final result = task.searchResult;
-  //   expect(result.allHits.length, 0);
+  //   final result = task.searchresult;
+  //   expect(result.allhits.length, 0);
 
-  //   task.pattern = 'Line';
-  //   final secondResult = task.searchResult;
-  //   expect(secondResult.allHits.length, 1);
-  //   expect(secondResult.allHits[0].startLineIndex, 1);
-  //   expect(secondResult.allHits[0].startIndex, 7);
-  //   expect(secondResult.allHits[0].endLineIndex, 1);
-  //   expect(secondResult.allHits[0].endIndex, 11);
+  //   task.pattern = 'line';
+  //   final secondresult = task.searchresult;
+  //   expect(secondresult.allhits.length, 1);
+  //   expect(secondresult.allhits[0].startlineindex, 1);
+  //   expect(secondresult.allhits[0].startindex, 7);
+  //   expect(secondresult.allhits[0].endlineindex, 1);
+  //   expect(secondresult.allhits[0].endindex, 11);
   // });
 
-  // test('Option: whole word works', () {
-  //   final fixture = _TestFixture();
-  //   fixture.expectTerminalSearchContent(['Simple Content', 'Second Line']);
-  //   final task = fixture.uut.createSearchTask('testsearch');
-  //   task.isActive = true;
+  // test('option: whole word works', () {
+  //   final fixture = _testfixture();
+  //   fixture.expectterminalsearchcontent(['simple content', 'second line']);
+  //   final task = fixture.uut.createsearchtask('testsearch');
+  //   task.isactive = true;
   //   task.pattern = 'lin';
-  //   task.options = TerminalSearchOptions(
-  //       caseSensitive: false, matchWholeWord: true, useRegex: false);
+  //   task.options = terminalsearchoptions(
+  //       casesensitive: false, matchwholeword: true, useregex: false);
 
-  //   final result = task.searchResult;
-  //   expect(result.allHits.length, 0);
+  //   final result = task.searchresult;
+  //   expect(result.allhits.length, 0);
 
   //   task.pattern = 'line';
-  //   final secondResult = task.searchResult;
-  //   expect(secondResult.allHits.length, 1);
-  //   expect(secondResult.allHits[0].startLineIndex, 1);
-  //   expect(secondResult.allHits[0].startIndex, 7);
-  //   expect(secondResult.allHits[0].endLineIndex, 1);
-  //   expect(secondResult.allHits[0].endIndex, 11);
+  //   final secondresult = task.searchresult;
+  //   expect(secondresult.allhits.length, 1);
+  //   expect(secondresult.allhits[0].startlineindex, 1);
+  //   expect(secondresult.allhits[0].startindex, 7);
+  //   expect(secondresult.allhits[0].endlineindex, 1);
+  //   expect(secondresult.allhits[0].endindex, 11);
   // });
 
-  // test('Option: regex works', () {
-  //   final fixture = _TestFixture();
-  //   fixture.expectTerminalSearchContent(['Simple Content', 'Second Line']);
-  //   final task = fixture.uut.createSearchTask('testsearch');
-  //   task.isActive = true;
-  //   task.options = TerminalSearchOptions(
-  //       caseSensitive: false, matchWholeWord: false, useRegex: true);
+  // test('option: regex works', () {
+  //   final fixture = _testfixture();
+  //   fixture.expectterminalsearchcontent(['simple content', 'second line']);
+  //   final task = fixture.uut.createsearchtask('testsearch');
+  //   task.isactive = true;
+  //   task.options = terminalsearchoptions(
+  //       casesensitive: false, matchwholeword: false, useregex: true);
 
   //   task.pattern =
   //       r'(^|\s)\w{4}($|\s)'; // match exactly 4 characters (and the whitespace before and/or after)
-  //   final secondResult = task.searchResult;
-  //   expect(secondResult.allHits.length, 1);
-  //   expect(secondResult.allHits[0].startLineIndex, 1);
-  //   expect(secondResult.allHits[0].startIndex, 6);
-  //   expect(secondResult.allHits[0].endLineIndex, 1);
-  //   expect(secondResult.allHits[0].endIndex, 12);
+  //   final secondresult = task.searchresult;
+  //   expect(secondresult.allhits.length, 1);
+  //   expect(secondresult.allhits[0].startlineindex, 1);
+  //   expect(secondresult.allhits[0].startindex, 6);
+  //   expect(secondresult.allhits[0].endlineindex, 1);
+  //   expect(secondresult.allhits[0].endindex, 12);
   // });
 
-  // test('Retrigger search when a BufferLine got dirty works', () {
-  //   final fixture = _TestFixture();
-  //   fixture.expectTerminalSearchContent(
-  //       ['Simple Content', 'Second Line', 'Third row']);
-  //   final task = fixture.uut.createSearchTask('testsearch');
-  //   task.isActive = true;
-  //   task.options = TerminalSearchOptions(
-  //       caseSensitive: false, matchWholeWord: false, useRegex: false);
+  // test('retrigger search when a bufferline got dirty works', () {
+  //   final fixture = _testfixture();
+  //   fixture.expectterminalsearchcontent(
+  //       ['simple content', 'second line', 'third row']);
+  //   final task = fixture.uut.createsearchtask('testsearch');
+  //   task.isactive = true;
+  //   task.options = terminalsearchoptions(
+  //       casesensitive: false, matchwholeword: false, useregex: false);
 
   //   task.pattern = 'line';
-  //   final result = task.searchResult;
-  //   expect(result.allHits.length, 1);
+  //   final result = task.searchresult;
+  //   expect(result.allhits.length, 1);
 
   //   // overwrite expectations, nothing dirty => no new search
-  //   fixture.expectTerminalSearchContent(
-  //       ['Simple Content', 'Second Line', 'Third line'],
-  //       isSearchStringCached: true);
-  //   task.isActive = false;
-  //   task.isActive = true;
+  //   fixture.expectterminalsearchcontent(
+  //       ['simple content', 'second line', 'third line'],
+  //       issearchstringcached: true);
+  //   task.isactive = false;
+  //   task.isactive = true;
 
-  //   final secondResult = task.searchResult;
-  //   expect(secondResult.allHits.length,
+  //   final secondresult = task.searchresult;
+  //   expect(secondresult.allhits.length,
   //       1); // nothing was dirty => we get the cached search result
 
   //   // overwrite expectations, one line is dirty => new search
-  //   fixture.expectTerminalSearchContent(
-  //       ['Simple Content', 'Second Line', 'Third line'],
-  //       isSearchStringCached: false,
-  //       dirtyIndices: [1]);
+  //   fixture.expectterminalsearchcontent(
+  //       ['simple content', 'second line', 'third line'],
+  //       issearchstringcached: false,
+  //       dirtyindices: [1]);
 
-  //   final thirdResult = task.searchResult;
-  //   expect(thirdResult.allHits.length,
+  //   final thirdresult = task.searchresult;
+  //   expect(thirdresult.allhits.length,
   //       2); //search has happened again so the new content is found
 
   //   // overwrite expectations, content has changed => new search
-  //   fixture.expectTerminalSearchContent(
-  //       ['First line', 'Second Line', 'Third line'],
-  //       isSearchStringCached: false,
-  //       dirtyIndices: [0]);
+  //   fixture.expectterminalsearchcontent(
+  //       ['first line', 'second line', 'third line'],
+  //       issearchstringcached: false,
+  //       dirtyindices: [0]);
 
-  //   final fourthResult = task.searchResult;
-  //   expect(fourthResult.allHits.length,
+  //   final fourthresult = task.searchresult;
+  //   expect(fourthresult.allhits.length,
   //       3); //search has happened again so the new content is found
   // });
-  // test('Handles regex special characters in non regex mode correctly', () {
-  //   final fixture = _TestFixture();
-  //   fixture.expectTerminalSearchContent(['Simple Content', 'Second Line.\\{']);
-  //   final task = fixture.uut.createSearchTask('testsearch');
-  //   task.isActive = true;
+  // test('handles regex special characters in non regex mode correctly', () {
+  //   final fixture = _testfixture();
+  //   fixture.expectterminalsearchcontent(['simple content', 'second line.\\{']);
+  //   final task = fixture.uut.createsearchtask('testsearch');
+  //   task.isactive = true;
   //   task.pattern = 'line.\\{';
-  //   task.options = TerminalSearchOptions(
-  //       caseSensitive: false, matchWholeWord: false, useRegex: false);
+  //   task.options = terminalsearchoptions(
+  //       casesensitive: false, matchwholeword: false, useregex: false);
 
-  //   final result = task.searchResult;
-  //   expect(result.allHits.length, 1);
-  //   expect(result.allHits[0].startLineIndex, 1);
-  //   expect(result.allHits[0].startIndex, 7);
-  //   expect(result.allHits[0].endLineIndex, 1);
-  //   expect(result.allHits[0].endIndex, 14);
+  //   final result = task.searchresult;
+  //   expect(result.allhits.length, 1);
+  //   expect(result.allhits[0].startlineindex, 1);
+  //   expect(result.allhits[0].startindex, 7);
+  //   expect(result.allhits[0].endlineindex, 1);
+  //   expect(result.allhits[0].endindex, 14);
   // });
-  // test('TerminalWidth change leads to retriggering search', () {
-  //   final fixture = _TestFixture();
-  //   fixture.expectTerminalSearchContent(['Simple Content', 'Second Line']);
-  //   final task = fixture.uut.createSearchTask('testsearch');
-  //   task.isActive = true;
+  // test('terminalwidth change leads to retriggering search', () {
+  //   final fixture = _testfixture();
+  //   fixture.expectterminalsearchcontent(['simple content', 'second line']);
+  //   final task = fixture.uut.createsearchtask('testsearch');
+  //   task.isactive = true;
   //   task.pattern = 'line';
-  //   task.options = TerminalSearchOptions(
-  //       caseSensitive: false, matchWholeWord: false, useRegex: false);
+  //   task.options = terminalsearchoptions(
+  //       casesensitive: false, matchwholeword: false, useregex: false);
 
-  //   final result = task.searchResult;
-  //   expect(result.allHits.length, 1);
+  //   final result = task.searchresult;
+  //   expect(result.allhits.length, 1);
 
   //   // change data to detect a search re-run
-  //   fixture.expectTerminalSearchContent(
-  //       ['First line', 'Second Line']); //has 2 hits
-  //   task.isActive = false;
-  //   task.isActive = true;
-  //   final secondResult = task.searchResult;
+  //   fixture.expectterminalsearchcontent(
+  //       ['first line', 'second line']); //has 2 hits
+  //   task.isactive = false;
+  //   task.isactive = true;
+  //   final secondresult = task.searchresult;
   //   expect(
-  //       secondResult.allHits.length, 1); //nothing changed so the cache is used
+  //       secondresult.allhits.length, 1); //nothing changed so the cache is used
 
-  //   fixture.terminalWidth = 79;
-  //   task.isActive = false;
-  //   task.isActive = true;
-  //   final thirdResult = task.searchResult;
+  //   fixture.terminalwidth = 79;
+  //   task.isactive = false;
+  //   task.isactive = true;
+  //   final thirdresult = task.searchresult;
   //   //we changed the terminal width which triggered a re-run of the search
-  //   expect(thirdResult.allHits.length, 2);
+  //   expect(thirdresult.allhits.length, 2);
   // });
 }
 
-// class _TestFixture {
-//   _TestFixture({
-//     terminalWidth = 80,
-//   }) : _terminalWidth = terminalWidth {
-//     uut = TerminalSearch(terminalSearchInteractionMock);
-//     when(terminalSearchInteractionMock.terminalWidth).thenReturn(terminalWidth);
+// class _testfixture {
+//   _testfixture({
+//     terminalwidth = 80,
+//   }) : _terminalwidth = terminalwidth {
+//     uut = terminalsearch(terminalsearchinteractionmock);
+//     when(terminalsearchinteractionmock.terminalwidth).thenreturn(terminalwidth);
 //   }
 
-//   int _terminalWidth;
-//   int get terminalWidth => _terminalWidth;
-//   set terminalWidth(int terminalWidth) {
-//     _terminalWidth = terminalWidth;
-//     when(terminalSearchInteractionMock.terminalWidth).thenReturn(terminalWidth);
+//   int _terminalwidth;
+//   int get terminalwidth => _terminalwidth;
+//   set terminalwidth(int terminalwidth) {
+//     _terminalwidth = terminalwidth;
+//     when(terminalsearchinteractionmock.terminalwidth).thenreturn(terminalwidth);
 //   }
 
-//   void expectBufferContentLine(
-//     List<String> cellData, {
-//     isUsingAltBuffer = false,
+//   void expectbuffercontentline(
+//     list<string> celldata, {
+//     isusingaltbuffer = false,
 //   }) {
-//     final buffer = _getBufferFromCellData(cellData);
-//     when(terminalSearchInteractionMock.buffer).thenReturn(buffer);
-//     when(terminalSearchInteractionMock.isUsingAltBuffer())
-//         .thenReturn(isUsingAltBuffer);
+//     final buffer = _getbufferfromcelldata(celldata);
+//     when(terminalsearchinteractionmock.buffer).thenreturn(buffer);
+//     when(terminalsearchinteractionmock.isusingaltbuffer())
+//         .thenreturn(isusingaltbuffer);
 //   }
 
-//   void expectTerminalSearchContent(
-//     List<String> lines, {
-//     isUsingAltBuffer = false,
-//     isSearchStringCached = true,
-//     List<int>? dirtyIndices,
+//   void expectterminalsearchcontent(
+//     list<string> lines, {
+//     isusingaltbuffer = false,
+//     issearchstringcached = true,
+//     list<int>? dirtyindices,
 //   }) {
-//     final buffer = _getBuffer(lines,
-//         isCached: isSearchStringCached, dirtyIndices: dirtyIndices);
+//     final buffer = _getbuffer(lines,
+//         iscached: issearchstringcached, dirtyindices: dirtyindices);
 
-//     when(terminalSearchInteractionMock.buffer).thenReturn(buffer);
-//     when(terminalSearchInteractionMock.isUsingAltBuffer())
-//         .thenReturn(isUsingAltBuffer);
+//     when(terminalsearchinteractionmock.buffer).thenreturn(buffer);
+//     when(terminalsearchinteractionmock.isusingaltbuffer())
+//         .thenreturn(isusingaltbuffer);
 //   }
 
-//   final terminalSearchInteractionMock = MockTerminalSearchInteraction();
-//   late final TerminalSearch uut;
+//   final terminalsearchinteractionmock = mockterminalsearchinteraction();
+//   late final terminalsearch uut;
 
-//   MockBuffer _getBufferFromCellData(List<String> cellData) {
-//     final result = MockBuffer();
-//     final circularList = MockTerminalSearchTestCircularList();
-//     when(result.lines).thenReturn(circularList);
-//     when(circularList[0]).thenReturn(_getBufferLineFromData(cellData));
-//     when(circularList.length).thenReturn(1);
+//   mockbuffer _getbufferfromcelldata(list<string> celldata) {
+//     final result = mockbuffer();
+//     final circularlist = mockterminalsearchtestcircularlist();
+//     when(result.lines).thenreturn(circularlist);
+//     when(circularlist[0]).thenreturn(_getbufferlinefromdata(celldata));
+//     when(circularlist.length).thenreturn(1);
 
 //     return result;
 //   }
 
-//   MockBuffer _getBuffer(
-//     List<String> lines, {
-//     isCached = true,
-//     List<int>? dirtyIndices,
+//   mockbuffer _getbuffer(
+//     list<string> lines, {
+//     iscached = true,
+//     list<int>? dirtyindices,
 //   }) {
-//     final result = MockBuffer();
-//     final circularList = MockTerminalSearchTestCircularList();
-//     when(result.lines).thenReturn(circularList);
+//     final result = mockbuffer();
+//     final circularlist = mockterminalsearchtestcircularlist();
+//     when(result.lines).thenreturn(circularlist);
 
-//     final bufferLines = _getBufferLinesWithSearchContent(
+//     final bufferlines = _getbufferlineswithsearchcontent(
 //       lines,
-//       isCached: isCached,
-//       dirtyIndices: dirtyIndices,
+//       iscached: iscached,
+//       dirtyindices: dirtyindices,
 //     );
 
-//     when(circularList[any]).thenAnswer(
-//         (realInvocation) => bufferLines[realInvocation.positionalArguments[0]]);
-//     when(circularList.length).thenReturn(bufferLines.length);
+//     when(circularlist[any]).thenanswer(
+//         (realinvocation) => bufferlines[realinvocation.positionalarguments[0]]);
+//     when(circularlist.length).thenreturn(bufferlines.length);
 
 //     return result;
 //   }
 
-//   BufferLine _getBufferLineFromData(List<String> cellData) {
-//     final result = BufferLine(length: _terminalWidth);
-//     int currentIndex = 0;
-//     for (var data in cellData) {
-//       final codePoint = data.runes.first;
-//       final width = unicodeV11.wcwidth(codePoint);
-//       result.cellInitialize(
-//         currentIndex,
-//         content: codePoint,
+//   bufferline _getbufferlinefromdata(list<string> celldata) {
+//     final result = bufferline(length: _terminalwidth);
+//     int currentindex = 0;
+//     for (var data in celldata) {
+//       final codepoint = data.runes.first;
+//       final width = unicodev11.wcwidth(codepoint);
+//       result.cellinitialize(
+//         currentindex,
+//         content: codepoint,
 //         width: width,
-//         cursor: Cursor(bg: 0, fg: 0, flags: 0),
+//         cursor: cursor(bg: 0, fg: 0, flags: 0),
 //       );
-//       currentIndex++;
+//       currentindex++;
 //       for (int i = 1; i < width; i++) {
-//         result.cellInitialize(
-//           currentIndex,
+//         result.cellinitialize(
+//           currentindex,
 //           content: 0,
 //           width: 0,
-//           cursor: Cursor(bg: 0, fg: 0, flags: 0),
+//           cursor: cursor(bg: 0, fg: 0, flags: 0),
 //         );
-//         currentIndex++;
+//         currentindex++;
 //       }
 //     }
 //     return result;
 //   }
 
-//   List<MockBufferLine> _getBufferLinesWithSearchContent(
-//     List<String> content, {
-//     isCached = true,
-//     List<int>? dirtyIndices,
+//   list<mockbufferline> _getbufferlineswithsearchcontent(
+//     list<string> content, {
+//     iscached = true,
+//     list<int>? dirtyindices,
 //   }) {
-//     final result = List<MockBufferLine>.empty(growable: true);
+//     final result = list<mockbufferline>.empty(growable: true);
 //     for (int i = 0; i < content.length; i++) {
-//       final bl = MockBufferLine();
-//       when(bl.hasCachedSearchString).thenReturn(isCached);
-//       when(bl.toSearchString(any)).thenReturn(content[i]);
-//       if (dirtyIndices?.contains(i) ?? false) {
-//         when(bl.isTagDirty(any)).thenReturn(true);
+//       final bl = mockbufferline();
+//       when(bl.hascachedsearchstring).thenreturn(iscached);
+//       when(bl.tosearchstring(any)).thenreturn(content[i]);
+//       if (dirtyindices?.contains(i) ?? false) {
+//         when(bl.istagdirty(any)).thenreturn(true);
 //       } else {
-//         when(bl.isTagDirty(any)).thenReturn(false);
+//         when(bl.istagdirty(any)).thenreturn(false);
 //       }
 //       result.add(bl);
 //     }

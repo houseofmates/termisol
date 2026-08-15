@@ -4,29 +4,47 @@
   <strong>a modern, gpu-accelerated terminal emulator built with flutter</strong>
 </p>
 
+<<<<<<< Updated upstream
 <p align="center">
   cross-platform • ai-powered • vr-ready • designed for developers who demand more
 </p>
+=======
+<h2 align="center">made for</h2>
+
+>>>>>>> Stashed changes
 
 <hr>
 
+<<<<<<< Updated upstream
 <h2 align="center">overview</h2>
 
 <p align="center">termisol is a feature-rich terminal emulator that breaks from the gtk/qt mold by leveraging flutter's cross-platform capabilities and skia/impeller gpu rendering. it provides true <strong>xterm-256color</strong> emulation via the xterm.dart package with a real pty backend, delivering a responsive terminal experience across linux, macos, windows, android, and meta quest vr.</p>
+=======
+<h2 align="center">what makes it different</h2>
+
+
+most terminal emulators are gtk or qt apps that look and feel exactly the same. termisol is a flutter app that looks like something you'd want to leave open all day. it has a dark theme, a retro amber theme, a light theme, opacity sliders, monospaced fonts you actually like (cascadia code, fira code, jetbrains mono), and a built-in editor with syntax highlighting so you can stop opening gedit every time you need to edit a config file.
+>>>>>>> Stashed changes
 
 <h2 align="center">key features</h2>
 
 <h3 align="center">terminal emulation</h3>
 
+<<<<<<< Updated upstream
 - **xterm-256color** — full ansi/vt100 terminal emulation with 256-color support
 - **real pty backend** — native pseudo-terminal on desktop, process-based on android
 - **gpu-accelerated rendering** — skia/impeller backend targeting 60 fps
 - **50,000-line scrollback** — configurable with memory-efficient compression
 - **bracketed paste mode** — safe multiline paste handling
 - **osc 8 hyperlinks** — ctrl+click to open urls from terminal output
+=======
+<h2 align="center">features</h2>
+
+>>>>>>> Stashed changes
 
 <h3 align="center">tab & pane management</h3>
 
+<<<<<<< Updated upstream
 - **tabbed interface** — create, close, rename, duplicate, reorder tabs via drag
 - **split panes** — horizontal and vertical splits with draggable dividers
 - **session persistence** — restore previous tabs and working directories on restart
@@ -90,6 +108,31 @@
 cd termisol
 flutter pub get
 flutter run -d linux      # or: android, windows, macos
+=======
+<h2 align="center">what it is not for</h2>
+
+
+- **no offline ai on desktop** — desktop builds are cloud-only. no quantized model is bundled. if nim is unreachable, there is nowhere to fall back to.
+- **no sixel, kitty, or iterm2 graphics in the terminal grid** — graphicsprotocolhandler exists but is not wired into the active terminal view. if you need image previews in the terminal you are using the wrong tool.
+- **not designed for everyone** — the alias system, the split panes, the broadcast input, the ai feature — these were all built for specific ways of working. if your terminal needs are different there is no obligation here.
+- **android local fallback is opt-in** — it only activates if a local llm server is detected at startup on android. you cannot rely on it as a primary workflow.
+
+<h2 align="center">installation</h2>
+
+
+```bash
+<h1 align="center">flutter must be on your path</h1>
+
+export path="$home/flutter-sdk/bin:$path"
+
+<h1 align="center">install dependencies and run</h1>
+
+flutter pub get
+flutter run -d linux      # or android, windows, macos
+
+<h1 align="center">release build</h1>
+
+>>>>>>> Stashed changes
 flutter build linux --release
 flutter build apk --release
 flutter build windows --release

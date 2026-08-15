@@ -71,3 +71,18 @@ AppDir/
 # Devin and Windsurf
 .devin/
 .windsurf/
+
+# --- auto-push safety (added by autosync setup) ---
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.jks.backup
+*.p12
+*.pfx
+keystore.properties
+**/secrets/
+node_modules/
+__pycache__/
+.DS_Store

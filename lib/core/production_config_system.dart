@@ -26,6 +26,8 @@ class ProductionConfigSystem {
   DateTime? _lastSaveTime;
   int _saveAttempts = 0;
 
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
   /// stream of configuration changes
   Stream<ConfigChangeEvent> get changes => _changeController.stream;
 
@@ -397,6 +399,13 @@ class ProductionConfigSystem {
 
   /// get a configuration value
   T? get<T>(String key, [T? defaultValue]) {
+    // sensitive keys are retrieved from secure storage
+    if (_sensitiveKeys.contains(key)) {
+      final secureValue = _secureStorage.read(key: key) as T?;
+      if (secureValue != null) return secureValue;
+      return defaultValue ?? _getDefault<T>(key);
+    }
+
     final keys = key.split('.');
     dynamic current = _config;
 

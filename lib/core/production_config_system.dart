@@ -191,6 +191,9 @@ class ProductionConfigSystem {
       // load configuration
       await _loadConfiguration();
 
+      // load sensitive keys from secure storage
+      await _loadSensitiveKeys();
+
       _initialized = true;
       debugPrint('ProductionConfigSystem initialized');
     } catch (e) {
@@ -399,13 +402,6 @@ class ProductionConfigSystem {
 
   /// get a configuration value
   T? get<T>(String key, [T? defaultValue]) {
-    // sensitive keys are retrieved from secure storage
-    if (_sensitiveKeys.contains(key)) {
-      final secureValue = _secureStorage.read(key: key) as T?;
-      if (secureValue != null) return secureValue;
-      return defaultValue ?? _getDefault<T>(key);
-    }
-
     final keys = key.split('.');
     dynamic current = _config;
 

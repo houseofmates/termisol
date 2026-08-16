@@ -26,7 +26,7 @@ dependencies:
   mime: ^1.0.4
   path: ^1.9.0
   path_provider: ^2.1.5
-  postgres: any
+  postgres: ^2.0.7
   pty:
     path: packages/pty
   shared_preferences: ^2.5.5

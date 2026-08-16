@@ -519,8 +519,24 @@ class ProductionConfigSystem {
         await _configFile!.copy(backupFile.path);
       }
 
-      // save new config
-      final jsonString = const JsonEncoder.withIndent('  ').convert(_config);
+      // save new config (exclude sensitive keys from plaintext file)
+      final configToSave = Map<String, dynamic>.from(_config);
+      for (final key in _sensitiveKeys) {
+        final parts = key.split('.');
+        dynamic current = configToSave;
+        for (var i = 0; i < parts.length - 1; i++) {
+          if (current is Map && current.containsKey(parts[i])) {
+            current = current[parts[i]];
+          } else {
+            current = null;
+            break;
+          }
+        }
+        if (current is Map) {
+          current.remove(parts.last);
+        }
+      }
+      final jsonString = const JsonEncoder.withIndent('  ').convert(configToSave);
       await _configFile!.writeAsString(jsonString);
 
       _lastSaveTime = DateTime.now();

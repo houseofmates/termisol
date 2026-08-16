@@ -483,6 +483,22 @@ class ProductionConfigSystem {
     _setNestedValue(map[key] as Map<String, dynamic>, remaining, value);
   }
 
+  /// load sensitive keys from secure storage into memory
+  Future<void> _loadSensitiveKeys() async {
+    for (final key in _sensitiveKeys) {
+      final value = await _secureStorage.read(key: key);
+      if (value != null) {
+        final keys = key.split('.');
+        _setNestedValue(_config, keys, value);
+      }
+    }
+  }
+
+  /// save a sensitive key to secure storage
+  Future<void> _saveSensitiveKey(String key, String value) async {
+    await _secureStorage.write(key: key, value: value);
+  }
+
   /// save configuration to persistent storage
   Future<void> save() async {
     if (_configFile == null) return;

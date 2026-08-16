@@ -6,7 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// keys that should be stored in secure storage instead of plaintext config file
-const Set<String> _sensitiveKeys = {'ai.api_key'};
+const Set<String> _sensitiveKeys = {'ai.api_key', 'deepl_api_key'};
 
 /// production-ready configuration system with validation, defaults, and runtime updates.
 /// supports hierarchical configuration with environment-specific overrides.

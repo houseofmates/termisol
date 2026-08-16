@@ -4,61 +4,48 @@
   <strong>a modern, gpu-accelerated terminal emulator built with flutter</strong>
 </p>
 
-<<<<<<< Updated upstream
 <p align="center">
   cross-platform • ai-powered • vr-ready • designed for developers who demand more
 </p>
-=======
-<h2 align="center">made for</h2>
 
->>>>>>> Stashed changes
+<div align="center">
+  <img src="https://img.shields.io/badge/flutter-3.29+-10b981?style=flat-square" alt="flutter" />
+  <img src="https://img.shields.io/badge/license-mates-green?style=flat-square" alt="license" />
+</div>
 
 <hr>
 
-<<<<<<< Updated upstream
-<h2 align="center">overview</h2>
+## made for
 
-<p align="center">termisol is a feature-rich terminal emulator that breaks from the gtk/qt mold by leveraging flutter's cross-platform capabilities and skia/impeller gpu rendering. it provides true <strong>xterm-256color</strong> emulation via the xterm.dart package with a real pty backend, delivering a responsive terminal experience across linux, macos, windows, android, and meta quest vr.</p>
-=======
-<h2 align="center">what makes it different</h2>
+termisol was built because most terminal emulators look like they were designed by a committee that never met. this is a flutter app that looks like something you'd want to leave open all day. it has a dark theme, a retro amber theme, a light theme, opacity sliders, monospaced fonts you actually like (cascadia code, fira code, jetbrains mono), and a built-in editor with syntax highlighting so you can stop opening gedit every time you need to edit a config file.
 
+## what makes it different
 
-most terminal emulators are gtk or qt apps that look and feel exactly the same. termisol is a flutter app that looks like something you'd want to leave open all day. it has a dark theme, a retro amber theme, a light theme, opacity sliders, monospaced fonts you actually like (cascadia code, fira code, jetbrains mono), and a built-in editor with syntax highlighting so you can stop opening gedit every time you need to edit a config file.
->>>>>>> Stashed changes
+most terminal emulators are gtk or qt apps that look and feel exactly the same. termisol is a flutter app that looks like something you'd want to leave open all day. the mood is the point: dark theme, low contrast but high readability, no floating action buttons, no card heaviness. the gpu rendering via skia/impeller targets 60 fps so scrolling through thousands of lines feels smooth. and the built-in ai integration via nvidia nim is for those moments when you've been staring at an error message for too long.
 
-<h2 align="center">key features</h2>
+## features
 
-<h3 align="center">terminal emulation</h3>
-
-<<<<<<< Updated upstream
+### terminal emulation
 - **xterm-256color** — full ansi/vt100 terminal emulation with 256-color support
 - **real pty backend** — native pseudo-terminal on desktop, process-based on android
 - **gpu-accelerated rendering** — skia/impeller backend targeting 60 fps
 - **50,000-line scrollback** — configurable with memory-efficient compression
 - **bracketed paste mode** — safe multiline paste handling
 - **osc 8 hyperlinks** — ctrl+click to open urls from terminal output
-=======
-<h2 align="center">features</h2>
 
->>>>>>> Stashed changes
-
-<h3 align="center">tab & pane management</h3>
-
-<<<<<<< Updated upstream
+### tab & pane management
 - **tabbed interface** — create, close, rename, duplicate, reorder tabs via drag
 - **split panes** — horizontal and vertical splits with draggable dividers
 - **session persistence** — restore previous tabs and working directories on restart
 - **directory tracking** — tab titles auto-update via osc 7 and prompt parsing
 - **broadcast input** — send keystrokes to all tabs simultaneously (ctrl+shift+b)
 
-<h3 align="center">ai integration</h3>
-
+### ai integration
 - **nvidia nim api** — cloud ai via `/ai <query>` command with multiple model support
 - **local fallback** — android auto-detects local gemma 4:4b llm server if cloud unavailable
 - **command assistance** — get explanations, suggestions, and error analysis
 
-<h3 align="center">developer tools</h3>
-
+### developer tools
 - **built-in editor** — full-featured text editor with undo/redo, syntax highlighting, find/replace
 - **command aliases** — configure shortcuts (e.g., `g` → `git`, `gs` → `git status`)
 - **smart autocomplete** — command suggestions based on history and context
@@ -67,182 +54,155 @@ most terminal emulators are gtk or qt apps that look and feel exactly the same. 
 - **hints mode** — letter overlays on urls/paths for quick keyboard access (ctrl+shift+h)
 - **command palette** — fuzzy-find all actions (ctrl+shift+p)
 
-<h3 align="center">customization</h3>
-
+### customization
 - **themes** — dark, light, and retro (amber-on-black crt aesthetic)
 - **fonts** — cascadia code, fira code, jetbrains mono, source code pro, droid sans mono
 - **opacity** — background transparency slider (50-100%)
 - **zoom** — font size control (ctrl+=/ctrl+-/ctrl+0)
 - **ligatures** — programming ligature support in compatible fonts
 
-<h3 align="center">accessibility</h3>
-
+### accessibility
 - **screen reader support** — tts integration for interface elements
 - **high contrast mode** — enhanced visibility option
 - **color blind modes** — protanopia, deuteranopia, tritanopia filters
 - **keyboard navigation** — full keyboard control with customizable shortcuts
 - **font/cursor scaling** — adjustable sizes for visibility
 
-<h3 align="center">platform-specific features</h3>
-
+### platform-specific features
 - **linux/macos/windows** — native window management with proper title bar
 - **android** — landscape/portrait support, immersive mode
 - **meta quest vr** — openxr integration with controller input mapping
 
-<h3 align="center">performance & reliability</h3>
-
+### performance & reliability
 - **gpu rendering** — sub-16ms frame times for smooth scrolling
-- **ring buffer scrollback** — memory-efficient with automatic compression
-- **crash recovery** — session state saved for automatic restoration
+- **ring buffer scrollback** — memory-efficient with gzip compression for old lines
+- **throttled rendering** — frame rate control prevents gpu saturation
+- **backpressure flow control** — handles high-throughput output without blocking
+- **session persistence** — automatic state saving with crash recovery
 - **health monitoring** — built-in diagnostics and error reporting
 
-<h2 align="center">installation</h2>
+<hr>
 
-<h3 align="center">prerequisites</h3>
+## what it is not for
 
-<p align="center">flutter sdk 3.29.0+ with dart 3.11.0+<br>platform-specific build tools (xcode, android studio, visual studio, etc.)</p>
+- **no offline ai on desktop** — desktop builds are cloud-only. no quantized model is bundled. if nim is unreachable, there is nowhere to fall back to.
+- **no sixel, kitty, or iterm2 graphics in the terminal grid** — graphics protocol handler exists but is not wired into the active terminal view. if you need image previews in the terminal you are using the wrong tool.
+- **android local ai is opt-in** — it only activates if a local llm server is detected at startup on android. you cannot rely on it as a primary workflow.
+- **not designed for everyone** — the alias system, the split panes, the broadcast input, the ai feature — these were all built for specific ways of working. if your terminal needs are different there is no obligation here.
 
-<h3 align="center">build from source</h3>
+<hr>
 
-<pre align="center"><code>git clone https://github.com/your-username/termisol.git
+## installation
+
+### prerequisites
+flutter sdk 3.29.0+ with dart 3.11.0+
+platform-specific build tools (xcode, android studio, visual studio, etc.)
+
+### build from source
+```bash
+git clone https://github.com/your-username/termisol.git
 cd termisol
 flutter pub get
 flutter run -d linux      # or: android, windows, macos
-=======
-<h2 align="center">what it is not for</h2>
+```
 
-
-- **no offline ai on desktop** — desktop builds are cloud-only. no quantized model is bundled. if nim is unreachable, there is nowhere to fall back to.
-- **no sixel, kitty, or iterm2 graphics in the terminal grid** — graphicsprotocolhandler exists but is not wired into the active terminal view. if you need image previews in the terminal you are using the wrong tool.
-- **not designed for everyone** — the alias system, the split panes, the broadcast input, the ai feature — these were all built for specific ways of working. if your terminal needs are different there is no obligation here.
-- **android local fallback is opt-in** — it only activates if a local llm server is detected at startup on android. you cannot rely on it as a primary workflow.
-
-<h2 align="center">installation</h2>
-
-
+### release build
 ```bash
-<h1 align="center">flutter must be on your path</h1>
-
-export path="$home/flutter-sdk/bin:$path"
-
-<h1 align="center">install dependencies and run</h1>
-
-flutter pub get
-flutter run -d linux      # or android, windows, macos
-
-<h1 align="center">release build</h1>
-
->>>>>>> Stashed changes
 flutter build linux --release
 flutter build apk --release
 flutter build windows --release
 flutter build macos --release
-</code></pre>
+```
 
-<h3 align="center">debian package</h3>
-
-<pre align="center"><code>./build_deb.sh
+### debian package
+```bash
+./build_deb.sh
 sudo dpkg -i termisol_*.deb
-</code></pre>
+```
 
-<h3 align="center">android apk</h3>
-
-<pre align="center"><code>./build_apk.sh
+### android apk
+```bash
+./build_apk.sh
 # apk output: build/app/outputs/flutter-apk/app-release.apk
-</code></pre>
+```
 
-<h2 align="center">configuration</h2>
+<hr>
 
-<p align="center">settings are stored via sharedpreferences and persisted across sessions. configure through the in-app settings page or programmatically:</p>
+## configuration
 
-<div align="center">
-<table>
-  <thead>
-    <tr><th>setting</th><th>default</th><th>description</th></tr>
-  </thead>
-  <tbody>
-    <tr><td><code>scrollback_lines</code></td><td>50000</td><td>maximum scrollback buffer size</td></tr>
-    <tr><td><code>font_size</code></td><td>14.0</td><td>terminal font size</td></tr>
-    <tr><td><code>font_family</code></td><td>droidsansmono</td><td>terminal font</td></tr>
-    <tr><td><code>bg_opacity</code></td><td>1.0</td><td>background opacity (0.5-1.0)</td></tr>
-    <tr><td><code>ai.enabled</code></td><td>true</td><td>enable ai features</td></tr>
-    <tr><td><code>ai.api_key</code></td><td>—</td><td>nvidia nim api key</td></tr>
-  </tbody>
-</table>
-</div>
+settings are stored via sharedpreferences and persisted across sessions. configure through the in-app settings page or programmatically:
 
-<h2 align="center">keyboard shortcuts</h2>
+| setting            | default          | description                              |
+|--------------------|------------------|------------------------------------------|
+| `scrollback_lines` | 50000            | maximum scrollback buffer size           |
+| `font_size`        | 14.0             | terminal font size                       |
+| `font_family`      | droidsansmono    | terminal font                            |
+| `bg_opacity`       | 1.0              | background opacity (0.5-1.0)             |
+| `ai.enabled`       | true             | enable ai features                       |
+| `ai.api_key`       | —                | nvidia nim api key (stored encrypted)    |
 
-<h3 align="center">terminal</h3>
+> **security note:** the `ai.api_key` is stored using `flutter_secure_storage`, not sharedpreferences. on android this uses the keystore system; on linux it uses the gnome keyring or a file-based fallback. if flutter_secure_storage fails to initialize, the key will not be persisted and you will need to re-enter it on each launch.
 
-<div align="center">
-<table>
-  <thead>
-    <tr><th>shortcut</th><th>action</th></tr>
-  </thead>
-  <tbody>
-    <tr><td>ctrl+n</td><td>new tab</td></tr>
-    <tr><td>ctrl+t</td><td>duplicate tab</td></tr>
-    <tr><td>ctrl+w</td><td>close tab</td></tr>
-    <tr><td>ctrl+shift+w</td><td>close all other tabs</td></tr>
-    <tr><td>ctrl+tab</td><td>next tab</td></tr>
-    <tr><td>ctrl+c</td><td>copy selection</td></tr>
-    <tr><td>ctrl+shift+c</td><td>send interrupt (sigint)</td></tr>
-    <tr><td>ctrl+v</td><td>paste</td></tr>
-    <tr><td>ctrl+a</td><td>select all / copy all content</td></tr>
-    <tr><td>ctrl+f</td><td>find in terminal</td></tr>
-    <tr><td>ctrl+shift+p</td><td>command palette</td></tr>
-    <tr><td>ctrl+shift+o</td><td>toggle performance overlay</td></tr>
-    <tr><td>ctrl+shift+b</td><td>toggle broadcast input</td></tr>
-    <tr><td>ctrl+shift+h</td><td>hints mode</td></tr>
-    <tr><td>ctrl+= / ctrl+-</td><td>zoom in / out</td></tr>
-    <tr><td>ctrl+0</td><td>reset zoom</td></tr>
-  </tbody>
-</table>
-</div>
+## environment variables
 
-<h3 align="center">built-in editor (<code>edit &lt;filename&gt;</code>)</h3>
+| variable               | default           | description                              |
+|------------------------|-------------------|------------------------------------------|
+| `TERMISOL_LLM_URL`     | see config        | local llm server url for fallback        |
+| `TERMISOL_PROXY_URL`   | `http://localhost`| proxy configuration for network requests |
 
-<div align="center">
-<table>
-  <thead>
-    <tr><th>shortcut</th><th>action</th></tr>
-  </thead>
-  <tbody>
-    <tr><td>ctrl+z</td><td>undo</td></tr>
-    <tr><td>ctrl+x</td><td>redo</td></tr>
-    <tr><td>ctrl+c</td><td>copy</td></tr>
-    <tr><td>ctrl+v</td><td>paste</td></tr>
-    <tr><td>ctrl+a</td><td>select all</td></tr>
-    <tr><td>ctrl+s</td><td>save</td></tr>
-    <tr><td>ctrl+o</td><td>open file</td></tr>
-    <tr><td>ctrl+w</td><td>close editor</td></tr>
-    <tr><td>ctrl+f</td><td>find</td></tr>
-    <tr><td>ctrl+shift+d</td><td>duplicate line</td></tr>
-    <tr><td>tab</td><td>indent (2 spaces)</td></tr>
-  </tbody>
-</table>
-</div>
+<hr>
 
-<h3 align="center">accessibility</h3>
+## keyboard shortcuts
 
-<div align="center">
-<table>
-  <thead>
-    <tr><th>shortcut</th><th>action</th></tr>
-  </thead>
-  <tbody>
-    <tr><td>ctrl+alt+a</td><td>toggle screen reader</td></tr>
-    <tr><td>ctrl+alt+h</td><td>toggle high contrast</td></tr>
-    <tr><td>ctrl+alt+f</td><td>increase font scale</td></tr>
-    <tr><td>ctrl+alt+d</td><td>decrease font scale</td></tr>
-  </tbody>
-</table>
-</div>
+### terminal
+| shortcut         | action                          |
+|------------------|---------------------------------|
+| ctrl+n           | new tab                         |
+| ctrl+t           | duplicate tab                   |
+| ctrl+w           | close tab                       |
+| ctrl+shift+w     | close all other tabs            |
+| ctrl+tab         | next tab                        |
+| ctrl+c           | copy selection                  |
+| ctrl+shift+c     | send interrupt (sigint)         |
+| ctrl+v           | paste                           |
+| ctrl+a           | select all / copy all content   |
+| ctrl+f           | find in terminal                |
+| ctrl+shift+p     | command palette                 |
+| ctrl+shift+o     | toggle performance overlay      |
+| ctrl+shift+b     | toggle broadcast input          |
+| ctrl+shift+h     | hints mode                      |
+| ctrl+= / ctrl+-  | zoom in / out                   |
+| ctrl+0           | reset zoom                      |
 
-<h2 align="center">ai commands</h2>
+### built-in editor (`edit <filename>`)
+| shortcut         | action                          |
+|------------------|---------------------------------|
+| ctrl+z           | undo                            |
+| ctrl+x           | redo                            |
+| ctrl+c           | copy                            |
+| ctrl+v           | paste                           |
+| ctrl+a           | select all                      |
+| ctrl+s           | save                            |
+| ctrl+o           | open file                       |
+| ctrl+w           | close editor                    |
+| ctrl+f           | find                            |
+| ctrl+shift+d     | duplicate line                  |
+| tab              | indent (2 spaces)               |
 
-<pre align="center"><code># ask a question
+### accessibility
+| shortcut         | action                          |
+|------------------|---------------------------------|
+| ctrl+alt+a       | toggle screen reader            |
+| ctrl+alt+h       | toggle high contrast            |
+| ctrl+alt+f       | increase font scale             |
+| ctrl+alt+d       | decrease font scale             |
+
+<hr>
+
+## ai commands
+
+```bash
+# ask a question
 /ai how do i find files larger than 100mb?
 
 # get command help
@@ -250,11 +210,13 @@ sudo dpkg -i termisol_*.deb
 
 # debug errors
 /ai why is this failing: [paste error message]
-</code></pre>
+```
 
-<h2 align="center">architecture</h2>
+<hr>
 
-<pre align="center"><code>lib/
+## architecture
+```
+lib/
 ├── main.dart              # entry point with error handling
 ├── app.dart               # root materialapp with vr detection
 ├── core/                  # core terminal functionality
@@ -280,9 +242,9 @@ sudo dpkg -i termisol_*.deb
 packages/
 ├── pty/                   # platform-specific pty bindings
 └── xterm/                 # terminal emulation library
-</code></pre>
+```
 
-<h2 align="center">technical highlights</h2>
+## technical highlights
 
 - **service registry pattern** — lazy-loading dependency injection reduces startup time
 - **ring buffer scrollback** — memory-efficient with gzip compression for old lines
@@ -290,22 +252,14 @@ packages/
 - **backpressure flow control** — handles high-throughput output without blocking
 - **session persistence** — automatic state saving with crash recovery
 
-<h2 align="center">limitations</h2>
+<hr>
 
-- **desktop ai is cloud-only** — no bundled local model; requires nvidia nim api access
-- **graphics protocols** — sixel/kitty/iterm2 image protocols not rendered in terminal grid
-- **android local ai** — opt-in; requires separate llm server app running locally
+## contributing
 
-<h2 align="center">contributing</h2>
-
-<p align="center">see <a href="contributing.md">contributing.md</a> for development guidelines.</p>
-
-<h2 align="center">license</h2>
-
-<p align="center"><a href="license">the mates license</a></p>
+see [contributing.md](./contributing.md) for development guidelines.
 
 <hr>
 
-<p align="center">
-  built with flutter • powered by xterm.dart • ai by nvidia nim
-</p>
+## license
+
+<a href="./LICENSE">the mates license</a>

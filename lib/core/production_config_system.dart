@@ -445,6 +445,13 @@ class ProductionConfigSystem {
     final keys = key.split('.');
     _setNestedValue(_config, keys, value);
 
+    // save sensitive keys to secure storage
+    if (_sensitiveKeys.contains(key)) {
+      if (value is String) {
+        await _saveSensitiveKey(key, value);
+      }
+    }
+
     // emit change event
     _changeController.add(
       ConfigChangeEvent(
@@ -460,7 +467,7 @@ class ProductionConfigSystem {
       await save();
     }
 
-    debugPrint('Config updated: $key = $value');
+    debugPrint('Config updated: $key');
   }
 
   void _setNestedValue(
